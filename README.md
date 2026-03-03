@@ -1,7 +1,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
-> **版本：** v1.0  
-> **最后更新：** 2026-03-02  
+> **版本：** v1.1  
+> **最后更新：** 2026-03-03  
 > **作者：** 二狗子 🐕  
 > **适用岗位：** AI Application Developer / LLM Engineer / AI Agent 开发工程师
 
@@ -22,7 +22,8 @@
 - ✅ 向量数据库与 Embedding
 - ✅ Prompt Engineering 进阶
 - ✅ 成本优化与性能调优
-- ✅ 50+ 高频面试题 + 高分回答
+- ✅ **MCP 协议与 Skill 系统**（2026 热点）
+- ✅ **70+ 高频面试题 + 高分回答**
 
 ---
 
@@ -30,12 +31,13 @@
 
 ### 一、面试题库
 
-| 分类 | 内容 | 难度 |
-|------|------|------|
-| 🟢 **基础概念** | LLM 原理、Token、Context Window、Temperature 等 | ⭐⭐ |
-| 🟡 **RAG 系统** | 检索增强生成、向量数据库、Embedding、Rerank | ⭐⭐⭐ |
-| 🟠 **Agent 开发** | ReAct、Function Calling、多智能体协作 | ⭐⭐⭐⭐ |
-| 🔴 **工程架构** | 成本控制、性能优化、监控评估、生产部署 | ⭐⭐⭐⭐⭐ |
+| 分类 | 内容 | 难度 | 题数 |
+|------|------|------|------|
+| 🟢 **基础概念** | LLM 原理、Token、Context Window、Temperature 等 | ⭐⭐ | 14 道 |
+| 🟡 **RAG 系统** | 检索增强生成、向量数据库、Embedding、Rerank | ⭐⭐⭐ | 10 道 |
+| 🟠 **Agent 开发** | ReAct、Function Calling、多智能体协作 | ⭐⭐⭐⭐ | 8 道 |
+| 🔴 **工程架构** | 成本控制、性能优化、监控评估、生产部署 | ⭐⭐⭐⭐⭐ | 20 道 |
+| 🟣 **MCP & Skill** | MCP 协议、Skill 系统设计、动态加载、安全隔离 | ⭐⭐⭐⭐⭐ | 11 道 |
 
 ### 二、核心知识点
 
@@ -140,7 +142,12 @@ ai-interview-guide/
 │   ├── 02-rag.md          # RAG 系统
 │   ├── 03-embedding.md    # Embedding 与向量
 │   ├── 04-agent.md        # AI Agent
-│   └── 05-engineering.md  # 工程化
+│   ├── 05-engineering.md  # 工程化
+│   ├── 06-advanced-questions/  # 进阶问题
+│   ├── 07-hot-questions/       # 高频面试题
+│   ├── 08-framework-ops/       # 框架与运维
+│   ├── 09-vector-index-deep-dive/  # 向量索引深入
+│   └── 10-mcp-skill/      # MCP & Skill 系统（新增）
 ├── questions/             # 面试题库
 │   ├── basic.md           # 基础题
 │   ├── rag.md             # RAG 题
@@ -161,7 +168,8 @@ ai-interview-guide/
 
 - **📖 系统化** - 从基础到进阶，完整知识体系
 - **💡 实战导向** - 每个知识点配实战案例
-- **🎯 面试友好** - 50+ 高频题 + 高分回答模板
+- **🎯 面试友好** - **70+ 高频题** + 高分回答模板
+- **🔥 最新内容** - MCP 协议、Skill 系统设计（2026 热点）
 - **🔄 持续更新** - 跟随 AI 领域最新发展
 
 ---
