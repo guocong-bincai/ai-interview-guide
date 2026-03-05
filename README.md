@@ -1,142 +1,322 @@
+<div align="center">
+
 # 🚀 AI 应用开发工程师面试宝典
 
-> **版本：** v2.0
-> **最后更新：** 2026-03-05
-> **作者：** 二狗子 🐕
-> **适用岗位：** AI Application Developer / LLM Engineer / AI Agent 开发工程师
+**🎯 137+ 道高频面试题 | 16 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=flat)](https://github.com/guocong-bincai/ai-interview-guide)
-[![Last Commit](https://img.shields.io/github/last-commit/guocong-bincai/ai-interview-guide?style=flat)](https://github.com/guocong-bincai/ai-interview-guide/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
+[![GitHub forks](https://img.shields.io/github/forks/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
+[![Last Commit](https://img.shields.io/github/last-commit/guocong-bincai/ai-interview-guide)](https://github.com/guocong-bincai/ai-interview-guide)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
+
+**适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
+**版本:** v2.0 | **最后更新:** 2026-03-05
+
+[📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
+
+</div>
 
 ---
 
-## 📖 简介
+## 📖 项目简介
 
-本仓库是 **AI 应用开发工程师** 的面试备考指南，专注于帮助传统后端开发者转型 AI 应用开发领域。
+> 一个**系统化、实战化、面试友好**的 AI 应用开发工程师学习资源，涵盖从 LLM 基础到生产部署的完整技术栈。
 
-**内容涵盖：**
-- ✅ RAG 系统设计与实战
-- ✅ AI Agent 开发模式
-- ✅ LLM 应用架构与工程化
-- ✅ 向量数据库与 Embedding
-- ✅ Prompt Engineering 进阶
-- ✅ 成本优化与性能调优
-- ✅ **MCP 协议与 Skill 系统**（2026 热点）
-- ✅ **AI 安全与评估**（2026 热点）
-- ✅ **AI 应用开发高级专题**（2026 热点）
-- ✅ **90+ 高频面试题 + 高分回答**
+### 🌟 核心特色
+
+- **📚 系统化学习路径** - 16个模块从易到难，137+道题覆盖完整知识体系
+- **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
+- **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
+- **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
+- **✅ 面试友好** - 包含"面试话术"模板和速记卡片，可直接背诵
+
+### 📊 内容概览
+
+| 维度 | 数据 |
+|------|------|
+| 📝 **总题数** | 137+ 道 |
+| 📂 **核心模块** | 16 个 |
+| 💻 **代码示例** | 90+ 个 |
+| 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
+| 🎓 **适用人群** | 初级 ~ 高级工程师 |
 
 ---
 
 ## 📚 目录
 
-### 一、面试题库（137+ 道题）
+## 🔥 核心面试题（按难度分级）
 
-| 分类 | 内容 | 难度 | 题数 |
-|------|------|------|------|
-| 🟢 **基础概念** | LLM 原理、Token、Context Window、Temperature 等 | ⭐⭐ | 14 道 |
-| 🟡 **RAG 系统** | 检索增强生成、向量数据库、Embedding、Rerank | ⭐⭐⭐ | 10 道 |
-| 🟠 **Agent 开发** | ReAct、Function Calling、多智能体协作 | ⭐⭐⭐⭐ | 8 道 |
-| 🔴 **工程架构** | 成本控制、性能优化、监控评估、生产部署 | ⭐⭐⭐⭐⭐ | 20 道 |
-| 🟣 **MCP & Skill** | MCP 协议、Skill 系统设计、动态加载、安全隔离 | ⭐⭐⭐⭐⭐ | 11 道 |
-| 🔵 **AI 安全与评估** | 内容安全、PII 保护、RAGAS 评估、回归测试 | ⭐⭐⭐⭐⭐ | 10 道 |
-| 🟤 **高级专题** | 多模态、自主 Agent、产品思维、调试优化、前沿技术 | ⭐⭐⭐⭐⭐ | 10 道 |
-| 🎓 **模型微调与训练** | LoRA、RLHF、DPO、微调策略、训练优化 | ⭐⭐⭐⭐ | 11 道 |
-| ⚡ **推理优化** | KV Cache、量化、FlashAttention、推理加速 | ⭐⭐⭐⭐⭐ | 10 道 |
-| 🎨 **多模态应用** | CLIP、BLIP、图文检索、多模态RAG | ⭐⭐⭐⭐ | 8 道 |
-| 🏗️ **Transformer架构** | Self-Attention、Multi-Head、BERT、GPT、位置编码 | ⭐⭐⭐⭐ | 7 道 |
+### 🟢 Level 1: 基础必备（适合 0-1 年经验）
 
-### 二、核心知识点
+> 掌握这些是进入 AI 应用开发领域的门槛
 
-```
-AI 应用开发知识体系
-├── 📌 LLM 基础
-│   ├── Token 与上下文管理
-│   ├── 温度/Top-P/Top-K 调参
-│   └── 模型选型（OpenAI vs 开源）
-│
-├── 📌 RAG 系统
-│   ├── 文档加载与切分
-│   ├── Embedding 向量化
-│   ├── 向量数据库（Milvus/Qdrant/pgvector）
-│   ├── 检索优化（混合检索/Rerank）
-│   └── 引用溯源与幻觉控制
-│
-├── 📌 AI Agent
-│   ├── ReAct 模式
-│   ├── Function Calling
-│   ├── 规划与反思
-│   └── 多智能体协作
-│
-├── 📌 工程化
-│   ├── 流式输出（SSE）
-│   ├── 语义缓存
-│   ├── 成本优化（模型路由/Prompt 压缩）
-│   └── 监控评估（RAGAS/Tracing）
-│
-└── 📌 数据处理
-    ├── PDF 解析与表格提取
-    ├── OCR 与布局分析
-    └── 数据清洗 Pipeline
-```
+| 序号 | 模块 | 核心内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Token、Temperature、Context Window、模型选型 | 🔥🔥🔥🔥🔥 | 14 |
+| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | Zero-shot、Few-shot、CoT、提示词设计 | 🔥🔥🔥🔥🔥 | 8 |
 
-### 三、高分实战案例
-
-1. **处理脏数据** - 复杂 PDF 表格解析（准确率 65% → 94%）
-2. **成本优化** - 模型路由 + 语义缓存（成本降低 35%）
-3. **生产部署** - 解决并发与流式卡顿（200 QPS 稳定运行）
+**学习重点:** LLM工作原理、基本调参、提示词工程
+**预计时间:** 1-2周
 
 ---
 
-## 🎯 使用指南
+### 🟡 Level 2: 应用开发（适合 1-2 年经验）
 
-### 快速开始
+> 能够独立开发 RAG 系统和简单 Agent
 
-1. **基础薄弱？** 从 [基础概念题](docs/01-basic.md) 开始
-2. **备战面试？** 直接刷 [面试题库](docs/interview-questions.md)
-3. **深入实战？** 看 [高分案例](docs/case-studies.md)
+| 序号 | 模块 | 核心内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 03 | [📚 RAG 系统](docs/03-rag-system/) | 检索增强生成、向量数据库、Embedding、Rerank | 🔥🔥🔥🔥🔥 | 10 |
+| 04 | [🏗️ Transformer架构](docs/04-transformer-architecture/) | Self-Attention、Multi-Head、BERT vs GPT | 🔥🔥🔥🔥 | 7 |
+| 05 | [🤖 AI Agent基础](docs/05-ai-agent-basics/) | ReAct、Function Calling、工具调用 | 🔥🔥🔥🔥🔥 | 8 |
 
-### 学习路线
+**学习重点:** RAG完整流程、向量检索、Agent基本模式
+**预计时间:** 2-3周
 
+---
+
+### 🟠 Level 3: 工程优化（适合 2-3 年经验）
+
+> 能够优化系统性能、降低成本、保证质量
+
+| 序号 | 模块 | 核心内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 06 | [⚙️ 向量索引优化](docs/06-vector-index-optimization/) | HNSW、IVF、混合检索、Rerank | 🔥🔥🔥🔥 | 8 |
+| 07 | [🎓 模型微调与训练](docs/07-model-training/) | LoRA、QLoRA、RLHF、DPO | 🔥🔥🔥🔥 | 11 |
+| 08 | [⚡ 推理优化](docs/08-inference-optimization/) | KV Cache、量化、FlashAttention、vLLM | 🔥🔥🔥🔥🔥 | 10 |
+| 09 | [🛡️ AI 安全与评估](docs/09-ai-safety-evaluation/) | 内容安全、PII保护、RAGAS评估 | 🔥🔥🔥🔥 | 10 |
+
+**学习重点:** 性能优化、成本控制、质量保障
+**预计时间:** 3-4周
+
+---
+
+### 🔴 Level 4: 架构设计（适合 3+ 年经验）
+
+> 能够设计复杂系统、处理生产问题
+
+| 序号 | 模块 | 核心内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、高并发 | 🔥🔥🔥🔥🔥 | 12 |
+| 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、图文检索、多模态RAG | 🔥🔥🔥 | 8 |
+| 12 | [🔧 框架与工具](docs/12-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
+
+**学习重点:** 系统架构、生产部署、多模态集成
+**预计时间:** 4-5周
+
+---
+
+### 🟣 Level 5: 前沿技术（适合资深工程师）
+
+> 掌握最新技术、引领团队创新
+
+| 序号 | 模块 | 核心内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 13 | [🎯 多智能体协作](docs/13-multi-agent-systems/) | Agent编排、通信机制、任务分解 | 🔥🔥🔥 | 8 |
+| 14 | [🔌 MCP & Skill系统](docs/14-mcp-skill-systems/) | MCP协议、Skill设计、动态加载 | 🔥🔥 | 11 |
+| 15 | [🚀 前沿技术与趋势](docs/15-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
+
+**学习重点:** 前沿技术、系统创新、团队领导
+**预计时间:** 持续学习
+
+---
+
+### 📄 附录
+
+| 序号 | 模块 | 内容 |
+|------|------|------|
+| 16 | [📝 简历与面试技巧](docs/16-resume-interview-tips/) | 简历模板、项目描述、常见问题 |
+
+**高频度说明:**
+🔥🔥🔥🔥🔥 = 90%+ 面试会问
+🔥🔥🔥🔥 = 70%+ 面试会问
+🔥🔥🔥 = 50%+ 面试会问
+
+---
+
+## 📖 学习路线
+
+### 🎯 按岗位分类
+
+<details>
+<summary><b>🔹 RAG 系统工程师</b>（点击展开）</summary>
+
+**必学路径:**
 ```
-第 1 周：LLM 基础 + Prompt Engineering
-第 2 周：RAG 系统原理与实战
-第 3 周：AI Agent 设计模式
-第 4 周：工程化与成本优化
-第 5-6 周：刷题 + 模拟面试
+01.LLM基础 → 03.RAG系统 → 06.向量索引优化 → 09.AI安全与评估
+```
+
+**推荐路径:**
+```
++ 02.Prompt Engineering
++ 08.推理优化
++ 10.工程架构与部署
+```
+
+**学习时间:** 6-8周
+**核心技能:** 向量检索、Embedding、混合检索、Rerank
+
+</details>
+
+<details>
+<summary><b>🔹 AI Agent 工程师</b>（点击展开）</summary>
+
+**必学路径:**
+```
+01.LLM基础 → 02.Prompt → 05.AI Agent → 13.多智能体协作
+```
+
+**推荐路径:**
+```
++ 03.RAG系统（知识库集成）
++ 14.MCP & Skill系统
++ 15.前沿技术与趋势
+```
+
+**学习时间:** 6-8周
+**核心技能:** ReAct、Function Calling、多Agent协作、规划推理
+
+</details>
+
+<details>
+<summary><b>🔹 LLM 应用工程师</b>（点击展开）</summary>
+
+**必学路径:**
+```
+01.LLM基础 → 04.Transformer → 07.模型微调 → 08.推理优化
+```
+
+**推荐路径:**
+```
++ 03.RAG系统
++ 10.工程架构与部署
++ 11.多模态应用
+```
+
+**学习时间:** 8-10周
+**核心技能:** LoRA微调、RLHF对齐、推理优化、模型部署
+
+</details>
+
+### ⏱️ 按时间分类
+
+<details>
+<summary><b>📅 1周冲刺</b>（核心20题）</summary>
+
+**Day 1-2:** LLM基础 (5题) + Prompt (3题)
+**Day 3-4:** RAG系统 (5题) + Agent (3题)
+**Day 5-6:** 高频题复习 + 速记卡片
+**Day 7:** 模拟面试练习
+
+</details>
+
+<details>
+<summary><b>📅 2周充分准备</b>（核心50题）</summary>
+
+**Week 1:**
+- LLM基础 + Prompt + RAG (25题)
+- 每天4-5题，理解+记忆
+
+**Week 2:**
+- Agent + 微调 + 推理 (25题)
+- 模拟面试 + 实战演练
+
+</details>
+
+<details>
+<summary><b>📅 1月系统学习</b>（全部137+题）</summary>
+
+**Week 1:** Level 1 基础必备 (22题)
+**Week 2:** Level 2 应用开发 (25题)
+**Week 3:** Level 3 工程优化 (39题)
+**Week 4:** Level 4-5 架构设计 + 前沿技术 (51题)
+**每周末:** 复习 + 刷题 + 模拟面试
+
+</details>
+
+---
+
+## 💡 实战案例
+
+> 真实项目经验，从问题到解决方案的完整复盘
+
+### 🏆 高分案例
+
+| 案例 | 挑战 | 解决方案 | 效果 |
+|------|------|----------|------|
+| [📄 复杂PDF解析](cases/pdf-parsing.md) | 跨页表格、OCR噪声 | Layout-Parser + GPT-4V | 准确率 65% → 94% |
+| [💰 成本优化](cases/cost-optimization.md) | Token消耗过高 | 语义缓存 + 模型路由 | 成本降低 60% |
+| [🚀 生产部署](cases/production-deployment.md) | 并发卡顿、流式中断 | Continuous Batching + 连接池 | 200 QPS 稳定 |
+| [🔍 检索优化](cases/retrieval-optimization.md) | 召回率低 | 混合检索 + Rerank | Recall@5: 65% → 85% |
+
+### 📊 技术栈对比
+
+| 技术选型 | 适用场景 | 优势 | 劣势 |
+|----------|----------|------|------|
+| **RAG vs 微调** | 知识库问答 vs 风格定制 | RAG可更新、有溯源 | 微调效果更好 |
+| **Milvus vs Pinecone** | 自部署 vs 云服务 | Milvus开源免费 | Pinecone易用 |
+| **GPT-4 vs Claude** | 复杂推理 vs 长文本 | GPT-4能力强 | Claude上下文大 |
+
+---
+
+## 📊 技术栈全景图
+
+```mermaid
+graph TB
+    A[AI应用开发工程师] --> B[基础层]
+    A --> C[应用层]
+    A --> D[工程层]
+    A --> E[前沿层]
+
+    B --> B1[LLM原理]
+    B --> B2[Transformer架构]
+    B --> B3[Prompt Engineering]
+
+    C --> C1[RAG系统]
+    C --> C2[AI Agent]
+    C --> C3[多模态应用]
+
+    D --> D1[模型微调LoRA/RLHF]
+    D --> D2[推理优化KV Cache]
+    D --> D3[工程架构部署]
+    D --> D4[安全与评估]
+
+    E --> E1[MCP & Skill]
+    E --> E2[多智能体协作]
+    E --> E3[自主Agent]
 ```
 
 ---
 
-## 📝 内容预览
+## 🚀 快速开始
 
-### 什么是 RAG？
+### 1️⃣ 选择学习路径
 
-> RAG = Retrieval-Augmented Generation（检索增强生成）
->
-> **核心思想：** 先检索相关知识，再让 LLM 基于检索内容回答问题。
->
-> **为什么需要 RAG？**
-> - ✅ 解决知识过时问题
-> - ✅ 支持私有数据检索
-> - ✅ 减少幻觉，提供引用溯源
+```bash
+# 克隆仓库
+git clone https://github.com/guocong-bincai/ai-interview-guide.git
+cd ai-interview-guide
 
-[查看详细讲解 →](docs/02-rag.md)
+# 根据岗位选择模块
+# RAG工程师: 01 → 03 → 06 → 09
+# Agent工程师: 01 → 02 → 05 → 13
+# LLM工程师: 01 → 04 → 07 → 08
+```
 
----
+### 2️⃣ 每日学习计划
 
-### 什么是 Embedding？
+- **周一至周五:** 每天2-3道题，深度理解原理
+- **周末:** 复习速记卡片，模拟面试练习
+- **每周总结:** 整理笔记，建立知识网络
 
-> Embedding 是把文本的"语义"编码成一串数字（向量）。
->
-> **类比：** 描述一个人
-> - 传统方式："张三，男，30 岁，北京人，程序员"
-> - 向量方式：[0.9, 0.3, 0.8, 0.95, ...]（1536 维）
->
-> **语义相似的文本 → 向量接近**
+### 3️⃣ 学习技巧
 
-[查看详细讲解 →](docs/03-embedding.md)
+- ✅ 先看问题，自己思考3分钟
+- ✅ 对比答案，理解核心概念
+- ✅ 背诵"面试话术"和速记卡片
+- ✅ 运行代码示例，加深理解
+- ✅ 结合项目，实战应用
 
 ---
 
@@ -144,77 +324,125 @@ AI 应用开发知识体系
 
 ```
 ai-interview-guide/
-├── README.md              # 本文件
-├── docs/                  # 详细文档
-│   ├── 01-basic.md        # 基础概念
-│   ├── 02-rag.md          # RAG 系统
-│   ├── 03-embedding.md    # Embedding 与向量
-│   ├── 04-agent.md        # AI Agent
-│   ├── 05-engineering.md  # 工程化
-│   ├── 06-advanced-questions/  # 进阶问题
-│   ├── 07-hot-questions/       # 高频面试题
-│   ├── 08-framework-ops/       # 框架与运维
-│   ├── 09-vector-index-deep-dive/  # 向量索引深入
-│   ├── 10-mcp-skill/      # MCP & Skill 系统
-│   ├── 11-ai-safety-eval/ # AI 安全与评估
-│   ├── 12-advanced-topics/ # AI 应用开发高级专题
-│   ├── 13-model-training/  # 大模型微调与训练
-│   ├── 14-inference-optimization/ # LLM 推理优化
-│   ├── 15-multimodal/     # 多模态大模型
-│   └── 16-transformer-architecture/ # Transformer架构（新增）
-├── questions/             # 面试题库
-│   ├── basic.md           # 基础题
-│   ├── rag.md             # RAG 题
-│   ├── agent.md           # Agent 题
-│   └── engineering.md     # 工程题
-├── cases/                 # 实战案例
-│   ├── pdf-parsing.md     # PDF 解析
-│   ├── cost-optimization.md # 成本优化
-│   └── production.md      # 生产部署
-└── resume/                # 简历模板
-    ├── resume-ai.md       # AI 简历
-    └── resume-go.md       # Go 简历
+├── 📂 docs/                    # 16个核心模块（按难度排序）
+│   ├── 01-basic-concepts/           # ⭐⭐ LLM基础
+│   ├── 02-prompt-engineering/       # ⭐⭐ Prompt工程
+│   ├── 03-rag-system/               # ⭐⭐⭐ RAG系统
+│   ├── 04-transformer-architecture/ # ⭐⭐⭐⭐ Transformer
+│   ├── 05-ai-agent-basics/          # ⭐⭐⭐⭐ Agent基础
+│   ├── 06-vector-index-optimization/# ⭐⭐⭐⭐ 向量索引
+│   ├── 07-model-training/           # ⭐⭐⭐⭐ 模型微调
+│   ├── 08-inference-optimization/   # ⭐⭐⭐⭐⭐ 推理优化
+│   ├── 09-ai-safety-evaluation/     # ⭐⭐⭐⭐ 安全评估
+│   ├── 10-production-deployment/    # ⭐⭐⭐⭐⭐ 生产部署
+│   ├── 11-multimodal-ai/            # ⭐⭐⭐⭐ 多模态
+│   ├── 12-frameworks-tools/         # ⭐⭐⭐ 框架工具
+│   ├── 13-multi-agent-systems/      # ⭐⭐⭐⭐ 多智能体
+│   ├── 14-mcp-skill-systems/        # ⭐⭐⭐ MCP协议
+│   ├── 15-advanced-topics/          # ⭐⭐⭐⭐⭐ 前沿技术
+│   └── 16-resume-interview-tips/    # 简历面试
+├── 📂 cases/                   # 实战案例
+│   ├── pdf-parsing.md              # PDF解析案例
+│   ├── cost-optimization.md        # 成本优化案例
+│   ├── retrieval-optimization.md   # 检索优化案例
+│   └── production-deployment.md    # 生产部署案例
+└── 📂 assets/                  # 资源文件
+    ├── images/                     # 架构图、流程图
+    └── code/                       # 完整代码示例
 ```
 
 ---
 
-## 🌟 特色
+## 🤝 贡献指南
 
-- **📖 系统化** - 从基础到进阶，完整知识体系（**16 个模块**）
-- **💡 实战导向** - 每个知识点配实战案例
-- **🎯 面试友好** - **137+ 高频题** + 高分回答模板
-- **🔥 最新内容** - Transformer架构、MCP 协议、Skill 系统、AI 安全评估、模型微调、推理优化、多模态（2026 热点）
-- **🔄 持续更新** - 跟随 AI 领域最新发展
+我们欢迎所有形式的贡献！
+
+### 🌟 如何贡献
+
+1. **报告问题** - [提交 Issue](https://github.com/guocong-bincai/ai-interview-guide/issues)
+2. **补充内容** - [提交 PR](https://github.com/guocong-bincai/ai-interview-guide/pulls)
+3. **分享经验** - 评论区分享面试经历
+4. **Star 支持** - 帮助更多人看到这个项目
+
+### 📝 贡献规范
+
+- 遵循现有的 Markdown 格式
+- 包含详细解释和代码示例
+- 提供"面试话术"模板
+- 标注难度和高频度
+
+### 🏆 贡献者
+
+感谢所有贡献者的付出！
+
+<a href="https://github.com/guocong-bincai/ai-interview-guide/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=guocong-bincai/ai-interview-guide" />
+</a>
 
 ---
 
-## 🤝 贡献
+## 📜 开源协议
 
-欢迎提交 Issue 和 PR！
-
-- 发现错误？[提交 Issue](https://github.com/guocong-bincai/ai-interview-guide/issues)
-- 有好题分享？[提交 PR](https://github.com/guocong-bincai/ai-interview-guide/pulls)
+本项目采用 [MIT License](LICENSE) 开源协议
 
 ---
 
-## 📄 许可证
+## 🔗 相关资源
 
-[MIT License](LICENSE)
+### 📚 推荐学习资源
+
+- **官方文档**
+  - [OpenAI API](https://platform.openai.com/docs)
+  - [LangChain](https://python.langchain.com/)
+  - [LlamaIndex](https://docs.llamaindex.ai/)
+
+- **优质教程**
+  - [DeepLearning.AI 短课程](https://www.deeplearning.ai/short-courses/)
+  - [Hugging Face Course](https://huggingface.co/learn)
+
+- **技术博客**
+  - [OpenAI Blog](https://openai.com/blog)
+  - [Anthropic Research](https://www.anthropic.com/research)
+
+### 🛠️ 推荐工具
+
+| 工具 | 用途 | 链接 |
+|------|------|------|
+| **ChatGPT** | AI对话助手 | [chat.openai.com](https://chat.openai.com) |
+| **Claude** | AI助手（长文本） | [claude.ai](https://claude.ai) |
+| **Cursor** | AI编程工具 | [cursor.sh](https://cursor.sh) |
+| **Perplexity** | AI搜索引擎 | [perplexity.ai](https://perplexity.ai) |
 
 ---
 
-## 🔗 相关链接
+## 📞 联系方式
 
-- **作者 GitHub：** https://github.com/guocong-bincai
-- **私有仓库：** https://github.com/guocong-bincai/openclaw-workspace
-- **VoicePaper 项目：** https://github.com/guocong-bincai/VoicePaper
+- **GitHub**: [@guocong-bincai](https://github.com/guocong-bincai)
+- **Email**: guocong.bincai@example.com
+- **Issues**: [提问/建议](https://github.com/guocong-bincai/ai-interview-guide/issues)
+
+---
+
+## 📈 项目统计
+
+![Star History](https://api.star-history.com/svg?repos=guocong-bincai/ai-interview-guide&type=Date)
 
 ---
 
 <div align="center">
 
-**👍 如果对你有帮助，请给个 Star！**
+### 🌟 如果这个项目对你有帮助，请点个 Star！
 
-Made with ❤️ by 二狗子 🐕
+**让更多人受益于系统化的 AI 学习资源**
+
+[![Star](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
+[![Fork](https://img.shields.io/github/forks/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide/fork)
+[![Watch](https://img.shields.io/github/watchers/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
+
+---
+
+**📅 最后更新:** 2026-03-05 | **📝 版本:** v2.0 | **👨‍💻 维护者:** 二狗子 🐕
+
+Made with ❤️ for the AI Community
 
 </div>
