@@ -630,6 +630,168 @@ for task in tasks:
 
 </details>
 
+### Q12: PEFT方法对比:LoRA vs QLoRA vs Adapter vs Prefix-Tuning
+
+<details>
+<summary>💡 答案要点</summary>
+
+**PEFT (Parameter-Efficient Fine-Tuning) = 参数高效微调**
+
+### 核心方法对比
+
+| 方法 | 原理 | 可训参数比例 | 性能 | 显存占用 | 推理开销 |
+|------|------|--------------|------|----------|----------|
+| **全量微调** | 更新所有参数 | 100% | ⭐⭐⭐⭐⭐ | 高 | 无 |
+| **LoRA** | 低秩矩阵 | 0.1-1% | ⭐⭐⭐⭐⭐ | 低 | 无(合并后) |
+| **QLoRA** | 量化+LoRA | 0.1-1% | ⭐⭐⭐⭐ | 极低 | 稍慢 |
+| **Adapter** | 瓶颈层 | 1-3% | ⭐⭐⭐⭐ | 低 | 略有 |
+| **Prefix-Tuning** | 可学习前缀 | 0.01-0.1% | ⭐⭐⭐ | 极低 | 略有 |
+| **Prompt-Tuning** | Soft Prompts | <0.01% | ⭐⭐ | 极低 | 略有 |
+
+### 1. LoRA (推荐⭐⭐⭐⭐⭐)
+
+**原理:**
+```
+W_new = W_frozen + B × A
+其中 B ∈ R^(d×r), A ∈ R^(r×k), r << d,k
+```
+
+**优势:**
+- ✅ 可合并到原模型,无推理开销
+- ✅ 多个LoRA可共存切换
+- ✅ 训练快,显存低
+- ✅ 性能接近全量微调
+
+**适用场景:** 所有微调场景,首选方案
+
+**代码示例:**
+```python
+from peft import LoraConfig, get_peft_model
+
+config = LoraConfig(
+    r=8,                          # 秩
+    lora_alpha=16,                # 缩放因子
+    target_modules=["q_proj", "v_proj"],
+    lora_dropout=0.05,
+    bias="none"
+)
+model = get_peft_model(model, config)
+```
+
+### 2. QLoRA (资源受限⭐⭐⭐⭐⭐)
+
+**原理:** 4bit量化基础模型 + LoRA微调
+
+**关键技术:**
+- 4bit NormalFloat (NF4) 量化
+- Double Quantization (双重量化)
+- Paged Optimizers (分页优化器)
+
+**性能对比 (Llama-70B):**
+
+| 方法 | 显存需求 | 训练速度 | 性能损失 |
+|------|----------|----------|----------|
+| 全量FP16 | 280GB | 1x | 0% |
+| LoRA FP16 | 80GB | 1.2x | ~1% |
+| **QLoRA 4bit** | **48GB** | **1.1x** | **~3%** |
+
+**适用场景:** 单卡A100/4090微调65B+大模型
+
+**代码示例:**
+```python
+from transformers import BitsAndBytesConfig
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Llama-2-70b",
+    quantization_config=bnb_config
+)
+
+# 再应用 LoRA
+peft_config = LoraConfig(r=16, lora_alpha=32)
+model = get_peft_model(model, peft_config)
+```
+
+### 3. Adapter (经典方案⭐⭐⭐⭐)
+
+**原理:** 在Transformer层之间插入小的瓶颈模块
+
+**结构:**
+```
+Input (d维)
+  ↓
+Down-projection (d → r)  # 降维
+  ↓
+Activation (ReLU/GELU)
+  ↓
+Up-projection (r → d)    # 升维
+  ↓
+Skip Connection         # 残差连接
+  ↓
+Output (d维)
+```
+
+**优势:**
+- ✅ 多任务学习友好(每任务一个Adapter)
+- ✅ 参数隔离,互不干扰
+- ✅ 易于管理和切换
+
+**劣势:**
+- ❌ 推理时有额外计算开销
+- ❌ 参数量比LoRA多2-3倍
+
+**适用场景:** 多任务场景,需要频繁任务切换
+
+### 4. Prefix-Tuning (极低参数⭐⭐⭐)
+
+**原理:** 为每个任务学习一组虚拟Token作为前缀
+
+```
+[Prefix Tokens (可学习)] + [User Input] → Model → Output
+```
+
+**参数量:** 通常<0.1%
+
+**优势:**
+- ✅ 参数极少
+- ✅ 适合多任务
+
+**劣势:**
+- ❌ 性能不如LoRA
+- ❌ 占用上下文位置
+
+**适用场景:** 超多任务场景(100+),资源极度受限
+
+### 选择指南
+
+**推荐流程图:**
+```
+需要微调?
+  ↓
+显存充足(>80GB) → 全量微调
+  ↓
+显存有限(40-80GB) → LoRA
+  ↓
+显存紧张(24-40GB) → QLoRA
+  ↓
+多任务切换频繁 → Adapter
+  ↓
+任务数量极多(100+) → Prefix-Tuning
+```
+
+**面试话术:**
+> "PEFT的核心是trade-off:用更少的参数换取相似的性能。LoRA是最均衡的方案,性能几乎无损且无推理开销。QLoRA适合单卡微调大模型,我们用4090单卡成功微调了65B模型。Adapter适合多任务场景,但有推理开销。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### 微调核心概念
@@ -678,7 +840,7 @@ for task in tasks:
 
 ---
 
-**上一模块：** [向量索引优化](../06-vector-index-optimization/)  
+**上一模块：** [向量索引优化](../06-vector-index-optimization/)
 **下一模块：** [推理优化](../08-inference-optimization/)
 
 ---
