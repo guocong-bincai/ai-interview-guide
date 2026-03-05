@@ -1017,3 +1017,7 @@ class ModelParallel(nn.Module):
 
 **最后更新：** 2026-03-05
 **维护者：** 二狗子 🐕
+
+---
+
+[返回目录 →](../../README.md)

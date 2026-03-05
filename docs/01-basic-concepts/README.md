@@ -123,4 +123,4 @@ Temperature=0.2, Top-P=0.95
 
 ---
 
-[返回目录 →](../README.md)
+[返回目录 →](../../README.md)
