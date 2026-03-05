@@ -4,8 +4,6 @@
 > **更新：** 2026-03-02  
 > **考点：** 流式输出、NL2SQL、评估体系、多模态、安全、成本优化
 
----
-
 ## 📋 目录
 
 1. [工程架构题](#一工程架构题)
@@ -13,8 +11,6 @@
 3. [多模态与高级应用题](#三多模态与高级应用题)
 4. [安全与合规题](#四安全与合规题)
 5. [成本优化题](#五成本优化题)
-
----
 
 ## 一、工程架构题
 
@@ -65,8 +61,6 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 
 </details>
 
----
-
 ### Q2: 如何设计一个 NL2SQL（自然语言转 SQL）系统？
 
 <details>
@@ -100,8 +94,6 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 
 </details>
 
----
-
 ## 二、评估与监控题
 
 ### Q3: 如何评估 RAG 系统的质量？RAGAS 的四个指标是什么？
@@ -131,8 +123,6 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 > "我建立了自动化评估 Pipeline，每次上线前跑一遍测试集。Faithfulness 低于 0.7 会触发告警，说明模型可能在瞎编。同时我加入了人工抽检，随机抽样 5% 的答案人工审核，确保评估指标和真实体验一致。"
 
 </details>
-
----
 
 ### Q4: 如何监控 AI 应用的健康度？需要关注哪些指标？
 
@@ -164,8 +154,6 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 > "我在项目中搭建了完整的监控体系，核心是三个看板：成本看板（实时 Token 消耗）、质量看板（RAGAS 指标趋势）、体验看板（延迟和满意度）。有一次成本突然飙升，通过追踪发现是一个 Prompt 泄露了系统指令，导致模型输出了大量无效内容。"
 
 </details>
-
----
 
 ## 三、多模态与高级应用题
 
@@ -206,8 +194,6 @@ response = client.chat.completions.create(
 > "我在项目中用 GPT-4o 处理扫描版合同，传统 OCR 对表格识别率只有 65%，用多模态模型直接理解图片，识别率提升到 94%。成本虽然高一些，但对于高价值场景（合同、发票）是值得的。"
 
 </details>
-
----
 
 ### Q6: 如何设计一个支持多轮对话的 AI 系统？上下文怎么管理？
 
@@ -250,8 +236,6 @@ class ConversationManager:
 > "多轮对话的核心是平衡上下文完整性和成本。我用分层策略：最近 3 轮保留原文，更早的对话用 LLM 总结。同时加入向量检索，如果用户提到之前的内容，可以从向量库检索相关历史，而不是盲目压缩。"
 
 </details>
-
----
 
 ## 四、安全与合规题
 
@@ -303,8 +287,6 @@ if detect_injection_attempt(user_question):
 
 </details>
 
----
-
 ### Q8: 如何处理 AI 生成内容的合规问题？（版权、隐私、敏感内容）
 
 <details>
@@ -345,8 +327,6 @@ def check_content(text):
 > "合规是 AI 应用上线的前提。我在输出层加入了内容审核 API，同时做了隐私脱敏处理。对于高风险场景（医疗、法律），加入了人工审核环节。另外，所有 AI 生成的内容都标注了'AI 生成'，避免版权争议。"
 
 </details>
-
----
 
 ## 五、成本优化题
 
@@ -397,8 +377,6 @@ class ModelRouter:
 
 </details>
 
----
-
 ### Q10: 如何用 LLMLingua 压缩 Prompt？能省多少成本？
 
 <details>
@@ -438,8 +416,6 @@ response = llm.generate(compressed['compressed_prompt'])
 
 </details>
 
----
-
 ## 📝 速记卡片
 
 | 话题 | 核心要点 |
@@ -455,14 +431,11 @@ response = llm.generate(compressed['compressed_prompt'])
 | **模型路由** | 简单/中等/复杂三档，成本降低 35% |
 | **LLMLingua** | 压缩 70-90%，语义完整，成本大降 |
 
----
-
-**上一模块：** [个人简历](../05-resume/)
 
 ---
 
-**最后更新：** 2026-03-02  
-**维护者：** 二狗子 🐕
+**上一模块：** [AI 安全评估](../09-ai-safety-evaluation/)  
+**下一模块：** [多模态 AI](../11-multimodal-ai/)
 
 ---
 

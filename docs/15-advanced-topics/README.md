@@ -4,8 +4,6 @@
 > **更新：** 2026-03-03  
 > **考点：** 多模态应用、自主 Agent、AI 产品思维、架构设计、前沿技术
 
----
-
 ## 📋 目录
 
 1. [多模态 AI 应用](#一多模态 ai 应用)
@@ -14,8 +12,6 @@
 4. [AI 应用调试与问题排查](#四 ai 应用调试与问题排查)
 5. [前沿技术趋势](#五前沿技术趋势)
 6. [速记卡片](#六速记卡片)
-
----
 
 ## 一、多模态 AI 应用
 
@@ -58,8 +54,6 @@ response = client.chat.completions.create(
 > "我在项目中用 GPT-4o 处理扫描版合同，传统 OCR 对表格识别率只有 65%，用多模态模型直接理解图片，识别率提升到 94%。虽然成本高一些，但对于高价值场景（合同、发票）是值得的。"
 
 </details>
-
----
 
 ### Q2: 多模态应用的性能和成本如何优化？
 
@@ -105,8 +99,6 @@ else:
 
 </details>
 
----
-
 ## 二、自主 Agent 与 Agentic Workflow
 
 ### Q3: 什么是 Agentic Workflow？和传统 AI 应用有什么区别？
@@ -146,8 +138,6 @@ else:
 > "传统 AI 应用是'你说我做'，Agentic Workflow 是'给我目标，我自己完成'。我在项目中实现了一个数据分析 Agent，用户只说'分析上个月销售数据'，Agent 自主完成数据查询、分析、可视化、报告生成的全流程。"
 
 </details>
-
----
 
 ### Q4: 如何设计一个自主编程 Agent（类似 Devin）？
 
@@ -212,8 +202,6 @@ class CodingAgent:
 
 </details>
 
----
-
 ### Q5: 多 Agent 协作系统怎么设计？
 
 <details>
@@ -255,8 +243,6 @@ class CodingAgent:
 > "我设计了一个内容创作多 Agent 系统：Researcher 负责搜索信息，Writer 负责写作，Reviewer 负责审核。协调者分配任务并整合结果。相比单 Agent，内容质量提升了 40%，生产效率提升了 3 倍。"
 
 </details>
-
----
 
 ## 三、AI 产品思维与架构设计
 
@@ -301,8 +287,6 @@ class CodingAgent:
 > "我评估 AI 场景用五维框架：技术可行性、商业价值、数据准备、用户体验、风险评估。核心是 ROI，如果 AI 方案不能带来 3 倍以上收益，我宁愿用传统方案。"
 
 </details>
-
----
 
 ### Q7: 设计一个企业级 AI 应用架构，需要考虑哪些方面？
 
@@ -356,8 +340,6 @@ class CodingAgent:
 
 </details>
 
----
-
 ## 四、AI 应用调试与问题排查
 
 ### Q8: AI 应用出现问题，如何系统性地排查？
@@ -402,8 +384,6 @@ class CodingAgent:
 > "我用逐层排查法：从接入层到输出层，逐层检查。特别是 AI 层，我会用 LangSmith 等工具查看完整的 Prompt 和响应，快速定位是 Prompt 问题还是模型问题。"
 
 </details>
-
----
 
 ### Q9: 如何调试和优化 Prompt？
 
@@ -462,8 +442,6 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 
 </details>
 
----
-
 ## 五、前沿技术趋势
 
 ### Q10: 了解哪些 AI 应用开发的前沿技术？
@@ -494,8 +472,6 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 > "我最关注三个方向：自主 Agent、多模态、边缘 AI。自主 Agent 能让 AI 独立完成复杂任务，多模态让 AI 理解更丰富的信息，边缘 AI 让 AI 能在本地运行、保护隐私。这三个方向会重塑 AI 应用的未来。"
 
 </details>
-
----
 
 ## 六、速记卡片
 
@@ -542,23 +518,17 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 | **小模型蒸馏** | 大模型教小模型 |
 | **边缘 AI** | 本地部署、隐私保护 |
 
----
-
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-03-03 | 新增 AI 应用开发高级专题面试题 10 道 |
 
----
-
-**上一模块：** [AI 安全与评估](../11-ai-safety-eval/)  
-**下一模块：** -
 
 ---
 
-**最后更新：** 2026-03-03  
-**维护者：** 二狗子 🐕
+**上一模块：** [MCP Skill 系统](../14-mcp-skill-systems/)  
+**下一模块：** [简历与面试技巧](../16-resume-interview-tips/)
 
 ---
 

@@ -4,8 +4,6 @@
 > **更新：** 2026-03-05
 > **考点：** CLIP、BLIP、多模态理解、图文生成
 
----
-
 ## 📋 目录
 
 1. [多模态基础](#一多模态基础)
@@ -13,8 +11,6 @@
 3. [BLIP模型](#三blip模型)
 4. [应用实战](#四应用实战)
 5. [速记卡片](#五速记卡片)
-
----
 
 ## 一、多模态基础
 
@@ -94,8 +90,6 @@
 
 </details>
 
----
-
 ### Q2: 如何评估多模态模型的性能？
 
 <details>
@@ -157,8 +151,6 @@ CLIP 结果：
 > "多模态评估要看多个维度。检索任务看 R@K，问答看准确率，字幕看 CIDEr。我在项目中用 CLIP Score 评估文生图质量，结合人工抽检确保效果。"
 
 </details>
-
----
 
 ## 二、CLIP模型
 
@@ -295,8 +287,6 @@ prediction = classes[similarity.argmax()]  # "猫"
 
 </details>
 
----
-
 ### Q4: CLIP 如何做 Zero-shot 分类？为什么效果好？
 
 <details>
@@ -413,8 +403,6 @@ CLIP：
 > "CLIP 的 Zero-shot 本质是用语言知识迁移到视觉。通过对比学习，CLIP 学会了图文语义对齐。给任何文本描述，都能找到匹配的图像，不需要额外训练。多模板 ensemble 能进一步提升 5-10%。"
 
 </details>
-
----
 
 ## 三、BLIP模型
 
@@ -542,8 +530,6 @@ BLIP 解决方案：
 > "CLIP 是理解型模型，BLIP 是理解+生成型。BLIP 用三个训练目标（ITC+ITM+LM）统一了检索和生成任务。特别是 CapFilt 机制，用模型自己清洗数据，形成正反馈循环。"
 
 </details>
-
----
 
 ### Q6: BLIP-2 有什么改进？Q-Former 是什么？
 
@@ -689,8 +675,6 @@ BLIP-2（188M）> Flamingo（80B）
 > "BLIP-2 的核心是 Q-Former，用 32 个可学习 Query 提取视觉信息。冻结视觉编码器和 LLM，只训练 Q-Former，参数量从 1B 降到 188M，效果反而更好。这证明了模态适配比联合训练更重要。"
 
 </details>
-
----
 
 ## 四、应用实战
 
@@ -866,8 +850,6 @@ final_results = sorted(zip(candidates, rerank_scores),
 
 </details>
 
----
-
 ### Q8: 如何评估和优化多模态 RAG 系统？
 
 <details>
@@ -1039,8 +1021,6 @@ def ecommerce_qa(user_image, user_question):
 
 </details>
 
----
-
 ## 五、速记卡片
 
 ### 多模态核心概念
@@ -1078,23 +1058,17 @@ def ecommerce_qa(user_image, user_question):
 | **视觉问答** | BLIP-2 + LLM |
 | **多模态 RAG** | CLIP检索 + GPT-4V生成 |
 
----
-
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-03-05 | 新增多模态大模型面试题 8 道 |
 
----
-
-**上一模块：** [推理优化](../14-inference-optimization/)
-**下一模块：** [Transformer架构](../16-transformer-architecture/)
 
 ---
 
-**最后更新：** 2026-03-05
-**维护者：** 二狗子 🐕
+**上一模块：** [生产部署](../10-production-deployment/)  
+**下一模块：** [框架与工具](../12-frameworks-tools/)
 
 ---
 

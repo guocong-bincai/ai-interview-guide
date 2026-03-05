@@ -4,8 +4,6 @@
 > **更新：** 2026-03-05
 > **考点：** KV Cache、量化、推理加速、部署优化
 
----
-
 ## 📋 目录
 
 1. [推理基础](#一推理基础)
@@ -13,8 +11,6 @@
 3. [模型量化](#三模型量化)
 4. [推理加速](#四推理加速)
 5. [速记卡片](#五速记卡片)
-
----
 
 ## 一、推理基础
 
@@ -75,8 +71,6 @@
 > "推理的核心挑战是内存带宽瓶颈。训练是计算密集型，推理是访存密集型。优化思路完全不同：训练优化算法，推理优化内存访问。"
 
 </details>
-
----
 
 ### Q2: 什么是自回归生成？Prefill 和 Decode 有什么区别？
 
@@ -148,8 +142,6 @@ Decode 阶段：
 > "Prefill 是一次性算完 prompt，Decode 是逐个生成。Prefill 吃算力，Decode 吃带宽。优化重点完全不同。"
 
 </details>
-
----
 
 ## 二、KV Cache优化
 
@@ -239,8 +231,6 @@ Attention(Q, K, V) = softmax(QK^T / √d) V
 > "KV Cache 是用空间换时间的经典案例。不用 Cache，每个 token 要重新计算所有历史，O(n²) 复杂度。用了 Cache，复用历史结果，降到 O(n)。代价是显存占用大，长上下文会炸显存。"
 
 </details>
-
----
 
 ### Q4: KV Cache 量化是什么？如何实现？
 
@@ -340,8 +330,6 @@ class KVCacheQuantizer:
 > "KV Cache 量化是推理优化的关键。我在项目中用 per-channel INT8 量化，显存节省 50%，精度损失不到 1%。核心是处理好异常值，用分组/分通道量化代替全局量化。"
 
 </details>
-
----
 
 ### Q5: 什么是 PagedAttention？它解决什么问题？
 
@@ -453,8 +441,6 @@ if page.ref_count > 1:
 > "PagedAttention 借鉴了操作系统的虚拟内存思想。分页管理避免了预分配的浪费，Copy-on-Write 实现了高效共享。vLLM 用它把吞吐量提升了 2.4 倍。"
 
 </details>
-
----
 
 ## 三、模型量化
 
@@ -569,8 +555,6 @@ if page.ref_count > 1:
 
 </details>
 
----
-
 ### Q7: GPTQ、AWQ 是什么？它们有什么区别？
 
 <details>
@@ -672,8 +656,6 @@ for channel in range(num_channels):
 
 </details>
 
----
-
 ## 四、推理加速
 
 ### Q8: FlashAttention 是什么？为什么能加速？
@@ -774,8 +756,6 @@ for i in range(0, n, block_size):
 > "FlashAttention 的核心是 I/O 优化。传统 Attention 要读写 n² 的中间矩阵，FlashAttention 分块计算避免了物化。在长序列（8K+）上加速 5-10 倍，而且支持更长上下文。"
 
 </details>
-
----
 
 ### Q9: 批处理（Batching）如何提升推理吞吐量？Continuous Batching 是什么？
 
@@ -885,8 +865,6 @@ class ContinuousBatcher:
 > "Continuous Batching 是 vLLM 的核心优化。传统批处理像公交车，等所有人上车才走。Continuous Batching 像地铁，到站就上下，不等人。吞吐量提升 2-3 倍，延迟降低 3-5 倍。"
 
 </details>
-
----
 
 ### Q10: Speculative Decoding（推测解码）是什么？
 
@@ -999,8 +977,6 @@ class ContinuousBatcher:
 
 </details>
 
----
-
 ## 五、速记卡片
 
 ### 推理基础
@@ -1038,23 +1014,17 @@ class ContinuousBatcher:
 | **Continuous Batching** | 动态批处理 | 2-3x |
 | **Speculative Decoding** | 小模型猜，大模型验证 | 2-4x |
 
----
-
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-03-05 | 新增 LLM 推理优化面试题 10 道 |
 
----
-
-**上一模块：** [模型微调与训练](../13-model-training/)
-**下一模块：** [多模态应用](../15-multimodal/)
 
 ---
 
-**最后更新：** 2026-03-05
-**维护者：** 二狗子 🐕
+**上一模块：** [模型训练](../07-model-training/)  
+**下一模块：** [AI 安全评估](../09-ai-safety-evaluation/)
 
 ---
 

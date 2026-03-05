@@ -20,8 +20,6 @@
 - 上下文限制按 token 计算
 - 生成长度按 token 计算
 
----
-
 ## 2. Temperature、Top-P、Top-K
 
 ### Temperature（温度）
@@ -58,8 +56,6 @@ Temperature=0.7, Top-P=0.9
 Temperature=0.2, Top-P=0.95
 ```
 
----
-
 ## 3. Context Window（上下文窗口）
 
 **定义：** LLM 一次能处理的总 token 数（输入 + 输出）。
@@ -79,8 +75,6 @@ Temperature=0.2, Top-P=0.95
 4. **向量检索** - 把历史存向量库，按需检索
 5. **分层摘要** - 重要信息摘要 + 最近对话原文
 
----
-
 ## 4. 常见模型对比
 
 | 模型 | 优点 | 缺点 | 适用场景 |
@@ -90,8 +84,6 @@ Temperature=0.2, Top-P=0.95
 | Claude | 上下文大 | 国内访问慢 | 长文档处理 |
 | DeepSeek | 中文好，便宜 | 生态少 | 中文场景 |
 | Llama 3 | 开源，可本地 | 需要 GPU | 私有部署 |
-
----
 
 ## 5. 幻觉（Hallucination）
 
@@ -104,8 +96,6 @@ Temperature=0.2, Top-P=0.95
 3. **引用溯源** - 要求标注来源
 4. **温度调低** - Temperature < 0.3
 5. **人工审核** - 关键场景人工复核
-
----
 
 ## 📝 面试题
 
@@ -120,6 +110,12 @@ Temperature=0.2, Top-P=0.95
 - 影响：计费、上下文限制、生成长度都按 token 算
 
 </details>
+
+[返回目录 →](../../README.md)
+
+---
+
+**下一模块：** [Prompt 工程](../02-prompt-engineering/)
 
 ---
 

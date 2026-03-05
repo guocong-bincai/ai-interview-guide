@@ -4,8 +4,6 @@
 > **更新：** 2026-03-05
 > **考点：** Transformer、Self-Attention、BERT、GPT、位置编码
 
----
-
 ## 📋 目录
 
 1. [Transformer基础](#一transformer基础)
@@ -13,8 +11,6 @@
 3. [BERT与GPT](#三bert与gpt)
 4. [优化技巧](#四优化技巧)
 5. [速记卡片](#五速记卡片)
-
----
 
 ## 一、Transformer基础
 
@@ -91,8 +87,6 @@ Linear + Softmax → 输出概率分布
 > "Transformer 通过自注意力机制替代了RNN的串行计算。每个token可以直接关注所有其他token，实现了并行计算，训练速度提升10-100倍。虽然复杂度是O(n²)，但在实际应用中，并行带来的收益远大于复杂度的损失。"
 
 </details>
-
----
 
 ### Q2: Transformer的Encoder和Decoder有什么区别？
 
@@ -189,8 +183,6 @@ Attention Matrix:
 > "Encoder用双向Self-Attention理解输入，Decoder用单向Masked Attention生成输出。Decoder还有Cross-Attention层，让生成的每个token都能关注Encoder的所有输出。BERT只用Encoder（理解任务），GPT只用Decoder（生成任务）。"
 
 </details>
-
----
 
 ## 二、注意力机制
 
@@ -308,8 +300,6 @@ output = attention_weights @ V
 > "Self-Attention通过 Q、K、V 三个矩阵计算。先用 QK^T 算相似度，除以√d_k 防止梯度消失，然后Softmax归一化得到权重，最后加权求和V得到输出。核心是让每个token都能直接关注其他所有token。"
 
 </details>
-
----
 
 ### Q4: Multi-Head Attention（多头注意力）是什么？为什么要用多头？
 
@@ -440,8 +430,6 @@ Head 4（位置关系）:
 > "Multi-Head Attention让模型同时学习多种注意力模式。8个头可以分别关注语法、语义、位置等不同维度的关系。虽然参数量略增，但表达能力大幅提升。实验表明8头是最佳选择。"
 
 </details>
-
----
 
 ### Q5: 位置编码（Positional Encoding）是什么？为什么需要它？
 
@@ -574,8 +562,6 @@ def apply_rotary_emb(q, k, cos, sin):
 > "Transformer 用 sin/cos 函数注入位置信息。优点是确定性、可外推、能表示相对位置。现代模型如 LLaMA 用 RoPE 改进，在注意力计算时旋转 Q 和 K，长文本性能更好。"
 
 </details>
-
----
 
 ## 三、BERT与GPT
 
@@ -739,8 +725,6 @@ GPT：
 > "BERT 是理解型模型，用双向Encoder + MLM训练，擅长分类、NER。GPT 是生成型模型，用单向Decoder + 自回归训练，擅长文本生成、对话。BERT看完整上下文理解语义，GPT逐个生成token。"
 
 </details>
-
----
 
 ## 四、优化技巧
 
@@ -959,8 +943,6 @@ class ModelParallel(nn.Module):
 
 </details>
 
----
-
 ## 五、速记卡片
 
 ### Transformer 核心概念
@@ -1000,23 +982,17 @@ class ModelParallel(nn.Module):
 | **Mixed Precision** | 加速2-3倍，节省50%显存 |
 | **Gradient Accumulation** | 模拟大batch，不增显存 |
 
----
-
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-03-05 | 新增 Transformer 架构与注意力机制面试题 7 道 |
 
----
-
-**上一模块：** [多模态应用](../15-multimodal/)
-**下一模块：** [NLP基础](../17-nlp-basics/)
 
 ---
 
-**最后更新：** 2026-03-05
-**维护者：** 二狗子 🐕
+**上一模块：** [RAG 系统](../03-rag-system/)  
+**下一模块：** [AI Agent 基础](../05-ai-agent-basics/)
 
 ---
 

@@ -4,16 +4,12 @@
 > **更新：** 2026-03-02  
 > **考点：** LangChain、向量数据库、测试评估、部署运维
 
----
-
 ## 📋 目录
 
 1. [框架使用题](#一框架使用题)
 2. [向量数据库题](#二向量数据库题)
 3. [测试评估题](#三测试评估题)
 4. [部署运维题](#四部署运维题)
-
----
 
 ## 一、框架使用题
 
@@ -60,8 +56,6 @@ print(result)
 > "LangChain 的核心价值是抽象和编排。我用 LLMChain 封装了 Prompt + LLM，用 SequentialChain 编排多步任务，用 AgentExecutor 实现自主决策。这样代码更模块化，容易测试和维护。"
 
 </details>
-
----
 
 ### Q2: LangGraph 和 LangChain 有什么区别？什么时候用 LangGraph？
 
@@ -116,8 +110,6 @@ app = graph.compile()
 > "LangChain 适合线性任务流，LangGraph 适合复杂的多轮对话和多 Agent 协作。我在项目中用 LangGraph 实现了内容创作系统：Researcher 搜索→Writer 写作→Reviewer 审核，如果审核不通过就返回 Writer 修改，形成闭环。"
 
 </details>
-
----
 
 ### Q3: 如何使用 LlamaIndex 构建 RAG 系统？和 LangChain 有什么区别？
 
@@ -176,8 +168,6 @@ print(response)
 
 </details>
 
----
-
 ## 二、向量数据库题
 
 ### Q4: 向量数据库的索引类型有哪些？怎么选？
@@ -209,8 +199,6 @@ print(response)
 
 </details>
 
----
-
 ### Q5: 如何优化向量检索的精度和速度？
 
 <details>
@@ -238,8 +226,6 @@ print(response)
 > "我用了组合优化：1）混合检索（向量+BM25）提升召回率；2）Rerank 精选 Top-5，精度提升 15%；3）HNSW 索引加速检索，延迟从 100ms 降到 10ms。综合下来，检索精度和速度都满足了生产要求。"
 
 </details>
-
----
 
 ### Q6: 向量数据库的 Metadata 过滤怎么用？有什么应用场景？
 
@@ -283,8 +269,6 @@ results = collection.search(
 
 </details>
 
----
-
 ## 三、测试评估题
 
 ### Q7: 如何测试 AI 应用的质量？有哪些评估指标？
@@ -316,8 +300,6 @@ results = collection.search(
 > "我建立了三层评估体系：1）自动评估（RAGAS）每次上线前跑；2）人工抽检（每周 5%）；3）A/B 测试（新策略灰度发布）。有一次 RAGAS 指标正常，但人工评估发现答案质量下降，原来是检索策略改变了，及时调整了回来。"
 
 </details>
-
----
 
 ### Q8: 如何构建 AI 应用的测试集？
 
@@ -353,8 +335,6 @@ results = collection.search(
 > "我维护了一个 300 题的测试集，覆盖简单/中等/复杂三种难度。每次上线前跑一遍，Faithfulness 低于 0.7 就阻断发布。同时每周从用户反馈中收集 10-20 个新问题，持续扩充测试集。"
 
 </details>
-
----
 
 ## 四、部署运维题
 
@@ -395,8 +375,6 @@ results = collection.search(
 
 </details>
 
----
-
 ### Q10: 如何监控 AI 应用的成本？如何优化？
 
 <details>
@@ -431,8 +409,6 @@ results = collection.search(
 
 </details>
 
----
-
 ## 📝 速记卡片
 
 | 话题 | 核心要点 |
@@ -448,22 +424,17 @@ results = collection.search(
 | **部署清单** | 限流、缓存、超时、降级、监控、日志 |
 | **成本优化** | 缓存 30-50% + 路由 30-40% + 压缩 40-90% |
 
----
-
 ## 📊 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-03-02 | 新增 10 道框架与运维面试题 |
 
----
-
-**上一模块：** [高频题库](../07-hot-questions/)
 
 ---
 
-**最后更新：** 2026-03-02  
-**维护者：** 二狗子 🐕
+**上一模块：** [多模态 AI](../11-multimodal-ai/)  
+**下一模块：** [多智能体系统](../13-multi-agent-systems/)
 
 ---
 

@@ -4,8 +4,6 @@
 > **更新：** 2026-03-03  
 > **考点：** AI 安全、内容合规、评估体系、测试方法、成本优化实战
 
----
-
 ## 📋 目录
 
 1. [AI 安全与合规](#一 ai 安全与合规)
@@ -13,8 +11,6 @@
 3. [成本优化实战](#三成本优化实战)
 4. [LangGraph 工作流](#四 langgraph 工作流)
 5. [速记卡片](#五速记卡片)
-
----
 
 ## 一、AI 安全与合规
 
@@ -77,8 +73,6 @@ def safety_check(response):
 
 </details>
 
----
-
 ### Q2: 如何处理用户隐私数据？（PII 保护）
 
 <details>
@@ -130,8 +124,6 @@ def sanitize_pii(text):
 > "我在输入和输出层都做了 PII 脱敏，用正则匹配手机号、身份证、邮箱等敏感数据。日志脱敏后留存 30 天，对话历史用户可以随时删除，符合 GDPR 要求。"
 
 </details>
-
----
 
 ### Q3: 如何防止 AI 应用被滥用？（刷量、攻击）
 
@@ -194,8 +186,6 @@ func (rl *RateLimiter) Wait() {
 
 </details>
 
----
-
 ## 二、评估与测试
 
 ### Q4: 如何评估 AI 应用的质量？（评估体系）
@@ -238,8 +228,6 @@ func (rl *RateLimiter) Wait() {
 > "我建立了自动化评估 Pipeline，每次上线前跑 500 道测试题。RAGAS 四个指标（忠实度、相关性、上下文精度、召回率）都要达标。同时加入了人工抽检，随机抽样 5% 的答案人工审核。"
 
 </details>
-
----
 
 ### Q5: 如何做 AI 应用的回归测试？
 
@@ -300,8 +288,6 @@ for case in test_cases:
 
 </details>
 
----
-
 ### Q6: RAGAS 的四个指标是什么？如何优化？
 
 <details>
@@ -329,8 +315,6 @@ for case in test_cases:
 > "Faithfulness 低于 0.7 会触发告警，说明模型可能在瞎编。我通过增加检索结果数量和在 Prompt 中强调'只基于检索内容回答'，把 Faithfulness 从 0.65 提升到了 0.82。"
 
 </details>
-
----
 
 ## 三、成本优化实战
 
@@ -389,8 +373,6 @@ def semantic_cache(query, threshold=0.95):
 
 </details>
 
----
-
 ### Q8: 如何设计智能模型路由（Model Router）？
 
 <details>
@@ -443,8 +425,6 @@ class ModelRouter:
 
 </details>
 
----
-
 ## 四、LangGraph 工作流
 
 ### Q9: LangGraph 和 LangChain 有什么区别？
@@ -472,8 +452,6 @@ class ModelRouter:
 > "LangChain 适合简单的链式调用，LangGraph 适合复杂的 Agent 编排。特别是需要循环和状态管理的场景，比如多轮对话、任务规划，LangGraph 更有优势。"
 
 </details>
-
----
 
 ### Q10: 如何用 LangGraph 实现一个多轮对话 Agent？
 
@@ -535,8 +513,6 @@ result = app.invoke({"messages": ["你好"], "current_step": "start"})
 
 </details>
 
----
-
 ## 五、速记卡片
 
 ### AI 安全核心概念
@@ -573,23 +549,17 @@ result = app.invoke({"messages": ["你好"], "current_step": "start"})
 | **Edge** | 流程控制（条件路由） |
 | **优势** | 支持循环、状态持久化、可视化 |
 
----
-
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
 | 2026-03-03 | 新增 AI 安全与评估面试题 10 道 |
 
----
-
-**上一模块：** [MCP & Skill](../10-mcp-skill/)  
-**下一模块：** [框架与运维](../08-framework-ops/)
 
 ---
 
-**最后更新：** 2026-03-03  
-**维护者：** 二狗子 🐕
+**上一模块：** [推理优化](../08-inference-optimization/)  
+**下一模块：** [生产部署](../10-production-deployment/)
 
 ---
 

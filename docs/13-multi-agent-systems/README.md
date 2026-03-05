@@ -3,16 +3,12 @@
 > **难度：** ⭐⭐⭐  
 > **考点：** 智能体设计模式、ReAct、Function Calling、多 Agent 协作
 
----
-
 ## 📋 目录
 
 1. [基础概念题](#一基础概念题)
 2. [设计模式题](#二设计模式题)
 3. [工程实践题](#三工程实践题)
 4. [高分回答模板](#四高分回答模板)
-
----
 
 ## 一、基础概念题
 
@@ -39,8 +35,6 @@
 > "Agent 和普通 LLM 的区别在于：LLM 只能说话，Agent 能干活。Agent 通过调用工具（搜索、API、数据库）完成实际任务。"
 
 </details>
-
----
 
 ### Q2: ReAct 模式是什么？完整流程是什么？
 
@@ -80,8 +74,6 @@ Final Answer: 最终答案
 
 </details>
 
----
-
 ### Q3: Function Calling 的原理是什么？
 
 <details>
@@ -100,8 +92,6 @@ Final Answer: 最终答案
 > "Function Calling 的本质是将非结构化的自然语言转化为结构化的 JSON。在实战中，我通过它实现了自然语言直接查询 SQL 数据库，极大地降低了非技术人员的使用门槛。"
 
 </details>
-
----
 
 ## 二、设计模式题
 
@@ -139,8 +129,6 @@ while iteration < max_iterations:
 
 </details>
 
----
-
 ### Q5: Plan-and-Execute 和 ReAct 有什么区别？
 
 <details>
@@ -165,8 +153,6 @@ while iteration < max_iterations:
 ```
 
 </details>
-
----
 
 ### Q6: 多 Agent 协作怎么设计？
 
@@ -205,8 +191,6 @@ while iteration < max_iterations:
 
 </details>
 
----
-
 ## 三、工程实践题
 
 ### Q7: 你设计过哪些类型的 Agent？
@@ -236,8 +220,6 @@ while iteration < max_iterations:
 ```
 
 </details>
-
----
 
 ### Q8: Agent 的 Memory 怎么设计？
 
@@ -277,8 +259,6 @@ class AgentMemory:
 
 </details>
 
----
-
 ## 四、高分回答模板
 
 ### 🌟 谈 Agent 时的"高分点金石"
@@ -288,16 +268,12 @@ class AgentMemory:
 **要这样说：**
 > "我认为 Agent 的核心在于闭环。模型生成答案后，我会设计一个 Reviewer 节点让它自我检查：'这个答案是否满足用户所有要求？'，如果不满足则重新执行。这种反思机制让 Agent 的可靠性提升了 40%。"
 
----
-
 ### 🌟 谈 Function Calling 时的"高分点金石"
 
 **不要只说：** "调用外部 API"
 
 **要这样说：**
 > "Function Calling 的本质是将非结构化的自然语言转化为结构化的 JSON。在实战中，我通过它实现了自然语言直接查询 SQL 数据库，极大地降低了非技术人员的使用门槛。同时我加入了权限校验和参数白名单，防止 Agent 越权访问。"
-
----
 
 ## 📝 速记卡片
 
@@ -311,10 +287,11 @@ class AgentMemory:
 | **Multi-Agent** | 多个 Agent 分工协作 |
 | **Reflection** | Agent 自我评估和改进 |
 
+
 ---
 
-**上一模块：** [Prompt 工程](../03-prompt-engineering/)  
-**下一模块：** [RAG 系统](../02-rag-system/)
+**上一模块：** [框架与工具](../12-frameworks-tools/)  
+**下一模块：** [MCP Skill 系统](../14-mcp-skill-systems/)
 
 ---
 
