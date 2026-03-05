@@ -977,6 +977,106 @@ class ContinuousBatcher:
 
 </details>
 
+### Q11: 什么是PagedAttention?vLLM如何工作?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**PagedAttention = 虚拟内存管理应用到KV Cache**
+
+**传统KV Cache问题:**
+```
+请求 1: 申请 2048 tokens 的 KV 空间,实际只用了 500 → 浪费 75%
+请求 2: 申请 1024 tokens,实际用满 → 效率高
+请求 3: 申请 4096 tokens,实际用了 3000 → 浪费 27%
+
+总体显存利用率: 约 50% ❌
+```
+
+**PagedAttention解决方案:**
+
+1. **分页管理**
+   - 把KV Cache切成固定大小的Block(如256 tokens)
+   - 按需分配Block,用多少分多少
+   - 类似操作系统的虚拟内存分页
+
+2. **动态分配**
+   ```
+   请求生成第1个token → 分配 Block 1
+   请求生成第257个token → 分配 Block 2
+   请求结束 → 回收所有Block
+   ```
+
+3. **内存共享**
+   - 多个请求共享相同的System Prompt
+   - 只存储一份,多个逻辑地址指向同一物理Block
+
+**vLLM性能提升:**
+
+| 指标 | 传统服务 | vLLM | 提升 |
+|------|----------|------|------|
+| 显存利用率 | ~50% | ~90% | 1.8x |
+| 吞吐量(QPS) | 100 | 240 | 2.4x |
+| 平均延迟 | 2.5s | 1.8s | 1.4x |
+
+**vLLM核心特性:**
+
+```python
+from vllm import LLM, SamplingParams
+
+# 初始化vLLM
+llm = LLM(
+    model="meta-llama/Llama-2-7b",
+    tensor_parallel_size=2,      # 多卡推理
+    dtype="float16",
+    max_num_seqs=256,            # 最大并发请求数
+    max_model_len=4096,          # 最大上下文长度
+    gpu_memory_utilization=0.9,  # 显存利用率
+)
+
+#批量推理
+prompts = ["问题1", "问题2", ...]
+sampling_params = SamplingParams(
+    temperature=0.8,
+    top_p=0.95,
+    max_tokens=100
+)
+
+outputs = llm.generate(prompts, sampling_params)
+```
+
+**vLLM vs 其他推理框架:**
+
+| 框架 | 显存利用率 | 吞吐量 | 易用性 |
+|------|------------|--------|--------|
+| Hugging Face | ~40% | 低 | ⭐⭐⭐ |
+| TGI(Text Generation Inference) | ~60% | 中 | ⭐⭐⭐⭐ |
+| **vLLM** | **~90%** | **高** | **⭐⭐⭐⭐⭐** |
+| TensorRT-LLM | ~85% | 很高 | ⭐⭐(配置复杂) |
+
+**PagedAttention工作流程:**
+
+```
+1. 用户请求到达
+   ↓
+2. 调度器分配 Block
+   ↓
+3. Prefill 阶段:并行计算 prompt 的 KV,写入分配的 Block
+   ↓
+4. Decode 阶段:每生成 1 个token,检查是否需要新 Block
+   ↓
+5. 请求完成,释放所有 Block
+   ↓
+6. Block 重新进入空闲池,供新请求使用
+```
+
+**面试话术:**
+> "vLLM的核心创新是PagedAttention——把操作系统的虚拟内存思想应用到KV Cache管理。传统方案要预分配整块内存,浪费50%显存。vLLM按需分页分配,显存利用率提升到90%,吞吐量提升2.4倍。我们生产环境用vLLM部署Llama-70B,8卡A100能稳定跑200 QPS。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### 推理基础
@@ -1023,7 +1123,7 @@ class ContinuousBatcher:
 
 ---
 
-**上一模块：** [模型训练](../07-model-training/)  
+**上一模块：** [模型训练](../07-model-training/)
 **下一模块：** [AI 安全评估](../09-ai-safety-evaluation/)
 
 ---
