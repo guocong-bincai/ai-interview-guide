@@ -31,7 +31,7 @@
 
 ## 📚 目录
 
-### 一、面试题库（130+ 道题）
+### 一、面试题库（137+ 道题）
 
 | 分类 | 内容 | 难度 | 题数 |
 |------|------|------|------|
@@ -45,6 +45,7 @@
 | 🎓 **模型微调与训练** | LoRA、RLHF、DPO、微调策略、训练优化 | ⭐⭐⭐⭐ | 11 道 |
 | ⚡ **推理优化** | KV Cache、量化、FlashAttention、推理加速 | ⭐⭐⭐⭐⭐ | 10 道 |
 | 🎨 **多模态应用** | CLIP、BLIP、图文检索、多模态RAG | ⭐⭐⭐⭐ | 8 道 |
+| 🏗️ **Transformer架构** | Self-Attention、Multi-Head、BERT、GPT、位置编码 | ⭐⭐⭐⭐ | 7 道 |
 
 ### 二、核心知识点
 
@@ -157,9 +158,10 @@ ai-interview-guide/
 │   ├── 10-mcp-skill/      # MCP & Skill 系统
 │   ├── 11-ai-safety-eval/ # AI 安全与评估
 │   ├── 12-advanced-topics/ # AI 应用开发高级专题
-│   ├── 13-model-training/  # 大模型微调与训练（新增）
-│   ├── 14-inference-optimization/ # LLM 推理优化（新增）
-│   └── 15-multimodal/     # 多模态大模型（新增）
+│   ├── 13-model-training/  # 大模型微调与训练
+│   ├── 14-inference-optimization/ # LLM 推理优化
+│   ├── 15-multimodal/     # 多模态大模型
+│   └── 16-transformer-architecture/ # Transformer架构（新增）
 ├── questions/             # 面试题库
 │   ├── basic.md           # 基础题
 │   ├── rag.md             # RAG 题
@@ -178,10 +180,10 @@ ai-interview-guide/
 
 ## 🌟 特色
 
-- **📖 系统化** - 从基础到进阶，完整知识体系（**15 个模块**）
+- **📖 系统化** - 从基础到进阶，完整知识体系（**16 个模块**）
 - **💡 实战导向** - 每个知识点配实战案例
-- **🎯 面试友好** - **130+ 高频题** + 高分回答模板
-- **🔥 最新内容** - MCP 协议、Skill 系统、AI 安全评估、模型微调、推理优化、多模态（2026 热点）
+- **🎯 面试友好** - **137+ 高频题** + 高分回答模板
+- **🔥 最新内容** - Transformer架构、MCP 协议、Skill 系统、AI 安全评估、模型微调、推理优化、多模态（2026 热点）
 - **🔄 持续更新** - 跟随 AI 领域最新发展
 
 ---
