@@ -1021,6 +1021,591 @@ def ecommerce_qa(user_image, user_question):
 
 </details>
 
+## 9. LLaVA如何工作?视觉Encoder如何连接LLM?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**LLaVA = Large Language and Vision Assistant**
+**核心: 用视觉投影层连接CLIP视觉编码器和LLaMA大模型**
+
+### 架构设计
+
+```
+用户输入:
+┌──────────────┐
+│  图片 + 问题  │
+└──────────────┘
+       │
+       ├─────── 图片路径 ───────┐
+       └─────── 文本问题 ───────┤
+                               │
+┌─────────────────────────────┼─────────────────────────────┐
+│                             ↓                             │
+│  Vision Encoder         Projector           LLM          │
+│  (CLIP ViT)        (线性层/MLP)       (LLaMA/Vicuna)      │
+│                                                           │
+│  Image → Patch         Vision        Text Tokens         │
+│  Embedding → Tokens → Embedding → + Text → LLM → 答案  │
+│  [CLS] 224x224        [视觉token]      [文本token]       │
+└───────────────────────────────────────────────────────────┘
+```
+
+### 三阶段训练
+
+**Stage 1: 特征对齐 (Feature Alignment)**
+```python
+# 只训练投影层,冻结CLIP和LLM
+projector = nn.Linear(clip_dim=1024, llm_dim=4096)
+
+# 训练目标: 让视觉特征和语言特征对齐
+loss = contrastive_loss(
+    image_features @ projector,
+    text_features
+)
+
+# 数据: 60万图文对(CC3M)
+# 训练时间: 4小时(8个A100)
+# 效果: 图像能粗略"翻译"成LLM理解的语言
+```
+
+**Stage 2: 指令微调 (Instruction Tuning)**
+```python
+# 解冻LLM,冻结CLIP,继续训练投影层
+# 数据: 15万条多模态对话
+example = {
+    "image": "dog.jpg",
+    "conversations": [
+        {"from": "human", "value": "这是什么动物?"},
+        {"from": "gpt", "value": "这是一只金毛犬。"},
+        {"from": "human", "value": "它在做什么?"},
+        {"from": "gpt", "value": "它正在草地上奔跑,看起来很开心。"}
+    ]
+}
+
+# 训练目标: 让模型学会多轮对话
+loss = cross_entropy(
+    predicted_tokens,
+    ground_truth_tokens,
+    mask=gpt_tokens_only  # 只计算GPT回复的loss
+)
+
+# 训练时间: 12小时(8个A100)
+# 效果: 支持多轮视觉问答
+```
+
+**Stage 3: 增强能力 (可选)**
+```python
+# 引入更多高质量数据
+# - 详细描述(LLaVA-Instruct-150K)
+# - 复杂推理(VQAv2,GQA)
+# - OCR文字识别(TextVQA)
+
+# 训练后模型能力:
+# ✅ 详细描述图像
+# ✅ 多步推理
+# ✅ 识别图中文字
+```
+
+### 投影层设计对比
+
+| 设计 | 结构 | 参数量 | 效果 |
+|------|------|--------|------|
+| **线性层** | Linear(1024→4096) | 4M | 快但简单 |
+| **2层MLP** | Linear-GELU-Linear | 8M | 平衡⭐ |
+| **Q-Former** | Transformer Decoder | 100M+ | 强但慢贵 |
+
+**LLaVA-1.5选择: 2层MLP**
+```python
+class VisionProjector(nn.Module):
+    def __init__(self, vision_dim=1024, llm_dim=4096):
+        super().__init__()
+        self.projector = nn.Sequential(
+            nn.Linear(vision_dim, llm_dim),
+            nn.GELU(),
+            nn.Linear(llm_dim, llm_dim)
+        )
+
+    def forward(self, vision_features):
+        # vision_features: (batch, 256, 1024) from CLIP
+        # output: (batch, 256, 4096) for LLaMA
+        return self.projector(vision_features)
+```
+
+### 完整推理流程
+
+```python
+class LLaVA:
+    def __init__(self):
+        # 加载3个组件
+        self.vision_tower = CLIPVisionModel.from_pretrained("openai/clip-vit-large-patch14")
+        self.projector = VisionProjector()
+        self.llm = LlamaForCausalLM.from_pretrained("lmsys/vicuna-7b-v1.5")
+
+    def generate(self, image, question):
+        # Step 1: 提取视觉特征
+        pixel_values = self.preprocess_image(image)  # (224, 224, 3)
+        vision_features = self.vision_tower(pixel_values).last_hidden_state
+        # shape: (1, 256, 1024)
+
+        # Step 2: 投影到LLM空间
+        vision_embeds = self.projector(vision_features)
+        # shape: (1, 256, 4096)
+
+        # Step 3: 构造输入
+        text_prompt = f"<image>\nUSER: {question}\nASSISTANT:"
+        text_tokens = self.tokenizer(text_prompt, return_tensors="pt").input_ids
+        text_embeds = self.llm.get_input_embeddings()(text_tokens)
+        # shape: (1, text_len, 4096)
+
+        # 合并: [vision_embeds, text_embeds]
+        inputs_embeds = torch.cat([vision_embeds, text_embeds], dim=1)
+        # shape: (1, 256+text_len, 4096)
+
+        # Step 4: LLM生成
+        outputs = self.llm.generate(
+            inputs_embeds=inputs_embeds,
+            max_new_tokens=512,
+            temperature=0.7
+        )
+
+        answer = self.tokenizer.decode(outputs[0])
+        return answer
+
+# 使用
+llava = LLaVA()
+answer = llava.generate(
+    image="dog.jpg",
+    question="描述这张图片"
+)
+print(answer)
+# "这是一只金毛犬,正在草地上奔跑。它看起来很快乐,毛色金黄,姿态优美。背景是绿色的草坪和蓝天。"
+```
+
+### 关键技术细节
+
+**1. 位置编码**
+```python
+# CLIP的256个patch token没有位置信息
+# LLaMA需要位置编码
+
+# 方案: 用<image>占位符
+text = "<image>\nUSER: {question}\nASSISTANT:"
+#       ↑ 256个vision token的占位
+
+# LLaMA会自动给整个序列编码位置
+position_ids = torch.arange(0, 256 + text_len)
+```
+
+**2. Attention Mask**
+```python
+# Vision token之间能互相看到
+# Vision token和Text token能互相看到
+# 只有生成的token采用causal mask
+
+attention_mask = torch.ones(total_len, total_len)
+# Vision部分: 双向
+attention_mask[:256, :256] = 1
+# Text输入部分: 双向
+attention_mask[256:256+input_len, :256+input_len] = 1
+# 生成部分: 单向(causal)
+for i in range(256+input_len, total_len):
+    attention_mask[i, :i+1] = 1
+    attention_mask[i, i+1:] = 0
+```
+
+**3. 训练效率优化**
+```python
+# 问题: CLIP很大(300M),LLaMA更大(7B),显存炸
+# 优化:
+
+# 1. LoRA微调LLM
+peft_config = LoRAConfig(
+    r=8,
+    lora_alpha=16,
+    target_modules=["q_proj", "v_proj"],
+    lora_dropout=0.1
+)
+llm = get_peft_model(llm, peft_config)
+# 只训练40M参数,显存降70%
+
+# 2. 冻结CLIP
+for param in vision_tower.parameters():
+    param.requires_grad = False
+
+# 3. Gradient Checkpointing
+llm.gradient_checkpointing_enable()
+# 显存再降50%,速度慢20%
+```
+
+### LLaVA vs GPT-4V
+
+| 维度 | LLaVA-1.5 (7B) | GPT-4V |
+|------|----------------|--------|
+| **开源** | ✅ 完全开源 | ❌ 闭源API |
+| **成本** | 本地部署免费 | $0.01/图 |
+| **性能** | VQA 80.0% | VQA 88.2% |
+| **速度** | ~2s/图(A100) | ~5s/图 |
+| **可定制** | ✅ 可微调 | ❌ 只能Prompt |
+
+### 实战部署
+
+```python
+# 使用Hugging Face快速部署
+from transformers import pipeline
+
+pipe = pipeline(
+    "image-to-text",
+    model="llava-hf/llava-1.5-7b-hf",
+    device=0  # GPU
+)
+
+result = pipe(
+    images="image.jpg",
+    prompt="USER: <image>\n描述这张图片\nASSISTANT:",
+    max_new_tokens=200
+)
+
+print(result[0]["generated_text"])
+```
+
+**面试话术:**
+> "LLaVA用CLIP提取视觉特征,经过2层MLP投影到LLaMA的embedding空间,拼接文本token后输入LLM生成答案。训练分两阶段:先60万图文对对齐特征,再15万指令数据微调对话能力。关键是投影层设计,我们用MLP平衡性能和效率,比Q-Former快10倍但效果只差2%。部署时用LoRA微调LLM节省70%显存,冻结CLIP加速训练。"
+
+</details>
+
+---
+
+## 10. 多模态RAG如何实现?图文混合检索?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**多模态RAG = 支持图文混合输入,检索图文混合知识库,生成包含图片引用的答案**
+
+### 架构设计
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   用户输入                            │
+│   "请找出与这个logo相似的品牌,并说明它们的区别"        │
+│              [上传图片: nike_logo.jpg]                │
+└──────────────────────────────────────────────────────┘
+                         │
+                         ↓
+┌──────────────────────────────────────────────────────┐
+│               多模态Embedding                         │
+│  ┌─────────────┐              ┌─────────────┐        │
+│  │ CLIP Image  │              │ CLIP Text   │        │
+│  │  Encoder    │              │  Encoder    │        │
+│  └─────────────┘              └─────────────┘        │
+│   Image Vector                  Text Vector          │
+│    (512维)                       (512维)             │
+└──────────────────────────────────────────────────────┘
+                         │
+                         ↓
+┌──────────────────────────────────────────────────────┐
+│                  向量数据库检索                        │
+│   知识库:                                             │
+│   ├─ 图片: 1000张品牌logo (CLIP向量)                  │
+│   ├─ 文本: 5000条品牌介绍 (CLIP Text向量)             │
+│   └─ 多模态: 图文对(同时存图片和描述)                  │
+│                                                       │
+│   检索结果:                                           │
+│   1. Adidas logo (相似度0.92) + "Adidas是..."        │
+│   2. Puma logo (相似度0.85) + "Puma创立于..."        │
+│   3. "三条纹运动品牌对比" (相似度0.78)                 │
+└──────────────────────────────────────────────────────┘
+                         │
+                         ↓
+┌──────────────────────────────────────────────────────┐
+│                  多模态LLM生成                         │
+│   Input: 检索到的图片+文本                             │
+│   Model: GPT-4V / LLaVA                               │
+│   Output: "这是Nike的logo,与之相似的品牌有:           │
+│           1. Adidas - 同样是三条纹设计...             │
+│           [显示Adidas logo图片]                       │
+│           2. Puma - 美洲豹图标..."                    │
+└──────────────────────────────────────────────────────┘
+```
+
+### 核心实现
+
+**Step 1: 多模态知识库构建**
+
+```python
+from langchain.vectorstores import Qdrant
+from langchain.embeddings import OpenAICLIPEmbeddings
+from transformers import CLIPProcessor, CLIPModel
+
+class MultimodalKnowledgeBase:
+    def __init__(self):
+        # CLIP模型
+        self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
+        self.clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
+
+        # 向量数据库
+        self.vector_db = Qdrant(
+            collection_name="multimodal_kb",
+            embedding_dim=512
+        )
+
+    def add_document(self, doc_type, content, metadata):
+        """添加文档到知识库"""
+
+        if doc_type == "image":
+            # 图片embedding
+            image = Image.open(content)
+            inputs = self.clip_processor(images=image, return_tensors="pt")
+            embedding = self.clip_model.get_image_features(**inputs)[0].numpy()
+
+        elif doc_type == "text":
+            # 文本embedding
+            inputs = self.clip_processor(text=content, return_tensors="pt")
+            embedding = self.clip_model.get_text_features(**inputs)[0].numpy()
+
+        elif doc_type == "image_text_pair":
+            # 图文对: 同时存两个向量,用mean pooling
+            image = Image.open(content["image"])
+            text = content["text"]
+
+            image_inputs = self.clip_processor(images=image, return_tensors="pt")
+            text_inputs = self.clip_processor(text=text, return_tensors="pt")
+
+            image_emb = self.clip_model.get_image_features(**image_inputs)[0]
+            text_emb = self.clip_model.get_text_features(**text_inputs)[0]
+
+            # 平均
+            embedding = ((image_emb + text_emb) / 2).numpy()
+
+        # 存入向量库
+        self.vector_db.add(
+            embedding=embedding,
+            metadata={
+                "type": doc_type,
+                "content": content,
+                **metadata
+            }
+        )
+
+    def search(self, query_image=None, query_text=None, top_k=5):
+        """多模态检索"""
+
+        # 生成query向量
+        if query_image and query_text:
+            # 图文混合query
+            img_inputs = self.clip_processor(images=query_image, return_tensors="pt")
+            txt_inputs = self.clip_processor(text=query_text, return_tensors="pt")
+
+            img_emb = self.clip_model.get_image_features(**img_inputs)[0]
+            txt_emb = self.clip_model.get_text_features(**txt_inputs)[0]
+
+            query_embedding = ((img_emb + txt_emb) / 2).numpy()
+
+        elif query_image:
+            # 纯图片query
+            inputs = self.clip_processor(images=query_image, return_tensors="pt")
+            query_embedding = self.clip_model.get_image_features(**inputs)[0].numpy()
+
+        elif query_text:
+            # 纯文本query
+            inputs = self.clip_processor(text=query_text, return_tensors="pt")
+            query_embedding = self.clip_model.get_text_features(**inputs)[0].numpy()
+
+        # 检索
+        results = self.vector_db.search(query_embedding, top_k=top_k)
+        return results
+
+# 构建知识库
+kb = MultimodalKnowledgeBase()
+
+# 添加图片
+kb.add_document(
+    doc_type="image",
+    content="logos/nike.jpg",
+    metadata={"brand": "Nike", "category": "sportswear"}
+)
+
+# 添加文本
+kb.add_document(
+    doc_type="text",
+    content="Nike是全球领先的运动品牌,以swoosh标志闻名...",
+    metadata={"brand": "Nike"}
+)
+
+# 添加图文对
+kb.add_document(
+    doc_type="image_text_pair",
+    content={
+        "image": "products/airmax.jpg",
+        "text": "Nike Air Max 270 - 气垫跑鞋,售价1299元"
+    },
+    metadata={"product": "Air Max 270"}
+)
+
+# 检索
+results = kb.search(
+    query_image=Image.open("user_upload.jpg"),
+    query_text="运动鞋品牌对比",
+    top_k=5
+)
+```
+
+**Step 2: 多模态Rerank**
+
+```python
+from transformers import BlipForImageTextRetrieval
+
+class MultimodalReranker:
+    def __init__(self):
+        self.model = BlipForImageTextRetrieval.from_pretrained(
+            "Salesforce/blip-itm-large-coco"
+        )
+
+    def rerank(self, query_image, query_text, candidates, top_k=3):
+        """精排: 计算query与每个candidate的匹配分数"""
+
+        scores = []
+        for candidate in candidates:
+            if candidate["type"] == "image":
+                # 图-图匹配: 用CLIP余弦相似度(已有)
+                score = candidate["similarity"]
+
+            elif candidate["type"] == "text":
+                # 图文匹配: 用BLIP ITM分数
+                inputs = self.processor(
+                    images=query_image,
+                    text=candidate["content"],
+                    return_tensors="pt"
+                )
+                score = self.model(**inputs).itm_score.item()
+
+            elif candidate["type"] == "image_text_pair":
+                # 复合匹配: ITM分数
+                inputs = self.processor(
+                    images=candidate["content"]["image"],
+                    text=query_text,
+                    return_tensors="pt"
+                )
+                score = self.model(**inputs).itm_score.item()
+
+            scores.append((candidate, score))
+
+        # 按分数排序
+        ranked = sorted(scores, key=lambda x: x[1], reverse=True)
+        return [item[0] for item in ranked[:top_k]]
+```
+
+**Step 3: 多模态生成**
+
+```python
+from transformers import pipeline
+
+class MultimodalRAGAgent:
+    def __init__(self):
+        self.kb = MultimodalKnowledgeBase()
+        self.reranker = MultimodalReranker()
+        self.llm = pipeline(
+            "image-to-text",
+            model="llava-hf/llava-1.5-13b-hf"
+        )
+
+    def answer(self, query_image, query_text):
+        # Step 1: 检索
+        candidates = self.kb.search(
+            query_image=query_image,
+            query_text=query_text,
+            top_k=20
+        )
+
+        # Step 2: 精排
+        top_docs = self.reranker.rerank(
+            query_image,
+            query_text,
+            candidates,
+            top_k=5
+        )
+
+        # Step 3: 构造prompt
+        context = "参考资料:\n"
+        for i, doc in enumerate(top_docs):
+            context += f"\n{i+1}. "
+            if doc["type"] == "image":
+                context += f"[图片: {doc['metadata']['brand']} logo]"
+            elif doc["type"] == "text":
+                context += doc["content"][:200]
+            elif doc["type"] == "image_text_pair":
+                context += f"[图片+文字: {doc['content']['text']}]"
+
+        prompt = f"""
+        <image>
+        USER: {query_text}
+
+        {context}
+
+        请基于以上参考资料回答问题,并引用相关图片编号。
+        ASSISTANT:
+        """
+
+        # Step 4: LLM生成
+        answer = self.llm(
+            images=[query_image] + [doc["content"] for doc in top_docs if "image" in doc["type"]],
+            prompt=prompt,
+            max_new_tokens=512
+        )
+
+        return answer
+
+# 使用
+agent = MultimodalRAGAgent()
+answer = agent.answer(
+    query_image=Image.open("user_logo.jpg"),
+    query_text="这是什么品牌?有哪些相似的竞品?"
+)
+print(answer)
+```
+
+### 性能优化
+
+**1. 混合检索策略**
+```python
+def hybrid_multimodal_search(query_image, query_text):
+    # 路径1: 图片检索
+    image_results = vector_db.search(clip_image_embedding(query_image), k=10)
+
+    # 路径2: 文本检索(BM25+Vector)
+    text_results_bm25 = bm25.search(query_text, k=10)
+    text_results_vector = vector_db.search(clip_text_embedding(query_text), k=10)
+
+    # RRF融合
+    final_results = rrf_fusion([
+        image_results,
+        text_results_bm25,
+        text_results_vector
+    ], weights=[0.4, 0.3, 0.3])
+
+    return final_results
+```
+
+**2. 缓存优化**
+```python
+# 预计算常见查询的向量
+@lru_cache(maxsize=1000)
+def get_text_embedding(text):
+    return clip_model.get_text_features(text)
+
+# 批量embedding
+texts = ["品牌1", "品牌2", ...]
+embeddings = clip_model.get_text_features(texts)  # 批量快10倍
+```
+
+**面试话术:**
+> "多模态RAG用CLIP同时编码图文,存入统一向量空间,检索时图文query加权平均。知识库支持三种文档:纯图(logo)、纯文(介绍)、图文对(产品),检索后用BLIP-ITM精排top-5,最后LLaVA生成答案并引用图片。关键优化是混合检索,图片向量+文本BM25+文本向量三路RRF融合,Recall@5从65%提升到85%。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### 多模态核心概念
@@ -1057,6 +1642,7 @@ def ecommerce_qa(user_image, user_question):
 | **图像字幕** | BLIP / BLIP-2 |
 | **视觉问答** | BLIP-2 + LLM |
 | **多模态 RAG** | CLIP检索 + GPT-4V生成 |
+| **LLaVA** | CLIP+MLP+LLaMA,两阶段训练(对齐+指令) |
 
 ## 📝 更新记录
 
@@ -1067,7 +1653,7 @@ def ecommerce_qa(user_image, user_question):
 
 ---
 
-**上一模块：** [生产部署](../10-production-deployment/)  
+**上一模块：** [生产部署](../10-production-deployment/)
 **下一模块：** [框架与工具](../12-frameworks-tools/)
 
 ---
