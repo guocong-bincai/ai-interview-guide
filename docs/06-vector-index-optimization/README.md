@@ -1,7 +1,7 @@
 # 🔍 向量数据库索引详解
 
-> **难度：** ⭐⭐⭐⭐⭐  
-> **更新：** 2026-03-02  
+> **难度：** ⭐⭐⭐⭐⭐
+> **更新：** 2026-03-02
 > **考点：** 向量索引原理、性能对比、选型指南
 
 ## 📋 核心面试题
@@ -317,27 +317,247 @@ LSH = 哈希 + 桶内搜索
 
 **标准回答：**
 > "向量数据库主流索引有五种：HNSW、IVF、IVF-PQ、LSH、Flat。
-> 
+>
 > HNSW 是多层图结构，速度最快精度最高，但内存占用大，适合千万级以下数据。
 > IVF 是先聚类再搜索，适合大数据量，但精度有损失。
 > IVF-PQ 在 IVF 基础上加向量压缩，内存占用极低，适合超大数据量。
 > LSH 用哈希方法，速度最快但精度最低。
 > Flat 是暴力搜索，精度 100% 但只适合小数据量。
-> 
+>
 > 我在项目中用 HNSW，因为数据量 50 万条，内存充足，追求低延迟。"
 
 **进阶回答：**
 > "选型时我考虑三个维度：数据量、内存、精度要求。
-> 
+>
 > 数据量<100 万用 HNSW，延迟<10ms，Recall>95%。
 > 100 万 -1000 万用 IVF-PQ，内存减少 100 倍，Recall 80-85%。
 > >1000 万用 LSH 或分片。
-> 
+>
 > 另外还要考虑实时性：HNSW 支持实时插入，IVF 需要定期重建索引。"
 
 </details>
 
+### Q9: 混合检索的融合策略有哪些?RRF算法详解
+
+<details>
+<summary>💡 答案要点</summary>
+
+**混合检索 = BM25(关键词) + Vector Search(语义) 融合**
+
+### 为什么需要融合?
+
+**单一检索的局限:**
+```
+查询: "Python性能优化"
+
+BM25检索:
+✅ 精确匹配"Python"关键词
+✅ 找到包含"性能"、"优化"的文档
+❌ 漏掉同义词"提速"、"加速"
+
+向量检索:
+✅ 找到语义相关的"Python加速技巧"
+✅ 理解"优化"≈"提速"
+❌ 可能返回"Java性能优化"(语义相似但主题不对)
+
+混合检索:
+✅ 精确+语义双重保障
+```
+
+### 融合策略对比
+
+#### 1. 加权线性组合
+
+**公式:**
+```python
+final_score = α * vector_score + (1-α) * bm25_score
+
+其中α∈[0,1]控制权重
+```
+
+**问题: 分数范围不一致**
+```python
+vector_score: 0.3-0.9 (余弦相似度)
+bm25_score: 2.5-15.7 (无上限)
+
+直接相加没意义!需要归一化
+```
+
+**归一化方法:**
+```python
+# Min-Max归一化
+def normalize(scores):
+    min_s, max_s = min(scores), max(scores)
+    return [(s - min_s) / (max_s - min_s) for s in scores]
+
+vector_norm = normalize(vector_scores)  # → [0, 1]
+bm25_norm = normalize(bm25_scores)      # → [0, 1]
+
+final = α * vector_norm + (1-α) * bm25_norm
+```
+
+**缺点:** 归一化复杂,易受异常值影响
+
+#### 2. RRF (Reciprocal Rank Fusion) ⭐推荐
+
+**核心思想: 只看排名,不看分数**
+
+**RRF公式:**
+```python
+RRF_score(doc) = Σ [1 / (k + rank_i(doc))]
+
+其中:
+- rank_i(doc): 文档在第i个检索器中的排名
+- k: 平滑常数(通常k=60)
+```
+
+**详细计算示例:**
+```python
+# 查询: "Python优化"
+
+# BM25检索top-5:
+bm25_results = [
+    (doc_A, score=15.2, rank=1),
+    (doc_B, score=12.3, rank=2),
+    (doc_C, score=10.1, rank=3),
+    (doc_D, score=8.5, rank=4),
+    (doc_E, score=7.2, rank=5)
+]
+
+# 向量检索top-5:
+vector_results = [
+    (doc_B, score=0.92, rank=1),  # doc_B也在BM25中
+    (doc_F, score=0.88, rank=2),
+    (doc_A, score=0.85, rank=3),  # doc_A也在BM25中
+    (doc_G, score=0.82, rank=4),
+    (doc_C, score=0.79, rank=5)   # doc_C也在BM25中
+]
+
+# RRF融合 (k=60):
+k = 60
+
+doc_A_rrf = 1/(60+1) + 1/(60+3) = 1/61 + 1/63 = 0.0164 + 0.0159 = 0.0323
+doc_B_rrf = 1/(60+2) + 1/(60+1) = 1/62 + 1/61 = 0.0161 + 0.0164 = 0.0325
+doc_C_rrf = 1/(60+3) + 1/(60+5) = 1/63 + 1/65 = 0.0159 + 0.0154 = 0.0313
+doc_D_rrf = 1/(60+4) + 0 = 0.0156  # 只在BM25中
+doc_E_rrf = 1/(60+5) + 0 = 0.0154
+doc_F_rrf = 0 + 1/(60+2) = 0.0161  # 只在向量中
+doc_G_rrf = 0 + 1/(60+4) = 0.0156
+
+# 最终排序:
+# 1. doc_B (0.0325) ← 两边都高
+# 2. doc_A (0.0323) ← 两边都高
+# 3. doc_C (0.0313)
+# 4. doc_F (0.0161)
+# 5. doc_D (0.0156)
+```
+
+**完整代码实现:**
+```python
+from collections import defaultdict
+
+def reciprocal_rank_fusion(results_list, k=60):
+    """
+    results_list: [
+        [('doc_A', 15.2), ('doc_B', 12.3), ...],  # BM25结果
+        [('doc_B', 0.92), ('doc_F', 0.88), ...]   # 向量结果
+    ]
+    """
+    rrf_scores = defaultdict(float)
+
+    for results in results_list:
+        for rank, (doc_id, score) in enumerate(results, start=1):
+            rrf_scores[doc_id] += 1 / (k + rank)
+
+    # 按RRF分数排序
+    sorted_docs = sorted(
+        rrf_scores.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    return sorted_docs
+
+# 使用
+bm25_results = [('doc_A', 15.2), ('doc_B', 12.3), ...]
+vector_results = [('doc_B', 0.92), ('doc_F', 0.88), ...]
+
+final_results = reciprocal_rank_fusion([bm25_results, vector_results])
+```
+
+**RRF优势:**
+- ✅ 无需归一化(只看排名)
+- ✅ 鲁棒性强(不受异常分数影响)
+- ✅ 参数少(只有k需要调)
+- ✅ 工程简单
+
+#### 3. 加权RRF (高级)
+
+**动态调整权重:**
+```python
+def weighted_rrf(results_list, weights, k=60):
+    """
+    weights: [0.7, 0.3]  # BM25权重0.7, 向量权重0.3
+    """
+    rrf_scores = defaultdict(float)
+
+    for results, weight in zip(results_list, weights):
+        for rank, (doc_id, score) in enumerate(results, start=1):
+            rrf_scores[doc_id] += weight / (k + rank)
+
+    return sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
+
+# 专业查询(如医学术语): BM25权重高
+medical_results = weighted_rrf([bm25, vector], weights=[0.8, 0.2])
+
+# 通用查询: 向量权重高
+general_results = weighted_rrf([bm25, vector], weights=[0.3, 0.7])
+```
+
+### k值选择指南
+
+| k值 | 效果 | 适用场景 |
+|-----|------|----------|
+| k=10 | 高排名主导 | top结果质量极高 |
+| k=60 (默认) | 平衡 | 大多数场景 |
+| k=100 | 低排名也有影响 | 结果多样性重要 |
+
+**调优建议:**
+```python
+# 在验证集上遍历k值
+best_k = 60
+best_recall = 0
+
+for k in [10, 30, 60, 100, 150]:
+    rrf_results = reciprocal_rank_fusion(results, k=k)
+    recall = evaluate_recall(rrf_results, ground_truth)
+
+    if recall > best_recall:
+        best_recall = recall
+        best_k = k
+
+print(f"最优k={best_k}, Recall={best_recall}")
+```
+
+**性能对比:**
+
+| 方法 | Recall@10 | 复杂度 | 可解释性 |
+|------|-----------|--------|----------|
+| BM25 only | 68% | 低 | ⭐⭐⭐⭐⭐ |
+| Vector only | 72% | 低 | ⭐⭐⭐ |
+| 加权融合 | 78% | 中(需归一化) | ⭐⭐ |
+| **RRF (k=60)** | **82%** | **低** | **⭐⭐⭐⭐** |
+| 加权RRF | 85% | 中 | ⭐⭐⭐ |
+
+**面试话术:**
+> "混合检索的融合策略我推荐RRF——它只看排名不看分数,避免了归一化的麻烦。公式是1/(k+rank)累加,k默认60。我们项目用RRF,召回率从单一检索的70%提升到85%,而且工程实现只要10行代码。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
+
+### 向量索引对比
 
 | 索引 | 原理关键词 | 速度 | 精度 | 内存 | 数据量 |
 |------|------------|------|------|------|--------|
@@ -347,10 +567,19 @@ LSH = 哈希 + 桶内搜索
 | **LSH** | 哈希 + 桶 | ⭐⭐⭐⭐ | ⭐⭐ | 低 | >1 亿 |
 | **Flat** | 暴力搜索 | ⭐ | ⭐⭐⭐⭐⭐ | 中 | <1 万 |
 
+### 混合检索融合
+
+| 方法 | 原理 | 优缺点 | Recall提升 |
+|------|------|--------|------------|
+| **加权融合** | α×V + (1-α)×B | 需归一化,调参复杂 | +6% |
+| **RRF** | Σ1/(k+rank) | 简单鲁棒,首选⭐ | +12% |
+| **加权RRF** | Σw/(k+rank) | 动态权重,效果最好 | +15% |
+
 **选型口诀：**
-> 小数据用 Flat，大数据用 IVF，  
-> 要速度用 HNSW，要内存用 PQ，  
+> 小数据用 Flat，大数据用 IVF，
+> 要速度用 HNSW，要内存用 PQ，
 > 超大规模用 LSH，实时插入 HNSW。
+> 混合检索用RRF，简单高效k=60!
 
 ## 📊 更新记录
 
@@ -361,7 +590,7 @@ LSH = 哈希 + 桶内搜索
 
 ---
 
-**上一模块：** [AI Agent 基础](../05-ai-agent-basics/)  
+**上一模块：** [AI Agent 基础](../05-ai-agent-basics/)
 **下一模块：** [模型训练](../07-model-training/)
 
 ---
