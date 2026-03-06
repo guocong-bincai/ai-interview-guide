@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 137+ 道高频面试题 | 16 个核心模块 | 从基础到进阶系统化学习**
+**🎯 170+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -25,7 +25,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 16个模块从易到难，137+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 17个模块从易到难，170+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -35,8 +35,8 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 137+ 道 |
-| 📂 **核心模块** | 16 个 |
+| 📝 **总题数** | 170+ 道 |
+| 📂 **核心模块** | 17 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
 | 🎓 **适用人群** | 初级 ~ 高级工程师 |
@@ -67,11 +67,12 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 03 | [📚 RAG 系统](docs/03-rag-system/) | 检索增强生成、向量数据库、Embedding、Rerank | 🔥🔥🔥🔥🔥 | 10 |
-| 04 | [🏗️ Transformer架构](docs/04-transformer-architecture/) | Self-Attention、Multi-Head、BERT vs GPT | 🔥🔥🔥🔥 | 7 |
-| 05 | [🤖 AI Agent基础](docs/05-ai-agent-basics/) | ReAct、Function Calling、工具调用 | 🔥🔥🔥🔥🔥 | 8 |
+| 03 | [📚 RAG 系统](docs/03-rag-system/) | 检索增强生成、向量数据库、Embedding、Rerank | 🔥🔥🔥🔥🔥 | 12 |
+| 04 | [💼 项目实战经验](docs/04-project-experience/) | **STAR法则、技术选型、难点突破、性能优化** | 🔥🔥🔥🔥🔥 | 3 |
+| 05 | [🏗️ Transformer架构](docs/05-transformer-architecture/) | Self-Attention、Multi-Head、BERT vs GPT、Q K V计算 | 🔥🔥🔥🔥 | 9 |
+| 06 | [🤖 AI Agent基础](docs/06-ai-agent-basics/) | ReAct、Function Calling、工具调用、LangGraph | 🔥🔥🔥🔥🔥 | 10 |
 
-**学习重点:** RAG完整流程、向量检索、Agent基本模式
+**学习重点:** RAG完整流程、项目经验总结、向量检索、Agent基本模式
 **预计时间:** 2-3周
 
 ---
@@ -82,12 +83,12 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 06 | [⚙️ 向量索引优化](docs/06-vector-index-optimization/) | HNSW、IVF、混合检索、Rerank | 🔥🔥🔥🔥 | 8 |
-| 07 | [🎓 模型微调与训练](docs/07-model-training/) | LoRA、QLoRA、RLHF、DPO | 🔥🔥🔥🔥 | 11 |
-| 08 | [⚡ 推理优化](docs/08-inference-optimization/) | KV Cache、量化、FlashAttention、vLLM | 🔥🔥🔥🔥🔥 | 10 |
-| 09 | [🛡️ AI 安全与评估](docs/09-ai-safety-evaluation/) | 内容安全、PII保护、RAGAS评估 | 🔥🔥🔥🔥 | 10 |
+| 07 | [⚙️ 向量索引优化](docs/07-vector-index-optimization/) | HNSW、IVF、混合检索、RRF融合 | 🔥🔥🔥🔥 | 9 |
+| 08 | [🎓 模型微调与训练](docs/08-model-training/) | LoRA、QLoRA、RLHF、DPO、PEFT对比 | 🔥🔥🔥🔥 | 12 |
+| 09 | [⚡ 推理优化](docs/09-inference-optimization/) | KV Cache、量化、FlashAttention、vLLM、PagedAttention | 🔥🔥🔥🔥🔥 | 11 |
+| 10 | [🛡️ AI 安全与评估](docs/10-ai-safety-evaluation/) | 内容安全、PII保护、越狱攻击防御 | 🔥🔥🔥🔥 | 11 |
 
-**学习重点:** 性能优化、成本控制、质量保障
+**学习重点:** 性能优化、成本控制、质量保障、安全防护
 **预计时间:** 3-4周
 
 ---
@@ -98,6 +99,9 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
+| 11 | [🏛️ 工程架构与部署](docs/11-production-deployment/) | 流式输出、缓存、监控、MLOps、CI/CD | 🔥🔥🔥🔥🔥 | 14 |
+| 12 | [🎨 多模态应用](docs/12-multimodal-ai/) | CLIP、BLIP、图文检索、多模态RAG | 🔥🔥🔥 | 8 |
+| 13 | [🔧 框架与工具](docs/13-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
 | 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、高并发 | 🔥🔥🔥🔥🔥 | 12 |
 | 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、图文检索、多模态RAG | 🔥🔥🔥 | 8 |
 | 12 | [🔧 框架与工具](docs/12-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
@@ -113,9 +117,9 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 13 | [🎯 多智能体协作](docs/13-multi-agent-systems/) | Agent编排、通信机制、任务分解 | 🔥🔥🔥 | 8 |
-| 14 | [🔌 MCP & Skill系统](docs/14-mcp-skill-systems/) | MCP协议、Skill设计、动态加载 | 🔥🔥 | 11 |
-| 15 | [🚀 前沿技术与趋势](docs/15-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
+| 14 | [🎯 多智能体协作](docs/14-multi-agent-systems/) | Agent编排、通信机制、任务分解 | 🔥🔥🔥 | 8 |
+| 15 | [🔌 MCP & Skill系统](docs/15-mcp-skill-systems/) | MCP协议、Skill设计、动态加载 | 🔥🔥 | 11 |
+| 16 | [🚀 前沿技术与趋势](docs/16-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
 
 **学习重点:** 前沿技术、系统创新、团队领导
 **预计时间:** 持续学习
@@ -126,7 +130,7 @@
 
 | 序号 | 模块 | 内容 |
 |------|------|------|
-| 16 | [📝 简历与面试技巧](docs/16-resume-interview-tips/) | 简历模板、项目描述、常见问题 |
+| 17 | [📝 简历与面试技巧](docs/17-resume-interview-tips/) | 简历模板、面试技巧、常见问题 |
 
 **高频度说明:**
 🔥🔥🔥🔥🔥 = 90%+ 面试会问
