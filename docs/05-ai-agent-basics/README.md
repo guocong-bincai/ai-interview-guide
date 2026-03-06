@@ -686,6 +686,413 @@ class AgentWithTools:
 
 ---
 
+## 11. 工具调用失败怎么处理?重试策略?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**工具调用会失败的原因:**
+```
+1. 参数错误 - LLM提取的参数不合法
+2. API超时 - 外部服务响应慢
+3. 权限不足 - 没权限访问资源
+4. 服务异常 - 第三方API挂了
+5. 数据不存在 - 查询的数据库记录不存在
+```
+
+### 错误分类与策略
+
+| 错误类型 | 是否重试 | 处理策略 | 示例 |
+|---------|---------|----------|------|
+| **瞬态错误** | ✅重试 | 指数退避+抖动 | 网络超时、429限流 |
+| **永久性错误** | ❌不重试 | 提示用户/修正参数 | 参数格式错误、404 |
+| **部分失败** | ✅重试失败部分 | 拆分+独立重试 | 批量操作中部分失败 |
+| **依赖失败** | ❌不重试 | 降级到备用方案 | 外部服务完全不可用 |
+
+### 方案1: 三层错误处理
+
+```python
+from tenacity import retry, stop_after_attempt, wait_exponential
+import time
+import random
+
+class ToolExecutor:
+    def __init__(self):
+        self.max_retries = 3
+        self.circuit_breaker = CircuitBreaker()
+
+    def execute_tool(self, tool_name, params):
+        """
+        三层防护:
+        1. 参数验证层
+        2. 重试层
+        3. 降级层
+        """
+
+        # 第1层: 参数验证
+        try:
+            validated_params = self.validate_params(tool_name, params)
+        except ValidationError as e:
+            # 参数错误不重试,直接返回错误给LLM修正
+            return {
+                "success": False,
+                "error": f"参数错误: {str(e)}",
+                "suggestion": "请检查参数格式",
+                "retryable": False
+            }
+
+        # 第2层: 熔断器检查
+        if not self.circuit_breaker.is_available(tool_name):
+            # 服务已熔断,直接降级
+            return self.fallback(tool_name, params)
+
+        # 第3层: 带重试的执行
+        result = self.execute_with_retry(tool_name, validated_params)
+
+        # 记录成功/失败供熔断器统计
+        if result["success"]:
+            self.circuit_breaker.record_success(tool_name)
+        else:
+            self.circuit_breaker.record_failure(tool_name)
+
+        return result
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        reraise=True
+    )
+    def execute_with_retry(self, tool_name, params):
+        """带指数退避的重试"""
+        try:
+            tool = self.get_tool(tool_name)
+            result = tool.execute(**params)
+            return {"success": True, "data": result}
+
+        except TimeoutError:
+            # 可重试
+            raise  # 让tenacity重试
+
+        except PermissionError as e:
+            # 不可重试
+            return {
+                "success": False,
+                "error": f"权限不足: {str(e)}",
+                "retryable": False
+            }
+
+        except Exception as e:
+            # 未知错误,保守重试一次
+            raise
+
+    def fallback(self, tool_name, params):
+        """降级策略"""
+        fallback_map = {
+            "search_web": self.search_cache,  # 网络搜索降级到缓存
+            "query_db": self.query_backup_db,  # 主库降级到备库
+        }
+
+        if tool_name in fallback_map:
+            return fallback_map[tool_name](params)
+        else:
+            return {
+                "success": False,
+                "error": f"服务 {tool_name} 暂时不可用",
+                "retryable": False
+            }
+
+# 使用
+executor = ToolExecutor()
+result = executor.execute_tool("query_order", {"order_id": "123"})
+
+if not result["success"]:
+    if result["retryable"]:
+        # 可重试错误,让Agent重新尝试
+        feedback = f"执行失败: {result['error']},请重试"
+    else:
+        # 不可重试,让Agent换个方案
+        feedback = f"无法执行: {result['error']},请尝试其他方法"
+```
+
+### 方案2: 指数退避 + 抖动
+
+**为什么需要抖动(Jitter)?**
+```
+场景: 某个API突然恢复,100个Agent同时重试
+→ 惊群效应,API瞬间被打死
+→ 又全失败,1秒后再次同时重试
+→ 恶性循环
+
+解决: 加入随机抖动,错开重试时间
+```
+
+**实现:**
+```python
+def exponential_backoff_with_jitter(attempt, base=2, max_delay=60):
+    """
+    指数退避 + 全抖动
+
+    attempt 0: [0, 2] 秒随机
+    attempt 1: [0, 4] 秒随机
+    attempt 2: [0, 8] 秒随机
+    ...
+    """
+    delay = min(base ** attempt, max_delay)
+    jitter = random.uniform(0, delay)
+    return jitter
+
+# 使用
+for attempt in range(5):
+    try:
+        result = call_api()
+        break  # 成功
+    except Exception as e:
+        if attempt == 4:
+            raise  # 最后一次也失败,抛出
+
+        wait_time = exponential_backoff_with_jitter(attempt)
+        print(f"失败,等待 {wait_time:.2f}s 后重试...")
+        time.sleep(wait_time)
+```
+
+**效果对比:**
+```python
+# 无抖动: 100个请求同时重试
+重试时间: [1s, 1s, 1s, ...] (全同时)
+→ 惊群效应
+
+# 有抖动: 重试时间分散
+重试时间: [0.3s, 1.8s, 0.7s, 1.2s, ...]
+→ 请求分散,服务器压力平稳
+```
+
+### 方案3: 熔断器(Circuit Breaker)
+
+**原理:**
+```
+状态机:
+Closed(正常) → Open(熔断) → Half-Open(试探) → Closed
+
+Closed: 正常调用
+  ↓ 失败率>50%
+Open: 直接拒绝,快速失败
+  ↓ 等待30秒
+Half-Open: 允许1个请求试探
+  ↓ 成功 → Closed
+  ↓ 失败 → Open
+```
+
+**实现:**
+```python
+from enum import Enum
+from datetime import datetime, timedelta
+
+class State(Enum):
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+class CircuitBreaker:
+    def __init__(self,
+                 failure_threshold=5,      # 5次失败触发熔断
+                 timeout=30,               # 熔断30秒后试探
+                 success_threshold=2):     # 2次成功恢复
+        self.state = State.CLOSED
+        self.failure_count = 0
+        self.success_count = 0
+        self.last_failure_time = None
+
+        self.failure_threshold = failure_threshold
+        self.timeout = timeout
+        self.success_threshold = success_threshold
+
+    def call(self, func, *args, **kwargs):
+        # 检查是否可以调用
+        if self.state == State.OPEN:
+            # 检查是否超过timeout,可以试探
+            if self._should_attempt_reset():
+                self.state = State.HALF_OPEN
+                print("熔断器进入半开状态,试探性调用")
+            else:
+                # 快速失败
+                raise Exception("熔断器打开,服务不可用")
+
+        # 执行调用
+        try:
+            result = func(*args, **kwargs)
+            self._on_success()
+            return result
+
+        except Exception as e:
+            self._on_failure()
+            raise
+
+    def _on_success(self):
+        """成功回调"""
+        if self.state == State.HALF_OPEN:
+            self.success_count += 1
+            if self.success_count >= self.success_threshold:
+                # 连续成功,恢复正常
+                self.state = State.CLOSED
+                self.failure_count = 0
+                self.success_count = 0
+                print("熔断器关闭,服务恢复")
+        else:
+            # CLOSED状态,重置失败计数
+            self.failure_count = 0
+
+    def _on_failure(self):
+        """失败回调"""
+        self.failure_count += 1
+        self.last_failure_time = datetime.now()
+
+        if self.state == State.HALF_OPEN:
+            # 试探失败,重新打开
+            self.state = State.OPEN
+            self.success_count = 0
+            print("试探失败,熔断器重新打开")
+
+        elif self.failure_count >= self.failure_threshold:
+            # 失败次数达到阈值,打开熔断器
+            self.state = State.OPEN
+            print(f"失败{self.failure_count}次,熔断器打开")
+
+    def _should_attempt_reset(self):
+        """是否应该试探恢复"""
+        if self.last_failure_time is None:
+            return True
+
+        return datetime.now() - self.last_failure_time > timedelta(seconds=self.timeout)
+
+# 使用
+breaker = CircuitBreaker()
+
+for i in range(10):
+    try:
+        result = breaker.call(unreliable_api_call)
+        print(f"调用成功: {result}")
+    except Exception as e:
+        print(f"调用失败: {e}")
+
+    time.sleep(1)
+
+# 输出:
+# 调用失败: API错误
+# 调用失败: API错误
+# ...
+# 失败5次,熔断器打开
+# 调用失败: 熔断器打开,服务不可用  (快速失败,不再调用API)
+# ... (30秒后)
+# 熔断器进入半开状态,试探性调用
+# 调用成功
+# 熔断器关闭,服务恢复
+```
+
+### 方案4: 参数修正反馈
+
+```python
+def execute_tool_with_feedback(llm, tool, params, max_attempts=3):
+    """
+    参数错误时,让LLM自己修正
+    """
+    for attempt in range(max_attempts):
+        try:
+            # 验证参数
+            validated = tool.validate_params(params)
+            # 执行
+            result = tool.execute(validated)
+            return result
+
+        except ValidationError as e:
+            if attempt == max_attempts - 1:
+                return {"error": "参数多次修正失败"}
+
+            # 让LLM修正参数
+            feedback = f"""
+            工具调用失败:
+            错误: {str(e)}
+
+            你提供的参数:
+            {json.dumps(params, indent=2, ensure_ascii=False)}
+
+            工具期望的格式:
+            {tool.get_schema()}
+
+            请重新生成正确的参数。
+            """
+
+            # LLM生成新参数
+            new_params = llm.generate(feedback)
+            params = parse_json(new_params)
+            print(f"尝试修正参数 (第{attempt+1}次)")
+
+    return {"error": "超过最大重试次数"}
+```
+
+### 最佳实践总结
+
+```python
+class RobustToolExecutor:
+    """
+    生产级工具执行器
+    """
+    def __init__(self):
+        self.circuit_breakers = {}  # 每个工具独立熔断
+        self.retry_config = {
+            "max_attempts": 3,
+            "base_delay": 1,
+            "max_delay": 30,
+        }
+
+    def execute(self, tool_name, params, context=None):
+        # 1. 参数验证
+        if not self.validate_params(tool_name, params):
+            return self.invalid_params_response(tool_name, params)
+
+        # 2. 熔断器检查
+        breaker = self.get_or_create_breaker(tool_name)
+        if breaker.is_open():
+            return self.fallback_response(tool_name, params)
+
+        # 3. 带重试执行
+        for attempt in range(self.retry_config["max_attempts"]):
+            try:
+                result = self.do_execute(tool_name, params)
+                breaker.record_success()
+                return {"success": True, "data": result}
+
+            except RetryableError as e:
+                # 可重试错误
+                if attempt < self.retry_config["max_attempts"] - 1:
+                    delay = self.calculate_delay(attempt)
+                    time.sleep(delay)
+                    continue
+                else:
+                    breaker.record_failure()
+                    return {"success": False, "error": str(e), "retryable": True}
+
+            except NonRetryableError as e:
+                # 不可重试错误
+                breaker.record_failure()
+                return {"success": False, "error": str(e), "retryable": False}
+
+        return {"success": False, "error": "Max retries exceeded"}
+
+    def calculate_delay(self, attempt):
+        """指数退避+抖动"""
+        base = self.retry_config["base_delay"]
+        max_delay = self.retry_config["max_delay"]
+        delay = min(base * (2 ** attempt), max_delay)
+        return delay * (0.5 + random.random() * 0.5)  # 50-100%抖动
+```
+
+**面试话术:**
+> "工具调用失败分三类处理:参数错误(让LLM修正不重试)、瞬态错误(指数退避+抖动重试)、服务异常(熔断器快速失败+降级)。关键是避免惊群效应,我们用全抖动策略,把100个同时重试分散到0-2秒内随机,服务压力平稳。熔断器在5次失败后打开,30秒后半开试探,2次成功恢复,保护后端服务。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 概念 | 一句话解释 |
@@ -699,6 +1106,8 @@ class AgentWithTools:
 | **Reflection** | Agent 自我评估和改进 |
 | **LangGraph** | 用图结构构建有状态Agent,支持循环分支 |
 | **工具调用流程** | 定义→决策→验证→执行→反馈,带重试降级 |
+| **错误处理** | 参数错误不重试,瞬态错误重试,服务异常降级 |
+| **重试策略** | 指数退避+抖动(避免惊群),熔断器(快速失败) |
 
 
 ---
