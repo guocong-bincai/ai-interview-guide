@@ -1426,6 +1426,427 @@ Bing Chat回答:
 
 ---
 
+## 14. LLM评估指标有哪些?如何评估生成质量?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**LLM评估 = 自动指标 + 人工评估**
+
+### 评估维度
+
+| 维度 | 指标 | 适用场景 |
+|------|------|----------|
+| **准确性** | BLEU/ROUGE/Exact Match | 翻译/摘要/QA |
+| **流畅性** | Perplexity/语法检查 | 通用 |
+| **相关性** | BERTScore/语义相似度 | 对话/生成 |
+| **事实性** | 幻觉检测/知识验证 | RAG/知识问答 |
+| **安全性** | 内容审核/毒性检测 | 所有场景 |
+| **多样性** | Distinct-N/Self-BLEU | 创意写作 |
+
+### 自动评估指标
+
+**1. BLEU (机器翻译经典指标)**
+
+```python
+from nltk.translate.bleu_score import sentence_bleu
+
+def calculate_bleu(reference, candidate):
+    """计算BLEU分数"""
+
+    # reference: 标准答案(可以有多个)
+    # candidate: 模型生成的答案
+
+    # 1-gram, 2-gram, 3-gram, 4-gram权重
+    weights = (0.25, 0.25, 0.25, 0.25)
+
+    score = sentence_bleu(
+        [reference.split()],  # 参考答案
+        candidate.split(),    # 候选答案
+        weights=weights
+    )
+
+    return score
+
+# 示例
+reference = "the cat is on the mat"
+candidate1 = "the cat is on the mat"  # 完全匹配
+candidate2 = "cat is on mat"          # 部分匹配
+candidate3 = "dog is under table"     # 完全不匹配
+
+print(calculate_bleu(reference, candidate1))  # 1.0
+print(calculate_bleu(reference, candidate2))  # 0.62
+print(calculate_bleu(reference, candidate3))  # 0.0
+
+# 问题: 只看词重叠,不管语义
+# "我爱你" vs "你爱我" → BLEU很高,但意思相反
+```
+
+**2. ROUGE (摘要任务经典指标)**
+
+```python
+from rouge import Rouge
+
+def calculate_rouge(reference, candidate):
+    """计算ROUGE分数"""
+
+    rouge = Rouge()
+    scores = rouge.get_scores(candidate, reference)[0]
+
+    return {
+        "ROUGE-1": scores["rouge-1"]["f"],  # 1-gram重叠
+        "ROUGE-2": scores["rouge-2"]["f"],  # 2-gram重叠
+        "ROUGE-L": scores["rouge-l"]["f"]   # 最长公共子序列
+    }
+
+# 示例: 摘要任务
+reference = "AI is changing the world rapidly"
+candidate1 = "AI is transforming the world quickly"  # 语义相似
+candidate2 = "the world is changing"                 # 部分相关
+
+scores1 = calculate_rouge(reference, candidate1)
+# ROUGE-1: 0.67 (词重叠率)
+# ROUGE-L: 0.50 (最长公共子序列)
+
+# 优点: 召回率友好,适合摘要
+# 缺点: 不考虑语义
+```
+
+**3. Perplexity (困惑度,衡量流畅性)**
+
+```python
+import torch
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+def calculate_perplexity(text, model, tokenizer):
+    """计算困惑度"""
+
+    # 编码文本
+    encodings = tokenizer(text, return_tensors="pt")
+
+    # 计算负对数似然
+    with torch.no_grad():
+        outputs = model(**encodings, labels=encodings["input_ids"])
+        loss = outputs.loss
+
+    # 困惑度 = exp(loss)
+    perplexity = torch.exp(loss).item()
+
+    return perplexity
+
+# 使用
+model = GPT2LMHeadModel.from_pretrained("gpt2")
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+text1 = "The quick brown fox jumps over the lazy dog"  # 流畅
+text2 = "Dog lazy the over jumps fox brown quick the"  # 不流畅
+
+ppl1 = calculate_perplexity(text1, model, tokenizer)  # 50 (低=好)
+ppl2 = calculate_perplexity(text2, model, tokenizer)  # 500 (高=差)
+
+# 解释: 困惑度越低,模型越"不困惑",文本越自然
+```
+
+**4. BERTScore (语义相似度)**
+
+```python
+from bert_score import score
+
+def calculate_bertscore(references, candidates):
+    """计算BERTScore"""
+
+    # 用BERT计算语义相似度
+    P, R, F1 = score(
+        candidates,
+        references,
+        lang="zh",
+        model_type="bert-base-chinese"
+    )
+
+    return {
+        "precision": P.mean().item(),
+        "recall": R.mean().item(),
+        "f1": F1.mean().item()
+    }
+
+# 示例
+reference = ["我喜欢这个产品"]
+candidate1 = ["我很喜欢这款商品"]  # 语义相似
+candidate2 = ["我讨厌这个产品"]    # 语义相反
+
+score1 = calculate_bertscore(reference, candidate1)
+# F1: 0.92 (高相似度)
+
+score2 = calculate_bertscore(reference, candidate2)
+# F1: 0.65 (低相似度,尽管词重叠高)
+
+# 优点: 考虑语义,比BLEU准确
+# 缺点: 计算慢,需要GPU
+```
+
+**5. Exact Match (精确匹配,QA任务)**
+
+```python
+def exact_match(prediction, ground_truth):
+    """精确匹配"""
+
+    # 标准化
+    pred = normalize(prediction)
+    gt = normalize(ground_truth)
+
+    return int(pred == gt)
+
+def normalize(text):
+    """文本标准化"""
+    import re
+
+    # 小写
+    text = text.lower()
+
+    # 去除标点
+    text = re.sub(r'[^\w\s]', '', text)
+
+    # 去除冠词
+    text = re.sub(r'\b(a|an|the)\b', '', text)
+
+    # 去除多余空格
+    text = ' '.join(text.split())
+
+    return text
+
+# 示例: 问答任务
+ground_truth = "The capital of France is Paris."
+prediction1 = "Paris"                        # 完全匹配
+prediction2 = "The capital is Paris"         # 部分匹配
+
+print(exact_match(prediction1, ground_truth))  # 0 (严格)
+print(exact_match("paris", ground_truth))      # 1 (标准化后匹配)
+```
+
+### 人工评估
+
+**评估框架:**
+
+```python
+def human_evaluation(responses, criteria):
+    """人工评估框架"""
+
+    results = []
+
+    for response in responses:
+        # 展示给评估员
+        print(f"回答: {response}")
+
+        # 多维度评分(1-5分)
+        scores = {
+            "相关性": input("相关性(1-5): "),
+            "准确性": input("准确性(1-5): "),
+            "流畅性": input("流畅性(1-5): "),
+            "有用性": input("有用性(1-5): "),
+        }
+
+        # 整体评分
+        overall = input("整体评分(1-5): ")
+
+        results.append({
+            "response": response,
+            "scores": scores,
+            "overall": overall
+        })
+
+    return results
+
+# 多人评估,计算一致性
+def calculate_agreement(evaluators):
+    """计算评估员一致性(Kappa)"""
+    from sklearn.metrics import cohen_kappa_score
+
+    # 评估员A和B的评分
+    scores_a = [r["overall"] for r in evaluators["A"]]
+    scores_b = [r["overall"] for r in evaluators["B"]]
+
+    kappa = cohen_kappa_score(scores_a, scores_b)
+
+    if kappa > 0.8:
+        print("高度一致")
+    elif kappa > 0.6:
+        print("中度一致")
+    else:
+        print("一致性低,需要重新培训评估员")
+
+    return kappa
+```
+
+### LLM-as-Judge (用LLM评估LLM)
+
+```python
+def llm_as_judge(question, answer_a, answer_b):
+    """用GPT-4评估两个答案哪个更好"""
+
+    prompt = f"""
+    你是专业的AI评估员。
+
+    问题: {question}
+
+    答案A: {answer_a}
+    答案B: {answer_b}
+
+    请从以下维度评估(1-5分):
+    1. 准确性: 事实是否正确
+    2. 相关性: 是否回答了问题
+    3. 完整性: 是否全面
+    4. 流畅性: 表达是否清晰
+
+    输出格式(JSON):
+    {{
+        "A": {{"准确性": X, "相关性": X, "完整性": X, "流畅性": X}},
+        "B": {{"准确性": X, "相关性": X, "完整性": X, "流畅性": X}},
+        "胜者": "A/B/平局",
+        "理由": "..."
+    }}
+    """
+
+    judgment = gpt4.generate(prompt, temperature=0)
+    return json.loads(judgment)
+
+# 使用
+question = "什么是机器学习?"
+answer_a = "机器学习是让计算机从数据中学习的方法。"
+answer_b = "机器学习是一种人工智能技术,通过算法让计算机从数据中自动学习模式,而无需显式编程。"
+
+result = llm_as_judge(question, answer_a, answer_b)
+# {
+#   "胜者": "B",
+#   "理由": "答案B更完整,解释了'无需显式编程'的核心概念"
+# }
+
+# 优点: 快速,接近人类评估
+# 缺点: GPT-4也有偏好,可能不客观
+```
+
+### 综合评估框架
+
+```python
+class LLMEvaluator:
+    def __init__(self):
+        self.rouge = Rouge()
+        self.bertscore_model = "bert-base-chinese"
+
+    def evaluate(self, question, reference, candidate):
+        """综合评估"""
+
+        results = {}
+
+        # 1. 自动指标
+        results["ROUGE"] = self.calculate_rouge(reference, candidate)
+        results["BERTScore"] = self.calculate_bertscore(reference, candidate)
+        results["ExactMatch"] = self.exact_match(reference, candidate)
+
+        # 2. 事实性检查
+        results["Hallucination"] = self.detect_hallucination(candidate)
+
+        # 3. 安全性检查
+        results["Safety"] = self.check_safety(candidate)
+
+        # 4. LLM-as-Judge
+        results["GPT4Judge"] = llm_as_judge(question, reference, candidate)
+
+        # 5. 综合分数
+        results["Overall"] = self.calculate_overall_score(results)
+
+        return results
+
+    def calculate_overall_score(self, results):
+        """综合分数"""
+
+        # 加权平均
+        score = (
+            results["BERTScore"]["f1"] * 0.3 +      # 语义相似度 30%
+            (1 - results["Hallucination"]) * 0.3 +  # 事实性 30%
+            results["Safety"] * 0.2 +                # 安全性 20%
+            results["GPT4Judge"]["score"] * 0.2      # GPT-4评分 20%
+        )
+
+        return score
+
+# 使用
+evaluator = LLMEvaluator()
+
+result = evaluator.evaluate(
+    question="中国的首都是哪里?",
+    reference="中国的首都是北京",
+    candidate="北京是中国的首都"
+)
+
+print(result["Overall"])  # 0.92 (高分)
+```
+
+### 特定任务评估
+
+**RAG系统评估:**
+
+```python
+def evaluate_rag(question, context, answer):
+    """RAG系统专门评估"""
+
+    metrics = {}
+
+    # 1. 忠实度(Faithfulness): 答案是否基于上下文
+    metrics["Faithfulness"] = check_faithfulness(answer, context)
+
+    # 2. 答案相关性: 是否回答了问题
+    metrics["AnswerRelevance"] = check_relevance(question, answer)
+
+    # 3. 上下文精度: 检索的文档是否相关
+    metrics["ContextPrecision"] = check_context_precision(question, context)
+
+    # 4. 上下文召回: 是否漏掉重要文档
+    metrics["ContextRecall"] = check_context_recall(question, context, answer)
+
+    return metrics
+
+# 示例
+metrics = evaluate_rag(
+    question="LLaMA-2有多少参数?",
+    context="LLaMA-2是Meta开发的大模型,有7B、13B、70B三个版本",
+    answer="LLaMA-2有7B、13B和70B三个版本"
+)
+
+# Faithfulness: 1.0 (答案完全基于上下文)
+# AnswerRelevance: 1.0 (回答了问题)
+# ContextPrecision: 1.0 (上下文相关)
+```
+
+**对话系统评估:**
+
+```python
+def evaluate_dialogue(conversation):
+    """对话系统评估"""
+
+    metrics = {}
+
+    # 1. 一致性: 前后回答是否矛盾
+    metrics["Consistency"] = check_consistency(conversation)
+
+    # 2. 连贯性: 对话是否自然流畅
+    metrics["Coherence"] = check_coherence(conversation)
+
+    # 3. 多样性: 回答是否多样(避免重复)
+    metrics["Diversity"] = calculate_diversity(conversation)
+
+    # 4. 上下文理解: 是否理解历史对话
+    metrics["ContextUnderstanding"] = check_context_understanding(conversation)
+
+    return metrics
+```
+
+**面试话术:**
+> "LLM评估分自动和人工。自动指标:BLEU/ROUGE看词重叠适合翻译摘要,BERTScore看语义更准确,Perplexity看流畅性。人工评估用多维度打分(准确/相关/流畅/有用),计算Kappa一致性>0.8可信。现在流行LLM-as-Judge,用GPT-4评估,快速接近人类。RAG系统专门看忠实度/上下文精度,用RAGAS框架。生产环境用综合评估:BERTScore 30% + 幻觉检测30% + 安全20% + GPT-4评分20%,整体分>0.85才上线。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### AI 安全核心概念
@@ -1447,6 +1868,10 @@ Bing Chat回答:
 | **RAGAS** | 忠实度、相关性、上下文精度、召回率 |
 | **黄金用例** | 标准问题 + 标准答案，用于回归测试 |
 | **语义相似度** | 用 Embedding 计算答案相似度，阈值 0.8 |
+| **BLEU/ROUGE** | 词重叠指标,适合翻译/摘要 |
+| **BERTScore** | 语义相似度,比BLEU准确 |
+| **Perplexity** | 困惑度,越低越流畅 |
+| **LLM-as-Judge** | 用GPT-4评估,快速接近人类 |
 
 ### 成本优化
 
