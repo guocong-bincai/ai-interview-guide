@@ -1,7 +1,7 @@
 # 🔥 MCP & Skill 系统面试题
 
-> **难度：** ⭐⭐⭐⭐⭐  
-> **更新：** 2026-03-03  
+> **难度：** ⭐⭐⭐⭐⭐
+> **更新：** 2026-03-03
 > **考点：** MCP 协议、Skill 系统设计、工具标准化、Agent 互操作性
 
 ## 📋 目录
@@ -132,6 +132,199 @@ Skill 执行集群（K8s + Docker）
 **面试话术：**
 > "MCP 是协议层，Skill 是能力层。我用 MCP 封装 Skill，实现跨项目复用。"
 
+---
+
+## 四、OpenClaw框架 (2024热点⭐)
+
+### Q12: 什么是OpenClaw?与LangChain有什么区别?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**OpenClaw = AI Agent操作系统(Agent OS)**
+
+### 核心定位对比
+
+| 维度 | LangChain | OpenClaw |
+|------|-----------|----------|
+| **定位** | LLM应用框架 | Agent操作系统 |
+| **核心能力** | 链式调用、RAG | 会话管理、任务编排 |
+| **工具理念** | 丰富生态,SaaS集成 | 轻量级本地工具(4个原子) |
+| **部署** | 云端/本地均可 | 本地优先,零API依赖 |
+| **记忆系统** | 外挂向量库 | 内置记忆+文件系统 |
+| **适用场景** | 快速原型,云端服务 | 长期助手,本地自动化 |
+
+### OpenClaw核心特性
+
+**1. 轻量级工具调用(4个原子操作)**
+```bash
+# OpenClaw只提供4个核心工具,组合完成复杂任务
+read <file>    # 读文件
+write <file>   # 写文件
+edit <file>    # 编辑文件
+bash <cmd>     # 执行Shell命令
+
+# 示例:下载网页并提取标题
+bash "curl https://example.com > page.html"
+title=$(bash "grep -oP '<title>.*?</title>' page.html")
+write "output.txt" "$title"
+
+# 优势:零外部依赖,离线可用,适配Unix环境
+```
+
+**2. 记忆系统(混合检索)**
+```typescript
+// 三层记忆
+shortTerm: []         // 最近10轮对话
+longTerm: VectorDB    // Embedding检索历史
+filesystem: "/memory" // 持久化存储
+
+// 智能检索
+recall(query) {
+  semantic = vectorDB.search(embed(query))  // 语义
+  recent = shortTerm.filter(time < 1hour)   // 时间
+  files = bash("grep -r '${query}' /memory") // 关键词
+  return merge(semantic, recent, files)
+}
+```
+
+**3. 心跳机制(自主进化)**
+```typescript
+// 每小时自动触发
+setInterval(() => {
+  // 1. 回顾行为日志
+  logs = read("/logs/today.log")
+
+  // 2. 发现模式
+  patterns = LLM.analyze("发现重复任务", logs)
+
+  // 3. 生成自动化脚本
+  for (pattern in patterns) {
+    script = LLM.generateScript(pattern)
+    bash("chmod +x ${script}")
+    skills.add(pattern.name, script)
+  }
+
+  // Agent越用越聪明
+}, 3600_000)
+```
+
+### 适用场景
+
+| 场景 | 推荐 | 原因 |
+|------|------|------|
+| 快速原型 | LangChain | 丰富组件 |
+| 云端服务 | LangChain | SaaS集成 |
+| 本地助手 | OpenClaw⭐ | 零依赖,隐私 |
+| 长期陪伴 | OpenClaw⭐ | 记忆进化 |
+| 办公自动化 | OpenClaw⭐ | 直接操作文件 |
+
+**面试话术:**
+> "OpenClaw定位Agent OS,提供4个原子工具(read/write/edit/bash),零外部依赖。我用它做知识库助手,通过心跳机制每天自动整理笔记,3个月后检索提速5倍。LangChain适合快速原型,OpenClaw适合长期陪伴。"
+
+</details>
+
+---
+
+### Q13: OpenClaw的沙箱技术如何实现?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**需求:** Agent可执行bash,如写出`rm -rf /`会删系统,必须隔离。
+
+### 沙箱方案对比
+
+| 方案 | 隔离 | 性能 | 复杂度 |
+|------|------|------|--------|
+| Docker | 强 | 中 | 中 ⭐推荐 |
+| 虚拟机 | 最强 | 差 | 高 |
+| chroot | 弱 | 高 | 低 |
+| WASM | 强 | 高 | 低 |
+
+### Docker沙箱实现
+
+```typescript
+class SandboxRunner {
+  async execute(agentId, command) {
+    // 创建专属容器
+    const container = await docker.create({
+      Image: "alpine",
+      HostConfig: {
+        ReadonlyRootfs: true,  // 只读根
+        Memory: "512m",         // 限内存
+        NanoCpus: 500_000_000,  // 0.5核
+        NetworkMode: "none"     // 禁网络
+      },
+      Binds: [`/work/${agentId}:/workspace:rw`]
+    })
+
+    // 执行命令
+    const result = await container.exec(command, {
+      timeout: 30000  // 30秒超时
+    })
+
+    return result
+  }
+}
+```
+
+### 三层防护
+
+**Layer 1: 命令白名单**
+```typescript
+ALLOWED = ["ls", "cat", "grep", "python", "node"]
+BANNED = ["rm", "chmod", "sudo", "curl", "wget"]
+
+if (BANNED.includes(cmd)) {
+  throw Error("禁止危险命令")
+}
+```
+
+**Layer 2: 参数过滤**
+```typescript
+// 移除危险参数
+cmd = cmd.replace(/-rf/g, "")
+         .replace(/>/g, "")   // 重定向
+         .replace(/\|/g, "")  // 管道
+         .replace(/;/g, "")   // 多命令
+```
+
+**Layer 3: 文件访问控制**
+```typescript
+function checkPath(path) {
+  if (path.startsWith("/etc") ||
+      path.startsWith("/usr")) {
+    throw Error("禁止访问系统目录")
+  }
+}
+```
+
+### 性能优化:容器池
+
+```typescript
+// 预热5个容器
+const pool = await Promise.all(
+  Array(5).fill(0).map(() => createContainer())
+)
+
+// 复用容器
+const container = pool.pop()  // 100ms取出
+await container.exec(command)
+await container.exec("rm -rf /workspace/*")  // 清理
+pool.push(container)  // 归还
+
+// Before: 3秒创建 + 2秒销毁 = 5秒
+// After: 100ms取出 + 50ms清理 = 150ms
+```
+
+**面试话术:**
+> "OpenClaw用Docker容器沙箱,每个Agent独立容器,限CPU/内存/网络。三层防护:命令白名单+参数过滤+路径检查。为了性能,容器池预热5个,复用只需100ms。Agent写`rm -rf /`也只删容器,宿主安全。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### MCP 核心概念
@@ -151,16 +344,27 @@ Skill 执行集群（K8s + Docker）
 | **动态加载** | 新增 Skill 不重启 |
 | **沙箱隔离** | Wasm/Docker 防恶意代码 |
 
+### OpenClaw核心概念
+| 概念 | 一句话解释 |
+|------|------------|
+| **OpenClaw** | AI Agent操作系统,TypeScript开发 |
+| **4原子工具** | read/write/edit/bash,零外部依赖 |
+| **记忆系统** | 短期+长期+文件系统,混合检索 |
+| **心跳机制** | 每小时自省,发现模式,自动化脚本 |
+| **沙箱隔离** | Docker容器+3层防护+容器池复用 |
+| **vs LangChain** | 本地优先 vs 云端优先,Agent OS vs LLM框架 |
+
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-03-05 | 新增 OpenClaw 框架面试题 2 道 |
 | 2026-03-03 | 新增 MCP & Skill 系统面试题 11 道 |
 
 
 ---
 
-**上一模块：** [多智能体系统](../13-multi-agent-systems/)  
+**上一模块：** [多智能体系统](../13-multi-agent-systems/)
 **下一模块：** [高级专题](../15-advanced-topics/)
 
 ---
