@@ -522,12 +522,245 @@ chunk_embeddings = split_embedding(full_embedding, chunk_boundaries)
 
 ---
 
+## 13. Embedding模型如何选择?
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 选择维度
+
+| 维度 | 考虑因素 | 推荐 |
+|------|----------|------|
+| **1. 语言** | 中文 / 英文 / 多语言 | 中文首选BGE,多语言用M3 |
+| **2. 成本** | 闭源API / 开源自部署 | 预算少用开源,省钱 |
+| **3. 性能** | MTEB排行榜得分 | 看检索任务NDCG@10指标 |
+| **4. 维度** | 256 / 768 / 1024 / 3072 | 大数据集用低维(256),小数据集高维 |
+| **5. Token限制** | 512 / 8192 | RAG分块用512够,长文本用8K |
+| **6. 部署** | API / 本地推理 | 数据敏感用本地,方便用API |
+
+### 主流模型对比(2024)
+
+#### 闭源API模型
+
+| 模型 | 维度 | 语言 | 价格(百万token) | 优势 | 劣势 |
+|------|------|------|-----------------|------|------|
+| **text-embedding-3-large** | 256~3072可调 | 多语言 | $0.13 | OpenAI官方,质量稳定 | 贵,数据外传 |
+| **text-embedding-3-small** | 512~1536可调 | 多语言 | $0.02 | 便宜,性能够用 | 不如large |
+| **Cohere embed-v3** | 1024 | 多语言 | $0.10 | 支持检索/分类双模式 | 小众 |
+| **Voyage-2** | 1024 | 英文 | $0.12 | 专为RAG优化 | 只支持英文 |
+
+**选择建议:**
+- **预算充足**: text-embedding-3-large (3072维)
+- **性价比**: text-embedding-3-small
+- **RAG专用**: Voyage-2 (英文) / Cohere (多语言)
+
+#### 开源模型(可本地部署)
+
+| 模型 | 维度 | 语言 | MTEB得分 | 模型大小 | 推荐场景 |
+|------|------|------|----------|----------|----------|
+| **bge-large-zh-v1.5** | 1024 | 中文⭐ | 64.53 | 1.3GB | 中文RAG首选 |
+| **bge-large-en-v1.5** | 1024 | 英文 | 63.98 | 1.3GB | 英文通用 |
+| **BGE-M3** | 1024 | 多语言⭐ | 66.12 | 2.2GB | 中英混合,跨语言检索 |
+| **gte-large-zh** | 1024 | 中文 | 63.85 | 1.3GB | 备选,阿里出品 |
+| **stella-base-zh-v2** | 768 | 中文 | 64.08 | 400MB | 轻量级,速度快 |
+| **jina-embeddings-v2** | 768 | 多语言 | 60.38 | 550MB | 支持8K长文本 |
+| **E5-large-v2** | 1024 | 英文 | 62.25 | 1.3GB | 微软出品 |
+
+**选择建议:**
+- **中文项目**: bge-large-zh-v1.5 (最强) / stella-base-zh-v2 (快)
+- **多语言**: BGE-M3
+- **长文本**: jina-embeddings-v2 (支持8K tokens)
+- **资源受限**: stella-base-zh-v2 (400MB小模型)
+
+### 实战代码
+
+#### 方案1: 闭源API(OpenAI)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="sk-xxx")
+
+def embed_text(text):
+    response = client.embeddings.create(
+        model="text-embedding-3-large",
+        input=text,
+        dimensions=1024  # 可选256/1024/3072
+    )
+    return response.data[0].embedding
+
+# 使用
+vector = embed_text("什么是RAG系统?")
+print(len(vector))  # 1024
+```
+
+**优点:** 零部署,调用即用
+**缺点:** 每百万token $0.13,数据外传
+
+#### 方案2: 开源本地部署
+
+```python
+from sentence_transformers import SentenceTransformer
+
+# 加载模型(首次会下载,约1.3GB)
+model = SentenceTransformer('BAAI/bge-large-zh-v1.5')
+
+def embed_text(text):
+    # 编码
+    embedding = model.encode(
+        text,
+        normalize_embeddings=True  # 归一化,方便余弦相似度
+    )
+    return embedding
+
+# 批量处理(更快)
+texts = ["什么是RAG?", "如何优化检索?", "向量数据库选择"]
+embeddings = model.encode(texts, batch_size=32)
+print(embeddings.shape)  # (3, 1024)
+```
+
+**优点:** 免费,数据不外传,可微调
+**缺点:** 需要GPU(CPU慢10倍),首次下载模型
+
+#### 方案3: 混合策略
+
+```python
+class HybridEmbedding:
+    def __init__(self):
+        # 开源模型处理中文
+        self.zh_model = SentenceTransformer('BAAI/bge-large-zh-v1.5')
+        # API处理英文
+        self.openai_client = OpenAI(api_key="sk-xxx")
+
+    def embed(self, text, language='auto'):
+        # 自动检测语言
+        if language == 'auto':
+            language = 'zh' if contains_chinese(text) else 'en'
+
+        if language == 'zh':
+            # 用本地模型(免费)
+            return self.zh_model.encode(text)
+        else:
+            # 用OpenAI(付费但质量好)
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-3-large",
+                input=text
+            )
+            return response.data[0].embedding
+
+def contains_chinese(text):
+    return any('\u4e00' <= char <= '\u9fff' for char in text)
+```
+
+**优势:** 中文省钱,英文质量保证
+
+### 性能测试
+
+```python
+import time
+from sentence_transformers import SentenceTransformer
+
+# 测试embedding速度
+model = SentenceTransformer('BAAI/bge-large-zh-v1.5')
+
+texts = ["测试文本"] * 1000
+
+# CPU
+start = time.time()
+embeddings = model.encode(texts, device='cpu')
+cpu_time = time.time() - start
+print(f"CPU: {cpu_time:.2f}s, {len(texts)/cpu_time:.1f} texts/s")
+
+# GPU
+start = time.time()
+embeddings = model.encode(texts, device='cuda')
+gpu_time = time.time() - start
+print(f"GPU: {gpu_time:.2f}s, {len(texts)/gpu_time:.1f} texts/s")
+
+# 输出示例:
+# CPU: 45.23s, 22.1 texts/s
+# GPU: 3.12s, 320.5 texts/s
+# GPU快14倍!
+```
+
+### 微调Embedding模型
+
+**场景:** 通用模型在你的领域(如医疗/法律)效果差
+
+```python
+from sentence_transformers import SentenceTransformer, InputExample, losses
+from torch.utils.data import DataLoader
+
+# 1. 准备训练数据
+train_examples = [
+    InputExample(
+        texts=["患者出现发热症状", "病人体温升高"],
+        label=1.0  # 相似
+    ),
+    InputExample(
+        texts=["患者出现发热症状", "今天天气很好"],
+        label=0.0  # 不相似
+    ),
+    # ... 至少1000对
+]
+
+# 2. 加载基础模型
+model = SentenceTransformer('BAAI/bge-large-zh-v1.5')
+
+# 3. 定义损失函数
+train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=16)
+train_loss = losses.CosineSimilarityLoss(model)
+
+# 4. 微调
+model.fit(
+    train_objectives=[(train_dataloader, train_loss)],
+    epochs=3,
+    warmup_steps=100,
+    output_path='./my-domain-embedding'
+)
+
+# 5. 使用微调模型
+custom_model = SentenceTransformer('./my-domain-embedding')
+embedding = custom_model.encode("医学专业术语")
+```
+
+**效果:** 领域适配性+10~20%
+
+### 决策树
+
+```
+需要embedding模型?
+├─ 中文为主?
+│  ├─ 是 → bge-large-zh-v1.5 (开源)
+│  └─ 否 → 继续
+├─ 多语言/跨语言?
+│  ├─ 是 → BGE-M3 (开源) / text-embedding-3-large (付费)
+│  └─ 否 → 继续
+├─ 预算充足?
+│  ├─ 是 → text-embedding-3-large (质量最好)
+│  └─ 否 → text-embedding-3-small (性价比)
+├─ 数据敏感/不能外传?
+│  ├─ 是 → 必须用开源本地部署
+│  └─ 否 → API更方便
+└─ 需要处理长文本(>512 token)?
+   ├─ 是 → jina-embeddings-v2 (8K) / text-embedding-3 (8K)
+   └─ 否 → 任意模型
+```
+
+**面试话术:**
+> "Embedding模型选择看4点:语言(中文用bge)、成本(预算少开源)、性能(看MTEB排行)、部署(敏感数据本地)。我们项目是中文RAG,选了bge-large-zh-v1.5本地部署,1.3GB模型GPU推理每秒300条,免费且效果好。如果是多语言就用BGE-M3,如果不care成本就text-embedding-3-large。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 概念 | 一句话解释 |
 |------|------------|
 | **RAG** | 先检索知识，再生成答案 |
 | **Embedding** | 文本转语义向量 |
+| **Embedding选型** | 中文bge-large-zh,多语言M3,预算足OpenAI |
 | **余弦相似度** | 算向量接近程度（-1 到 1） |
 | **向量数据库** | 专为"找相似"设计的数据库 |
 | **Chunking** | 把长文档切成小块 |
