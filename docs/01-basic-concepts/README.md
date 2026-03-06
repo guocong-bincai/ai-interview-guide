@@ -305,15 +305,196 @@ results = evaluate(
 
 ---
 
+## 15. Tokenization分词算法:BPE vs SentencePiece
+
+**Tokenization = 将文本切分成模型能理解的最小单位(Token)**
+
+### BPE(Byte Pair Encoding)算法
+
+<details>
+<summary>💡 答案要点</summary>
+
+**BPE = 基于频率的子词分词算法**
+
+**工作原理:**
+```
+1. 初始化:每个字符是一个token
+   "low" → ["l", "o", "w"]
+   "lower" → ["l", "o", "w", "e", "r"]
+   "lowest" → ["l", "o", "w", "e", "s", "t"]
+
+2. 统计相邻字符对频率
+   "lo": 3次 (最高)
+   "ow": 3次
+   "we": 2次
+   ...
+
+3. 合并最高频对
+   "lo" → "lo"(一个token)
+   "low" → ["lo", "w"]
+   "lower" → ["lo", "w", "e", "r"]
+
+4. 重复统计合并,直到词汇表达到目标大小
+   "low" → ["low"]
+   "lower" → ["low", "er"]
+   "lowest" → ["low", "est"]
+```
+
+**优点:**
+- ✅ 处理未知词:罕见词拆成已知子词
+- ✅ 词汇表可控:可设定大小(如50k)
+- ✅ 平衡粒度:介于字符和单词之间
+
+**缺点:**
+- ❌ 依赖预分词(需要先按空格分)
+- ❌ 语言相关(中文日文处理困难)
+
+**代码示例:**
+```python
+from tokenizers import Tokenizer, models, pre_tokenizers, trainers
+
+# 创建BPE tokenizer
+tokenizer = Tokenizer(models.BPE())
+tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+
+# 训练
+trainer = trainers.BpeTrainer(vocab_size=50000, special_tokens=["[PAD]", "[UNK]"])
+tokenizer.train(files=["train.txt"], trainer=trainer)
+
+# 使用
+output = tokenizer.encode("GPT使用BPE分词")
+print(output.tokens)  # ['GPT', '使', '用', 'BP', 'E', '分', '词']
+```
+
+</details>
+
+### SentencePiece算法
+
+<details>
+<summary>💡 答案要点</summary>
+
+**SentencePiece = 语言无关的分词算法**
+
+**核心特性:**
+
+1. **无需预分词**
+   ```
+   BPE: "你好世界" → 需要先分词 → ["你好", "世界"]
+   SentencePiece: "你好世界" → 直接处理原始文本
+   ```
+
+2. **空格也是token**
+   ```
+   "Hello World"
+   → ["▁Hello", "▁World"]  # ▁ 代表空格
+   → 可逆解码: "Hello World"
+   ```
+
+3. **支持两种算法**
+   - **BPE模式**:类似标准BPE
+   - **Unigram模式**:概率分词,从大到小删减
+
+**Unigram vs BPE:**
+
+| 维度 | BPE | Unigram |
+|------|-----|---------|
+| 方向 | 从小到大合并 | 从大到小删减 |
+| 确定性 | 确定 | 概率(多种分词) |
+| 训练速度 | 慢 | 快 |
+
+**代码示例:**
+```python
+import sentencepiece as spm
+
+# 训练
+spm.SentencePieceTrainer.train(
+    input='train.txt',
+    model_prefix='m',
+    vocab_size=50000,
+    model_type='unigram',  # 或'bpe'
+    character_coverage=0.9995  # 字符覆盖率
+)
+
+# 使用
+sp = spm.SentencePieceProcessor(model_file='m.model')
+tokens = sp.encode('GPT使用SentencePiece分词', out_type=str)
+print(tokens)  # ['▁GPT', '使用', 'Sen', 'tence', 'Piece', '分词']
+
+# 解码
+text = sp.decode(tokens)
+print(text)  # '你好世界' (完美还原)
+```
+
+**优势:**
+- ✅ 语言无关(中英日韩都OK)
+- ✅ 无损可逆(空格也编码)
+- ✅ 无需预分词
+- ✅ 主流LLM首选(LLaMA、GPT-4都用)
+
+</details>
+
+### BPE vs SentencePiece对比
+
+<details>
+<summary>💡 答案要点</summary>
+
+| 维度 | BPE | SentencePiece |
+|------|-----|---------------|
+| **预分词** | ✅需要 | ❌不需要 |
+| **空格处理** | 丢失 | 保留(▁符号) |
+| **多语言** | 困难 | 优秀 |
+| **可逆性** | ❌ | ✅ |
+| **主流应用** | GPT-2 | GPT-4,LLaMA,T5 |
+
+**实际案例:**
+```python
+# 同一个文本的分词对比
+text = "2024年AI发展很快"
+
+# BPE (GPT-2)
+['2024', '年', 'AI', '发', '展', '很', '快']  # 中文粒度太细
+
+# SentencePiece (LLaMA)
+['▁2024', '年', 'AI', '发展', '很快']  # 更合理的子词
+```
+
+**为什么LLM数学差?**
+- Token化不一致
+  ```
+  "1234" → ["12", "34"]
+  "1235" → ["123", "5"]  # 不一致!
+  ```
+- 模型难以学习数字规律
+
+**面试话术:**
+> "BPE是早期分词算法,需要预分词且丢失空格。SentencePiece是改进版,语言无关且可逆,现在主流LLM都用它。我们项目用SentencePiece Unigram模式,中英文混合语料分词效果比BPE好15%。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
+
+### LLM基础概念
 
 | 概念 | 一句话解释 |
 |------|------------|
+| **Token** | LLM处理的最小单位,1中文≈1-2 tokens |
+| **Temperature** | 控制随机性,0=确定,1=随机 |
+| **Context Window** | 模型一次能看的最大长度(如4K,128K) |
 | **涌现能力** | 模型足够大时突然出现的新能力(如推理、编程) |
 | **灾难性遗忘** | 学新任务忘旧知识,用LoRA解决 |
 | **幻觉** | 编造不存在的信息,用RAG缓解 |
 | **偏见** | 对性别/种族的不公平输出,RLHF对齐 |
 | **RAGAS** | RAG系统评估框架(忠实度、召回率、精确率) |
+
+### 分词算法
+
+| 算法 | 原理 | 优缺点 |
+|------|------|--------|
+| **BPE** | 高频字符对合并 | 需预分词,丢空格 |
+| **SentencePiece** | 语言无关,空格编码 | 可逆,主流首选 |
+| **Unigram** | 概率分词,大到小删减 | 速度快,LLaMA用 |
 
 ---
 
