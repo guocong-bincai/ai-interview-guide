@@ -1093,6 +1093,638 @@ class RobustToolExecutor:
 
 ---
 
+## 12. Agent记忆系统如何设计?短期vs长期记忆?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**记忆系统 = Agent的"大脑存储",决定能否长期陪伴用户**
+
+### 记忆分类
+
+| 类型 | 存储周期 | 容量 | 实现 | 用途 |
+|------|---------|------|------|------|
+| **短期记忆** | 单次会话 | 小(受Context Window限制) | 对话历史 | 保持对话连贯 |
+| **长期记忆** | 跨会话永久 | 大(无限) | 向量数据库 | 用户偏好/历史事实 |
+| **工作记忆** | 任务期间 | 中 | 临时变量 | 中间计算结果 |
+
+### 短期记忆实现
+
+**方案1: 滑动窗口**
+```python
+class ShortTermMemory:
+    def __init__(self, max_turns=5):
+        self.messages = []
+        self.max_turns = max_turns
+
+    def add(self, role, content):
+        self.messages.append({"role": role, "content": content})
+
+        # 保留最近N轮对话
+        if len(self.messages) > self.max_turns * 2:  # *2因为每轮有user+assistant
+            self.messages = self.messages[-(self.max_turns * 2):]
+
+    def get_context(self):
+        return self.messages
+
+# 问题: 丢失早期信息
+```
+
+**方案2: 分层管理(推荐⭐)**
+```python
+class HierarchicalMemory:
+    def __init__(self):
+        self.recent = []      # 最近3轮完整保留
+        self.summary = ""     # 历史摘要
+
+    def add_turn(self, user_msg, ai_msg):
+        self.recent.append({"user": user_msg, "ai": ai_msg})
+
+        # 超过3轮,摘要最早的
+        if len(self.recent) > 3:
+            old = self.recent.pop(0)
+
+            # 用LLM摘要
+            summary_chunk = llm.summarize(
+                f"用户: {old['user']}\n助手: {old['ai']}"
+            )
+            self.summary += summary_chunk + "\n"
+
+    def get_context(self):
+        context = []
+
+        # 历史摘要
+        if self.summary:
+            context.append({"role": "system", "content": f"历史: {self.summary}"})
+
+        # 最近3轮完整对话
+        for turn in self.recent:
+            context.append({"role": "user", "content": turn["user"]})
+            context.append({"role": "assistant", "content": turn["ai"]})
+
+        return context
+
+# 效果:
+# 10轮对话,token消耗: 摘要(200) + 最近3轮(1500) = 1700 tokens
+# vs 全保留: 5000 tokens
+# 节省: 66%
+```
+
+### 长期记忆实现
+
+**核心: 向量数据库**
+
+```python
+from langchain.vectorstores import Qdrant
+from langchain.embeddings import OpenAIEmbeddings
+
+class LongTermMemory:
+    def __init__(self):
+        self.embeddings = OpenAIEmbeddings()
+        self.vectordb = Qdrant(
+            collection_name="user_memory",
+            embedding_function=self.embeddings
+        )
+
+    def remember(self, key, value, metadata=None):
+        """存储长期记忆"""
+        self.vectordb.add_texts(
+            texts=[value],
+            metadatas=[{
+                "key": key,
+                "timestamp": time.time(),
+                **(metadata or {})
+            }]
+        )
+
+    def recall(self, query, k=5):
+        """检索相关记忆"""
+        results = self.vectordb.similarity_search(query, k=k)
+        return [doc.page_content for doc in results]
+
+    def forget(self, key):
+        """删除记忆"""
+        self.vectordb.delete(filter={"key": key})
+
+# 使用
+memory = LongTermMemory()
+
+# 存储用户偏好
+memory.remember(
+    key="food_preference",
+    value="用户喜欢吃川菜,不吃香菜",
+    metadata={"category": "preference"}
+)
+
+# 存储历史事实
+memory.remember(
+    key="birthday",
+    value="用户生日是1990年5月20日",
+    metadata={"category": "fact"}
+)
+
+# 3个月后,检索记忆
+query = "用户吃什么?"
+memories = memory.recall(query, k=3)
+# 返回: ["用户喜欢吃川菜,不吃香菜", ...]
+```
+
+### 混合记忆策略
+
+**问题: 如何决定什么存长期,什么存短期?**
+
+```python
+class HybridMemoryManager:
+    def __init__(self):
+        self.short_term = HierarchicalMemory()
+        self.long_term = LongTermMemory()
+
+    def add_interaction(self, user_msg, ai_msg):
+        # 1. 短期记忆:直接存
+        self.short_term.add_turn(user_msg, ai_msg)
+
+        # 2. 判断是否值得长期存储
+        if self.is_important(user_msg, ai_msg):
+            # 提取关键信息
+            key_info = self.extract_key_info(user_msg, ai_msg)
+
+            # 存入长期记忆
+            self.long_term.remember(
+                key=f"conv_{time.time()}",
+                value=key_info
+            )
+
+    def is_important(self, user_msg, ai_msg):
+        """判断是否重要"""
+        # 规则1: 包含用户偏好
+        if any(kw in user_msg.lower() for kw in ["我喜欢", "我不喜欢", "我的"]):
+            return True
+
+        # 规则2: 包含事实信息
+        if any(kw in user_msg for kw in ["是", "叫", "生日", "地址"]):
+            return True
+
+        # 规则3: 用LLM判断
+        prompt = f"""
+        判断以下对话是否包含值得长期记忆的信息(用户偏好/事实/重要决策):
+
+        用户: {user_msg}
+        助手: {ai_msg}
+
+        回答: 是/否
+        """
+        decision = llm.generate(prompt).strip()
+        return decision == "是"
+
+    def extract_key_info(self, user_msg, ai_msg):
+        """提取关键信息"""
+        prompt = f"""
+        从对话中提取值得长期记忆的关键信息:
+
+        用户: {user_msg}
+        助手: {ai_msg}
+
+        关键信息(一句话):
+        """
+        return llm.generate(prompt).strip()
+
+    def get_full_context(self, current_query):
+        """获取完整上下文"""
+        # 1. 短期记忆
+        short = self.short_term.get_context()
+
+        # 2. 检索相关长期记忆
+        long = self.long_term.recall(current_query, k=3)
+
+        # 3. 合并
+        context = []
+
+        # 长期记忆作为背景
+        if long:
+            context.append({
+                "role": "system",
+                "content": f"用户背景信息:\n" + "\n".join(long)
+            })
+
+        # 短期记忆作为对话历史
+        context.extend(short)
+
+        return context
+
+# 实战示例
+manager = HybridMemoryManager()
+
+# 第1次对话
+manager.add_interaction(
+    user_msg="我叫张三,是个程序员",
+    ai_msg="你好张三!很高兴认识你。"
+)
+# → 长期记忆存储: "用户叫张三,职业是程序员"
+
+# 第2次对话
+manager.add_interaction(
+    user_msg="今天天气真好",
+    ai_msg="是啊,适合出去走走。"
+)
+# → 仅短期记忆,不重要
+
+# 1个月后,第100次对话
+context = manager.get_full_context("给我推荐适合程序员的书")
+# context包含:
+# - 长期记忆: "用户叫张三,职业是程序员"
+# - 短期记忆: 最近3轮对话
+
+response = llm.generate(context + [{"role": "user", "content": "给我推荐适合程序员的书"}])
+# LLM能结合长期记忆(职业)给出个性化推荐
+```
+
+### 记忆索引优化
+
+**问题: 向量检索不准,检索到无关记忆**
+
+**优化: 混合索引**
+```python
+class EnhancedMemory:
+    def __init__(self):
+        self.vectordb = Qdrant(...)
+        self.metadata_index = {}  # 元数据索引
+
+    def remember(self, key, value, category, tags):
+        # 1. 向量存储
+        self.vectordb.add_texts(
+            texts=[value],
+            metadatas=[{
+                "key": key,
+                "category": category,
+                "tags": tags,
+                "timestamp": time.time()
+            }]
+        )
+
+        # 2. 元数据索引
+        self.metadata_index[key] = {
+            "category": category,
+            "tags": tags
+        }
+
+    def recall(self, query, category=None, tags=None, k=5):
+        # 构建过滤条件
+        filter_dict = {}
+        if category:
+            filter_dict["category"] = category
+        if tags:
+            filter_dict["tags"] = {"$in": tags}
+
+        # 向量检索+元数据过滤
+        results = self.vectordb.similarity_search(
+            query,
+            k=k,
+            filter=filter_dict
+        )
+
+        return results
+
+# 使用
+memory = EnhancedMemory()
+
+memory.remember(
+    key="food1",
+    value="用户喜欢吃川菜",
+    category="preference",
+    tags=["food", "cuisine"]
+)
+
+memory.remember(
+    key="work1",
+    value="用户在字节跳动工作",
+    category="fact",
+    tags=["job", "company"]
+)
+
+# 只检索食物偏好
+food_memories = memory.recall(
+    query="吃什么",
+    category="preference",
+    tags=["food"]
+)
+# 不会检索到工作信息
+```
+
+**面试话术:**
+> "Agent记忆分短期和长期。短期用分层管理,最近3轮保留原文+历史摘要,节省66% token。长期用向量数据库,存用户偏好和事实,用LLM判断重要性决定是否存储。检索时混合向量+元数据过滤,避免无关记忆。实测3个月后,Agent还记得用户职业,推荐更个性化。"
+
+</details>
+
+---
+
+## 13. Agent如何做规划(Planning)?任务分解策略?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**规划 = 把大任务分解成可执行的小步骤**
+
+### 规划方法对比
+
+| 方法 | 原理 | 优点 | 缺点 | 适用 |
+|------|------|------|------|------|
+| **Chain of Thought** | 逐步推理 | 简单直观 | 不可回退 | 简单任务 |
+| **Tree of Thoughts** | 树状搜索 | 可探索多路径 | 计算量大 | 需要试错 |
+| **Plan-and-Execute** | 先整体规划再执行 | 结构清晰 | 计划可能过时 | 明确任务 |
+| **ReWOO** | 预规划+批量执行 | 高效并行 | 灵活性差 | 工具调用多 |
+
+### 方案1: Plan-and-Execute (推荐⭐)
+
+**流程:**
+```
+Step 1: Planning - 制定完整计划
+Step 2: Execution - 逐步执行
+Step 3: Replanning - 根据结果调整计划
+```
+
+**实现:**
+```python
+class PlanAndExecuteAgent:
+    def __init__(self, llm, tools):
+        self.llm = llm
+        self.tools = tools
+
+    def run(self, goal):
+        # Step 1: 制定计划
+        plan = self.make_plan(goal)
+        print(f"计划: {plan}")
+
+        # Step 2: 执行每个步骤
+        results = []
+        for step in plan:
+            result = self.execute_step(step, results)
+            results.append(result)
+
+            # Step 3: 检查是否需要重新规划
+            if self.should_replan(step, result):
+                plan = self.replan(goal, results)
+                print(f"重新规划: {plan}")
+
+        # Step 4: 综合结果
+        final_answer = self.synthesize(goal, results)
+        return final_answer
+
+    def make_plan(self, goal):
+        """制定计划"""
+        prompt = f"""
+        任务: {goal}
+
+        请制定详细的执行计划,每个步骤要具体可执行。
+
+        输出格式(JSON):
+        [
+          {{"step": 1, "action": "搜索最新的AI新闻", "tool": "search"}},
+          {{"step": 2, "action": "总结新闻要点", "tool": "llm"}},
+          {{"step": 3, "action": "生成周报", "tool": "llm"}}
+        ]
+        """
+
+        plan_json = self.llm.generate(prompt)
+        return json.loads(plan_json)
+
+    def execute_step(self, step, previous_results):
+        """执行单个步骤"""
+        tool_name = step["tool"]
+        action = step["action"]
+
+        # 构造上下文(之前步骤的结果)
+        context = "\n".join([
+            f"步骤{i+1}结果: {r}"
+            for i, r in enumerate(previous_results)
+        ])
+
+        # 执行工具
+        if tool_name == "search":
+            result = self.tools["search"].run(action)
+        elif tool_name == "llm":
+            result = self.llm.generate(f"{context}\n\n{action}")
+        else:
+            result = self.tools[tool_name].run(action)
+
+        print(f"步骤{step['step']}: {action} → {result[:100]}...")
+        return result
+
+    def should_replan(self, step, result):
+        """判断是否需要重新规划"""
+        # 检查执行失败
+        if "错误" in result or "失败" in result:
+            return True
+
+        # 让LLM判断
+        prompt = f"""
+        步骤: {step['action']}
+        结果: {result}
+
+        这个结果是否符合预期? 是否需要调整后续计划?
+        回答: 是/否
+        """
+        decision = self.llm.generate(prompt).strip()
+        return decision == "是"
+
+    def replan(self, goal, results):
+        """重新规划"""
+        context = "\n".join([f"已完成{i+1}: {r[:50]}..." for i, r in enumerate(results)])
+
+        prompt = f"""
+        原始任务: {goal}
+        已完成步骤:
+        {context}
+
+        请根据当前进展,重新规划剩余步骤。
+        """
+        new_plan = self.llm.generate(prompt)
+        return json.loads(new_plan)
+
+# 使用示例
+agent = PlanAndExecuteAgent(llm, tools)
+
+result = agent.run("写一份本周AI行业的周报")
+
+# 输出:
+# 计划: [
+#   {"step": 1, "action": "搜索本周AI新闻", "tool": "search"},
+#   {"step": 2, "action": "总结新闻", "tool": "llm"},
+#   {"step": 3, "action": "撰写周报", "tool": "llm"}
+# ]
+# 步骤1: 搜索本周AI新闻 → 找到10篇新闻...
+# 步骤2: 总结新闻 → OpenAI发布GPT-5, Google推出Gemini Ultra...
+# 步骤3: 撰写周报 → 本周AI行业动态:...
+```
+
+### 方案2: Tree of Thoughts (思维树)
+
+**适用:** 需要探索多种可能性的任务(如写作、创意)
+
+```python
+class TreeOfThoughts:
+    def __init__(self, llm, depth=3, breadth=3):
+        self.llm = llm
+        self.depth = depth  # 思考深度
+        self.breadth = breadth  # 每层生成几个候选
+
+    def solve(self, problem):
+        # 根节点
+        root = TreeNode(problem, score=0)
+
+        # 逐层扩展
+        for level in range(self.depth):
+            # 对当前层每个节点
+            for node in self.get_layer_nodes(root, level):
+                # 生成多个候选下一步
+                candidates = self.generate_candidates(node, self.breadth)
+
+                # 评估每个候选
+                for candidate in candidates:
+                    score = self.evaluate(candidate)
+                    child = TreeNode(candidate, score=score)
+                    node.add_child(child)
+
+        # 找到最优路径
+        best_path = self.find_best_path(root)
+        return best_path
+
+    def generate_candidates(self, node, k):
+        """生成k个候选思路"""
+        prompt = f"""
+        当前思路: {node.content}
+
+        请生成{k}个不同的后续思路。
+        """
+        responses = []
+        for _ in range(k):
+            response = self.llm.generate(prompt, temperature=0.9)
+            responses.append(response)
+
+        return responses
+
+    def evaluate(self, thought):
+        """评估思路质量"""
+        prompt = f"""
+        评估以下思路的质量(0-10分):
+        {thought}
+
+        评分:
+        """
+        score = float(self.llm.generate(prompt).strip())
+        return score
+
+    def find_best_path(self, root):
+        """找到最高分路径"""
+        def dfs(node, path, score):
+            if not node.children:
+                return path, score
+
+            best = (path, score)
+            for child in node.children:
+                candidate_path, candidate_score = dfs(
+                    child,
+                    path + [child.content],
+                    score + child.score
+                )
+                if candidate_score > best[1]:
+                    best = (candidate_path, candidate_score)
+
+            return best
+
+        path, score = dfs(root, [root.content], root.score)
+        return path
+
+# 使用
+tot = TreeOfThoughts(llm, depth=3, breadth=3)
+best_solution = tot.solve("写一篇关于AI伦理的文章")
+
+# 会探索 3^3=27 种可能路径,选最优
+```
+
+### 方案3: ReWOO (预规划+批量执行)
+
+**优势: 一次性规划所有工具调用,批量并行执行**
+
+```python
+class ReWOO:
+    def __init__(self, llm, tools):
+        self.llm = llm
+        self.tools = tools
+
+    def run(self, task):
+        # Step 1: 一次性规划所有步骤
+        plan = self.plan_all_steps(task)
+
+        # Step 2: 识别可并行的步骤
+        parallel_groups = self.identify_parallel_groups(plan)
+
+        # Step 3: 批量执行
+        results = {}
+        for group in parallel_groups:
+            # 并行执行同组步骤
+            group_results = self.execute_parallel(group)
+            results.update(group_results)
+
+        # Step 4: 综合结果
+        return self.synthesize(task, results)
+
+    def plan_all_steps(self, task):
+        prompt = f"""
+        任务: {task}
+
+        请规划完整步骤,标注依赖关系:
+
+        格式:
+        #E1 = Search[最新AI新闻]
+        #E2 = LLM[总结 #E1]
+        #E3 = Search[AI政策]
+        #E4 = LLM[综合 #E2 和 #E3]
+        """
+        plan = self.llm.generate(prompt)
+        return self.parse_plan(plan)
+
+    def identify_parallel_groups(self, plan):
+        """识别可并行步骤"""
+        # #E1 和 #E3 无依赖,可并行
+        # #E2 依赖 #E1
+        # #E4 依赖 #E2 和 #E3
+
+        groups = [
+            [plan["E1"], plan["E3"]],  # 第1组:并行
+            [plan["E2"]],               # 第2组:等E1完成
+            [plan["E4"]]                # 第3组:等E2,E3完成
+        ]
+        return groups
+
+    def execute_parallel(self, steps):
+        """并行执行步骤"""
+        import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.execute_step, step): step
+                for step in steps
+            }
+
+            results = {}
+            for future in concurrent.futures.as_completed(futures):
+                step = futures[future]
+                results[step["id"]] = future.result()
+
+        return results
+
+# 效果:
+# 传统ReAct: 4个步骤串行,耗时20秒
+# ReWOO: 步骤1,3并行,耗时12秒 (节省40%)
+```
+
+**面试话术:**
+> "Agent规划我用Plan-and-Execute,先用LLM制定完整计划,再逐步执行并根据结果调整。复杂任务用Tree of Thoughts探索多路径,每层生成3个候选思路,评分选最优。工具调用多时用ReWOO预规划+批量并行,比ReAct快40%。关键是要能动态调整计划,而不是死板执行。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 概念 | 一句话解释 |
@@ -1108,6 +1740,8 @@ class RobustToolExecutor:
 | **工具调用流程** | 定义→决策→验证→执行→反馈,带重试降级 |
 | **错误处理** | 参数错误不重试,瞬态错误重试,服务异常降级 |
 | **重试策略** | 指数退避+抖动(避免惊群),熔断器(快速失败) |
+| **记忆系统** | 短期(滑动窗口)+长期(向量DB)+混合策略 |
+| **规划方法** | Plan-Execute(推荐)/Tree of Thoughts/ReWOO |
 
 
 ---
