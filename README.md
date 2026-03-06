@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 185+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
+**🎯 190+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -25,7 +25,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 17个模块从易到难，185+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 17个模块从易到难，190+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -35,7 +35,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 185+ 道 |
+| 📝 **总题数** | 190+ 道 |
 | 📂 **核心模块** | 17 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -118,7 +118,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 14 | [🎯 多智能体协作](docs/14-multi-agent-systems/) | Agent编排、通信机制、任务分解 | 🔥🔥🔥 | 8 |
-| 15 | [🔌 MCP & Skill系统](docs/15-mcp-skill-systems/) | MCP协议、Skill设计、动态加载 | 🔥🔥 | 11 |
+| 15 | [🔌 MCP & Skill系统](docs/15-mcp-skill-systems/) | MCP协议、Skill设计、OpenClaw框架、沙箱技术 | 🔥🔥🔥 | 13 |
 | 16 | [🚀 前沿技术与趋势](docs/16-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
 
 **学习重点:** 前沿技术、系统创新、团队领导
