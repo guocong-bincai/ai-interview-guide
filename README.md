@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 190+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
+**🎯 195+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -25,7 +25,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 17个模块从易到难，190+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 17个模块从易到难，195+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -35,7 +35,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 190+ 道 |
+| 📝 **总题数** | 195+ 道 |
 | 📂 **核心模块** | 17 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -70,7 +70,7 @@
 | 03 | [📚 RAG 系统](docs/03-rag-system/) | 检索增强生成、向量数据库、Embedding模型选择、Rerank | 🔥🔥🔥🔥🔥 | 13 |
 | 04 | [💼 项目实战经验](docs/04-project-experience/) | **RAG/Agent项目、成本优化、冷启动、STAR法则** | 🔥🔥🔥🔥🔥 | 5 |
 | 05 | [🏗️ Transformer架构](docs/05-transformer-architecture/) | Self-Attention、Multi-Head、BERT vs GPT、Q K V计算 | 🔥🔥🔥🔥 | 9 |
-| 06 | [🤖 AI Agent基础](docs/06-ai-agent-basics/) | ReAct、Function Calling、工具调用错误处理、LangGraph | 🔥🔥🔥🔥🔥 | 11 |
+| 06 | [🤖 AI Agent基础](docs/06-ai-agent-basics/) | ReAct、记忆系统、规划系统、Function Calling、LangGraph | 🔥🔥🔥🔥🔥 | 13 |
 
 **学习重点:** RAG完整流程、项目经验总结、向量检索、Agent基本模式
 **预计时间:** 2-3周
