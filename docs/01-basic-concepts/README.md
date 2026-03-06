@@ -473,6 +473,262 @@ text = "2024年AI发展很快"
 
 ---
 
+## 16. 长文本处理:超出Context Window怎么办?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**问题背景:**
+```
+用户上传100页PDF(约50K tokens)
+GPT-4 Context Window: 8K tokens
+怎么处理? ❌ 无法直接输入
+```
+
+### 解决方案对比
+
+| 方案 | 原理 | 优缺点 | 适用场景 |
+|------|------|--------|----------|
+| **截断** | 丢弃超出部分 | ❌丢失信息 | 不推荐 |
+| **滑动窗口** | 保留最近N个token | ❌丢失早期信息 | 实时对话 |
+| **摘要压缩** | LLM递归摘要 | ⚠️可能失真 | 文档概览 |
+| **RAG分块** | 切分+向量检索 | ✅最优⭐ | 问答/检索 |
+| **长上下文模型** | 用128K窗口模型 | 💰成本高 | 必要时 |
+
+### 方案1: 滑动窗口(Sliding Window)
+
+**原理:**
+```python
+# 维护一个固定大小的窗口
+max_tokens = 4000
+history = []
+
+while True:
+    user_input = get_user_input()
+    history.append(user_input)
+
+    # 计算总token数
+    total_tokens = count_tokens(history)
+
+    # 超出窗口,删除最早的消息
+    while total_tokens > max_tokens:
+        history.pop(0)  # 删除第一条
+        total_tokens = count_tokens(history)
+
+    # 用窗口内容生成回复
+    response = llm.generate(history)
+    history.append(response)
+```
+
+**优化: 分层管理**
+```python
+class ConversationManager:
+    def __init__(self, max_recent=3, summary_every=10):
+        self.recent_messages = []  # 最近3轮完整保留
+        self.summary = ""           # 历史摘要
+        self.message_count = 0
+
+    def add_message(self, role, content):
+        self.recent_messages.append({"role": role, "content": content})
+        self.message_count += 1
+
+        # 保留最近3轮
+        if len(self.recent_messages) > 6:  # 3轮=6条消息
+            # 把旧消息做摘要
+            old = self.recent_messages.pop(0)
+            old_pair = self.recent_messages.pop(0)
+
+            self.summary += llm.summarize([old, old_pair])
+
+        return self.get_context()
+
+    def get_context(self):
+        # 上下文 = 历史摘要 + 最近3轮原文
+        context = []
+        if self.summary:
+            context.append({
+                "role": "system",
+                "content": f"历史对话摘要: {self.summary}"
+            })
+        context.extend(self.recent_messages)
+        return context
+
+# 使用
+manager = ConversationManager()
+manager.add_message("user", "你好")
+manager.add_message("assistant", "你好,有什么可以帮你?")
+...
+context = manager.get_context()  # 自动管理上下文
+```
+
+**效果:**
+- Token消耗: 稳定在4K以内
+- 信息保留: 最近3轮完整+历史摘要
+- 成本: 每10轮多1次摘要API调用
+
+### 方案2: RAG分块检索(推荐⭐)
+
+**完整流程:**
+```python
+# 步骤1: 文档预处理
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,       # 每块1000字符
+    chunk_overlap=200,     # 200字符重叠
+    separators=["\n\n", "\n", "。", ". "]
+)
+
+chunks = splitter.split_text(long_document)
+# 100页PDF → 约150个chunks
+
+# 步骤2: 向量化存储
+from langchain.vectorstores import Qdrant
+from langchain.embeddings import OpenAIEmbeddings
+
+embeddings = OpenAIEmbeddings()
+vector_store = Qdrant.from_texts(
+    texts=chunks,
+    embedding=embeddings,
+    collection_name="my_documents"
+)
+
+# 步骤3: 用户提问时检索
+def answer_question(question):
+    # 检索top-5相关chunks
+    relevant_chunks = vector_store.similarity_search(
+        question, k=5
+    )
+
+    # 拼接成上下文
+    context = "\n\n".join([chunk.page_content for chunk in relevant_chunks])
+
+    # LLM生成答案
+    prompt = f"""
+    基于以下内容回答问题:
+
+    {context}
+
+    问题: {question}
+    答案:
+    """
+
+    answer = llm.generate(prompt)
+    return answer
+
+# 使用
+question = "文档中提到的主要结论是什么?"
+answer = answer_question(question)
+```
+
+**优势:**
+- ✅ 支持无限长文档
+- ✅ 只检索相关部分,节省token
+- ✅ 可追溯来源(返回chunk ID)
+
+### 方案3: 递归摘要
+
+**Map-Reduce摘要:**
+```python
+def recursive_summarize(long_text, max_chunk_size=4000):
+    # 如果短于限制,直接摘要
+    if len(long_text) < max_chunk_size:
+        return llm.summarize(long_text)
+
+    # 切分
+    chunks = split_text(long_text, max_chunk_size)
+
+    # Map: 每个chunk单独摘要
+    summaries = [llm.summarize(chunk) for chunk in chunks]
+
+    # Reduce: 合并摘要
+    combined = "\n\n".join(summaries)
+
+    # 递归(如果合并后还是太长)
+    return recursive_summarize(combined, max_chunk_size)
+
+# 示例
+long_doc = load_100_page_pdf()
+summary = recursive_summarize(long_doc)
+print(summary)  # 最终浓缩版
+```
+
+**适用场景:**
+- 只需要概览,不需要细节
+- 没有特定问题,想了解大意
+
+### 方案4: 长上下文模型
+
+**模型对比:**
+
+| 模型 | Context Window | 价格(1M tokens) | 适用 |
+|------|----------------|-----------------|------|
+| GPT-3.5 | 16K | $1.5 | 短对话 |
+| GPT-4 | 8K | $30 | 通用 |
+| GPT-4-32K | 32K | $60 | 长文档 |
+| GPT-4-128K | 128K | $120 | 超长 |
+| Claude-2 | 100K | $8 | 性价比⭐ |
+| Claude-3 | 200K | $15 | 极长文档 |
+
+**选择策略:**
+```python
+def choose_model(text_length):
+    tokens = count_tokens(text)
+
+    if tokens < 4000:
+        return "gpt-3.5-turbo"  # 便宜
+    elif tokens < 30000:
+        return "claude-2"       # 性价比高
+    elif tokens < 120000:
+        return "gpt-4-128k"     # 贵但强
+    else:
+        return "RAG"            # 超长必须分块
+```
+
+### Lost in the Middle问题
+
+**现象:**
+```
+给LLM一个20K的文档,关键信息在中间
+→ LLM往往只关注开头和结尾
+→ "大海捞针"失败
+```
+
+**解决:**
+```python
+# 方法1: 把关键内容放开头/结尾
+prompt = f"""
+关键信息: {key_info}
+
+背景资料:
+{long_context}
+
+问题: {question}
+"""
+
+# 方法2: 分段+多次查询
+def multi_pass_qa(long_text, question):
+    # Pass 1: 快速扫描找相关段落
+    relevant_sections = quick_scan(long_text, question)
+
+    # Pass 2: 深入分析相关段落
+    answers = []
+    for section in relevant_sections:
+        answer = llm.generate(f"{section}\n\n{question}")
+        answers.append(answer)
+
+    # Pass 3: 综合答案
+    final = llm.generate(f"综合以下答案: {answers}")
+    return final
+```
+
+**面试话术:**
+> "长文本处理首选RAG:切分+检索+生成。滑动窗口适合对话,但会丢失早期信息,我们用分层管理解决——最近3轮保留原文,历史做摘要。长上下文模型虽强但贵,128K窗口成本是8K的15倍,只在必要时用。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 ### LLM基础概念
@@ -482,6 +738,8 @@ text = "2024年AI发展很快"
 | **Token** | LLM处理的最小单位,1中文≈1-2 tokens |
 | **Temperature** | 控制随机性,0=确定,1=随机 |
 | **Context Window** | 模型一次能看的最大长度(如4K,128K) |
+| **长文本处理** | RAG分块(首选)、滑动窗口、递归摘要 |
+| **Lost in the Middle** | 长文本中间信息丢失,解决:关键信息放开头 |
 | **涌现能力** | 模型足够大时突然出现的新能力(如推理、编程) |
 | **灾难性遗忘** | 学新任务忘旧知识,用LoRA解决 |
 | **幻觉** | 编造不存在的信息,用RAG缓解 |
