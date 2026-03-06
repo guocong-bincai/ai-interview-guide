@@ -792,6 +792,338 @@ Output (d维)
 
 ---
 
+## 13. 微调数据如何准备?数据质量如何保证?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**数据质量 > 数据数量**
+
+### 数据准备流程(6步)
+
+**Step 1: 需求分析**
+```python
+# 明确微调目标
+task_requirements = {
+    "任务类型": "客服问答",  # 分类/生成/对话等
+    "领域": "电商",
+    "数据量需求": "至少1000条",
+    "质量要求": "准确率>95%"
+}
+```
+
+**Step 2: 数据收集**
+
+| 来源 | 优点 | 缺点 | 适用 |
+|------|------|------|------|
+| **真实业务数据** | 最贴近实际 | 可能有噪声 | 首选 |
+| **公开数据集** | 免费,量大 | 可能不匹配领域 | 补充 |
+| **人工标注** | 质量可控 | 成本高 | 高质量小数据 |
+| **LLM生成** | 快速,便宜 | 可能有偏差 | 数据增强 |
+
+**Step 3: 数据清洗**
+
+```python
+def clean_training_data(raw_data):
+    """数据清洗pipeline"""
+    cleaned = []
+
+    for item in raw_data:
+        # 1. 去重
+        if is_duplicate(item, cleaned):
+            continue
+
+        # 2. 过滤低质量
+        if len(item["instruction"]) < 10:  # 问题太短
+            continue
+        if len(item["output"]) < 20:  # 回答太短
+            continue
+
+        # 3. 过滤有害内容
+        if contains_sensitive(item["output"]):
+            continue
+
+        # 4. 格式标准化
+        item["instruction"] = normalize_text(item["instruction"])
+        item["output"] = normalize_text(item["output"])
+
+        # 5. 语言过滤(只保留中文)
+        if not is_chinese(item):
+            continue
+
+        cleaned.append(item)
+
+    return cleaned
+
+def normalize_text(text):
+    """文本标准化"""
+    # 统一标点符号
+    text = text.replace("，", ",")
+    text = text.replace("。", ".")
+
+    # 去除多余空格
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    # 统一大小写(英文)
+    return text
+
+# 使用
+raw_data = load_raw_data("customer_service.jsonl")
+cleaned = clean_training_data(raw_data)
+print(f"清洗前: {len(raw_data)}, 清洗后: {len(cleaned)}")
+# 清洗前: 5000, 清洗后: 3200 (过滤掉36%)
+```
+
+**Step 4: 数据标注**
+
+```python
+# 方法1: 人工标注(最准确但慢)
+def manual_annotation():
+    """人工标注流程"""
+    for item in unlabeled_data:
+        # 展示给标注员
+        display(item["input"])
+
+        # 标注员选择/输入答案
+        label = annotator.label(item)
+
+        # 质量检查:双人标注,一致性>90%
+        label2 = annotator2.label(item)
+        if label != label2:
+            # 不一致,提交专家仲裁
+            label = expert.resolve(item, label, label2)
+
+        item["output"] = label
+
+# 方法2: LLM辅助标注(快但需验证)
+def llm_assisted_annotation(data):
+    """LLM自动标注"""
+    for item in data:
+        # 用GPT-4生成标注
+        prompt = f"""
+        任务: 客服问答
+        问题: {item["question"]}
+
+        请生成专业的客服回答(100-200字):
+        """
+
+        label = gpt4.generate(prompt, temperature=0.3)
+        item["output"] = label
+
+    # 人工抽检20%
+    sample = random.sample(data, int(len(data) * 0.2))
+    for item in sample:
+        human_check(item)
+
+# 方法3: 主动学习(聪明标注)
+def active_learning_annotation(data, budget=1000):
+    """优先标注最有价值的数据"""
+
+    # 用已有少量数据训练初始模型
+    model = train_initial_model(labeled_data[:100])
+
+    while len(labeled_data) < budget:
+        # 让模型预测未标注数据
+        predictions = model.predict(unlabeled_data)
+
+        # 选择模型最不确定的样本
+        uncertain_samples = select_uncertain(predictions, k=50)
+
+        # 人工标注这些样本
+        newly_labeled = manual_annotation(uncertain_samples)
+
+        # 加入训练集,重新训练
+        labeled_data.extend(newly_labeled)
+        model = train_model(labeled_data)
+
+    return labeled_data
+
+# 效果:
+# 随机标注1000条: 准确率75%
+# 主动学习1000条: 准确率82% (+7%)
+```
+
+**Step 5: 数据格式化**
+
+```python
+# 标准格式: Alpaca格式
+alpaca_format = {
+    "instruction": "用户的指令/问题",
+    "input": "额外的输入上下文(可选)",
+    "output": "期望的输出"
+}
+
+# 示例数据
+training_data = [
+    {
+        "instruction": "总结以下文章的主要内容",
+        "input": "人工智能正在改变世界...(长文)",
+        "output": "本文主要讲述了人工智能的三大影响:..."
+    },
+    {
+        "instruction": "这个产品的退货政策是什么?",
+        "input": "",
+        "output": "我们提供7天无理由退货服务。退货流程:..."
+    }
+]
+
+# 保存为JSONL
+with open("train.jsonl", "w") as f:
+    for item in training_data:
+        f.write(json.dumps(item, ensure_ascii=False) + "\n")
+```
+
+**Step 6: 数据验证**
+
+```python
+def validate_training_data(data):
+    """数据质量检查"""
+
+    issues = []
+
+    # 检查1: 分布均衡
+    categories = [item.get("category") for item in data]
+    counter = Counter(categories)
+
+    for cat, count in counter.items():
+        ratio = count / len(data)
+        if ratio < 0.05 or ratio > 0.5:
+            issues.append(f"类别'{cat}'占比{ratio:.1%},不均衡")
+
+    # 检查2: 长度分布
+    lengths = [len(item["output"]) for item in data]
+    avg_len = sum(lengths) / len(lengths)
+
+    if avg_len < 50:
+        issues.append(f"平均输出长度{avg_len}太短")
+
+    # 检查3: 重复率
+    outputs = [item["output"] for item in data]
+    duplicates = len(outputs) - len(set(outputs))
+    dup_rate = duplicates / len(outputs)
+
+    if dup_rate > 0.1:
+        issues.append(f"重复率{dup_rate:.1%}过高")
+
+    # 检查4: 语言一致性
+    languages = [detect_language(item["output"]) for item in data]
+    lang_counter = Counter(languages)
+
+    if len(lang_counter) > 1:
+        issues.append(f"包含多种语言: {dict(lang_counter)}")
+
+    return issues
+
+# 使用
+issues = validate_training_data(training_data)
+if issues:
+    print("数据质量问题:")
+    for issue in issues:
+        print(f"- {issue}")
+```
+
+### 数据增强技术
+
+**技术1: 同义词替换**
+```python
+def synonym_augmentation(text):
+    """同义词替换增强数据"""
+    from synonyms import nearby
+
+    words = text.split()
+    new_words = []
+
+    for word in words:
+        # 10%概率替换
+        if random.random() < 0.1:
+            syns = nearby(word)
+            if syns:
+                new_words.append(random.choice(syns[:3]))
+            else:
+                new_words.append(word)
+        else:
+            new_words.append(word)
+
+    return " ".join(new_words)
+
+# 原始: "这个产品质量很好"
+# 增强: "这个商品品质很棒"
+```
+
+**技术2: 回译(Back Translation)**
+```python
+def back_translation(text, lang="en"):
+    """中文→英文→中文,生成变体"""
+
+    # 翻译成英文
+    en_text = translator.translate(text, src="zh", dest=lang)
+
+    # 翻译回中文
+    zh_text = translator.translate(en_text, src=lang, dest="zh")
+
+    return zh_text
+
+# 原始: "我想退货"
+# 回译: "我希望退回商品" (略有变化但意思相同)
+```
+
+**技术3: LLM生成变体**
+```python
+def llm_paraphrase(instruction, output, n=3):
+    """用LLM生成n个语义相同的变体"""
+
+    prompt = f"""
+    原始指令: {instruction}
+    原始输出: {output}
+
+    请生成{n}个语义相同但表达不同的变体。
+
+    要求:
+    1. 保持语义完全一致
+    2. 改变措辞和句式
+    3. 保持专业性
+
+    变体(JSON数组):
+    """
+
+    variants = json.loads(llm.generate(prompt))
+    return variants
+
+# 使用
+original = {
+    "instruction": "如何退货?",
+    "output": "请在7天内联系客服..."
+}
+
+variants = llm_paraphrase(
+    original["instruction"],
+    original["output"],
+    n=3
+)
+
+# 生成:
+# 1. "退货流程是什么?" → "您可以在收货后7天内..."
+# 2. "我要退货怎么办?" → "退货需在7日内..."
+# 3. "退款步骤?" → "请于7天内..."
+```
+
+### 数据比例建议
+
+| 任务类型 | 最小数据量 | 推荐数据量 | 说明 |
+|---------|-----------|-----------|------|
+| **简单分类** | 500 | 2000+ | 类别明确 |
+| **复杂分类** | 1000 | 5000+ | 类别多,边界模糊 |
+| **生成任务** | 1000 | 10000+ | 需要多样性 |
+| **对话系统** | 5000 | 50000+ | 需要大量对话数据 |
+| **领域适配** | 10000 | 100000+ | 领域知识密集 |
+
+**面试话术:**
+> "微调数据准备分6步:需求分析→收集→清洗→标注→格式化→验证。关键是质量>数量,我们清洗掉36%低质数据,用主动学习优先标注不确定样本,准确率+7%。数据增强用回译+LLM变体,从1000条扩充到3000条。最后验证分布均衡、长度合理、重复率<10%。实测1000条高质量数据效果超过5000条低质量数据。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### 微调核心概念
@@ -802,6 +1134,7 @@ Output (d维)
 | **全量微调** | 更新所有参数，效果最好但成本高 |
 | **PEFT** | 只更新 1% 参数，效果接近全量 |
 | **SFT** | 监督微调，用标注数据训练 |
+| **数据准备** | 6步:需求→收集→清洗→标注→格式化→验证,质量>数量 |
 
 ### LoRA核心概念
 
