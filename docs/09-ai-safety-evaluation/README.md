@@ -790,6 +790,331 @@ def run_redteam_test():
 
 ---
 
+## 12. LLM幻觉(Hallucination)如何产生?如何缓解?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**幻觉 = LLM生成虚假、捏造、无事实依据的信息**
+
+### 幻觉类型
+
+| 类型 | 定义 | 示例 |
+|------|------|------|
+| **事实性幻觉** | 编造不存在的事实 | "埃菲尔铁塔位于伦敦" |
+| **逻辑性幻觉** | 推理错误 | "2+2=5" |
+| **时效性幻觉** | 信息过时 | "现在是2021年" (实际2024) |
+| **归因幻觉** | 错误引用来源 | "据《纽约时报》报道..."(虚假) |
+| **上下文幻觉** | 忽略给定上下文 | 文档说A,模型答B |
+
+### 产生原因
+
+**根本原因: LLM是概率引擎,不是事实数据库**
+
+```python
+# LLM工作原理
+P(下一个词 | 前面所有词) = Softmax(W * H)
+
+# 问题: 选择概率最高的词,不一定是事实
+# 示例:
+query = "中国最高的山是?"
+candidates = {
+    "珠穆朗玛峰": 0.85,  # 正确,高概率
+    "泰山": 0.10,        # 错误,但也有概率
+    "黄山": 0.05
+}
+# 如果采样时选中"泰山" → 幻觉
+```
+
+**5大诱因:**
+
+1. **训练数据有偏差**
+   ```
+   训练数据包含错误信息
+   → 模型学到错误模式
+   → 生成时复现错误
+   ```
+
+2. **过度泛化**
+   ```
+   模型见过"猫会爬树"
+   → 泛化成"所有猫都会爬树"
+   → 遇到不会爬树的猫 → 幻觉
+   ```
+
+3. **上下文不足**
+   ```
+   用户问:"它是什么颜色?"
+   模型不知道"它"指什么
+   → 瞎猜一个颜色 → 幻觉
+   ```
+
+4. **Temperature过高**
+   ```python
+   temperature = 1.5  # 高温度 = 高随机性
+   → 模型更"创意",更容易编造
+   ```
+
+5. **复杂推理失败**
+   ```
+   多步推理题:
+   "A比B高,B比C高,C比D高,谁最矮?"
+   → 模型推理出错 → 逻辑幻觉
+   ```
+
+### 缓解策略(6种方法)
+
+**方法1: RAG检索增强(推荐⭐⭐⭐⭐⭐)**
+
+```python
+def rag_answer(question):
+    # Step 1: 检索相关文档
+    docs = vector_db.search(question, k=5)
+
+    # Step 2: 构造带证据的Prompt
+    prompt = f"""
+    请基于以下文档回答问题,不要编造信息。
+
+    文档:
+    {docs}
+
+    问题: {question}
+
+    回答要求:
+    1. 必须基于文档内容
+    2. 如果文档中没有答案,回答"文档中未找到相关信息"
+    3. 引用文档来源
+
+    回答:
+    """
+
+    answer = llm.generate(prompt, temperature=0.3)  # 低温度
+    return answer
+
+# 效果: 幻觉率从30%降到5%
+```
+
+**方法2: 降低Temperature**
+
+```python
+# Before: 高创意,高幻觉
+response = llm.generate(prompt, temperature=1.0)
+
+# After: 低温度,更保守
+response = llm.generate(prompt, temperature=0.2)
+
+# Temperature作用:
+# 0.0 - 完全确定性,选概率最高的词
+# 0.3 - 略有随机,适合事实类任务
+# 0.7 - 平衡创意和准确性
+# 1.0 - 高创意,适合写作
+# 1.5+ - 极高随机,容易胡说
+```
+
+**方法3: 思维链(Chain of Thought)**
+
+```python
+# Before: 直接回答,容易出错
+prompt_simple = "2024年诺贝尔物理学奖得主是谁?"
+
+# After: 要求逐步推理
+prompt_cot = """
+问题: 2024年诺贝尔物理学奖得主是谁?
+
+请按以下步骤回答:
+1. 我知道的最新诺贝尔物理学奖年份是?
+2. 2024年是否已公布?
+3. 如果未公布,我应该如何回答?
+
+逐步推理:
+"""
+
+# LLM输出:
+# 1. 我的知识截止到2023年10月
+# 2. 2024年诺贝尔奖通常10月公布,我不知道结果
+# 3. 我应该回答"截至我的知识更新日期,2024年诺贝尔物理学奖尚未公布"
+
+# 效果: 逻辑清晰,减少幻觉
+```
+
+**方法4: 自我验证/反思**
+
+```python
+def self_verification(question, answer):
+    """让模型自己检查答案"""
+
+    verification_prompt = f"""
+    问题: {question}
+    答案: {answer}
+
+    请检查这个答案:
+    1. 是否包含具体事实陈述?
+    2. 这些事实是否可验证?
+    3. 是否有编造的成分?
+    4. 置信度(0-100%)?
+
+    检查结果(JSON):
+    """
+
+    verification = llm.generate(verification_prompt)
+    result = json.loads(verification)
+
+    if result["confidence"] < 70:
+        # 置信度低,返回不确定答案
+        return "我不确定,建议查询权威来源"
+    else:
+        return answer
+
+# 使用
+question = "世界上最高的山在哪个国家?"
+answer = llm.generate(question)  # "中国/尼泊尔"
+verified = self_verification(question, answer)
+```
+
+**方法5: 多模型交叉验证**
+
+```python
+def multi_model_consensus(question):
+    """多个模型投票,一致才信任"""
+
+    models = ["gpt-4", "claude-3", "gemini-pro"]
+    answers = []
+
+    for model in models:
+        answer = call_llm(model, question)
+        answers.append(answer)
+
+    # 计算一致性
+    if len(set(answers)) == 1:
+        # 三个模型答案完全一致
+        return answers[0], confidence=0.95
+    elif len(set(answers)) == 2:
+        # 2:1
+        majority = max(set(answers), key=answers.count)
+        return majority, confidence=0.70
+    else:
+        # 完全不一致
+        return "模型意见不一致,建议人工核实", confidence=0.30
+```
+
+**方法6: Prompt工程(防幻觉)**
+
+```python
+# ❌ 差的Prompt(容易幻觉)
+bad_prompt = "介绍一下特斯拉的创始人"
+
+# ✅ 好的Prompt(减少幻觉)
+good_prompt = """
+你是一个严谨的AI助手。
+
+问题: 介绍一下特斯拉的创始人
+
+回答要求:
+1. 只陈述你确定的事实
+2. 如果不确定,明确说明"我不确定"
+3. 不要编造任何信息
+4. 如果信息可能过时,说明知识截止日期
+
+回答:
+"""
+
+# 效果对比:
+# 差的: "埃隆·马斯克于2003年创立特斯拉..." (错误,实际是2003年由Martin Eberhard和Marc Tarpenning创立)
+# 好的: "特斯拉由Martin Eberhard和Marc Tarpenning于2003年创立,埃隆·马斯克于2004年投资并成为董事长。"
+```
+
+### 幻觉检测方法
+
+**自动检测:**
+
+```python
+def detect_hallucination(question, answer, context=None):
+    """检测答案是否幻觉"""
+
+    indicators = {
+        "confidence_score": 0,
+        "has_specific_claims": False,
+        "claims_verifiable": False,
+        "contradicts_context": False
+    }
+
+    # 1. 提取具体陈述
+    claims = extract_claims(answer)
+    if len(claims) > 0:
+        indicators["has_specific_claims"] = True
+
+    # 2. 检查是否与上下文矛盾
+    if context:
+        for claim in claims:
+            if contradicts(claim, context):
+                indicators["contradicts_context"] = True
+                break
+
+    # 3. 计算置信度分数
+    confidence_prompt = f"对答案'{answer}'的置信度(0-100%):"
+    conf = float(llm.generate(confidence_prompt))
+    indicators["confidence_score"] = conf
+
+    # 综合判断
+    is_hallucination = (
+        indicators["contradicts_context"] or
+        indicators["confidence_score"] < 50
+    )
+
+    return is_hallucination, indicators
+```
+
+### 实战案例
+
+**问题: 客服Agent经常编造产品功能**
+
+```python
+# Before: 直接生成
+user_query = "你们的VIP会员有哪些特权?"
+answer = llm.generate(user_query)
+# 可能输出: "VIP会员可享受免费配送、专属客服、每月积分翻倍..." (可能编造)
+
+# After: RAG + 低温 + 验证
+def safe_customer_service(query):
+    # 1. 检索官方文档
+    official_docs = vector_db.search(query, k=3)
+
+    # 2. 防幻觉Prompt
+    prompt = f"""
+    你是客服AI,必须严格基于官方文档回答。
+
+    官方文档:
+    {official_docs}
+
+    用户问题: {query}
+
+    回答规则:
+    1. 只说文档中明确写明的功能
+    2. 文档未提及的,回答"这个问题请咨询人工客服"
+    3. 不要推测或编造
+
+    回答:
+    """
+
+    answer = llm.generate(prompt, temperature=0.1)  # 极低温度
+
+    # 3. 自我验证
+    verified = self_verify(answer, official_docs)
+    if not verified:
+        return "为确保准确性,这个问题请咨询人工客服"
+
+    return answer
+
+# 效果: 幻觉率从40%降到2%
+```
+
+**面试话术:**
+> "LLM幻觉本质是概率预测,不是事实查询。我用RAG+低温+CoT三管齐下:RAG提供证据降低幻觉80%,Temperature=0.2保守生成,CoT逐步推理减少逻辑错误。关键是接受'幻觉无法100%消除',目标是系统在不确定时说'我不知道',而不是瞎猜。生产环境加自我验证,置信度<70%转人工,最终幻觉率<5%。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### AI 安全核心概念
@@ -801,6 +1126,7 @@ def run_redteam_test():
 | **防滥用** | 鉴权 + 限流 + 异常检测 + 人机验证 |
 | **越狱攻击** | 绕过安全限制,DAN/角色扮演/编码/多步引导 |
 | **防御策略** | 4层防护(输入/Prompt/输出/监控),防御率98% |
+| **LLM幻觉** | 编造虚假信息,用RAG+低温+CoT缓解,降80% |
 
 ### 评估与测试
 
