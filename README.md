@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 195+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
+**🎯 200+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -25,7 +25,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 17个模块从易到难，195+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 17个模块从易到难，200+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -35,7 +35,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 195+ 道 |
+| 📝 **总题数** | 200+ 道 |
 | 📂 **核心模块** | 17 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -84,9 +84,9 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 07 | [⚙️ 向量索引优化](docs/07-vector-index-optimization/) | HNSW、IVF、混合检索、RRF融合 | 🔥🔥🔥🔥 | 9 |
-| 08 | [🎓 模型微调与训练](docs/08-model-training/) | LoRA、QLoRA、RLHF、DPO、PEFT对比 | 🔥🔥🔥🔥 | 12 |
+| 08 | [🎓 模型微调与训练](docs/08-model-training/) | LoRA、RLHF、DPO、数据准备、标注策略 | 🔥🔥🔥🔥 | 13 |
 | 09 | [⚡ 推理优化](docs/09-inference-optimization/) | KV Cache、量化、投机采样、Continuous Batching、vLLM | 🔥🔥🔥🔥🔥 | 13 |
-| 10 | [🛡️ AI 安全与评估](docs/10-ai-safety-evaluation/) | 内容安全、PII保护、越狱攻击防御 | 🔥🔥🔥🔥 | 11 |
+| 10 | [🛡️ AI 安全与评估](docs/10-ai-safety-evaluation/) | 幻觉缓解、Prompt注入防御、评估指标、RAGAS | 🔥🔥🔥🔥🔥 | 14 |
 
 **学习重点:** 性能优化、成本控制、质量保障、安全防护
 **预计时间:** 3-4周
