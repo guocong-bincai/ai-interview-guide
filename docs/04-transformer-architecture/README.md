@@ -943,6 +943,278 @@ class ModelParallel(nn.Module):
 
 </details>
 
+### Q8: Q K V矩阵的详细计算过程是什么?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Q K V = Query(查询)、Key(键)、Value(值)**
+
+### 生成过程
+
+**步骤1: 输入embedding**
+```python
+# 输入序列: "我 爱 AI"
+input_ids = [101, 234, 567]  # token IDs
+embeddings = embedding_layer(input_ids)  # shape: (3, 512)
+# 每个token → 512维向量
+
+# 加上位置编码
+position_encodings = get_position_encoding(3, 512)
+input_repr = embeddings + position_encodings  # shape: (3, 512)
+```
+
+**步骤2: 线性变换生成Q K V**
+```python
+# 3个可学习的权重矩阵
+W_Q = nn.Linear(512, 512)  # Query权重
+W_K = nn.Linear(512, 512)  # Key权重
+W_V = nn.Linear(512, 512)  # Value权重
+
+# 生成Q K V
+Q = W_Q(input_repr)  # shape: (3, 512)
+K = W_K(input_repr)  # shape: (3, 512)
+V = W_V(input_repr)  # shape: (3, 512)
+```
+
+**为什么需要3个矩阵?**
+- **Q(查询)**: "我想找什么信息?"
+- **K(键)**: "我能提供什么信息?"
+- **V(值)**: "我包含什么信息?"
+
+**类比搜索引擎:**
+```
+Q = 用户搜索词 "Python教程"
+K = 文档标题 ["Python入门", "Java教程", "Python高级"]
+V = 文档内容 [实际的Python教程文本]
+
+步骤:
+1. Q与每个K计算相似度 → 注意力分数
+2. 用分数加权V → 最终输出
+```
+
+### Multi-Head Attention详细计算
+
+**步骤1: 拆分成多个头**
+```python
+num_heads = 8
+d_model = 512
+d_k = d_model // num_heads  # 512 / 8 = 64
+
+# 将Q K V reshape成多头
+Q_multi = Q.view(batch_size, seq_len, num_heads, d_k)
+# shape: (batch, 3, 8, 64)
+
+K_multi = K.view(batch_size, seq_len, num_heads, d_k)
+V_multi = V.view(batch_size, seq_len, num_heads, d_k)
+
+# 转置: (batch, num_heads, seq_len, d_k)
+Q_multi = Q_multi.transpose(1, 2)  # (batch, 8, 3, 64)
+K_multi = K_multi.transpose(1, 2)
+V_multi = V_multi.transpose(1, 2)
+```
+
+**步骤2: 每个头独立计算Attention**
+```python
+# Scaled Dot-Product Attention
+scores = torch.matmul(Q_multi, K_multi.transpose(-2, -1))
+# shape: (batch, 8, 3, 3)
+# 3×3矩阵: 每个token对所有token的注意力分数
+
+# 缩放 (防止梯度消失)
+scores = scores / math.sqrt(d_k)  # 除以√64 = 8
+
+# Softmax归一化
+attention_weights = F.softmax(scores, dim=-1)
+# shape: (batch, 8, 3, 3)
+
+# 加权求和
+output = torch.matmul(attention_weights, V_multi)
+# shape: (batch, 8, 3, 64)
+```
+
+**步骤3: 拼接所有头**
+```python
+# 转置回来
+output = output.transpose(1, 2)  # (batch, 3, 8, 64)
+
+# 拼接
+output = output.contiguous().view(batch_size, seq_len, d_model)
+# shape: (batch, 3, 512)  # 8×64 = 512
+
+# 最终线性变换
+output = W_O(output)  # W_O: (512, 512)
+```
+
+**完整示例(数值):**
+```python
+# 假设seq_len=3, d_k=4 (简化)
+Q = [[1,0,1,0],   # token1的Query
+     [0,2,0,2],   # token2的Query
+     [1,1,1,1]]   # token3的Query
+
+K = [[0,1,0,1],   # token1的Key
+     [1,1,1,1],   # token2的Key
+     [2,2,2,2]]   # token3的Key
+
+# 步骤1: Q × K^T
+scores = Q @ K.T
+# [[1,2,4],
+#  [4,4,8],
+#  [2,4,8]]
+
+# 步骤2: 缩放
+scores = scores / sqrt(4) = scores / 2
+# [[0.5,1,2],
+#  [2,2,4],
+#  [1,2,4]]
+
+# 步骤3: Softmax
+weights = softmax(scores, dim=-1)
+# [[0.18, 0.24, 0.58],   # token1关注token3最多
+#  [0.12, 0.12, 0.76],   # token2关注token3最多
+#  [0.09, 0.24, 0.67]]   # token3关注自己最多
+
+# 步骤4: 加权求和Value
+output = weights @ V
+```
+
+**面试话术:**
+> "Q K V的本质是3种视角看同一个信息。Q是'我要找什么',K是'我能匹配什么',V是'我的内容是什么'。Multi-Head让模型从8个不同角度理解文本,比如一个头关注语法,另一个关注语义。"
+
+</details>
+
+---
+
+### Q9: 位置编码的详细原理是什么?为什么用sin/cos?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**位置编码 = 让模型知道token的位置信息**
+
+### 为什么需要位置编码?
+
+**问题: Attention是排列不变的**
+```python
+# 不同顺序,Attention输出相同!
+input1 = ["狗", "咬", "人"]
+input2 = ["人", "咬", "狗"]
+
+# Self-Attention(input1) ≈ Self-Attention(input2)
+# 因为只看相似度,不看顺序
+```
+
+**解决: 加入位置信息**
+```python
+embedding_with_pos = word_embedding + positional_encoding
+```
+
+### Sin/Cos位置编码公式
+
+```python
+PE(pos, 2i) = sin(pos / 10000^(2i/d_model))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+
+其中:
+- pos: 位置(0, 1, 2, ...)
+- i: 维度索引(0 到 d_model/2)
+- d_model: embedding维度(如512)
+```
+
+**具体计算示例:**
+```python
+import numpy as np
+
+def get_positional_encoding(max_len, d_model):
+    pe = np.zeros((max_len, d_model))
+
+    for pos in range(max_len):
+        for i in range(0, d_model, 2):
+            # 偶数维度: sin
+            pe[pos, i] = np.sin(pos / (10000 ** (i/d_model)))
+
+            # 奇数维度: cos
+            if i+1 < d_model:
+                pe[pos, i+1] = np.cos(pos / (10000 ** (i/d_model)))
+
+    return pe
+
+# 示例: max_len=100, d_model=512
+pe = get_positional_encoding(100, 512)
+
+# 位置0的编码
+print(pe[0])  # [sin(0/1), cos(0/1), sin(0/464), cos(0/464), ...]
+
+# 位置1的编码
+print(pe[1])  # [sin(1/1), cos(1/1), sin(1/464), cos(1/464), ...]
+```
+
+### 为什么选sin/cos?
+
+**优势1: 表示相对位置**
+```python
+# 数学性质: sin/cos的线性组合
+sin(α + β) = sin(α)cos(β) + cos(α)sin(β)
+cos(α + β) = cos(α)cos(β) - sin(α)sin(β)
+
+# 意味着: PE(pos+k)可由PE(pos)线性变换得到
+# 模型容易学习相对位置关系
+```
+
+**优势2: 泛化到未见过的长度**
+```python
+# 训练: max_len=512
+# 推理: len=1024  # 超出训练长度
+
+# sin/cos是连续函数,可以外推
+pe_1024 = get_positional_encoding(1024, 512)  # 依然有效!
+```
+
+**优势3: 不同频率捕捉不同范围**
+```python
+# 低频(i接近0): 变化慢,捕捉长距离关系
+PE(pos, 0) = sin(pos / 1)  # 周期短,变化快
+
+# 高频(i接近d_model): 变化快,捕捉近距离关系
+PE(pos, 511) = sin(pos / 10000)  # 周期长,变化慢
+```
+
+**可视化:**
+```
+Position 0: [0.00, 1.00, 0.00, 1.00, 0.00, 1.00, ...]
+Position 1: [0.84, 0.54, 0.01, 1.00, 0.00, 1.00, ...]
+Position 2: [0.91,-0.42, 0.02, 1.00, 0.00, 1.00, ...]
+           ↑ 快变化  ↑ 慢变化
+```
+
+### 其他位置编码方法
+
+| 方法 | 原理 | 优缺点 | 应用 |
+|------|------|--------|------|
+| **Sin/Cos** | 固定公式 | ✅泛化好 ❌不可学习 | 原始Transformer |
+| **Learned PE** | 可学习embedding | ✅适应任务 ❌不泛化 | BERT |
+| **RoPE** | 旋转位置编码 | ✅长文本好 | LLaMA |
+| **ALiBi** | 注意力偏置 | ✅超长文本 | MPT |
+
+**RoPE简介(LLaMA使用):**
+```python
+# 不是加法,而是旋转
+# Q和K乘以旋转矩阵
+Q_rot = rotate(Q, position)
+K_rot = rotate(K, position)
+
+# 优势: 相对位置信息更明确
+# LLaMA-2可处理4K→32K上下文
+```
+
+**面试话术:**
+> "Sin/Cos编码的巧妙之处在于:1)不同频率捕捉不同距离 2)可外推到训练时未见长度 3)相对位置可线性表示。现代LLM如LLaMA改用RoPE,在超长文本上表现更好。我们项目用ALiBi,32K上下文零成本扩展。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### Transformer 核心概念
@@ -991,7 +1263,7 @@ class ModelParallel(nn.Module):
 
 ---
 
-**上一模块：** [RAG 系统](../03-rag-system/)  
+**上一模块：** [RAG 系统](../03-rag-system/)
 **下一模块：** [AI Agent 基础](../05-ai-agent-basics/)
 
 ---
