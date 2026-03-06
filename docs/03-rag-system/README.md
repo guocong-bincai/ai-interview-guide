@@ -1,6 +1,6 @@
 # 📚 RAG 系统面试题
 
-> **难度：** ⭐⭐⭐⭐  
+> **难度：** ⭐⭐⭐⭐
 > **考点：** 检索增强生成、向量数据库、Embedding、检索优化
 
 ## 📋 目录
@@ -290,6 +290,238 @@
 
 **结果：** 财务指标提取准确率从 65% 提升到 94%
 
+### Q11: 什么是Query改写?如何提升检索效果?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Query改写 = 优化用户原始问题,使其更适合检索**
+
+**核心问题:**
+```
+用户问题往往不够精确:
+- "昨天说的那个事" → 缺少上下文
+- "怎么办" → 太模糊
+- "价格多少" → 缺少主语
+```
+
+**改写策略:**
+
+### 1. 补充上下文(多轮对话)
+```python
+# 对话历史
+history = [
+    ("什么是RAG?", "RAG是检索增强生成..."),
+    ("它有什么优势?", "...")
+]
+
+# 用户新问题
+user_query = "如何实现它?"
+
+# 改写后
+rewritten_query = "如何实现RAG检索增强生成系统?"
+```
+
+### 2. 查询扩展
+```python
+# 原始查询
+query = "Python多线程"
+
+# 扩展后
+expanded_query = """
+Python多线程
+Python threading模块
+Python GIL全局解释器锁
+Python并发编程
+"""
+# 用扩展后的多个查询检索,合并结果
+```
+
+### 3. HyDE(假设性文档嵌入)
+```python
+# 原始问题
+query = "如何优化RAG检索准确率?"
+
+# 让LLM生成假设性答案
+hypothetical_doc = llm.generate(f"假设回答: {query}")
+# "可以通过混合检索、Rerank、query改写等方法..."
+
+# 用假设性答案的向量去检索(而非原问题)
+embedding = embed(hypothetical_doc)
+results = vector_db.search(embedding)
+```
+
+**HyDE优势**: 答案和文档库中的文档更相似,检索更准
+
+### 4. 多查询生成
+```python
+# 原始问题
+query = "RAG系统慢怎么办?"
+
+# 生成多个视角的查询
+sub_queries = llm.generate(f"将问题拆分成3个子问题: {query}")
+# 1. "如何提升RAG检索速度?"
+# 2. "RAG系统性能瓶颈在哪?"
+# 3. "向量数据库优化方法?"
+
+# 分别检索后合并结果
+```
+
+**实现示例:**
+```python
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+# Query改写器
+def rewrite_query(query, chat_history):
+    prompt = f"""
+    对话历史: {chat_history}
+    当前问题: {query}
+
+    请补充上下文,改写成独立完整的问题。
+    """
+    return llm.generate(prompt)
+
+# HyDE改写
+def hyde_rewrite(query):
+    prompt = f"假设你要回答这个问题,你会怎么说: {query}"
+    hypothetical_answer = llm.generate(prompt)
+    return hypothetical_answer
+
+# 使用
+user_query = "如何优化?"
+rewritten = rewrite_query(user_query, history)
+results = retriever.get_relevant_documents(rewritten)
+```
+
+**性能对比:**
+
+| 方法 | Recall@5 | Precision@5 |
+|------|----------|-------------|
+| 原始查询 | 65% | 58% |
+| +上下文补充 | 75% | 68% |
+| +HyDE | 82% | 76% |
+| +多查询 | 88% | 80% |
+
+**面试话术:**
+> "Query改写是RAG的前置优化。用户问题往往模糊或缺上下文,我们用LLM补充完整,或用HyDE生成假设答案去检索。我们项目用HyDE,召回率从67%提升到85%。"
+
+</details>
+
+---
+
+### Q12: 什么是上下文压缩?如何减少无效Token?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**上下文压缩 = 从检索结果中提取最相关片段,减少LLM输入**
+
+**问题背景:**
+```
+检索返回5个文档,每个1000 tokens
+→ 总共5000 tokens送给LLM
+→ 但只有500 tokens真正有用
+→ 浪费4500 tokens,增加成本和延迟
+```
+
+**压缩策略:**
+
+### 1. 基于LLM的提取
+```python
+from langchain.retrievers.document_compressors import LLMChainExtractor
+
+compressor = LLMChainExtractor.from_llm(llm)
+
+prompt = """
+文档: {document}
+问题: {query}
+
+请只提取与问题相关的句子,其他都删除。
+"""
+
+# 压缩前: 1000 tokens
+# 压缩后: 200 tokens (只保留相关部分)
+```
+
+### 2. 基于Embedding的过滤
+```python
+from langchain.retrievers.document_compressors import EmbeddingsFilter
+
+# 计算每个句子与query的相似度
+# 只保留相似度>阈值的句子
+embeddings_filter = EmbeddingsFilter(
+    embeddings=OpenAIEmbeddings(),
+    similarity_threshold=0.76
+)
+```
+
+### 3. Rerank + Top-K选择
+```python
+# 先检索50个候选
+candidates = vector_db.search(query, top_k=50)
+
+# Rerank重排
+reranked = reranker.rerank(query, candidates)
+
+# 只取top-3,并提取关键段落
+compressed = []
+for doc in reranked[:3]:
+    # 从每个文档中提取最相关的3个句子
+    relevant_sentences = extract_relevant(doc, query, max_sentences=3)
+    compressed.append(relevant_sentences)
+```
+
+### 4. Contextual Compression完整流程
+```python
+from langchain.retrievers import ContextualCompressionRetriever
+
+# 基础检索器
+base_retriever = vector_store.as_retriever(search_kwargs={"k": 20})
+
+# 压缩器(LLM提取)
+compressor = LLMChainExtractor.from_llm(llm)
+
+# 组合
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor,
+    base_retriever=base_retriever
+)
+
+# 使用
+compressed_docs = compression_retriever.get_relevant_documents(query)
+```
+
+**效果对比:**
+
+| 方法 | 输入Tokens | 输出质量 | 成本 | 延迟 |
+|------|------------|----------|------|------|
+| 无压缩 | 5000 | ⭐⭐⭐⭐ | $0.05 | 3s |
+| Embedding过滤 | 2000 | ⭐⭐⭐⭐ | $0.02 | 1.5s |
+| LLM提取 | 800 | ⭐⭐⭐⭐⭐ | $0.015 | 2s |
+| Rerank+提取 | 500 | ⭐⭐⭐⭐⭐ | $0.01 | 2.5s |
+
+**Late Chunking(晚期分块):**
+```python
+# 传统chunking: 先切分再embedding
+doc = "AI技术正在改变世界。大模型是核心。RAG系统很重要。"
+chunks = ["AI技术正在改变世界。", "大模型是核心。", "RAG系统很重要。"]
+embeddings = [embed(c) for c in chunks]  # 丢失跨chunk上下文
+
+# Late chunking: 先embedding再切分
+full_embedding = embed(doc)  # 保留完整上下文
+chunk_embeddings = split_embedding(full_embedding, chunk_boundaries)
+```
+
+**优势**: 保留完整文档上下文,提升检索准确率5-10%
+
+**面试话术:**
+> "上下文压缩是成本优化的关键。我们用Rerank+LLM提取,从检索的20个文档中精选3个,每个提取3句话,tokens从8000降到600,成本降低92%,质量反而更好。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 概念 | 一句话解释 |
@@ -302,11 +534,14 @@
 | **混合检索** | 向量 + 关键词一起搜 |
 | **Rerank** | 对检索结果重新排序 |
 | **ANN** | 近似最近邻搜索，加速检索 |
+| **Query改写** | 优化问题,补充上下文,HyDE生成假设答案 |
+| **上下文压缩** | 提取相关片段,减少无效Token,降成本 |
+| **Late Chunking** | 先embedding再切分,保留完整上下文 |
 
 
 ---
 
-**上一模块：** [Prompt 工程](../02-prompt-engineering/)  
+**上一模块：** [Prompt 工程](../02-prompt-engineering/)
 **下一模块：** [Transformer 架构](../04-transformer-architecture/)
 
 ---
