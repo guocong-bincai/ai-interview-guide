@@ -525,6 +525,451 @@ prompt = """
 
 ---
 
+## 9. Self-Consistency(自洽性)如何提升推理准确率?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Self-Consistency = 多次推理+投票,选择最一致的答案**
+
+### 核心思想
+
+**一个模型的单次推理可能出错,但多次推理的"多数意见"更可靠**
+
+```
+传统CoT:
+问题 → CoT推理(1次) → 答案A
+
+Self-Consistency:
+问题 → CoT推理(5次) → [A, A, B, A, C]
+       ↓ 投票
+     答案: A (出现3次,获胜)
+```
+
+### 实现方式
+
+```python
+def self_consistency(question, n=5, temperature=0.7):
+    """Self-Consistency实现"""
+
+    # Step 1: 生成n个推理路径
+    answers = []
+    for i in range(n):
+        prompt = f"""
+        问题: {question}
+
+        请一步步思考并给出答案。
+        最后一行以"答案:"开头。
+        """
+
+        response = llm.generate(
+            prompt,
+            temperature=temperature  # 高温度增加多样性
+        )
+
+        # 提取答案
+        answer = extract_final_answer(response)
+        answers.append(answer)
+
+    # Step 2: 投票选择最频繁的答案
+    from collections import Counter
+    vote_result = Counter(answers)
+    final_answer, count = vote_result.most_common(1)[0]
+
+    # Step 3: 计算置信度
+    confidence = count / n
+
+    return {
+        "answer": final_answer,
+        "confidence": confidence,
+        "all_answers": answers,
+        "vote_result": dict(vote_result)
+    }
+
+# 使用示例
+question = "小明有15个苹果,分给3个朋友,每人分到几个?"
+
+result = self_consistency(question, n=10)
+
+print(result)
+# {
+#   "answer": "5个",
+#   "confidence": 0.8,  # 10次中8次都是5
+#   "all_answers": ["5个", "5个", "4个", "5个", "5个", "5个", "6个", "5个", "5个", "5个"],
+#   "vote_result": {"5个": 8, "4个": 1, "6个": 1}
+# }
+```
+
+### 效果对比
+
+**实验: GSM8K数学题数据集**
+
+| 方法 | 准确率 | 成本 |
+|------|--------|------|
+| 标准CoT | 65% | 1x |
+| Self-Consistency(n=5) | 78% (+13%) | 5x |
+| Self-Consistency(n=10) | 82% (+17%) | 10x |
+| Self-Consistency(n=40) | 85% (+20%) | 40x |
+
+### 优化技巧
+
+**优化1: 加权投票**
+
+```python
+def weighted_self_consistency(question, n=5):
+    """根据推理质量加权投票"""
+
+    answers_with_scores = []
+
+    for i in range(n):
+        response = llm.generate(prompt, temperature=0.7)
+        answer = extract_final_answer(response)
+
+        # 评估推理质量
+        quality_prompt = f"""
+        评估以下推理的质量(0-10分):
+        {response}
+
+        评分标准:
+        - 逻辑清晰: +3
+        - 步骤完整: +3
+        - 计算正确: +4
+
+        评分:
+        """
+        quality_score = float(llm.generate(quality_prompt))
+
+        answers_with_scores.append((answer, quality_score))
+
+    # 加权投票
+    from collections import defaultdict
+    weighted_votes = defaultdict(float)
+
+    for answer, score in answers_with_scores:
+        weighted_votes[answer] += score
+
+    # 选择权重最高的答案
+    final_answer = max(weighted_votes.items(), key=lambda x: x[1])[0]
+
+    return final_answer
+
+# 效果: 准确率 +3-5%,但成本增加 (需要额外的质量评估)
+```
+
+**优化2: 早停机制**
+
+```python
+def early_stopping_consistency(question, max_n=10, threshold=0.8):
+    """达到高置信度就停止"""
+
+    answers = []
+
+    for i in range(max_n):
+        response = llm.generate(prompt, temperature=0.7)
+        answer = extract_final_answer(response)
+        answers.append(answer)
+
+        # 检查是否达到高一致性
+        if len(answers) >= 3:  # 至少3次
+            vote = Counter(answers)
+            most_common_count = vote.most_common(1)[0][1]
+            confidence = most_common_count / len(answers)
+
+            if confidence >= threshold:
+                print(f"在第{i+1}次达到{confidence:.1%}一致性,提前停止")
+                break
+
+    final_answer = Counter(answers).most_common(1)[0][0]
+    return final_answer
+
+# 效果: 平均只需5-6次就能达到80%一致性,节省成本
+```
+
+### Self-Consistency vs CoT
+
+| 维度 | CoT | Self-Consistency |
+|------|-----|------------------|
+| **推理次数** | 1次 | 5-40次 |
+| **准确率** | 基线 | +15-20% |
+| **成本** | 1x | 5-40x |
+| **延迟** | 低 | 高(可并行) |
+| **适用** | 所有场景 | 高价值任务 |
+
+### 实战应用场景
+
+**场景1: 医疗诊断辅助**
+
+```python
+# 高风险决策,需要高准确性
+diagnosis = self_consistency(
+    question="患者症状: 发热、咳嗽、胸痛。可能的诊断?",
+    n=20  # 医疗场景用更多次数
+)
+
+if diagnosis["confidence"] < 0.7:
+    # 置信度低,转人工
+    return "建议医生人工诊断"
+else:
+    return diagnosis["answer"]
+```
+
+**场景2: 代码生成验证**
+
+```python
+# 生成多个代码版本,选择最一致的逻辑
+code_versions = []
+
+for i in range(5):
+    code = llm.generate("用Python实现快速排序", temperature=0.8)
+    code_versions.append(code)
+
+# 用测试用例验证
+def test_code(code):
+    """测试代码正确性"""
+    try:
+        exec(code)
+        # 运行测试用例...
+        return True
+    except:
+        return False
+
+# 选择通过测试最多的版本
+best_code = max(code_versions, key=test_code)
+```
+
+**面试话术:**
+> "Self-Consistency是提升推理准确率的利器。核心是让模型推理多次,投票选答案。我在数学题场景用过,n=5时准确率从65%→78%提升13%。关键是temperature要>0.5增加多样性,让每次推理路径不同。优化点:1)加权投票根据推理质量打分;2)早停机制达到80%一致性就停,节省成本。缺点是成本高,5-40倍Token消耗,所以只用在高价值任务比如医疗诊断。可以并行调用LLM降低延迟。"
+
+</details>
+
+---
+
+## 10. Tree of Thoughts(ToT)如何实现树形探索?
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Tree of Thoughts = 让模型像下棋一样,探索多条思路,回溯调整**
+
+### 核心理念
+
+**CoT是线性推理(A→B→C),ToT是树状探索(尝试多路径,评估,回溯)**
+
+```
+CoT (Chain):
+问题 → 思路1 → 步骤1 → 步骤2 → 答案
+        (一条路走到黑)
+
+ToT (Tree):
+       → 思路1.1 → 评估(分数低) ✗ 回溯
+问题 → 思路1 → 思路1.2 → 评估(分数高) ✓ 继续
+       ↓
+    思路2 → ... (并行探索多路径)
+```
+
+### ToT算法流程
+
+```python
+class TreeOfThoughts:
+    def __init__(self, llm, depth=3, breadth=3, evaluator=None):
+        self.llm = llm
+        self.depth = depth      # 树的深度
+        self.breadth = breadth  # 每层生成几个候选
+        self.evaluator = evaluator or self.default_evaluator
+
+    def solve(self, problem):
+        """ToT解决问题"""
+
+        # Step 1: 初始化根节点
+        root = TreeNode(problem, level=0)
+
+        # Step 2: 逐层扩展
+        for level in range(self.depth):
+            # 获取当前层的所有节点
+            current_nodes = self.get_nodes_at_level(root, level)
+
+            for node in current_nodes:
+                # 生成候选思路
+                candidates = self.generate_thoughts(node, self.breadth)
+
+                # 评估每个候选
+                for thought in candidates:
+                    score = self.evaluator(thought, problem)
+                    child = TreeNode(thought, level=level+1, score=score)
+                    node.add_child(child)
+
+        # Step 3: 找到最高分路径
+        best_path = self.find_best_path(root)
+
+        return best_path
+
+    def generate_thoughts(self, node, k):
+        """生成k个候选思路"""
+
+        prompt = f"""
+        当前进展: {node.content}
+
+        请生成{k}个不同的后续思路。
+        要求: 每个思路都要有独特的解题角度。
+
+        格式(JSON数组):
+        ["思路1", "思路2", "思路3"]
+        """
+
+        response = self.llm.generate(prompt, temperature=0.9)
+        thoughts = json.loads(response)
+
+        return thoughts
+
+    def default_evaluator(self, thought, problem):
+        """评估思路质量"""
+
+        prompt = f"""
+        问题: {problem}
+        当前思路: {thought}
+
+        评估这个思路的质量(0-10分):
+        - 是否正确方向: +5
+        - 是否可行: +3
+        - 是否高效: +2
+
+        评分:
+        """
+
+        score = float(self.llm.generate(prompt, temperature=0))
+        return score
+
+    def find_best_path(self, root):
+        """找到分数最高的路径"""
+
+        def dfs(node, path, score):
+            # 递归找最高分路径
+            if not node.children:
+                return path, score
+
+            best = (path, score)
+            for child in node.children:
+                candidate_path, candidate_score = dfs(
+                    child,
+                    path + [child.content],
+                    score + child.score
+                )
+                if candidate_score > best[1]:
+                    best = (candidate_path, candidate_score)
+
+            return best
+
+        path, score = dfs(root, [root.content], 0)
+        return path
+
+# 使用
+tot = TreeOfThoughts(llm, depth=3, breadth=3)
+
+problem = "用4个4和任意运算符,得到24"
+solution = tot.solve(problem)
+
+print("最佳解法路径:", solution)
+# ["(4 * 4) + 4 + 4", "4 * (4 + 4 - 4)", ...]
+```
+
+### ToT实战示例
+
+**问题: 24点游戏**
+
+```python
+# 给定4个数字,用+/-/×/÷得到24
+
+tot = TreeOfThoughts(llm, depth=4, breadth=5)
+
+result = tot.solve("用 4, 6, 6, 8 得到 24")
+
+# 探索过程:
+"""
+Level 0: "4, 6, 6, 8 得到 24"
+
+Level 1 (生成5个思路):
+  1.1: "先算 6 + 6 = 12" (分数: 7)
+  1.2: "先算 8 - 4 = 4" (分数: 5)
+  1.3: "先算 6 × 4 = 24" (分数: 10) ✓ 最高分
+  1.4: "先算 8 ÷ 4 = 2" (分数: 6)
+  1.5: "先算 6 - 4 = 2" (分数: 4)
+
+Level 2 (只展开高分节点1.3):
+  1.3.1: "6 × 4 = 24, 但还剩6和8" (分数: 3) ✗
+  1.3.2: "改思路: (6 - 6) × 8 + 4" (分数: 4)
+  ...
+
+回溯到1.1:
+  1.1.1: "12 + 8 + 4 = 24" (分数: 10) ✓
+
+最终答案: (6 + 6) + 8 + 4 = 24
+"""
+```
+
+### ToT vs CoT vs Self-Consistency
+
+| 方法 | 推理方式 | 探索性 | 准确率 | 成本 |
+|------|---------|-------|--------|------|
+| **CoT** | 线性,一条路 | 无 | 基线 | 1x |
+| **Self-Consistency** | 并行多条路,投票 | 低 | +15% | 5-10x |
+| **ToT** | 树状探索,回溯 | 高 | +40-60% | 50-100x |
+
+### ToT优化策略
+
+**优化1: 剪枝(Pruning)**
+
+```python
+def prune_low_score_nodes(node, threshold=5):
+    """剪掉低分节点,减少探索"""
+
+    node.children = [
+        child for child in node.children
+        if child.score >= threshold
+    ]
+
+    # 递归剪枝
+    for child in node.children:
+        prune_low_score_nodes(child, threshold)
+
+# 效果: 探索成本降低50%,准确率略降5%
+```
+
+**优化2: Beam Search**
+
+```python
+def beam_search_tot(problem, beam_width=3, depth=4):
+    """只保留每层最优的K个节点"""
+
+    current_beam = [TreeNode(problem)]
+
+    for level in range(depth):
+        next_beam = []
+
+        for node in current_beam:
+            # 生成候选
+            candidates = generate_thoughts(node, k=5)
+
+            for thought in candidates:
+                score = evaluator(thought)
+                next_beam.append(TreeNode(thought, score=score))
+
+        # 只保留最优的beam_width个
+        next_beam.sort(key=lambda x: x.score, reverse=True)
+        current_beam = next_beam[:beam_width]
+
+    # 返回最优节点
+    return max(current_beam, key=lambda x: x.score)
+
+# 效果: 成本从100x降到10x,准确率保持90%
+```
+
+**面试话术:**
+> "Tree of Thoughts是CoT的升级版,支持回溯和多路径探索,就像下棋一样。我在24点游戏场景用过,准确率从CoT的50%→ToT的85%提升35%。实现上depth=4层breadth=3每层候选,用LLM评分决定哪条路径值得继续探索。关键优化是剪枝,分数<5的节点直接砍掉,成本从100x降到50x。ToT适合有明确目标、需要试错的任务,像数学、代码、创意写作。缺点是成本高,所以我用Beam Search只保留top-3节点,性价比最优。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 ### 基础概念
@@ -545,6 +990,8 @@ prompt = """
 | **Tree of Thoughts** | 树形探索回溯 | +40-60% | 10-100x |
 | **Auto-CoT** | 自动生成示例 | 接近人工CoT | 聚类成本 |
 | **Prompt Leakage防护** | 多层防御 | 安全性 | 低 |
+| **Self-Consistency** | 多次推理投票,n=5提升13%准确率 | +15-20% | 5-10x |
+| **Tree of Thoughts** | 树状探索回溯,Beam Search优化 | +40-60% | 10-50x |
 
 
 ---
