@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 200+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
+**🎯 210+ 道高频面试题 | 17 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -25,7 +25,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 17个模块从易到难，200+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 17个模块从易到难，210+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -35,7 +35,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 200+ 道 |
+| 📝 **总题数** | 210+ 道 |
 | 📂 **核心模块** | 17 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -54,7 +54,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Token、Temperature、Context Window、长文本处理 | 🔥🔥🔥🔥🔥 | 15 |
-| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | Zero-shot、Few-shot、CoT、提示词设计 | 🔥🔥🔥🔥🔥 | 8 |
+| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、Tree of Thoughts、防注入 | 🔥🔥🔥🔥🔥 | 10 |
 
 **学习重点:** LLM工作原理、基本调参、提示词工程
 **预计时间:** 1-2周
@@ -104,7 +104,7 @@
 | 13 | [🔧 框架与工具](docs/13-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
 | 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、高并发 | 🔥🔥🔥🔥🔥 | 12 |
 | 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、图文检索、多模态RAG | 🔥🔥🔥 | 8 |
-| 12 | [🔧 框架与工具](docs/12-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
+| 12 | [🔧 框架与工具](docs/12-frameworks-tools/) | LangChain、Coze、Dify、低代码平台 | 🔥🔥🔥🔥🔥 | 10 |
 
 **学习重点:** 系统架构、生产部署、多模态集成
 **预计时间:** 4-5周
@@ -117,7 +117,7 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 14 | [🎯 多智能体协作](docs/14-multi-agent-systems/) | Agent编排、通信机制、任务分解 | 🔥🔥🔥 | 8 |
+| 14 | [🎯 多智能体协作](docs/14-multi-agent-systems/) | AutoGen、CrewAI、Agent通信、任务编排 | 🔥🔥🔥🔥 | 10 |
 | 15 | [🔌 MCP & Skill系统](docs/15-mcp-skill-systems/) | MCP协议、Skill设计、OpenClaw框架、沙箱技术 | 🔥🔥🔥 | 13 |
 | 16 | [🚀 前沿技术与趋势](docs/16-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
 
