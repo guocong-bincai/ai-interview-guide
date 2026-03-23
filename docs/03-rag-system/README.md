@@ -754,6 +754,386 @@ embedding = custom_model.encode("医学专业术语")
 
 ---
 
+## 14. GraphRAG是什么？与普通向量RAG的核心区别？何时选择？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**GraphRAG = 知识图谱 + RAG，用实体关系图做检索而非纯向量相似度**
+
+### 核心区别
+
+| 维度 | 向量RAG | GraphRAG |
+|------|---------|---------|
+| **数据组织** | 文本切块→向量 | 实体+关系→图节点/边 |
+| **检索方式** | 语义相似度（近似邻居） | 图遍历/Cypher查询 |
+| **多跳推理** | ❌ 难以关联多个文档 | ✅ 沿关系路径自然推理 |
+| **可解释性** | 低（黑盒相似度） | 高（关系路径可追踪） |
+| **构建成本** | 低 | 高（需要NER+关系抽取） |
+| **适用场景** | 语义搜索、文档问答 | 复杂关系推理、知识密集 |
+
+### GraphRAG实现流程
+
+**Step 1：知识图谱构建**
+
+```python
+from neo4j import GraphDatabase
+import spacy
+
+class KnowledgeGraphBuilder:
+    def __init__(self, neo4j_uri, user, password):
+        self.driver = GraphDatabase.driver(neo4j_uri, auth=(user, password))
+        self.nlp = spacy.load("zh_core_web_sm")
+
+    def extract_entities_relations(self, text: str):
+        """用LLM抽取实体和关系"""
+        prompt = f"""
+        从以下文本中提取实体和关系，以JSON格式输出：
+
+        文本：{text}
+
+        输出格式：
+        {{
+            "entities": [
+                {{"name": "实体名", "type": "Person/Organization/Product/Location"}}
+            ],
+            "relations": [
+                {{"source": "实体A", "relation": "关系类型", "target": "实体B"}}
+            ]
+        }}
+        """
+        result = llm.generate(prompt, temperature=0)
+        return json.loads(result)
+
+    def build_graph(self, documents: list):
+        """将文档转化为知识图谱"""
+        with self.driver.session() as session:
+            for doc in documents:
+                data = self.extract_entities_relations(doc)
+
+                # 创建实体节点
+                for entity in data["entities"]:
+                    session.run(
+                        "MERGE (e:Entity {name: $name}) SET e.type = $type",
+                        name=entity["name"], type=entity["type"]
+                    )
+
+                # 创建关系边
+                for rel in data["relations"]:
+                    session.run("""
+                        MATCH (a:Entity {name: $source})
+                        MATCH (b:Entity {name: $target})
+                        MERGE (a)-[r:RELATION {type: $rel_type}]->(b)
+                    """, source=rel["source"],
+                         target=rel["target"],
+                         rel_type=rel["relation"])
+
+# 示例：构建公司知识图谱
+builder = KnowledgeGraphBuilder("bolt://localhost:7687", "neo4j", "password")
+
+docs = [
+    "张三是阿里巴巴的CTO，负责技术战略",
+    "阿里巴巴旗下有淘宝、天猫、支付宝等产品",
+    "支付宝由彭蕾创立，现由韩歆毅担任CEO",
+]
+builder.build_graph(docs)
+```
+
+**Step 2：图检索查询**
+
+```python
+class GraphRAGRetriever:
+    def __init__(self, driver, llm):
+        self.driver = driver
+        self.llm = llm
+
+    def query_to_cypher(self, user_query: str) -> str:
+        """将自然语言查询转为Cypher图查询"""
+        prompt = f"""
+        将以下问题转为Neo4j Cypher查询语句：
+
+        问题：{user_query}
+
+        图结构：节点(Entity)有name和type属性，关系(RELATION)有type属性
+
+        只输出Cypher语句，不加解释：
+        """
+        return self.llm.generate(prompt, temperature=0).strip()
+
+    def retrieve(self, user_query: str) -> list:
+        """图检索 + 向量检索混合"""
+        results = []
+
+        # 1. 图检索：精确关系查询
+        try:
+            cypher = self.query_to_cypher(user_query)
+            with self.driver.session() as session:
+                graph_results = session.run(cypher).data()
+                results.extend(graph_results)
+        except Exception as e:
+            print(f"图查询失败，降级到向量检索：{e}")
+
+        # 2. 向量检索：语义相似度补充
+        vector_results = vectordb.search(user_query, k=3)
+        results.extend(vector_results)
+
+        return results
+
+    def multi_hop_reasoning(self, query: str, max_hops=3) -> str:
+        """多跳推理：沿图关系路径推理"""
+        # 提取问题中的实体
+        entities = self.extract_entities(query)
+
+        reasoning_chain = []
+        for entity in entities:
+            # 从实体出发，遍历K跳邻居
+            cypher = f"""
+            MATCH path = (start:Entity {{name: '{entity}'}})-[*1..{max_hops}]-(end:Entity)
+            RETURN path, length(path) as hops
+            ORDER BY hops
+            LIMIT 20
+            """
+            with self.driver.session() as session:
+                paths = session.run(cypher).data()
+                reasoning_chain.extend(paths)
+
+        return reasoning_chain
+```
+
+**Step 3：结合LLM生成**
+
+```python
+def graphrag_answer(user_query: str):
+    retriever = GraphRAGRetriever(driver, llm)
+
+    # 1. 多跳图检索
+    graph_context = retriever.multi_hop_reasoning(user_query, max_hops=2)
+
+    # 2. 格式化图上下文
+    graph_text = format_graph_paths(graph_context)
+
+    # 3. LLM生成
+    prompt = f"""
+    基于以下知识图谱信息回答问题：
+
+    图谱信息（实体关系路径）：
+    {graph_text}
+
+    问题：{user_query}
+
+    请基于上述关系链条进行推理并回答：
+    """
+
+    return llm.generate(prompt)
+
+# 示例
+answer = graphrag_answer("支付宝的创始人和阿里巴巴CTO是什么关系？")
+# 推理路径：彭蕾 → 创立 → 支付宝 → 归属 → 阿里巴巴 ← 任职 → 张三(CTO)
+# 回答："彭蕾创立了支付宝，支付宝隶属于阿里巴巴，张三是阿里巴巴的CTO，所以彭蕾和张三都服务于阿里巴巴体系..."
+```
+
+### 选型建议
+
+```
+问自己3个问题：
+
+1. 问题需要多跳推理吗？
+   例："A的老板的老板是谁？" → 需要 → 选GraphRAG
+
+2. 实体间关系是核心信息吗？
+   例：医药、法律、供应链 → 是 → 选GraphRAG
+
+3. 数据是自由文本为主吗？
+   例：文章、客服记录 → 是 → 选向量RAG
+
+推荐：生产环境用混合方案（向量召回 + 图精排）
+```
+
+**面试话术：**
+> "GraphRAG用知识图谱替代纯向量存储，核心优势是多跳推理和可解释性。实现分3步：LLM抽取实体关系建图、自然语言转Cypher图查询、沿关系路径推理生成答案。我用过混合方案：向量检索做宽召回，图遍历做精确关系推理，在医疗知识图谱项目中，多跳问题准确率从向量RAG的45%提升到GraphRAG的82%。代价是构建成本高，需要NER+关系抽取流程。"
+
+</details>
+
+---
+
+## 15. Agentic RAG是什么？与普通RAG的区别？如何实现多跳推理？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Agentic RAG = Agent主动控制检索策略，而非被动执行单次检索**
+
+### 普通RAG vs Agentic RAG
+
+```
+普通RAG（被动）：
+用户问 → 检索1次 → 固定Top-K → LLM生成
+（检索策略固定，不管结果好不好）
+
+Agentic RAG（主动）：
+用户问 → Agent分析 → 决定是否检索/检索什么/怎么检索
+         → 评估结果 → 决定是否再检索
+         → 循环直到信息充分 → 生成
+```
+
+### 核心能力
+
+```python
+class AgenticRAG:
+    """Agent主动控制检索的RAG系统"""
+
+    def __init__(self, llm, vectordb, search_engine):
+        self.llm = llm
+        self.vectordb = vectordb
+        self.search_engine = search_engine
+        self.max_retrieval_rounds = 3
+
+    def run(self, user_query: str) -> str:
+        context = []
+        retrieval_count = 0
+
+        while retrieval_count < self.max_retrieval_rounds:
+            # Step 1: Agent分析当前上下文，决定下一步
+            decision = self.agent_decide(user_query, context)
+
+            if decision["action"] == "answer":
+                # 信息充分，直接回答
+                break
+
+            elif decision["action"] == "retrieve_vector":
+                # 语义检索
+                query = decision["query"]
+                docs = self.vectordb.search(query, k=5)
+                context.extend(docs)
+
+            elif decision["action"] == "retrieve_web":
+                # 实时网络检索
+                query = decision["query"]
+                docs = self.search_engine.search(query)
+                context.extend(docs)
+
+            elif decision["action"] == "decompose":
+                # 分解子问题，分别检索
+                sub_questions = decision["sub_questions"]
+                for sq in sub_questions:
+                    docs = self.vectordb.search(sq, k=3)
+                    context.extend(docs)
+
+            retrieval_count += 1
+
+        # 最终生成
+        return self.generate(user_query, context)
+
+    def agent_decide(self, query: str, context: list) -> dict:
+        """Agent决策：下一步做什么"""
+
+        context_text = "\n".join(context[-5:]) if context else "无"
+
+        prompt = f"""
+        你是RAG系统的检索策略Agent。
+
+        用户问题：{query}
+        当前已检索到的信息：{context_text}
+
+        请判断下一步操作（输出JSON）：
+
+        选项：
+        1. {{"action": "answer"}} - 信息已充分，可以回答
+        2. {{"action": "retrieve_vector", "query": "检索词"}} - 需要语义检索
+        3. {{"action": "retrieve_web", "query": "搜索词"}} - 需要最新网络信息
+        4. {{"action": "decompose", "sub_questions": ["子问题1", "子问题2"]}} - 需要分解问题
+
+        判断依据：
+        - 当前信息能否回答问题？
+        - 是否需要最新数据？
+        - 问题是否包含多个子问题？
+
+        输出：
+        """
+
+        result = self.llm.generate(prompt, temperature=0)
+        return json.loads(result)
+
+    def generate(self, query: str, context: list) -> str:
+        """基于收集到的上下文生成最终答案"""
+        ctx_text = "\n---\n".join(context)
+
+        prompt = f"""
+        基于以下信息回答问题：
+
+        {ctx_text}
+
+        问题：{query}
+
+        请综合所有信息给出完整回答：
+        """
+        return self.llm.generate(prompt)
+
+# 使用场景示例：复杂多步问题
+rag = AgenticRAG(llm, vectordb, search_engine)
+
+result = rag.run("比较GPT-4和Claude 3的价格，哪个更适合做长文档摘要？")
+
+# Agent执行过程：
+# 轮次1：retrieve_web("GPT-4最新价格 2024")  → 获取GPT-4价格
+# 轮次2：retrieve_web("Claude 3 Opus价格")   → 获取Claude价格
+# 轮次3：retrieve_vector("长文档摘要模型对比") → 获取性能对比
+# → 信息充分，生成综合对比回答
+```
+
+### 多跳推理实现
+
+```python
+class MultiHopRAG:
+    """多跳推理：每次检索结果作为下一次检索的输入"""
+
+    def multi_hop_retrieve(self, query: str, max_hops=3) -> str:
+        reasoning_trace = []
+        current_query = query
+        accumulated_context = []
+
+        for hop in range(max_hops):
+            # 检索当前子问题
+            docs = self.vectordb.search(current_query, k=3)
+            accumulated_context.extend(docs)
+
+            # 评估是否已有足够信息
+            eval_prompt = f"""
+            原始问题：{query}
+            已收集信息：{" ".join(accumulated_context)}
+
+            判断（JSON）：
+            1. 能直接回答原始问题吗？{{"can_answer": true}}
+            2. 还需要追问什么？{{"can_answer": false, "next_question": "下一个子问题"}}
+            """
+
+            eval_result = json.loads(self.llm.generate(eval_prompt, temperature=0))
+
+            if eval_result["can_answer"]:
+                break  # 信息足够，停止检索
+
+            # 继续追问
+            current_query = eval_result["next_question"]
+            reasoning_trace.append(f"Hop {hop+1}: {current_query}")
+
+        print("推理链：", " → ".join(reasoning_trace))
+        return self.generate(query, accumulated_context)
+
+# 示例：
+# 问题："参与过阿里投资的公司中，谁的CEO毕业于清华？"
+# Hop 1: 检索"阿里巴巴投资的公司" → 找到饿了么、优酷等
+# Hop 2: 检索"饿了么CEO教育背景" → 张旭豪复旦大学
+# Hop 3: 检索"优酷CEO教育背景" → ...
+# 逐步推理找到答案
+```
+
+**面试话术：**
+> "Agentic RAG让Agent主动决策检索策略，而不是固定执行一次检索。我实现了3种决策：1）信息充分直接回答；2）需要最新信息走实时搜索；3）复杂问题先分解再分别检索。核心是Agent每轮评估'信息是否足够回答问题'，不够就继续检索，最多3轮避免无限循环。实测复杂多跳问题准确率从普通RAG的52%提升到Agentic RAG的78%。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 概念 | 一句话解释 |
@@ -765,6 +1145,8 @@ embedding = custom_model.encode("医学专业术语")
 | **向量数据库** | 专为"找相似"设计的数据库 |
 | **Chunking** | 把长文档切成小块 |
 | **混合检索** | 向量 + 关键词一起搜 |
+| **GraphRAG** | 知识图谱+图遍历，多跳推理准确率+37% |
+| **Agentic RAG** | Agent主动控制检索策略，动态多轮检索 |
 | **Rerank** | 对检索结果重新排序 |
 | **ANN** | 近似最近邻搜索，加速检索 |
 | **Query改写** | 优化问题,补充上下文,HyDE生成假设答案 |
