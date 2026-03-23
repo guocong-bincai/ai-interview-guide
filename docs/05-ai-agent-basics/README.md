@@ -1725,6 +1725,419 @@ class ReWOO:
 
 ---
 
+## 14. 什么是Human-in-the-Loop？Agent何时应该暂停等待人工确认？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Human-in-the-Loop (HITL) = 在Agent关键决策节点插入人工确认，保证安全可控**
+
+### 为什么需要HITL
+
+```
+纯自动Agent的风险：
+Agent决定删除数据库 → 直接执行 → 数据丢失 ❌
+Agent误解用户意图 → 发错邮件 → 造成事故 ❌
+Agent循环调用API → 账单暴涨  → 损失惨重 ❌
+
+HITL的保障：
+Agent决定删除数据库 → 暂停 → 人工确认 → 执行/拒绝 ✅
+```
+
+### HITL触发条件设计
+
+```python
+from enum import Enum
+from typing import Callable
+
+class RiskLevel(Enum):
+    LOW = "low"       # 自动执行
+    MEDIUM = "medium" # 警告但执行
+    HIGH = "high"     # 必须人工确认
+    CRITICAL = "critical" # 强制中断
+
+class HITLAgent:
+    def __init__(self, llm, tools):
+        self.llm = llm
+        self.tools = tools
+        self.pending_approvals = []
+
+    def assess_risk(self, action: str, params: dict) -> RiskLevel:
+        """评估操作风险等级"""
+
+        # 规则1：不可逆操作 → HIGH
+        irreversible_actions = ["delete", "drop", "truncate", "send_email", "post", "pay"]
+        if any(kw in action.lower() for kw in irreversible_actions):
+            return RiskLevel.HIGH
+
+        # 规则2：涉及金额 → CRITICAL
+        if "amount" in params and params.get("amount", 0) > 1000:
+            return RiskLevel.CRITICAL
+
+        # 规则3：批量操作 → HIGH
+        if params.get("batch_size", 0) > 100:
+            return RiskLevel.HIGH
+
+        # 规则4：用LLM判断
+        risk_prompt = f"""
+        评估以下操作的风险等级（low/medium/high/critical）：
+        操作：{action}
+        参数：{params}
+
+        考虑因素：是否可逆？影响范围？是否涉及敏感数据？
+
+        输出JSON：{{"level": "风险等级", "reason": "原因"}}
+        """
+        result = json.loads(self.llm.generate(risk_prompt, temperature=0))
+        return RiskLevel(result["level"])
+
+    def execute_with_hitl(self, action: str, params: dict):
+        """执行带HITL的操作"""
+        risk = self.assess_risk(action, params)
+
+        if risk == RiskLevel.LOW:
+            # 直接执行
+            return self.tools[action](**params)
+
+        elif risk == RiskLevel.MEDIUM:
+            # 执行但记录警告
+            print(f"⚠️  中风险操作：{action}({params})")
+            result = self.tools[action](**params)
+            self.log_action(action, params, result)
+            return result
+
+        elif risk == RiskLevel.HIGH:
+            # 暂停，请求人工确认
+            return self.request_approval(action, params, risk)
+
+        elif risk == RiskLevel.CRITICAL:
+            # 强制中断，通知管理员
+            self.notify_admin(action, params)
+            raise Exception(f"🚨 危险操作已阻止：{action}")
+
+    def request_approval(self, action: str, params: dict, risk: RiskLevel):
+        """请求人工审批"""
+        approval_id = f"approval_{int(time.time())}"
+
+        # 保存待审批操作
+        self.pending_approvals.append({
+            "id": approval_id,
+            "action": action,
+            "params": params,
+            "risk": risk.value,
+            "status": "pending",
+            "created_at": time.time()
+        })
+
+        # 通知审批人（实际场景：发钉钉/企微/邮件）
+        self.send_approval_request(approval_id, action, params)
+
+        # 等待审批（异步方式，这里简化为轮询）
+        return self.wait_for_approval(approval_id)
+
+    def wait_for_approval(self, approval_id: str, timeout=300):
+        """等待人工审批，超时自动拒绝"""
+        start = time.time()
+
+        while time.time() - start < timeout:
+            approval = self.get_approval(approval_id)
+
+            if approval["status"] == "approved":
+                # 获批，执行操作
+                a = approval["action"]
+                return self.tools[a](**approval["params"])
+
+            elif approval["status"] == "rejected":
+                return {"error": "操作被拒绝", "reason": approval.get("reason")}
+
+            time.sleep(5)  # 每5秒轮询一次
+
+        # 超时，自动拒绝
+        return {"error": "审批超时，操作已取消"}
+
+    def send_approval_request(self, approval_id, action, params):
+        """发送审批通知（钉钉机器人示例）"""
+        message = f"""
+        🔔 Agent操作需要审批
+
+        操作：{action}
+        参数：{json.dumps(params, ensure_ascii=False)}
+
+        审批链接：http://your-system/approve/{approval_id}
+        超时时间：5分钟
+        """
+        # dingtalk_bot.send(message)
+        print(message)
+
+# 实战场景：邮件发送Agent
+agent = HITLAgent(llm, tools={
+    "search_web": search_tool,
+    "send_email": email_tool,
+    "delete_file": delete_tool,
+})
+
+# 低风险：自动执行
+agent.execute_with_hitl("search_web", {"query": "最新AI新闻"})
+
+# 高风险：暂停等待审批
+agent.execute_with_hitl("send_email", {
+    "to": "all@company.com",
+    "subject": "重要通知",
+    "body": "全员涨薪100%"
+})
+# → 触发HITL，发送钉钉审批消息 → 等待HR确认
+```
+
+### LangGraph中实现HITL
+
+```python
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
+
+# LangGraph原生支持HITL（interrupt_before）
+workflow = StateGraph(AgentState)
+
+workflow.add_node("agent", agent_node)
+workflow.add_node("execute_tool", tool_node)
+workflow.add_node("human_review", human_review_node)
+
+# 在执行高风险工具前中断，等待人工确认
+workflow.add_conditional_edges(
+    "agent",
+    route_after_agent,
+    {
+        "execute_safe": "execute_tool",    # 低风险直接执行
+        "need_review": "human_review",     # 高风险转人工
+        "done": END
+    }
+)
+
+# 保存检查点，支持暂停恢复
+checkpointer = MemorySaver()
+app = workflow.compile(
+    checkpointer=checkpointer,
+    interrupt_before=["human_review"]  # 到达human_review节点时暂停
+)
+
+# 使用
+thread = {"configurable": {"thread_id": "session_123"}}
+result = app.invoke(initial_state, thread)
+
+# Agent暂停在human_review节点
+# 人工审批后恢复
+app.invoke(None, thread)  # 从检查点恢复执行
+```
+
+**面试话术：**
+> "HITL是Agent安全的核心机制，关键是定义清晰的触发条件：不可逆操作（删除/发送）、涉及金额超阈值、批量操作超量。我设计了4级风险：LOW自动执行、MEDIUM记录警告、HIGH等待审批、CRITICAL强制中断。用LangGraph的interrupt_before做断点，配合钉钉审批通知，超时5分钟自动拒绝。生产上线后，高风险操作事故率降低了95%。"
+
+</details>
+
+---
+
+## 15. 如何评测Agent的能力？有哪些主流Benchmark？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Agent评测 = 用标准化任务集量化Agent在规划/工具使用/多轮交互的能力**
+
+### 评测维度
+
+| 维度 | 含义 | 指标 |
+|------|------|------|
+| **任务成功率** | 从头到尾完成任务 | 成功率% |
+| **工具使用准确性** | 选对工具+正确参数 | 工具调用准确率 |
+| **规划效率** | 步骤数 vs 最优步骤数 | 效率比 |
+| **鲁棒性** | 面对错误/噪声的恢复能力 | 错误恢复率 |
+| **成本效率** | 完成任务的Token/时间开销 | Cost per task |
+
+### 主流Benchmark
+
+**1. AgentBench（清华/伯克利）**
+
+```python
+# 8种真实环境测试
+environments = {
+    "OS": "操作系统Shell命令",
+    "DB": "数据库SQL查询",
+    "KG": "知识图谱推理",
+    "WebShop": "网购任务",
+    "WebArena": "网页操作",
+    "HumanEval": "代码生成",
+    "Mind2Web": "网页导航",
+    "Card Game": "卡牌游戏策略",
+}
+
+# GPT-4在AgentBench的表现
+gpt4_scores = {
+    "OS": 0.58,
+    "DB": 0.33,
+    "KG": 0.92,
+    "WebShop": 0.40,
+    # 开源模型普遍<0.05
+}
+```
+
+**2. 自建Benchmark（生产环境推荐）**
+
+```python
+class AgentBenchmark:
+    """针对业务场景的自定义评测"""
+
+    def __init__(self, agent, test_cases):
+        self.agent = agent
+        self.test_cases = test_cases  # 标注好的测试集
+
+    def evaluate(self):
+        results = {
+            "task_success": [],      # 任务成功率
+            "tool_accuracy": [],     # 工具调用准确率
+            "step_efficiency": [],   # 步骤效率
+            "cost": [],             # Token消耗
+        }
+
+        for case in self.test_cases:
+            start_time = time.time()
+
+            # 运行Agent
+            try:
+                result = self.agent.run(case["input"])
+                success = self.evaluate_success(result, case["expected_output"])
+            except Exception as e:
+                success = False
+                result = None
+
+            elapsed = time.time() - start_time
+
+            # 记录指标
+            results["task_success"].append(success)
+
+            if hasattr(self.agent, "tool_calls_log"):
+                tool_acc = self.evaluate_tool_accuracy(
+                    self.agent.tool_calls_log,
+                    case["expected_tools"]
+                )
+                results["tool_accuracy"].append(tool_acc)
+
+            results["cost"].append(self.agent.total_tokens)
+
+        # 汇总
+        return {
+            "task_success_rate": sum(results["task_success"]) / len(results["task_success"]),
+            "avg_tool_accuracy": sum(results["tool_accuracy"]) / len(results["tool_accuracy"]),
+            "avg_tokens_per_task": sum(results["cost"]) / len(results["cost"]),
+        }
+
+    def evaluate_success(self, result, expected):
+        """评估任务是否成功"""
+        # 方式1：精确匹配
+        if result == expected:
+            return True
+
+        # 方式2：语义相似度
+        similarity = compute_similarity(result, expected)
+        return similarity > 0.85
+
+        # 方式3：LLM-as-Judge
+        judge_prompt = f"""
+        预期答案：{expected}
+        Agent实际输出：{result}
+
+        Agent是否正确完成了任务？（是/否）：
+        """
+        judgment = llm.generate(judge_prompt, temperature=0)
+        return "是" in judgment
+
+    def evaluate_tool_accuracy(self, actual_calls, expected_calls):
+        """评估工具调用准确率"""
+        if not expected_calls:
+            return 1.0
+
+        correct = 0
+        for i, (actual, expected) in enumerate(zip(actual_calls, expected_calls)):
+            # 工具名正确
+            if actual["tool"] == expected["tool"]:
+                correct += 0.5
+
+            # 参数正确
+            param_match = sum(
+                actual["params"].get(k) == v
+                for k, v in expected["params"].items()
+            ) / len(expected["params"])
+            correct += 0.5 * param_match
+
+        return correct / len(expected_calls)
+
+# 使用
+test_cases = [
+    {
+        "input": "查询北京明天天气",
+        "expected_output": "明天北京气温X度，晴天",
+        "expected_tools": [{"tool": "weather_api", "params": {"city": "北京", "date": "tomorrow"}}]
+    },
+    {
+        "input": "帮我发邮件给张三，告诉他明天开会",
+        "expected_output": "邮件已发送",
+        "expected_tools": [{"tool": "send_email", "params": {"to": "zhangsan@xx.com", "subject": "开会通知"}}]
+    }
+]
+
+benchmark = AgentBenchmark(my_agent, test_cases)
+scores = benchmark.evaluate()
+
+print(f"任务成功率: {scores['task_success_rate']:.1%}")
+print(f"工具准确率: {scores['avg_tool_accuracy']:.1%}")
+print(f"平均Token消耗: {scores['avg_tokens_per_task']:.0f}")
+```
+
+### 持续评测体系
+
+```python
+class AgentMonitor:
+    """生产环境持续监控"""
+
+    def log_interaction(self, session_id, query, result, tools_used, tokens):
+        """记录每次Agent交互"""
+        record = {
+            "session_id": session_id,
+            "timestamp": time.time(),
+            "query": query,
+            "result": result,
+            "tools_used": tools_used,
+            "tokens": tokens,
+            "user_feedback": None  # 后续收集
+        }
+        self.db.insert(record)
+
+    def collect_feedback(self, session_id, rating: int, comment: str = ""):
+        """收集用户反馈（1-5星）"""
+        self.db.update(session_id, {
+            "user_feedback": rating,
+            "comment": comment
+        })
+
+    def generate_weekly_report(self):
+        """每周评测报告"""
+        records = self.db.query_last_7_days()
+
+        return {
+            "total_sessions": len(records),
+            "success_rate": self.calc_success_rate(records),
+            "avg_feedback": self.calc_avg_feedback(records),
+            "tool_usage_stats": self.calc_tool_stats(records),
+            "failure_cases": self.find_failures(records),
+            "cost_summary": sum(r["tokens"] for r in records)
+        }
+```
+
+**面试话术：**
+> "Agent评测分离线和在线两套。离线用自建Benchmark：覆盖任务成功率、工具调用准确率、步骤效率、Token成本4个维度，测试集至少100条覆盖各种边界情况。评判方式用LLM-as-Judge，比精确匹配更灵活，准确率和人工评估一致性>85%。在线用生产监控：记录每次交互，收集用户1-5星反馈，每周生成报告。我们的Agent上线后，通过持续评测发现工具参数错误率偏高，针对性优化Prompt后，工具准确率从72%→91%。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 概念 | 一句话解释 |
@@ -1742,6 +2155,8 @@ class ReWOO:
 | **重试策略** | 指数退避+抖动(避免惊群),熔断器(快速失败) |
 | **记忆系统** | 短期(滑动窗口)+长期(向量DB)+混合策略 |
 | **规划方法** | Plan-Execute(推荐)/Tree of Thoughts/ReWOO |
+| **Human-in-the-Loop** | 4级风险(LOW/MEDIUM/HIGH/CRITICAL)，不可逆操作强制审批 |
+| **Agent评测** | 任务成功率+工具准确率+效率+成本，LLM-as-Judge评判 |
 
 
 ---
