@@ -968,6 +968,462 @@ security:
 
 ---
 
+## 11. Function Calling如何实现工具并行调用和错误重试？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Function Calling = LLM通过结构化JSON调用外部函数，是Agent工具使用的核心机制**
+
+### 基础Function Calling
+
+```python
+from openai import OpenAI
+import json
+
+client = OpenAI()
+
+# 1. 定义工具
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "查询指定城市的天气信息",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "城市名称，如'北京'、'上海'"
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "日期，格式YYYY-MM-DD，默认今天"
+                    }
+                },
+                "required": ["city"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_news",
+            "description": "搜索最新新闻",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "搜索关键词"},
+                    "limit": {"type": "integer", "description": "返回条数，默认5"}
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
+# 2. 实际工具函数
+def get_weather(city: str, date: str = None) -> dict:
+    # 调用天气API
+    return {"city": city, "temp": "22°C", "weather": "晴天"}
+
+def search_news(query: str, limit: int = 5) -> list:
+    # 调用新闻API
+    return [{"title": f"关于{query}的新闻{i}", "url": f"..."} for i in range(limit)]
+
+TOOL_MAP = {"get_weather": get_weather, "search_news": search_news}
+
+# 3. 完整对话循环
+def run_with_function_calling(user_message: str):
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            tools=tools,
+            tool_choice="auto"
+        )
+
+        msg = response.choices[0].message
+        messages.append(msg)
+
+        # 没有工具调用 → 最终回答
+        if not msg.tool_calls:
+            return msg.content
+
+        # 执行所有工具调用
+        for tool_call in msg.tool_calls:
+            func_name = tool_call.function.name
+            func_args = json.loads(tool_call.function.arguments)
+
+            # 调用实际函数
+            result = TOOL_MAP[func_name](**func_args)
+
+            # 把结果加入消息
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": json.dumps(result, ensure_ascii=False)
+            })
+
+result = run_with_function_calling("北京明天天气怎样？同时帮我搜一下最新AI新闻")
+print(result)
+```
+
+### 并行工具调用（Parallel Tool Calls）
+
+```python
+import concurrent.futures
+import time
+
+def execute_tools_parallel(tool_calls: list) -> list:
+    """并行执行多个工具调用，大幅缩短响应时间"""
+
+    results = [None] * len(tool_calls)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {}
+
+        for i, tool_call in enumerate(tool_calls):
+            func_name = tool_call.function.name
+            func_args = json.loads(tool_call.function.arguments)
+
+            future = executor.submit(TOOL_MAP[func_name], **func_args)
+            futures[future] = (i, tool_call.id)
+
+        for future in concurrent.futures.as_completed(futures):
+            idx, call_id = futures[future]
+            try:
+                results[idx] = {
+                    "tool_call_id": call_id,
+                    "result": future.result(timeout=10)
+                }
+            except Exception as e:
+                results[idx] = {
+                    "tool_call_id": call_id,
+                    "result": {"error": str(e)}
+                }
+
+    return results
+
+# 性能对比：
+# 串行：天气(1s) + 新闻(1s) + 股价(1s) = 3s
+# 并行：max(天气1s, 新闻1s, 股价1s) = 1s  ← 快3倍
+```
+
+### 错误重试机制
+
+```python
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+class RobustToolExecutor:
+    """带重试、熔断、超时的工具执行器"""
+
+    def __init__(self):
+        self.failure_counts = {}  # 记录失败次数
+        self.circuit_open = {}    # 熔断状态
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((TimeoutError, ConnectionError))
+    )
+    def execute_with_retry(self, func_name: str, func_args: dict):
+        """带指数退避重试"""
+        return TOOL_MAP[func_name](**func_args)
+
+    def execute_safe(self, func_name: str, func_args: dict, timeout=5):
+        """带熔断器的执行"""
+
+        # 检查熔断器
+        if self.circuit_open.get(func_name, False):
+            return {"error": f"工具{func_name}当前不可用（熔断中）"}
+
+        try:
+            # 带超时执行
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self.execute_with_retry, func_name, func_args)
+                result = future.result(timeout=timeout)
+
+            # 成功，重置失败计数
+            self.failure_counts[func_name] = 0
+            return result
+
+        except concurrent.futures.TimeoutError:
+            self._record_failure(func_name)
+            return {"error": f"工具{func_name}超时（>{timeout}s）"}
+
+        except Exception as e:
+            self._record_failure(func_name)
+            return {"error": str(e)}
+
+    def _record_failure(self, func_name: str):
+        """记录失败，超阈值触发熔断"""
+        self.failure_counts[func_name] = self.failure_counts.get(func_name, 0) + 1
+
+        if self.failure_counts[func_name] >= 3:
+            self.circuit_open[func_name] = True
+            print(f"🔴 熔断触发：{func_name} 已失败3次，30秒内不再调用")
+
+            # 30秒后自动恢复
+            import threading
+            def reset():
+                time.sleep(30)
+                self.circuit_open[func_name] = False
+                self.failure_counts[func_name] = 0
+                print(f"🟢 熔断恢复：{func_name}")
+
+            threading.Thread(target=reset, daemon=True).start()
+
+# 使用
+executor = RobustToolExecutor()
+result = executor.execute_safe("get_weather", {"city": "北京"}, timeout=5)
+```
+
+**面试话术：**
+> "Function Calling是Agent工具使用的核心。基础实现是对话循环：LLM输出tool_calls → 执行函数 → 结果加入消息 → 继续对话。两个关键优化：1）并行执行：多个工具用ThreadPoolExecutor并发执行，从串行3s降到1s；2）三层容错：retry指数退避重试、timeout超时保护、circuit breaker熔断防止雪崩。生产上工具失败率从8%降到0.5%。"
+
+</details>
+
+---
+
+## 12. 如何实现LLM流式输出（Streaming）？前后端完整方案？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Streaming = LLM边生成边返回token，首屏时间从5s→0.3s**
+
+### 为什么需要流式输出
+
+```
+非流式：用户等5秒 → 看到完整回答（体验差）
+流式：  0.3秒开始显示第一个字 → 逐字显示 → 5秒显示完（体验好）
+
+指标对比：
+TTFT（首Token时间）：5000ms → 300ms（-94%）
+用户感知等待时间：5s → 0.3s（-94%）
+用户满意度：↑ 显著提升
+```
+
+### 后端实现（FastAPI SSE）
+
+```python
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from openai import OpenAI
+import asyncio
+import json
+
+app = FastAPI()
+client = OpenAI()
+
+@app.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """流式聊天接口"""
+
+    async def generate():
+        try:
+            # 开启流式模式
+            stream = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": request.message}],
+                stream=True,          # 关键参数
+                max_tokens=2048,
+            )
+
+            # 逐chunk发送
+            for chunk in stream:
+                delta = chunk.choices[0].delta
+
+                if delta.content:
+                    # SSE格式：data: {json}\n\n
+                    data = json.dumps({
+                        "type": "content",
+                        "content": delta.content
+                    }, ensure_ascii=False)
+                    yield f"data: {data}\n\n"
+
+                # 工具调用流式处理
+                if delta.tool_calls:
+                    for tc in delta.tool_calls:
+                        data = json.dumps({
+                            "type": "tool_call",
+                            "tool": tc.function.name if tc.function.name else "",
+                            "args_chunk": tc.function.arguments if tc.function.arguments else ""
+                        })
+                        yield f"data: {data}\n\n"
+
+                # 让出事件循环，避免阻塞
+                await asyncio.sleep(0)
+
+            # 发送结束信号
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        except Exception as e:
+            error_data = json.dumps({"type": "error", "message": str(e)})
+            yield f"data: {error_data}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",   # 禁止Nginx缓冲
+            "Connection": "keep-alive",
+        }
+    )
+```
+
+### 前端实现（EventSource / fetch）
+
+```javascript
+// 方式1：EventSource（简单，仅支持GET）
+const es = new EventSource('/chat/stream?message=你好');
+
+es.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === 'content') {
+        // 追加到显示区域
+        document.getElementById('output').textContent += data.content;
+    } else if (data.type === 'done') {
+        es.close();
+    } else if (data.type === 'error') {
+        console.error(data.message);
+        es.close();
+    }
+};
+
+// 方式2：fetch + ReadableStream（支持POST，更灵活）
+async function streamChat(message) {
+    const response = await fetch('/chat/stream', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message})
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, {stream: true});
+
+        // 按SSE格式解析
+        const lines = buffer.split('\n');
+        buffer = lines.pop();  // 保留不完整的行
+
+        for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                const jsonStr = line.slice(6);
+                if (jsonStr === '[DONE]') return;
+
+                try {
+                    const data = JSON.parse(jsonStr);
+                    if (data.type === 'content') {
+                        appendToOutput(data.content);
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+}
+```
+
+### 中间件处理（LangChain流式）
+
+```python
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.callbacks.base import BaseCallbackHandler
+
+class CustomStreamHandler(BaseCallbackHandler):
+    """自定义流式回调"""
+
+    def __init__(self, queue: asyncio.Queue):
+        self.queue = queue
+
+    def on_llm_new_token(self, token: str, **kwargs):
+        """每生成一个token触发"""
+        self.queue.put_nowait(token)
+
+    def on_llm_end(self, response, **kwargs):
+        """生成结束"""
+        self.queue.put_nowait(None)  # 发送结束信号
+
+# 在FastAPI中使用
+@app.post("/langchain/stream")
+async def langchain_stream(request: ChatRequest):
+    queue = asyncio.Queue()
+    handler = CustomStreamHandler(queue)
+
+    async def generate():
+        # 在后台线程运行LangChain（避免阻塞事件循环）
+        import threading
+
+        def run_chain():
+            llm = ChatOpenAI(streaming=True, callbacks=[handler])
+            llm.invoke(request.message)
+
+        thread = threading.Thread(target=run_chain)
+        thread.start()
+
+        # 从队列读取token并发送
+        while True:
+            token = await queue.get()
+            if token is None:
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                break
+            yield f"data: {json.dumps({'type': 'content', 'content': token})}\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
+```
+
+### 生产注意事项
+
+```python
+# 1. Nginx配置（防止缓冲）
+nginx_config = """
+location /chat/stream {
+    proxy_pass http://backend;
+    proxy_buffering off;           # 关键：禁用缓冲
+    proxy_cache off;
+    proxy_set_header Connection '';
+    proxy_http_version 1.1;
+    chunked_transfer_encoding on;
+}
+"""
+
+# 2. 超时设置（流式响应时间长）
+# 普通接口：30s超时
+# 流式接口：600s超时（10分钟）
+
+# 3. 断点续传（网络中断后继续）
+class StreamResumer:
+    def __init__(self):
+        self.cache = {}  # session_id → 已生成内容
+
+    def resume_stream(self, session_id: str, offset: int):
+        """从offset位置继续输出"""
+        cached = self.cache.get(session_id, "")
+        if len(cached) > offset:
+            # 先发送已缓存的部分
+            return cached[offset:], True
+        return "", False
+```
+
+**面试话术：**
+> "流式输出核心是Server-Sent Events（SSE）协议：后端yield逐个token，前端EventSource或fetch ReadableStream实时接收追加。TTFT从5s降到300ms，用户体验大幅提升。生产上3个关键点：1）Nginx必须关闭proxy_buffering，否则还是等全部生成才返回；2）流式接口超时设置要长，普通30s会被截断；3）用asyncio.sleep(0)让出事件循环，避免阻塞其他请求。工具调用也可以流式传递，让用户看到Agent正在思考的过程。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 话题 | 核心要点 |
@@ -984,6 +1440,8 @@ security:
 | **成本优化** | 缓存 30-50% + 路由 30-40% + 压缩 40-90% |
 | **Coze平台** | 字节低代码平台,5分钟搭Bot,插件丰富 |
 | **Dify部署** | Docker Compose快速/K8s生产,优化4点(连接池/缓存/索引/异步) |
+| **Function Calling** | 并行调用缩短3倍延迟，重试+超时+熔断保障可靠性 |
+| **Streaming流式** | SSE协议，TTFT从5s→300ms，Nginx关闭缓冲 |
 
 ## 📊 更新记录
 
