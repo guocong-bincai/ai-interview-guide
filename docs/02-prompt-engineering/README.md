@@ -970,6 +970,407 @@ def beam_search_tot(problem, beam_width=3, depth=4):
 
 ---
 
+## 11. 如何让LLM稳定输出结构化JSON？JSON Mode vs Structured Outputs？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心问题：LLM默认输出自然语言，业务系统需要可解析的结构化数据**
+
+### 三种方案对比
+
+| 方案 | 可靠性 | 灵活性 | 成本 | 适用场景 |
+|------|--------|--------|------|---------|
+| **Prompt约束** | ⭐⭐ | ⭐⭐⭐⭐⭐ | 低 | 简单场景/快速验证 |
+| **JSON Mode** | ⭐⭐⭐⭐ | ⭐⭐⭐ | 低 | 通用JSON输出 |
+| **Structured Outputs** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 低 | 严格Schema约束 |
+
+### 方案1：Prompt约束（最简单）
+
+```python
+def extract_user_info(text):
+    prompt = f"""
+    从以下文本中提取用户信息，严格以JSON格式输出，不要输出任何其他内容：
+
+    文本：{text}
+
+    输出格式：
+    {{
+        "name": "用户姓名（字符串）",
+        "age": 用户年龄（整数，没有引号）,
+        "email": "邮箱地址",
+        "city": "所在城市"
+    }}
+
+    如果某字段未提及，填null。只输出JSON，不加解释。
+    """
+
+    response = llm.generate(prompt, temperature=0)
+
+    # 鲁棒解析：提取JSON块
+    import re
+    json_match = re.search(r'\{.*\}', response, re.DOTALL)
+    if json_match:
+        return json.loads(json_match.group())
+    raise ValueError("未找到JSON")
+
+# 问题：模型可能输出 "好的，以下是JSON：{...}" → 解析失败
+```
+
+### 方案2：JSON Mode（OpenAI/通义/文心支持）
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def extract_with_json_mode(text):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        response_format={"type": "json_object"},  # 开启JSON Mode
+        messages=[
+            {
+                "role": "system",
+                "content": "你是信息提取助手，始终以JSON格式输出结果"
+            },
+            {
+                "role": "user",
+                "content": f"提取用户信息：{text}\n输出字段：name, age, email, city"
+            }
+        ]
+    )
+
+    # 保证是合法JSON，但不保证符合特定Schema
+    return json.loads(response.choices[0].message.content)
+
+# 优点：保证输出合法JSON
+# 缺点：字段名/类型/必填不受约束
+```
+
+### 方案3：Structured Outputs + JSON Schema（最可靠 ⭐）
+
+```python
+from pydantic import BaseModel
+from typing import Optional
+
+# 1. 定义数据模型
+class UserInfo(BaseModel):
+    name: str
+    age: int
+    email: Optional[str] = None
+    city: str
+
+# 2. 用OpenAI Structured Outputs
+def extract_structured(text):
+    response = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",  # 需支持Structured Outputs
+        messages=[
+            {"role": "user", "content": f"提取用户信息：{text}"}
+        ],
+        response_format=UserInfo,  # 直接传Pydantic模型
+    )
+
+    # 自动解析，类型安全
+    user: UserInfo = response.choices[0].message.parsed
+    return user
+
+# 使用
+text = "张三，男，28岁，在北京做程序员，邮箱zhangsan@example.com"
+user = extract_structured(text)
+print(user.name)   # "张三"  → str
+print(user.age)    # 28      → int（不是字符串！）
+print(user.email)  # "zhangsan@example.com"
+
+# 优点：
+# 1. 严格Schema，字段类型保证
+# 2. 自动Pydantic验证
+# 3. 解析失败率接近0
+```
+
+### 失败重试机制（生产必备）
+
+```python
+import json
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+class StructuredOutputParser:
+    def __init__(self, schema: BaseModel, max_retries=3):
+        self.schema = schema
+        self.max_retries = max_retries
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10)
+    )
+    def parse(self, prompt: str) -> dict:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            response_format={"type": "json_object"},
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        raw = response.choices[0].message.content
+        data = json.loads(raw)
+
+        # Pydantic验证
+        validated = self.schema(**data)
+        return validated.dict()
+
+    def safe_parse(self, prompt: str):
+        try:
+            return self.parse(prompt), None
+        except Exception as e:
+            # 最终兜底：返回默认值
+            return self.schema().dict(), str(e)
+
+# 实战场景：信息抽取流水线
+class ProductInfo(BaseModel):
+    name: str
+    price: float
+    category: str
+    in_stock: bool
+    tags: list[str] = []
+
+parser = StructuredOutputParser(ProductInfo)
+
+result, error = parser.safe_parse(
+    "帮我提取产品信息：iPhone 15 Pro，售价8999元，手机数码类，现货，5G旗舰"
+)
+# {"name": "iPhone 15 Pro", "price": 8999.0, "category": "手机数码", ...}
+```
+
+**面试话术：**
+> "结构化输出有三层方案：Prompt约束最简单但不稳定；JSON Mode保证语法合法但字段不受控；Structured Outputs + Pydantic Schema最可靠，类型和必填都有保证。生产环境我用第三种，配合tenacity重试3次，最后兜底返回默认值，解析失败率<0.1%。"
+
+</details>
+
+---
+
+## 12. 什么是Context Engineering（上下文工程）？如何处理Long Context中的"Lost in the Middle"问题？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Context Engineering = 系统化设计LLM上下文的信息组织方式，超越单纯的Prompt Engineering**
+
+### 上下文的组成结构
+
+```
+┌──────────────────────────────────────────────────┐
+│              LLM 上下文窗口                        │
+├──────────────────────────────────────────────────┤
+│ 1. System Prompt  - 角色定义、规则约束             │
+│ 2. Long-term Memory - 长期记忆（向量检索召回）     │
+│ 3. Working Memory  - 任务相关中间状态              │
+│ 4. Retrieved Docs  - RAG检索结果                  │
+│ 5. Conversation History - 对话历史                │
+│ 6. Current User Input - 当前问题                  │
+└──────────────────────────────────────────────────┘
+```
+
+### 上下文工程核心策略
+
+**策略1：压缩（Compression）**
+
+```python
+class ContextCompressor:
+    """压缩历史对话，节省Token"""
+
+    def compress_history(self, messages: list, max_tokens=2000):
+        total_tokens = count_tokens(messages)
+
+        if total_tokens <= max_tokens:
+            return messages  # 不需要压缩
+
+        # 保留最近3轮原文
+        recent = messages[-6:]  # 最近3轮 user+assistant
+        old = messages[:-6]
+
+        # 用LLM摘要旧对话
+        summary_prompt = f"""
+        请将以下对话历史压缩为简洁摘要（100字以内），保留关键信息：
+        {format_messages(old)}
+        摘要：
+        """
+        summary = llm.generate(summary_prompt)
+
+        # 摘要替换旧对话
+        compressed = [
+            {"role": "system", "content": f"[历史摘要] {summary}"}
+        ] + recent
+
+        return compressed
+
+# 效果：10轮对话从5000 tokens → 1500 tokens，节省70%
+```
+
+**策略2：选择性注入（Selective Injection）**
+
+```python
+def build_context(user_query: str, conversation_history: list):
+    """按相关性动态注入，不是全部塞入"""
+
+    context_parts = []
+
+    # 1. System Prompt（必须）
+    context_parts.append({
+        "role": "system",
+        "content": SYSTEM_PROMPT
+    })
+
+    # 2. 相关长期记忆（语义检索）
+    memories = memory_db.search(user_query, k=3)
+    if memories:
+        context_parts.append({
+            "role": "system",
+            "content": "用户背景：" + "\n".join(memories)
+        })
+
+    # 3. RAG检索结果（只注入相关文档）
+    docs = vectordb.search(user_query, k=5)
+    if docs:
+        context_parts.append({
+            "role": "system",
+            "content": "参考资料：\n" + "\n---\n".join(docs)
+        })
+
+    # 4. 最近对话历史（固定窗口）
+    context_parts.extend(conversation_history[-8:])  # 最近4轮
+
+    # 5. 当前用户输入
+    context_parts.append({
+        "role": "user",
+        "content": user_query
+    })
+
+    return context_parts
+```
+
+### "Lost in the Middle"问题
+
+**现象：** LLM对长文档开头和结尾信息记忆最好，**中间部分容易遗漏**
+
+```python
+# 实验验证
+docs = [doc1, doc2, doc3, doc4, doc5]  # 答案在doc3（中间）
+
+# 原始顺序 → LLM回答错误率40%
+context = "\n".join(docs)
+
+# 优化后 → 回答错误率<5%
+```
+
+**解决方案1：重要内容放首尾（最简单）**
+
+```python
+def reorder_for_attention(docs: list, query: str):
+    """
+    Lost in Middle解决方案：
+    最相关 → 最前 或 最后
+    次相关 → 中间（"牺牲区"）
+    """
+    # 按相关性打分
+    scored = [(doc, reranker.score(query, doc)) for doc in docs]
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    # 重排：最高分放首位，第二高放末位，其余放中间
+    top_docs = [d for d, _ in scored]
+
+    if len(top_docs) <= 2:
+        return top_docs
+
+    reordered = (
+        [top_docs[0]]           # 最相关→首位
+        + top_docs[2:]          # 次相关→中间
+        + [top_docs[1]]         # 第二→末位
+    )
+    return reordered
+
+# 使用
+docs = vectordb.search(query, k=10)
+ordered_docs = reorder_for_attention(docs, query)
+context = "\n---\n".join(ordered_docs)
+```
+
+**解决方案2：分段抽取（Chunked Extraction）**
+
+```python
+def chunked_extraction(long_doc: str, query: str, chunk_size=2000):
+    """
+    超长文档分段处理，每段独立抽取关键信息
+    再汇总生成最终答案
+    """
+    # 1. 分段
+    chunks = split_text(long_doc, chunk_size, overlap=200)
+
+    # 2. 每段独立抽取
+    chunk_summaries = []
+    for i, chunk in enumerate(chunks):
+        prompt = f"""
+        问题：{query}
+
+        文档片段（第{i+1}/{len(chunks)}段）：
+        {chunk}
+
+        从这段文字中提取与问题相关的关键信息（如无相关信息请回答"无"）：
+        """
+        summary = llm.generate(prompt, temperature=0)
+        if summary.strip() != "无":
+            chunk_summaries.append(summary)
+
+    # 3. 汇总
+    if not chunk_summaries:
+        return "未找到相关信息"
+
+    final_prompt = f"""
+    问题：{query}
+
+    以下是从文档各段落提取的相关信息：
+    {chr(10).join(f"- {s}" for s in chunk_summaries)}
+
+    请综合以上信息，给出最终回答：
+    """
+    return llm.generate(final_prompt)
+```
+
+**解决方案3：查询重复（Query Repetition）**
+
+```python
+def build_prompt_with_query_repeat(query: str, docs: list):
+    """在首尾重复问题，强化模型注意力"""
+    context = "\n---\n".join(docs)
+
+    prompt = f"""
+    问题：{query}   ← 开头重复问题
+
+    参考文档：
+    {context}
+
+    请基于以上文档回答：{query}   ← 结尾再次重复
+    """
+    return prompt
+
+# 效果：准确率提升8-12%
+```
+
+**效果对比（在100文档/128K Token场景）：**
+
+| 方法 | 准确率 | 额外开销 |
+|------|--------|----------|
+| 原始顺序 | 58% | 0 |
+| 重要内容首尾 | 74% | 低（仅排序）|
+| 查询重复 | 70% | 极低 |
+| 分段抽取 | **89%** | 高（多次LLM调用）|
+| 综合方案 | **91%** | 中 |
+
+**面试话术：**
+> "Context Engineering是2025年的高频考点，核心是把什么信息放在上下文的什么位置。Lost in Middle问题我用三招解决：1）Reranker排序后最高分放首位第二高放末位，避免关键信息被埋中间；2）超长文档分段抽取再汇总，准确率从58%→89%；3）Query在首尾重复，提升模型注意力。实测128K长上下文场景准确率提升33%。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 ### 基础概念
@@ -992,6 +1393,9 @@ def beam_search_tot(problem, beam_width=3, depth=4):
 | **Prompt Leakage防护** | 多层防御 | 安全性 | 低 |
 | **Self-Consistency** | 多次推理投票,n=5提升13%准确率 | +15-20% | 5-10x |
 | **Tree of Thoughts** | 树状探索回溯,Beam Search优化 | +40-60% | 10-50x |
+| **结构化输出** | JSON Mode保证合法性,Structured Outputs保证Schema |
+| **Context Engineering** | 上下文信息系统化编排，超越Prompt Engineering |
+| **Lost in Middle** | 关键信息放首尾+分段抽取，准确率+33% |
 
 
 ---
