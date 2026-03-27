@@ -1633,6 +1633,243 @@ embeddings = clip_model.get_text_features(texts)  # 批量快10倍
 | **ITC+ITM+LM** | 三个训练目标：对比+匹配+生成 |
 | **CapFilt** | 用模型生成字幕并过滤数据，自举学习 |
 | **Q-Former** | 可学习 Query 提取视觉信息，连接视觉和语言 |
+| **生图子模型** | Stable Diffusion/DALL-E/Flux，Prompt→图像 |
+| **生图多样性** | temperature/CFG参数+负向提示词+多种子采样 |
+| **生图评估** | FID定量+CLIP-Score语义相似度+人工评测 |
+
+---
+
+## 高频追问：AI 生图方向（一面/二面真题）
+
+### Q: 生图子 Agent 用的什么模型？原理是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**主流生图模型对比：**
+
+| 模型 | 原理 | 优势 | 适用场景 |
+|------|------|------|---------|
+| **Stable Diffusion** | 扩散模型（DDPM）+ 潜空间压缩 | 开源可本地部署，可微调 | 定制化生图，私有化部署 |
+| **DALL-E 3** | Transformer + CLIP引导 | 文字理解强，API简单 | 快速集成，文字渲染 |
+| **Midjourney** | 闭源扩散模型 | 美学质量高 | 艺术创作 |
+| **Flux** | Flow Matching（新架构） | 速度快，质量好 | 实时生图 |
+| **ComfyUI + SD** | 工作流引擎 + SD | 高度可定制 | Agent集成，流程自动化 |
+
+**Stable Diffusion 核心原理（面试重点）：**
+
+```
+文本Prompt → CLIP文本编码器 → 条件向量
+                                    ↓
+随机噪声 → [去噪U-Net（循环T步）] → 潜空间图像
+                    ↑
+              条件向量注入（Cross-Attention）
+                                    ↓
+潜空间图像 → VAE解码器 → 最终图像（512x512 or 1024x1024）
+```
+
+**关键参数：**
+- **CFG Scale（Classifier-Free Guidance）**：控制文本对图像的影响强度，7-12是常用范围
+- **Steps**：去噪步数，20-50步，越多越精细但越慢
+- **Sampler**：去噪算法，DDIM快、DPM++质量好
+- **Seed**：随机种子，固定seed可复现
+
+**Agent 集成生图的架构：**
+```python
+class ImageGenerationAgent:
+    def __init__(self):
+        self.sd_client = StableDiffusionClient(
+            model="sd-xl-1.0",
+            api_url="http://localhost:7860"  # 本地 ComfyUI
+        )
+
+    async def generate(self, description: str) -> str:
+        # 1. 用 LLM 优化 Prompt（自然语言→专业生图Prompt）
+        optimized_prompt = await self._enhance_prompt(description)
+
+        # 2. 调用生图模型
+        image = await self.sd_client.generate(
+            prompt=optimized_prompt,
+            negative_prompt="blurry, low quality, distorted",
+            cfg_scale=7.5,
+            steps=30,
+            width=1024, height=1024
+        )
+        return image
+
+    async def _enhance_prompt(self, description: str) -> str:
+        """LLM 将自然语言转为生图专业提示词"""
+        return await llm.complete(
+            f"将以下描述转为 Stable Diffusion 提示词（英文，包含风格、光线、质量词）：{description}"
+        )
+```
+
+**面试话术：**
+> "我们生图子 Agent 用的是 Stable Diffusion XL，通过本地 ComfyUI 部署。核心原理是扩散模型：从随机噪声出发，在文本 embedding 的引导下（Cross-Attention），经过30步去噪还原出图像。关键是在 Agent 链路中加了一步 Prompt Enhancement，用 LLM 把用户的自然语言描述转为专业的 SD Prompt，图像质量提升明显。"
+
+</details>
+
+### Q: 生图多样性是通过预设规则判断还是通过 LLM 判断？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**两种方案对比：**
+
+| 方案 | 实现方式 | 优点 | 缺点 |
+|------|---------|------|------|
+| **预设规则** | 固定参数组合（seed/风格/角度枚举） | 确定性强，可控，低成本 | 多样性有限，人工维护规则 |
+| **LLM 判断** | 让 LLM 生成差异化 Prompt | 多样性强，理解语义 | 成本高，结果不可预期 |
+| **混合方案** | 规则框架 + LLM 局部变化 | 平衡可控性和多样性 | 实现复杂度中等 |
+
+**推荐：混合方案（工程实践）**
+
+```python
+class ImageDiversityStrategy:
+    # 预设规则：控制结构化变量（确定性）
+    STYLE_VARIANTS = ["realistic", "anime", "oil painting", "sketch"]
+    ANGLE_VARIANTS = ["front view", "side view", "top view", "3/4 view"]
+    LIGHTING_VARIANTS = ["studio lighting", "natural light", "dramatic lighting"]
+
+    async def generate_diverse_set(
+        self, base_description: str, count: int = 4
+    ) -> list[str]:
+        """生成多样性图像集合"""
+
+        # 策略1：预设规则控制风格/角度（低成本，高可控）
+        rule_variants = [
+            f"{base_description}, {style}, {angle}"
+            for style, angle in zip(
+                self.STYLE_VARIANTS[:count],
+                self.ANGLE_VARIANTS[:count]
+            )
+        ]
+
+        # 策略2：LLM 生成语义差异化描述（高多样性）
+        llm_variants = await self._llm_diversify(base_description, count)
+
+        # 策略3：不同 Seed（同 Prompt 不同随机结果）
+        seeds = [random.randint(0, 2**32) for _ in range(count)]
+
+        return [
+            await self.sd_client.generate(prompt=p, seed=s)
+            for p, s in zip(llm_variants, seeds)
+        ]
+
+    async def _llm_diversify(self, description: str, count: int) -> list[str]:
+        """LLM 生成语义差异化的 Prompt 变体"""
+        response = await llm.complete(f"""
+        基于以下描述，生成 {count} 个有显著差异的图像描述变体。
+        要求：内容主题相同，但在构图、风格、角度、色调上有明显差异。
+        原始描述：{description}
+        输出 JSON 数组，每项是一个英文 SD Prompt。
+        """)
+        return json.loads(response)
+```
+
+**判断标准（是否需要 LLM 介入）：**
+```
+简单多样性需求 → 预设规则（seed变换 + 参数组合）
+语义差异化需求 → LLM 生成Prompt变体
+内容连贯性需求 → LLM 全程控制（如故事板生成）
+```
+
+**面试话术：**
+> "我们用混合策略：结构化的多样性（风格、角度、光线）用预设规则枚举，成本低且可控；语义层面的差异化（同一主题不同叙事视角）用 LLM 生成 Prompt 变体。判断规则是：如果多样性需求可以用参数描述，就用规则；如果需要理解语义意图，就用 LLM。生产中 80% 场景规则就够了。"
+
+</details>
+
+### Q: 如何评估生图准确性？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**评估维度：**
+
+```
+生图质量评估
+├── 语义一致性：生成的图和文字描述匹配吗？
+├── 视觉质量：图像清晰，无明显瑕疵？
+├── 多样性：多次生成的结果差异够大？
+└── 风格一致性：批量生成时风格统一？
+```
+
+**定量指标：**
+
+| 指标 | 含义 | 计算方式 | 工具 |
+|------|------|---------|------|
+| **FID（Fréchet Inception Distance）** | 生成图与真实图分布距离，越小越好 | 特征分布KL散度 | pytorch-fid |
+| **CLIP Score** | 图文语义相似度（0-1，越高越好） | cos(CLIP图像特征, CLIP文本特征) | openai/clip |
+| **IS（Inception Score）** | 图像质量+多样性综合 | Inception网络类别分布 | 较少用 |
+| **SSIM** | 结构相似度（参考图对比） | 亮度+对比度+结构 | skimage |
+
+**工程实现：自动化评估管道**
+
+```python
+import torch
+import clip
+from PIL import Image
+
+class ImageQualityEvaluator:
+    def __init__(self):
+        self.clip_model, self.preprocess = clip.load("ViT-B/32")
+
+    def clip_score(self, image_path: str, prompt: str) -> float:
+        """图文语义相似度 CLIP Score"""
+        image = self.preprocess(Image.open(image_path)).unsqueeze(0)
+        text = clip.tokenize([prompt])
+
+        with torch.no_grad():
+            image_feat = self.clip_model.encode_image(image)
+            text_feat  = self.clip_model.encode_text(text)
+
+        # 余弦相似度
+        score = torch.cosine_similarity(image_feat, text_feat).item()
+        return score  # 一般 0.25+ 认为语义匹配
+
+    async def llm_judge(self, image_path: str, prompt: str) -> dict:
+        """LLM 作为裁判进行多维评估"""
+        response = await vision_llm.complete(
+            image=image_path,
+            text=f"""
+            评估这张图片与描述的匹配程度。
+            描述：{prompt}
+
+            从以下维度打分（0-10）：
+            1. 语义匹配度：图像内容与描述是否一致
+            2. 视觉质量：清晰度、色彩、构图
+            3. 细节准确性：描述中的关键细节是否都体现
+
+            输出JSON: {{"semantic": 0-10, "quality": 0-10, "detail": 0-10, "overall": 0-10}}
+            """
+        )
+        return json.loads(response)
+
+    def batch_evaluate(self, generations: list[dict]) -> dict:
+        """批量评估，输出汇总报告"""
+        scores = []
+        for gen in generations:
+            clip_s = self.clip_score(gen["image"], gen["prompt"])
+            scores.append(clip_s)
+
+        return {
+            "avg_clip_score": sum(scores) / len(scores),
+            "min_clip_score": min(scores),
+            "pass_rate": sum(1 for s in scores if s > 0.25) / len(scores)
+        }
+```
+
+**实际评估体系（三层）：**
+```
+线下评估：FID + CLIP Score（自动化，CI/CD集成）
+上线灰度：A/B 测试，真实用户满意度
+线上监控：用户点赞/重新生成率（代理指标）
+```
+
+**面试话术：**
+> "我们用三层评估：定量层用 CLIP Score 衡量图文语义相似度（>0.25 为合格）和 FID 衡量整体分布质量；定性层用 GPT-4V 作为 LLM Judge 多维打分（语义、质量、细节）；线上层用用户行为数据（重新生成率）作为最终指标。CLIP Score 可以完全自动化，成本低，我们在每次模型更新时都会跑全量评估。"
+
+</details>
 
 ### 应用
 

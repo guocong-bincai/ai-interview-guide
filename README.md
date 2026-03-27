@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 230+ 道高频面试题 | 18 个核心模块 | 从基础到进阶系统化学习**
+**🎯 245+ 道高频面试题 | 18 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v2.1 | **最后更新:** 2026-03-23
+**版本:** v2.2 | **最后更新:** 2026-03-05
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -35,7 +35,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 230+ 道 |
+| 📝 **总题数** | 245+ 道 |
 | 📂 **核心模块** | 18 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -54,7 +54,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Token、Temperature、Context Window、长文本处理 | 🔥🔥🔥🔥🔥 | 15 |
-| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、ToT、结构化输出、Context Engineering | 🔥🔥🔥🔥🔥 | 12 |
+| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、ToT、结构化输出、Temperature调参实战 | 🔥🔥🔥🔥🔥 | 13 |
 
 **学习重点:** LLM工作原理、基本调参、提示词工程
 **预计时间:** 1-2周
@@ -67,10 +67,10 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 03 | [📚 RAG 系统](docs/03-rag-system/) | RAG流程、GraphRAG知识图谱、Agentic RAG多跳推理 | 🔥🔥🔥🔥🔥 | 15 |
+| 03 | [📚 RAG 系统](docs/03-rag-system/) | RAG流程、GraphRAG知识图谱、Agentic RAG多跳推理、幻觉解决 | 🔥🔥🔥🔥🔥 | 17 |
 | 04 | [💼 项目实战经验](docs/04-project-experience/) | **RAG/Agent项目、成本优化、冷启动、STAR法则** | 🔥🔥🔥🔥🔥 | 5 |
 | 05 | [🏗️ Transformer架构](docs/05-transformer-architecture/) | Self-Attention、Multi-Head、BERT vs GPT、Q K V计算 | 🔥🔥🔥🔥 | 9 |
-| 06 | [🤖 AI Agent基础](docs/06-ai-agent-basics/) | ReAct、记忆/规划、Human-in-the-Loop、Agent评测 | 🔥🔥🔥🔥🔥 | 15 |
+| 06 | [🤖 AI Agent基础](docs/06-ai-agent-basics/) | ReAct、记忆/规划、Human-in-the-Loop、Token优化、上下文重写 | 🔥🔥🔥🔥🔥 | 19 |
 
 **学习重点:** RAG完整流程、项目经验总结、向量检索、Agent基本模式
 **预计时间:** 2-3周
@@ -100,7 +100,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 11 | [🏛️ 工程架构与部署](docs/11-production-deployment/) | 流式输出、缓存、监控、MLOps、CI/CD | 🔥🔥🔥🔥🔥 | 14 |
-| 12 | [🎨 多模态应用](docs/12-multimodal-ai/) | CLIP、BLIP、LLaVA、图文检索、多模态RAG | 🔥🔥🔥 | 10 |
+| 12 | [🎨 多模态应用](docs/12-multimodal-ai/) | CLIP、BLIP、LLaVA、图文检索、生图Agent、评估方案 | 🔥🔥🔥 | 13 |
 | 13 | [🔧 框架与工具](docs/13-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
 | 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、高并发 | 🔥🔥🔥🔥🔥 | 12 |
 | 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、图文检索、多模态RAG | 🔥🔥🔥 | 8 |
@@ -446,7 +446,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-03-05 | **📝 版本:** v2.0 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-03-05 | **📝 版本:** v2.2 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 

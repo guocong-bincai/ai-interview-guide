@@ -2157,6 +2157,297 @@ class AgentMonitor:
 | **规划方法** | Plan-Execute(推荐)/Tree of Thoughts/ReWOO |
 | **Human-in-the-Loop** | 4级风险(LOW/MEDIUM/HIGH/CRITICAL)，不可逆操作强制审批 |
 | **Agent评测** | 任务成功率+工具准确率+效率+成本，LLM-as-Judge评判 |
+| **Token估算** | 单轮≈1K-4K，多轮含摘要≈2K-8K，滑动窗口控成本 |
+| **上下文重写** | 对话历史压缩→语义重写→减少噪声，让检索更准 |
+| **Agent部署** | 容器化(隔离/弹性)为主，宿主机部署适合资源敏感场景 |
+
+---
+
+## 高频面试追问（一面/二面真题补充）
+
+### Q: 单轮对话和多轮对话的 Token 消耗大概多少？如何控制？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Token 消耗估算（GPT-4o 参考）：**
+
+| 场景 | 输入 Token | 输出 Token | 合计 | 费用估算 |
+|------|-----------|-----------|------|---------|
+| 单轮简单问答 | ~500 | ~300 | ~800 | ¥0.003 |
+| 单轮复杂分析 | ~2000 | ~800 | ~2800 | ¥0.01 |
+| 10轮对话（无压缩） | ~8000 | ~3000 | ~11000 | ¥0.04 |
+| 10轮对话（摘要压缩） | ~2000 | ~800 | ~2800 | ¥0.01 |
+
+**消耗构成拆解：**
+```
+System Prompt:  200-500 tokens（固定成本）
+用户输入:        100-500 tokens/轮
+RAG 检索内容:   500-2000 tokens（主要成本）
+历史对话:       累计增长，不压缩会爆炸
+模型输出:       200-500 tokens/轮
+```
+
+**多轮对话 Token 控制策略：**
+
+```python
+class TokenBudgetManager:
+    MAX_CONTEXT_TOKENS = 4000  # 留给历史的预算
+
+    def build_context(self, history: list, system_prompt: str) -> list:
+        """滑动窗口 + 摘要压缩"""
+        messages = [{"role": "system", "content": system_prompt}]
+
+        # 策略1: 只保留最近 N 轮原文
+        recent = history[-3:]  # 最近3轮保留完整原文
+
+        # 策略2: 历史部分做摘要
+        if len(history) > 3:
+            older = history[:-3]
+            summary = self._summarize(older)
+            messages.append({
+                "role": "system",
+                "content": f"[历史摘要] {summary}"
+            })
+
+        messages.extend(recent)
+        return messages
+
+    def _summarize(self, history: list) -> str:
+        """调 LLM 压缩历史，只花一次钱"""
+        # 实际用小模型（gpt-3.5/qwen-turbo）做摘要，成本低
+        ...
+```
+
+**多轮 vs 单轮 Token 增长对比：**
+```
+第1轮:  800 tokens
+第5轮（无压缩）: 800×5 = 4000 tokens
+第5轮（有压缩）: 800 + 摘要200 = 1000 tokens  ← 节省75%
+第10轮（无压缩）: 800×10 = 8000 tokens
+第10轮（有压缩）: 800 + 摘要400 = 1200 tokens  ← 节省85%
+```
+
+**面试话术：**
+> "单轮对话 Token 消耗约 1K-4K，多轮不控制会线性增长爆成本。我的策略是三层：最近3轮保原文保障连贯性，历史部分用小模型摘要（节省80%成本），RAG 召回内容做相关性过滤只保留 top-k chunk。实测10轮对话 Token 消耗控制在 2K 以内，单次成本 < ¥0.01。"
+
+</details>
+
+### Q: Agent 的记忆架构怎么做？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**记忆分类（四类）：**
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Agent 记忆体系                      │
+├───────────┬───────────┬───────────┬─────────────────┤
+│  工作记忆  │  情节记忆  │  语义记忆  │    程序记忆      │
+│  当前对话  │  历史事件  │  知识概念  │   技能/流程      │
+│ in-context│  向量DB   │  知识图谱  │  工具调用链      │
+│  临时      │  可查询   │  持久化   │   持久化         │
+└───────────┴───────────┴───────────┴─────────────────┘
+```
+
+**工程实现（分层架构）：**
+
+```python
+class AgentMemory:
+    def __init__(self):
+        # Layer 1: 工作记忆（当前 context window）
+        self.working_memory = []          # 当前对话消息列表
+        self.max_working_tokens = 4000    # 工作记忆上限
+
+        # Layer 2: 情节记忆（历史对话向量化）
+        self.episodic_memory = VectorDB() # Chroma/Pinecone
+
+        # Layer 3: 语义记忆（持久知识库）
+        self.semantic_memory = KnowledgeBase()
+
+    def remember(self, message: dict):
+        """写入记忆"""
+        self.working_memory.append(message)
+
+        # 超出工作记忆上限 → 压缩 → 写入情节记忆
+        if self._count_tokens() > self.max_working_tokens:
+            self._compress_to_episodic()
+
+    def recall(self, query: str) -> list:
+        """检索相关记忆"""
+        # 1. 先查工作记忆（最近对话，直接用）
+        recent = self.working_memory[-3:]
+
+        # 2. 再查情节记忆（历史对话中相关的）
+        episodic = self.episodic_memory.search(query, top_k=3)
+
+        # 3. 再查语义知识库
+        semantic = self.semantic_memory.search(query, top_k=2)
+
+        return recent + episodic + semantic
+
+    def _compress_to_episodic(self):
+        """工作记忆 → 情节记忆（摘要后向量化存储）"""
+        old_turns = self.working_memory[:-3]  # 保留最近3轮
+        summary = llm_summarize(old_turns)
+        self.episodic_memory.add(summary, metadata={"timestamp": now()})
+        self.working_memory = self.working_memory[-3:]  # 裁剪
+```
+
+**实际项目中的记忆策略选择：**
+
+| 场景 | 推荐策略 | 原因 |
+|------|---------|------|
+| 简单客服机器人 | 工作记忆（最近5轮） | 简单够用，成本低 |
+| 个人助手 | 工作记忆 + 情节记忆 | 需要记住用户偏好 |
+| 知识库问答 | 工作记忆 + 语义记忆 | 需要检索外部知识 |
+| 复杂多轮Agent | 四层全用 | 复杂任务需要全局记忆 |
+
+**面试话术：**
+> "我把 Agent 记忆分四层：工作记忆（当前 context，4K token 上限）、情节记忆（历史对话压缩后存向量DB）、语义记忆（知识库 RAG）、程序记忆（工具调用链缓存）。超出工作记忆上限时，自动压缩老对话写入情节记忆，下次 recall 时语义搜索取回。实测减少 token 消耗 60%，响应速度提升40%。"
+
+</details>
+
+### Q: 上下文语义重写机制是什么？为什么需要它？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么需要上下文重写（Query Rewrite）：**
+
+```
+用户第1轮: "给我介绍一下张三"
+用户第2轮: "他的工作经历是什么？"  ← "他"指的是谁？
+用户第3轮: "和李四比呢？"          ← 上下文依赖更深
+
+问题：直接用第2/3轮query去检索，向量数据库不知道"他"是谁！
+```
+
+**解决方案：上下文感知重写**
+
+```python
+async def rewrite_with_context(
+    query: str,
+    history: list[dict]
+) -> str:
+    """将多轮对话query重写为独立完整的查询"""
+
+    prompt = f"""
+你是一个查询重写助手。根据对话历史，将用户的最新问题重写为
+一个完整、独立、不依赖上下文的查询。
+
+对话历史：
+{format_history(history)}
+
+用户最新问题：{query}
+
+重写规则：
+1. 解析代词（他/她/它/这个/那个）→ 替换为具体指代
+2. 补全省略成分（"和上面说的比呢" → "XXX和YYY相比有什么区别"）
+3. 保留原始意图，不要改变问题本质
+4. 输出简洁，不要解释
+
+重写后的查询：
+    """
+
+    rewritten = await llm.complete(prompt)
+    return rewritten
+
+# 示例
+history = [
+    {"role": "user", "content": "给我介绍一下LangChain"},
+    {"role": "assistant", "content": "LangChain是..."}
+]
+query = "它和LlamaIndex比有什么优势？"
+
+rewritten = await rewrite_with_context(query, history)
+# 输出: "LangChain和LlamaIndex相比有什么优势？"
+# 现在向量检索就能精准找到相关内容！
+```
+
+**完整 RAG 管道中的位置：**
+```
+用户输入 → [上下文重写] → 向量检索 → Rerank → LLM生成 → 输出
+               ↑
+          依赖对话历史
+```
+
+**面试话术：**
+> "上下文重写是多轮对话 RAG 的关键环节。问题是用户第N轮的query往往有代词和省略，直接向量检索效果很差。我的方案是：先用 LLM 把当前 query + 历史 context 一起输入，让模型重写成完整独立的查询，再去检索。额外成本是一次小模型调用（约100 token，¥0.0001），但检索准确率提升 30% 以上。"
+
+</details>
+
+### Q: 整个 Agent 的部署方式，容器化部署还是宿主机部署？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**两种方案对比：**
+
+| 维度 | 容器化部署（Docker/K8s） | 宿主机部署 |
+|------|------------------------|-----------|
+| **隔离性** | ✅ 每个 Agent 独立容器，互不影响 | ❌ 共享进程空间，有干扰 |
+| **弹性伸缩** | ✅ K8s HPA 自动扩容 | ❌ 手动扩容，响应慢 |
+| **资源开销** | ❌ 容器启动 100-300ms，内存多10% | ✅ 无额外开销 |
+| **安全性** | ✅ 容器沙箱，代码执行隔离 | ❌ Agent 可操作宿主机 |
+| **部署复杂度** | ❌ 需要容器知识 | ✅ 简单直接 |
+| **适用场景** | 生产环境，多 Agent 并发 | 开发调试，资源紧张 |
+
+**推荐方案：容器化 + 容器池预热**
+
+```yaml
+# docker-compose.yml 示例
+services:
+  agent-service:
+    image: my-agent:latest
+    deploy:
+      replicas: 3          # 3个实例
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M     # 限制资源防止一个Agent耗尽
+    environment:
+      - MAX_CONCURRENT_TASKS=5
+      - TOOL_EXECUTION_TIMEOUT=30s
+
+  # 容器池：预热避免冷启动
+  agent-pool:
+    image: my-agent:latest
+    command: ["python", "pool_manager.py", "--size=5"]
+```
+
+```python
+# 容器池管理（参考 OpenClaw/E2B 方案）
+class AgentContainerPool:
+    def __init__(self, pool_size=5):
+        self.pool = []
+        self._pre_warm(pool_size)  # 预启动5个容器
+
+    def _pre_warm(self, n: int):
+        for _ in range(n):
+            container = docker.run("agent:latest", detach=True)
+            self.pool.append(container)
+
+    def get_container(self):
+        """从池中取容器，100ms内就绪（vs 冷启动300ms）"""
+        if self.pool:
+            container = self.pool.pop()
+            self._pre_warm(1)  # 异步补充一个
+            return container
+        return docker.run("agent:latest")  # 池空了才冷启动
+```
+
+**实际选择建议：**
+- **开发/测试**：宿主机直接运行，快速迭代
+- **生产单机**：Docker Compose，简单隔离
+- **生产集群**：K8s + HPA 自动扩缩容
+- **多租户/代码执行**：容器沙箱强制隔离（安全红线）
+
+**面试话术：**
+> "我们生产环境用容器化部署，原因是三个：1) 安全隔离，Agent 执行代码工具时在独立容器，rm -rf 也只删容器不影响宿主机；2) 弹性伸缩，K8s HPA 根据队列长度自动扩容；3) 故障隔离，一个 Agent 挂了不影响其他实例。优化点是容器池预热，保持5个热容器，避免冷启动延迟 300ms。"
+
+</details>
 
 
 ---

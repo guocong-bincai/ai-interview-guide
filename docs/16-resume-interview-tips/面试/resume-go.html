@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>张×× - Golang 后端开发工程师</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 15mm;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #16a34a;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            color: #166534;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .header .title {
+            font-size: 18px;
+            color: #16a34a;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .contact-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .section {
+            margin-bottom: 22px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: #166534;
+            border-left: 4px solid #16a34a;
+            padding-left: 12px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .highlights {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        
+        .highlight-item {
+            padding: 10px 15px;
+            background: #f0fdf4;
+            border-radius: 6px;
+            border-left: 3px solid #16a34a;
+            font-size: 14px;
+        }
+        
+        .project {
+            margin-bottom: 18px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .project-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #166534;
+        }
+        
+        .project-time {
+            font-size: 13px;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .project-role {
+            font-size: 13px;
+            color: #16a34a;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .project p {
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+        
+        .project ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .project li {
+            font-size: 14px;
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .project li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #16a34a;
+            font-weight: bold;
+        }
+        
+        .tech-stack {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #cbd5e1;
+        }
+        
+        .tech-stack strong {
+            color: #475569;
+        }
+        
+        .job {
+            margin-bottom: 18px;
+        }
+        
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .job-company {
+            font-size: 16px;
+            font-weight: 700;
+            color: #166534;
+        }
+        
+        .job-time {
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .job-title {
+            font-size: 14px;
+            color: #16a34a;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .skills-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .skills-table td {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .skills-table td:first-child {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #475569;
+            width: 100px;
+        }
+        
+        .honors {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        
+        .honor-item {
+            padding: 8px 12px;
+            background: #fef3c7;
+            border-radius: 6px;
+            border-left: 3px solid #f59e0b;
+            font-size: 14px;
+        }
+        
+        @media print {
+            body {
+                padding: 10mm;
+                max-width: none;
+            }
+            
+            .project {
+                break-inside: avoid;
+            }
+        }
+        
+        a {
+            color: #16a34a;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>张××</h1>
+        <div class="title">Golang 后端开发工程师</div>
+        <div class="contact-info">
+            <span>📍 北京</span>
+            <span>📱 134****1193</span>
+            <span>📧 guocong199708@163.com</span>
+            <span>🔗 <a href="https://github.com/xxx-xxx">github.com/xxx-xxx</a></span>
+            <span>🎂 199× 年 × 月</span>
+            <span>🎓 本科 · ××大学</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🎯 求职意向</div>
+        <p style="font-size: 14px; color: #475569;">
+            <strong>目标职位：</strong>Golang 后端开发工程师 &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>期望城市：</strong>北京 &nbsp;&nbsp;|&nbsp;&nbsp;
+            <strong>经验级别：</strong>5 年 +
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">💡 核心优势</div>
+        <div class="highlights">
+            <div class="highlight-item">
+                <strong>🐹 5 年 Go 开发经验</strong> - 精通 Gin、Gorm、GoFrame，良好的代码规范和注释习惯
+            </div>
+            <div class="highlight-item">
+                <strong>⚡ 高并发架构能力</strong> - 支撑 530w 用户、80w DAU 平台，年营收 1200w+
+            </div>
+            <div class="highlight-item">
+                <strong>🔧 全链路技术栈</strong> - MySQL/Redis 优化、Kafka 消息队列、Canal 数据同步、ES 搜索
+            </div>
+            <div class="highlight-item">
+                <strong>📢 技术影响力</strong> - 技术社区创始人，公众号 1000+ 粉丝，累计 2000+
+            </div>
+            <div class="highlight-item">
+                <strong>📐 工程化思维</strong> - 牵头制定《开发规范手册》，代码贡献 2.1w 行，占比 15.2%
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">💼 工作经历</div>
+        
+        <div class="job">
+            <div class="job-header">
+                <div class="job-company">××科技有限公司</div>
+                <div class="job-time">2025.04 - 至今</div>
+            </div>
+            <div class="job-title">Golang 后端开发工程师 / AI 应用开发工程师</div>
+            
+            <div style="margin-top: 10px; margin-bottom: 10px;">
+                <div style="font-size: 14px; font-weight: 600; color: #166534; margin-bottom: 6px;">项目 1：leapAhead 读书项目（海外）</div>
+                <ul>
+                    <li><strong>2000w 用户</strong>，Go 后端架构设计与开发</li>
+                    <li>AI 应用开发，提升用户阅读体验</li>
+                    <li><strong>ROI 300%</strong>，商业化成功</li>
+                </ul>
+            </div>
+            
+            <div style="margin-top: 10px; margin-bottom: 10px;">
+                <div style="font-size: 14px; font-weight: 600; color: #166534; margin-bottom: 6px;">项目 2：Bible 圣经项目（海外）</div>
+                <ul>
+                    <li><strong>80w 日活</strong>，Go 后端开发</li>
+                    <li>AI 应用开发，智能推荐与内容生成</li>
+                    <li><strong>日营收 8w 人民币</strong>，商业化变现成功</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="job">
+            <div class="job-header">
+                <div class="job-company">××互动科技有限公司</div>
+                <div class="job-time">2023.04 - 2025.03</div>
+            </div>
+            <div class="job-title">Golang 后端开发工程师</div>
+            <p style="font-size: 14px; margin-bottom: 8px; color: #64748b;">短剧平台（530w 用户，80w DAU）</p>
+            <ul>
+                <li>负责短剧播放、用户充值、订单支付等核心模块开发</li>
+                <li>设计 <strong>Redis + MySQL 双层缓存架构</strong>，Canal 保证数据一致性</li>
+                <li><strong>Kafka 消息队列</strong>削峰填谷，保证高并发下数据不丢失且时序性</li>
+                <li>爆款短剧爆款短剧单日播放 170w 次，单日充值 350w</li>
+                <li>2023 年累计充值 230w 次，<strong>年营收 1200w</strong></li>
+                <li>优化核心接口响应时间从 800ms → 120ms（<strong>提升 85%</strong>）</li>
+                <li>数据库查询优化，QPS 从 500 → <strong>3000+</strong></li>
+            </ul>
+        </div>
+
+        <div class="job">
+            <div class="job-header">
+                <div class="job-company">××教育科技股份有限公司</div>
+                <div class="job-time">2021.03 - 2023.04</div>
+            </div>
+            <div class="job-title">Golang 后端开发工程师</div>
+            <ul>
+                <li><strong>"中教师训"平台</strong>（90w 用户），基于 Gin 框架，RabbitMQ 解决高并发，服务全国 2.6w 所中小学</li>
+                <li><strong>网络研修平台</strong>（微服务架构），k8s 容器编排，apisix 统一数据源转发</li>
+                <li><strong>SDP"隐云"软件</strong>（零信任安全），替代传统 VPN，高危账号阻截</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🚀 个人项目</div>
+        
+        <div class="project">
+            <div class="project-header">
+                <div class="project-name">AI 内容生产工具 - AI 内容生产工具</div>
+                <div class="project-time">2024.10 - 至今</div>
+            </div>
+            <ul>
+                <li>使用 AI 编程工具（Cursor、Cloud Code）独立开发</li>
+                <li>自动化处理电子书：摘要生成 → TTS 配音 → S3 云存储</li>
+                <li>Go + Python 混合架构，Asynq 任务队列，支持批量处理 100+ 书籍</li>
+            </ul>
+            <div class="tech-stack">
+                <strong>技术栈：</strong>Go · Python · LangGraph · Next.js · Asynq · MySQL · Redis · S3
+            </div>
+        </div>
+
+        <div class="project">
+            <div class="project-header">
+                <div class="project-name">语音转文字小程序 - 微信小程序</div>
+                <div class="project-time">2024.11 - 至今</div>
+            </div>
+            <ul>
+                <li>语音转文字小程序，<strong>注册用户 400+ 人</strong></li>
+                <li>独立负责后端 API 开发、数据库设计、小程序前端</li>
+                <li>日活 50+，用户留存率 35%</li>
+            </ul>
+            <div class="tech-stack">
+                <strong>技术栈：</strong>微信小程序 · Go · Gin · MySQL · 阿里云语音 API
+            </div>
+        </div>
+
+        <div class="project">
+            <div class="project-header">
+                <div class="project-name">MCP 协议服务器 - MCP 协议服务器</div>
+                <div class="project-time">2025.01 - 至今</div>
+            </div>
+            <ul>
+                <li>Model Context Protocol (MCP) 服务器，连接 YAPI 与 AI 编程工具</li>
+                <li>让 AI 助手可以直接读取 YAPI 接口文档，辅助代码生成</li>
+            </ul>
+            <div class="tech-stack">
+                <strong>技术栈：</strong>Go · MCP Protocol · YAPI API
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🏆 荣誉与影响力</div>
+        <div class="honors">
+            <div class="honor-item">
+                <strong>📢 技术社区创始人</strong> - 公众号 1000+ 粉丝，累计 2000+
+            </div>
+            <div class="honor-item">
+                <strong>🏅 年度优秀员工</strong> - 公司年度优秀员工
+            </div>
+            <div class="honor-item">
+                <strong>📚 《开发规范手册》牵头制定者</strong> - 整理整个研发中心项目实体架构
+            </div>
+            <div class="honor-item">
+                <strong>📝 阿里云社区、B 站、微信 go 语言分享 UP 主</strong>
+            </div>
+            <div class="honor-item">
+                <strong>💻 LeetCode Live 4</strong> - 持续刷题保持算法敏感度
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🛠️ 技术栈</div>
+        <table class="skills-table">
+            <tr>
+                <td>语言</td>
+                <td>Golang（精通）· C++ · C · Java · Python</td>
+            </tr>
+            <tr>
+                <td>框架</td>
+                <td>Gin · Gorm · GoFrame · Iris</td>
+            </tr>
+            <tr>
+                <td>数据库</td>
+                <td>MySQL · Redis</td>
+            </tr>
+            <tr>
+                <td>消息队列</td>
+                <td>RabbitMQ · Kafka · Canal · Asynq</td>
+            </tr>
+            <tr>
+                <td>搜索</td>
+                <td>ElasticSearch</td>
+            </tr>
+            <tr>
+                <td>DevOps</td>
+                <td>Git · Docker · k8s · APISIX</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🌟 个人特质</div>
+        <div class="highlights">
+            <div class="highlight-item">
+                <strong>📚 自学能力强</strong> - 从 Go 后端主动学习 AI 编程，独立完成多个 AI 项目
+            </div>
+            <div class="highlight-item">
+                <strong>💪 责任心重</strong> - 实习期两个月学习新知识，曾加班到晚上 11 点
+            </div>
+            <div class="highlight-item">
+                <strong>🤝 团队合作</strong> - 善于沟通，牵头多个跨部门项目
+            </div>
+            <div class="highlight-item">
+                <strong>🔥 技术热情</strong> - 持续输出技术内容，社区活跃贡献者
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px;">
+        简历最后更新：2026-02-27
+    </div>
+</body>
+</html>

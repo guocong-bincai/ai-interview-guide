@@ -1152,6 +1152,148 @@ class MultiHopRAG:
 | **Query改写** | 优化问题,补充上下文,HyDE生成假设答案 |
 | **上下文压缩** | 提取相关片段,减少无效Token,降成本 |
 | **Late Chunking** | 先embedding再切分,保留完整上下文 |
+| **幻觉优化** | RAG提供证据+低Temperature+CoT推理，幻觉率<5% |
+| **RAG效果提升** | 混合检索+Rerank+Query重写+上下文压缩四步走 |
+
+---
+
+## 高频追问：RAG 效果如何提升？出现幻觉怎么办？
+
+### Q: RAG 效果不好如何排查和提升？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**效果问题诊断流程：**
+
+```
+RAG回答不好
+    ├── 检索没找到相关内容（召回问题）
+    │       ├── Embedding 模型不够好 → 换 bge-large-zh
+    │       ├── Chunk 切分太大/太小 → 调整 chunk_size
+    │       ├── 查询和文档表达不一致 → 加 Query 改写
+    │       └── 只用向量检索 → 改混合检索（BM25 + 向量）
+    │
+    ├── 找到了但排序靠后（排序问题）
+    │       └── 加 Rerank（BGE-Reranker/Cohere）
+    │
+    └── 找到了但模型没用上（生成问题）
+            ├── Context 太长模型忽略 → 上下文压缩
+            ├── Prompt 没引导好 → 优化 Prompt
+            └── 模型能力不足 → 换更强模型
+```
+
+**四步优化组合拳：**
+
+```python
+# Step 1: Query 改写（解决表达不一致）
+rewritten_query = await query_rewriter.rewrite(
+    query=user_query,
+    history=conversation_history
+)
+
+# Step 2: 混合检索（提升召回率）
+vector_results = vector_db.search(rewritten_query, top_k=20)
+bm25_results   = bm25_index.search(rewritten_query, top_k=20)
+merged_results = rrf_merge(vector_results, bm25_results)  # RRF 融合
+
+# Step 3: Rerank 精排（提升相关性）
+reranked = reranker.rerank(
+    query=rewritten_query,
+    docs=merged_results,
+    top_k=5  # 精选 top5
+)
+
+# Step 4: 上下文压缩（避免 Lost in Middle）
+compressed = context_compressor.compress(
+    query=rewritten_query,
+    docs=reranked,
+    max_tokens=2000
+)
+
+# 生成
+answer = await llm.generate(query=user_query, context=compressed)
+```
+
+**各优化手段效果量化：**
+
+| 优化手段 | 召回率提升 | 准确率提升 | 成本影响 |
+|---------|-----------|-----------|---------|
+| 混合检索（BM25+向量） | +20-30% | +15% | +10% |
+| Query 改写 | +15-25% | +20% | +5% |
+| Rerank | - | +25-35% | +15% |
+| 上下文压缩 | - | +10-15% | -30% |
+| **组合使用** | **+40%** | **+50%** | **+0%** |
+
+**面试话术：**
+> "RAG 效果优化我分三层诊断：召回层（混合检索+Query改写）、排序层（BGE-Reranker精排）、生成层（上下文压缩+Prompt优化）。实际项目中组合使用后准确率从 65% 提升到 88%，成本基本持平（压缩节省的抵消了Rerank的开销）。"
+
+</details>
+
+### Q: RAG 出现幻觉怎么办？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**幻觉来源分类：**
+
+| 幻觉类型 | 原因 | 示例 |
+|---------|------|------|
+| **检索幻觉** | 检索内容不相关，模型自行编造 | 问A知识，找到B知识，模型混用 |
+| **融合幻觉** | 多个 chunk 信息矛盾，模型错误融合 | 文档A说10%，文档B说20%，模型说15% |
+| **过度推断幻觉** | 模型超出检索内容范围推断 | 文档说"可能"，模型断言"一定" |
+| **记忆幻觉** | 模型用训练记忆覆盖检索内容 | 检索到最新数据，模型仍用旧知识 |
+
+**对应解决方案：**
+
+```python
+class HallucinationGuard:
+    """幻觉防护三层体系"""
+
+    # Layer 1: 预防 - 让模型只能基于检索内容回答
+    SYSTEM_PROMPT = """
+    你只能根据提供的<context>内容回答问题。
+    如果context中没有相关信息，回答"根据现有资料无法回答该问题"。
+    不要推断或补充context中没有的信息。
+    每个关键论断必须引用对应的context片段。
+    """
+
+    # Layer 2: 检测 - 答案与来源的一致性验证
+    async def check_faithfulness(
+        self, answer: str, sources: list[str]
+    ) -> float:
+        """RAGAS Faithfulness 评估：答案有多少来自检索内容"""
+        prompt = f"""
+        判断以下答案中的每个陈述是否能从来源文本中找到依据。
+        答案：{answer}
+        来源：{sources}
+        输出 JSON: {{"faithful_score": 0.0-1.0, "unsupported_claims": []}}
+        """
+        result = await llm.complete(prompt)
+        return result["faithful_score"]
+
+    # Layer 3: 兜底 - 低置信度转人工
+    async def safe_answer(self, query: str, context: list) -> str:
+        answer = await llm.generate(query, context)
+        score = await self.check_faithfulness(answer, context)
+
+        if score < 0.7:
+            # 置信度低 → 明确告知不确定
+            return f"基于现有资料，{answer}（注：该回答置信度较低，建议人工核实）"
+        return answer
+```
+
+**实际指标目标：**
+```
+幻觉率（Faithfulness < 0.7 的比例）：< 5%
+RAGAS Faithfulness 均值：> 0.85
+无法回答率（主动拒答）：5-15%（合理范围，优于编造）
+```
+
+**面试话术：**
+> "RAG 幻觉我用三层防护：1) Prompt 层约束模型只能引用 context 内容，未找到时主动说'无法回答'；2) 低 Temperature（0.1-0.2）让模型保守生成；3) RAGAS Faithfulness 指标持续监控，评分<0.7 的回答标记为低置信度并转人工审核。生产环境幻觉率控制在 3% 以内。"
+
+</details>
 
 
 ---

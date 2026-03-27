@@ -1396,6 +1396,89 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 | **结构化输出** | JSON Mode保证合法性,Structured Outputs保证Schema |
 | **Context Engineering** | 上下文信息系统化编排，超越Prompt Engineering |
 | **Lost in Middle** | 关键信息放首尾+分段抽取，准确率+33% |
+| **Temperature实战** | RAG场景0.1-0.3，创意场景0.7-1.0，代码生成0.0-0.2 |
+
+---
+
+## 高频追问：你有调过模型参数 temperature 吗？
+
+### Q: 有对调过模型参数例如 temperature 吗？实际怎么调的？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Temperature 原理：**
+
+```
+Softmax 输出概率分布:
+T=0.1: [0.95, 0.04, 0.01]  ← 极度集中，几乎总选概率最高的词
+T=1.0: [0.50, 0.30, 0.20]  ← 标准分布
+T=2.0: [0.40, 0.35, 0.25]  ← 更平坦，更随机
+```
+
+**场景化调参经验（面试可直接讲）：**
+
+| 场景 | Temperature | 理由 |
+|------|-------------|------|
+| RAG 问答 / 事实类问题 | 0.0 - 0.2 | 需要准确，不能乱编 |
+| 代码生成 | 0.0 - 0.3 | 语法要正确，确定性强 |
+| 摘要/翻译 | 0.2 - 0.5 | 忠实原文，允许少量变化 |
+| 内容创作/营销文案 | 0.7 - 1.0 | 需要多样性和创意 |
+| 头脑风暴/创意生成 | 1.0 - 1.2 | 探索性，允许偏离常规 |
+
+**实际项目调参案例（可以讲）：**
+
+```python
+# 案例1：RAG 知识库问答
+# 问题：T=0.7 时模型会"补充"检索内容里没有的信息（幻觉）
+# 解决：调低到 T=0.1，模型更保守，只说检索到的内容
+
+response = openai.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    temperature=0.1,     # RAG场景低温
+    max_tokens=800,
+    top_p=0.9,           # 配合 top_p 限制候选词范围
+)
+
+# 案例2：营销文案生成
+# 问题：T=0 时每次生成都一样，客户说"没新意"
+# 解决：T=0.8，加 seed 参数让结果可复现
+response = openai.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    temperature=0.8,     # 创意场景高温
+    seed=42,             # 固定seed，相同输入得到相同输出（可复现）
+)
+
+# 案例3：Self-Consistency 多次推理投票
+# 需要多次采样→投票，必须 temperature > 0
+for _ in range(5):
+    response = openai.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=0.7,  # 保证每次结果不同
+    )
+    answers.append(extract_answer(response))
+final = majority_vote(answers)
+```
+
+**其他参数联动调整：**
+```
+Temperature 低时（<0.3）：
+  → top_p 可以稍高（0.9+），候选词范围宽一点
+  → 不需要 frequency_penalty（已经保守了）
+
+Temperature 高时（>0.7）：
+  → top_p 适当降低（0.85），避免太随机
+  → presence_penalty=0.5，减少重复内容
+  → max_tokens 要给够，创意内容往往更长
+```
+
+**面试话术：**
+> "我在项目中调过 temperature，最典型的两个场景：RAG 问答调到 0.1，因为要保守忠实于检索内容，防止幻觉；营销文案调到 0.8 加 seed，既有多样性又能复现。还有个坑：做 Self-Consistency 多推理投票时，temperature 必须大于 0，否则每次推理结果一样，投票没意义。"
+
+</details>
 
 
 ---
