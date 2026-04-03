@@ -2449,6 +2449,243 @@ class AgentContainerPool:
 
 </details>
 
+---
+
+## 五、进阶 Agent 机制（补充 Q10-Q12）
+
+### Q10: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Reflexion = 通过语言反馈实现自我反思的 Agent 范式**
+
+**核心思想：**
+- Agent 执行任务后，让 LLM 评估执行结果
+- 如果失败，用反思结果指导下一步行动
+- 用"语言记忆"替代传统强化学习的奖励信号
+
+**ReAct vs Reflexion：**
+
+| 维度 | ReAct | Reflexion |
+|------|-------|-----------|
+| **反馈来源** | 外部环境（工具返回） | 自我语言评估 |
+| **反思机制** | 无（只看 Observation） | 有（显式反思） |
+| **适用场景** | 外部信息明确 | 需要判断质量 |
+| **错误处理** | 被动重试 | 主动反思修正 |
+
+**Reflexion 流程：**
+```
+1. 执行（Execute）：Agent 执行动作，获得结果
+2. 评估（Evaluate）：LLM 评估结果是好是坏
+3. 反思（Reflect）：如果失败，分析原因，生成反思
+4. 重试（Retry）：根据反思调整策略，重新执行
+
+示例：
+Task: 写一篇技术博客
+Execute: 生成初稿
+Evaluate: "这篇博客结构不清晰，有些技术点没说清楚"
+Reflect: "需要：1) 增加开头引入 2) 技术点详细说明 3) 结尾总结"
+Retry: 根据反思重写
+```
+
+**实现示例：**
+```python
+def reflexion_agent(task, max_turns=3):
+    for turn in range(max_turns):
+        # 执行
+        result = agent.execute(task)
+        
+        # 评估
+        evaluation = llm.evaluate(f"""
+        任务：{task}
+        结果：{result}
+        请评估结果质量，指出不足之处。
+        """)
+        
+        # 判断
+        if evaluation.is_good:
+            return result
+        
+        # 反思
+        reflection = llm.reflect(f"""
+        任务：{task}
+        结果：{result}
+        问题：{evaluation.issues}
+        请分析原因，给出改进建议。
+        """)
+        
+        # 带着反思重试
+        task = f"{task}\n\n反思：{reflection}"
+    
+    return result
+```
+
+**面试话术：**
+> "Reflexion 的核心是用语言反馈代替传统 RL 的奖励信号。ReAct 只看环境返回什么，Reflexion 会让模型自己判断'我做得好不好，为什么不好，怎么改'。这种自我反思能力让 Agent 在复杂任务中表现大幅提升。"
+
+</details>
+
+### Q11: Agent 的上下文窗口管理有哪些策略？如何避免超出限制？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**问题背景：**
+- LLM 有上下文窗口限制（4K-200K Token 不等）
+- 对话历史、工具返回、检索内容都可能超限
+- 需要策略管理上下文大小
+
+**核心策略：**
+
+### 1. 对话历史压缩
+
+| 方法 | 说明 | 效果 |
+|------|------|------|
+| **滑动窗口** | 只保留最近 N 轮 | 简单但可能丢失重要上下文 |
+| **摘要压缩** | LLM 总结旧对话，保留要点 | 保留关键信息，但有信息损失 |
+| **重要性筛选** | 保留与当前任务相关的历史 | 更精准，但需要额外判断 |
+
+```python
+# 摘要压缩示例
+def compress_history(messages, max_turns=10):
+    if len(messages) <= max_turns:
+        return messages
+    
+    # 保留最近 N 轮
+    recent = messages[-max_turns:]
+    
+    # 压缩旧对话
+    old = messages[:-max_turns]
+    summary = llm.summarize(f"总结以下对话要点：{old}")
+    
+    return [{"role": "system", "content": summary}] + recent
+```
+
+### 2. 分层记忆管理
+
+```
+┌─────────────────────────────────────────┐
+│            分层记忆架构                    │
+├─────────────────────────────────────────┤
+│ 短期记忆：当前任务上下文（完整）           │
+│          ↓ 超过限制时总结                  │
+│ 中期记忆：最近重要对话（摘要）             │
+│          ↓ 定期归档                        │
+│ 长期记忆：向量数据库检索（按需）           │
+└─────────────────────────────────────────┘
+```
+
+### 3. 工具返回裁剪
+
+```python
+# 工具返回往往很长，需要裁剪
+def trim_tool_result(result, max_tokens=2000):
+    if len(result) <= max_tokens:
+        return result
+    
+    # 截断 + 摘要
+    truncated = result[:max_tokens]
+    summary = llm.summarize(f"总结以下内容要点：{truncated}")
+    return summary + "\n[内容已压缩]"
+```
+
+### 4. RAG 检索上下文优化
+
+| 策略 | 说明 |
+|------|------|
+| **Top-K 限制** | 只检索最相关的 K 个 Chunk |
+| **Token 预算** | 限制每个 Chunk 的最大 Token 数 |
+| **层级检索** | 先检索摘要层，再检索详细内容 |
+| **去重压缩** | 多个 Chunk 有重叠时合并 |
+
+**面试话术：**
+> "上下文管理是 Agent 落地的关键工程问题。我的策略是分层记忆：短期保留完整上下文，中期用摘要，长期用向量检索。对于工具返回，我会在传入 LLM 前先做裁剪和摘要，避免无效 Token 消耗。"
+
+</details>
+
+### Q12: AutoGPT 的工作原理是什么？它和普通 Agent 有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**AutoGPT = 首个面向公众的自主 Agent 项目（2023年）**
+
+**核心机制：**
+
+```
+用户设定目标 → AutoGPT 自主分解 → 执行 → 反思 → 调整 → 直到完成
+```
+
+**AutoGPT vs 普通 ReAct Agent：**
+
+| 维度 | ReAct Agent | AutoGPT |
+|------|------------|---------|
+| **目标设定** | 用户给定具体任务 | 用户给定高层目标 |
+| **任务分解** | 隐式（Prompt 控制） | 显式（自动拆解） |
+| **自我反思** | 简单（看 Observation） | 深入（多轮反思） |
+| **持续执行** | 有限轮次 | 持续直到完成/失败 |
+| **优先级管理** | 无 | 有（子任务排序） |
+| **长期目标追踪** | 无 | 有（目标管理器） |
+
+**AutoGPT 核心组件：**
+
+```python
+class AutoGPT:
+    def __init__(self, goal):
+        self.goal = goal
+        self.task_list = []        # 任务列表
+        self.completed_tasks = []   # 已完成任务
+        self.memory = Memory()      # 记忆系统
+        self.budget = Budget()      # Token/成本预算
+    
+    def run(self):
+        # 1. 分解目标
+        self.task_list = self.decompose_goal(self.goal)
+        
+        # 2. 持续执行直到完成
+        while self.task_list and self.budget.remaining():
+            # 取最高优先级任务
+            task = self.task_list.pop(0)
+            
+            # 3. 执行
+            result = self.execute(task)
+            
+            # 4. 自我反思
+            reflection = self.reflect(task, result)
+            
+            # 5. 根据反思调整
+            if not reflection.is_good:
+                # 添加修正任务
+                self.task_list.insert(0, reflection.fix_task)
+            
+            # 6. 更新记忆
+            self.memory.add(task, result, reflection)
+            
+            self.completed_tasks.append(task)
+        
+        return self.compile_results()
+```
+
+**AutoGPT 的局限：**
+
+| 问题 | 说明 |
+|------|------|
+| **陷入循环** | 可能反复尝试同样的失败策略 |
+| **资源消耗大** | 多次 LLM 调用，成本高 |
+| **错误累积** | 早期错误可能导致整体失败 |
+| **可控性差** | 完全自主，可能偏离目标 |
+
+**现代 Agent 的改进：**
+- **BabyAGI**：基于任务的优先级排序
+- **AgentGPT**：基于浏览器界面的 AutoGPT
+- **LangGraph**：通过图结构控制复杂工作流
+- **CrewAI**：多 Agent 协作分工
+
+**面试话术：**
+> "AutoGPT 是 2023 年的突破，证明了'让 AI 自己完成任务'是可行的。但它的局限也很明显：容易陷入循环、资源消耗大。现代 Agent（如 LangGraph）通过显式的工作流控制解决了这些问题，把自主性和可控性结合起来。"
+
+</details>
 
 ---
 

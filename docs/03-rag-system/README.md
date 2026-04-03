@@ -1295,6 +1295,107 @@ RAGAS Faithfulness 均值：> 0.85
 
 </details>
 
+### Q9: RAG 系统的语义缓存（Semantic Cache）如何实现？有哪些关键问题？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**语义缓存 = 用语义相似度判断是否命中缓存**
+
+**问题背景：**
+- 传统缓存：精确匹配（相同问题 → 相同答案）
+- 语义缓存：语义相似 → 相同答案
+
+```
+用户问题 A："如何优化 Python 代码性能？"
+用户问题 B："Python 性能优化方法有哪些？"
+→ 语义相似 → 命中缓存
+
+用户问题 C："如何优化 Python 代码性能？"
+用户问题 C 再次问："如何优化 Python 代码性能？"
+→ 完全相同 → 精确命中
+```
+
+**核心挑战：**
+
+| 挑战 | 说明 | 解决方案 |
+|------|------|----------|
+| **相似度阈值** | 设太高 → 命中率低；设太低 → 答案不相关 | 线上 A/B 测试调参 |
+| **向量检索开销** | 每次请求都要做向量检索 | 粗排 + 精排 |
+| **缓存失效** | 知识库更新后，缓存可能过期 | TTL + 版本号 |
+| **多租户** | 不同用户看到不同答案 | 用户级缓存隔离 |
+
+**实现架构：**
+```
+用户问题
+    ↓
+┌─────────────┐
+│ Query 向量化 │ → embedding
+└─────────────┘
+    ↓
+┌─────────────┐
+│ 缓存命中判断 │ → 向量数据库检索 top-k
+└─────────────┘
+    ↓
+命中？ → 是 → 返回缓存答案
+    ↓ 否
+┌─────────────┐
+│ 正常 RAG 流程 │ → 执行检索 + 生成
+└─────────────┘
+    ↓
+┌─────────────┐
+│ 写入缓存    │ → 新问题 + 答案 → 向量存入
+└─────────────┘
+```
+
+**实现示例：**
+```python
+import numpy as np
+
+class SemanticCache:
+    def __init__(self, threshold=0.85, ttl=3600):
+        self.cache = []  # [(embedding, question, answer, timestamp)]
+        self.threshold = threshold
+        self.ttl = ttl
+    
+    def get(self, question, embedding):
+        # 1. 向量检索
+        scores = [cosine(e1, embedding) for e1, _, _, _ in self.cache]
+        
+        # 2. 找最佳匹配
+        if not scores:
+            return None
+        
+        best_idx = np.argmax(scores)
+        best_score = scores[best_idx]
+        
+        # 3. 检查阈值和 TTL
+        if best_score >= self.threshold:
+            _, _, answer, timestamp = self.cache[best_idx]
+            if time.time() - timestamp < self.ttl:
+                return answer
+        
+        return None
+    
+    def set(self, question, embedding, answer):
+        # 检查缓存大小，超限时淘汰最旧的
+        if len(self.cache) > 10000:
+            self.cache.pop(0)
+        self.cache.append((embedding, question, answer, time.time()))
+```
+
+**性能对比：**
+
+| 方案 | 命中率 | 延迟 | 成本 |
+|------|--------|------|------|
+| 无缓存 | 0% | 500ms | ¥0.01/次 |
+| 精确缓存 | 10-20% | 10ms | ¥0.002/次 |
+| **语义缓存** | **30-50%** | **50ms** | **¥0.005/次** |
+
+**面试话术：**
+> "语义缓存是 RAG 成本优化的杀手级功能。我实测命中率 30-50%，配合向量数据库（如 Qdrant）的 ANN 索引，缓存检索只要 50ms，比直接调用 LLM 快 10 倍。关键是相似度阈值要调好，我一般设 0.85——太高容易漏命中，太低答案不相关。"
+
+</details>
 
 ---
 
