@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 245+ 道高频面试题 | 18 个核心模块 | 从基础到进阶系统化学习**
+**🎯 260+ 道高频面试题 | 19 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v2.3 | **最后更新:** 2026-04-03
+**版本:** v2.4 | **最后更新:** 2026-04-03
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -35,8 +35,8 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 245+ 道 |
-| 📂 **核心模块** | 18 个 |
+| 📝 **总题数** | 260+ 道 |
+| 📂 **核心模块** | 19 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
 | 🎓 **适用人群** | 初级 ~ 高级工程师 |
@@ -447,8 +447,18 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-03 | **📝 版本:** v2.3 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-03 | **📝 版本:** v2.4 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
 </div>
+
+---
+
+## 📚 新增模块（v2.4）
+
+| 序号 | 模块 | 内容 | 高频度 | 题数 |
+|------|------|------|--------|------|
+| 🚀 | [🔥 大模型推理框架（vLLM / SGLang / TensorRT-LLM）](docs/19-inference-frameworks/) | PagedAttention、RadixAttention、Continuous Batching、量化优化、选型对比 | 🔥🔥🔥🔥🔥 | 15 |
+
+*版本: v2.4 | 更新: 2026-04-03 | by 二狗子 🐕*
