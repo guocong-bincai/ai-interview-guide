@@ -1,7 +1,7 @@
 # 🔥 MCP & Skill 系统面试题
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-03-03
+> > **更新：** 2026-04-04
 > **考点：** MCP 协议、Skill 系统设计、工具标准化、Agent 互操作性
 
 ## 📋 目录
@@ -366,6 +366,177 @@ pool.push(container)  // 归还
 
 **上一模块：** [多智能体系统](../13-multi-agent-systems/)
 **下一模块：** [高级专题](../15-advanced-topics/)
+
+---
+
+## 14. MCP UI Framework（2026年1月重大更新）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 什么是 MCP UI Framework？
+
+**MCP UI Framework = MCP协议在2026年1月26日的重大扩展**
+
+**背景：**
+- 此前 MCP 纯粹是功能性的：AI 盲目读取数据或执行代码
+- 新扩展后：MCP 服务器可以在聊天窗口内直接提供**交互式图形界面**
+
+**核心创新：**
+```
+传统MCP：
+用户 → "帮我查天气" → AI调用工具 → 纯文本回复
+
+MCP UI Framework：
+用户 → "帮我查天气" → AI调用工具 → MCP服务器 →
+  → 在聊天窗口渲染【交互式天气卡片组件】
+  → 用户可以直接在聊天界面点击/滑动/选择
+```
+
+### MCP UI Framework vs 传统 Function Calling
+
+| 维度 | 传统Function Calling | MCP UI Framework |
+|------|---------------------|-------------------|
+| **交互方式** | 纯文本往返 | 聊天窗口内嵌图形UI |
+| **状态管理** | 每次调用独立 | 有状态的交互式组件 |
+| **用户体验** | 割裂感强 | 流畅一体化 |
+| **适用场景** | API调用、数据查询 | 表单填写、图表交互、多步向导 |
+
+### MCP UI Framework 工作原理
+
+```python
+# MCP Server返回带UI组件的响应
+class MCPWeatherServer:
+    @mcp.tool()
+    def get_weather(city: str) -> MCPResponse:
+        weather_data = fetch_weather(city)
+
+        # 传统方式：返回纯文本
+        # return f"北京今天晴，26度"
+
+        # MCP UI Framework方式：返回交互式UI组件
+        return MCPResponse(
+            components=[
+                WeatherCard(
+                    city=city,
+                    temperature=weather_data.temp,
+                    condition=weather_data.condition,
+                    interactive=True,  # 用户可点击
+                    actions=[
+                        Button("查看详情", action="show_details"),
+                        Button("切换城市", action="change_city")
+                    ]
+                )
+            ]
+        )
+```
+
+### 支持的 UI 组件类型
+
+| 组件类型 | 示例 | 使用场景 |
+|----------|------|----------|
+| **卡片组件** | 天气卡片、产品卡片 | 信息展示 + 快捷操作 |
+| **表单组件** | 输入框、下拉框、日期选择 | 多步数据收集 |
+| **图表组件** | 折线图、饼图、柱状图 | 数据可视化 |
+| **列表组件** | 可展开列表、网格视图 | 内容浏览 |
+| **分步向导** | Stepper、Wizard | 引导式任务 |
+
+### 面试话术
+
+> "MCP UI Framework 是2026年1月MCP协议的重大升级。核心改变是：从纯文本工具调用，进化到可以在聊天窗口内渲染交互式图形组件。这让AI应用的用户体验接近原生App，同时保持MCP的统一协议优势。我预测这会成为2026年面试的热点，因为它涉及'如何设计有状态的工具调用'这个新命题。"
+
+</details>
+
+## 15. Claude Skills vs MCP vs Function Calling（2026年选型对比）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 三角关系的本质
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           Agent 时代的工具生态三角                         │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│              Function Calling                            │
+│           (LLM内置的原始能力)                              │
+│                  ↓                                       │
+│      ┌───────────────────────┐                          │
+│      │       MCP协议          │ ← 标准化层（USB-C）      │
+│      │  (Anthropic 2024.11)  │                          │
+│      └───────────────────────┘                          │
+│                  ↓                                       │
+│      ┌───────────────────────┐                          │
+│      │     Agent Skills       │ ← 能力封装层（文件夹）    │
+│      │   (Anthropic 2025)    │                          │
+│      └───────────────────────┘                          │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 三者详细对比
+
+| 维度 | Function Calling | MCP | Agent Skills |
+|------|-----------------|-----|--------------|
+| **本质** | LLM内置的JSON Schema能力 | 标准化工具/数据连接协议 | 能力封装+记忆+工作流 |
+| **粒度** | 单个函数 | 服务（多个工具集合） | 完整技能模块 |
+| **状态管理** | 无状态 | 无状态 | 有状态（带记忆） |
+| **发现机制** | 手动注册 | 自动发现 | 按需加载 |
+| **标准化** | 无 | 统一协议 | 无标准，各自实现 |
+| **生态** | 依赖模型厂商 | 快速成长的开放生态 | Anthropic专属生态 |
+
+### Claude Skills 的核心优势
+
+**Skills = 工具集 + 指令模板 + 工作记忆**
+
+```python
+# Claude Skills的组成
+class Skill:
+    def __init__(self):
+        self.name = "数据分析Skill"
+        self.instructions = """  # 专家级指令模板
+            你是一名资深数据分析师，擅长...
+        """
+        self.tools = [query_db, visualize, export]  # 绑定工具集
+        self.memory = VectorStore()  # 领域知识记忆
+        self.context_window = 128000  # 扩展上下文
+
+# Skills的优势
+# 1. 开箱即用（Claude官方维护）
+# 2. 自动加载相关Skills
+# 3. Skills之间可组合
+# 4. 带领域专家级Prompt
+```
+
+### 什么时候选哪个？
+
+```python
+def select_tool_layer():
+    """选型决策树"""
+
+    # 场景1：需要调用外部API/数据库
+    if need_external_integration:
+        return "MCP"  # 统一协议，一次接入多处复用
+
+    # 场景2：需要构建Claude专用Agent
+    elif building_claude_agent:
+        return "Claude Skills"  # 官方优化，即插即用
+
+    # 场景3：简单的一次性工具调用
+    elif simple_function_call:
+        return "Function Calling"  # 原生支持，无需额外配置
+
+    # 场景4：企业级多Agent平台
+    else:
+        return "MCP + Skills"  # MCP做协议层，Skills做能力封装
+```
+
+### 面试话术
+
+> "2026年的工具生态已经形成三角格局：Function Calling是地基（LLM内置），MCP是中间层（协议标准化），Skills是最顶层（能力封装）。我的理解是：Function Calling解决'能不能调用'，MCP解决'怎么统一调用'，Skills解决'如何优雅地调用'。在企业内部，我们用MCP做数据源集成，用Skills做Agent能力构建，分层清晰，扩展性强。"
+
+</details>
 
 ---
 

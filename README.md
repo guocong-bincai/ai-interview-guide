@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v2.7 | **最后更新:** 2026-04-04
+**版本:** v2.8 | **最后更新:** 2026-04-04
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-04 | **📝 版本:** v2.7 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-04 | **📝 版本:** v2.8 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -455,7 +455,7 @@ Made with ❤️ for the AI Community
 
 ---
 
-## 📚 新增模块（v2.7）
+## 📚 新增模块（v2.8）
 
 | 序号 | 模块 | 内容 | 高频度 | 题数 |
 |------|------|------|--------|------|
@@ -463,14 +463,14 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 多模态Agent（Vision-Language Agent）](docs/21-multimodal-agents/) | GPT-4V、Gemini、LLaVA、视觉Agent、Document AI、Video Agent、企业级多模态架构 | 🔥🔥🔥🔥 | 18 |
 | 🆕 | [🤖 AI Agent基础（新增Q18）](docs/05-ai-agent-basics/) | 2026 Agent岗位分化、算法向vs工程向、GAIA/WebArena评估、国产框架选型 | 🔥🔥🔥🔥 | +1 |
 
-*版本: v2.7 | 更新: 2026-04-04 | by 二狗子 🐕*
+*版本: v2.8 | 更新: 2026-04-04 | by 二狗子 🐕*
 
 ---
 
-## 📚 新增模块（v2.7 - 第二批）
+## 📚 新增模块（v2.8 - 第二批）
 
 | 序号 | 模块 | 内容 | 高频度 | 题数 |
 |------|------|------|--------|------|
 | 🚀 | [🔥 RAG 高级优化（GraphRAG / HyDE / Semantic Chunking）](docs/20-rag-advanced-optimization/) | RAG-Fusion、HyDE、GraphRAG、Semantic Chunking、Context Cliff、Rerank、LLMLingua、RAGAS评估 | 🔥🔥🔥🔥 | 11 |
 
-*版本: v2.7 | 更新: 2026-04-04 | by 二狗子 🐕*
+*版本: v2.8 | 更新: 2026-04-04 | by 二狗子 🐕*
