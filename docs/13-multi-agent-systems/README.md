@@ -942,6 +942,249 @@ result = hiring_crew.kickoff(inputs={
 | **AutoGen** | 微软开源,对话式协作,灵活迭代 |
 | **CrewAI** | 角色驱动,模拟团队,结构清晰 |
 
+---
+
+## 11. 企业级Agent架构设计（2026年高频考点）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 企业级Agent平台的核心架构
+
+**三层架构设计：**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    企业级Agent平台三层架构                        │
+├─────────────────────────────────────────────────────────────────┤
+│  接入层（Gateway）                                                │
+│  ├── 负载均衡（多实例部署）                                        │
+│  ├── 鉴权认证（OAuth2/API Key）                                    │
+│  ├── 限流熔断（保护后端服务）                                       │
+│  └── 请求路由（按业务类型分流）                                      │
+│                              ↓                                     │
+│  编排层（Orchestration）                                           │
+│  ├── 意图识别（确定用哪个Agent）                                    │
+│  ├── Agent调度（协调多个Agent协作）                                 │
+│  ├── 状态管理（会话上下文、超时控制）                                │
+│  └── 结果聚合（合并多个Agent输出）                                   │
+│                              ↓                                     │
+│  能力层（Capabilities）                                           │
+│  ├── 工具注册中心（MCP Server / Function Registry）                │
+│  ├── 知识检索（RAG向量库+关键词库）                                  │
+│  ├── 模型服务（vLLM/TGI推理集群）                                   │
+│  └── 外部集成（ERP/CRM/数据库）                                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 大规模Agent编排实战
+
+**场景：客服中心AI平台（日均10万+咨询）**
+
+```python
+# 企业级Agent编排器
+class EnterpriseAgentOrchestrator:
+    def __init__(self):
+        self.agent_registry = AgentRegistry()  # Agent注册中心
+        self.tool_registry = ToolRegistry()   # 工具注册中心
+        self.state_store = RedisStateStore()   # 分布式状态存储
+        self.trace_collector = JaegerCollector()  # 链路追踪
+
+    async def handle_request(self, request: AgentRequest) -> AgentResponse:
+        trace_id = generate_trace_id()
+        self.trace_collector.start_trace(trace_id)
+
+        try:
+            # Step 1: 意图识别（路由到合适的Agent）
+            intent = await self.classify_intent(request)
+            self.trace_collector.add_span(trace_id, "intent_classification", intent)
+
+            # Step 2: 获取Agent实例（支持水平扩展）
+            agent = await self.agent_registry.get_agent(
+                intent.type,
+                pool_size=10  # 每个Agent类型10个实例
+            )
+
+            # Step 3: 执行Agent（带超时和重试）
+            result = await self.execute_with_fallback(
+                agent,
+                request,
+                timeout=30,
+                max_retries=2
+            )
+
+            # Step 4: 后处理（结果校验、敏感词过滤）
+            result = self.post_process(result)
+
+            return result
+
+        except Exception as e:
+            self.trace_collector.record_error(trace_id, e)
+            return self.fallback_response()
+
+        finally:
+            self.trace_collector.end_trace(trace_id)
+
+    async def classify_intent(self, request):
+        # 用小模型做意图分类，节省成本
+        classifier = await self.get_classifier("intent-v2")
+        return await classifier.predict(request.text)
+
+    async def execute_with_fallback(self, agent, request, timeout, max_retries):
+        for attempt in range(max_retries + 1):
+            try:
+                return await asyncio.wait_for(
+                    agent.execute(request),
+                    timeout=timeout
+                )
+            except TimeoutError:
+                if attempt == max_retries:
+                    raise
+                # 重试时换另一个Agent实例
+                agent = await self.agent_registry.get_agent(agent.type)
+```
+
+### Agent能力分级与智能路由
+
+**分级策略：**
+```python
+AGENT_TIERS = {
+    "tier1": {
+        "name": "基础问答",
+        "model": "gpt-3.5-turbo",  # 便宜快速
+        "examples": ["查天气", "简单FAQ"],
+        "cost_per_1k": 0.002,
+        "latency_p99": "500ms"
+    },
+    "tier2": {
+        "name": "复杂推理",
+        "model": "gpt-4o-mini",   # 中等成本
+        "examples": ["数据分析", "代码调试"],
+        "cost_per_1k": 0.01,
+        "latency_p99": "2s"
+    },
+    "tier3": {
+        "name": "专家级",
+        "model": "gpt-4o",        # 高成本高质量
+        "examples": ["架构设计", "复杂文案"],
+        "cost_per_1k": 0.03,
+        "latency_p99": "5s"
+    }
+}
+
+def route_to_tier(query: str) -> str:
+    # 根据问题复杂度自动路由
+    complexity = estimate_complexity(query)
+    if complexity < 0.3:
+        return "tier1"
+    elif complexity < 0.7:
+        return "tier2"
+    else:
+        return "tier3"
+```
+
+### Agent系统的可观测性设计
+
+**三大核心指标：**
+
+| 指标类型 | 具体指标 | 告警阈值 | 优化方向 |
+|----------|----------|----------|----------|
+| **延迟** | P50/P95/P99响应时间 | P99>5s | 模型分级、流式输出 |
+| **成本** | 每千次请求成本 | 环比>20%上涨 | 缓存、小模型路由 |
+| **质量** | 答案正确率、人工满意度 | <85% | Prompt优化、RAG增强 |
+| **可用性** | 系统 uptime | <99.9% | 多区域部署、熔断降级 |
+
+**全链路追踪：**
+```python
+# OpenTelemetry 集成
+from opentelemetry import trace
+
+@trace_span("agent.execute")
+async def agent_execute(agent, request):
+    with tracer.start_as_current_span("tool_call") as span:
+        for tool in plan_tools(request):
+            with tracer.start_as_current_span(f"tool.{tool.name}"):
+                result = await tool.execute(request)
+                span.set_attribute("tools_used", tool.name)
+                span.set_attribute("cost", result.cost)
+    return result
+```
+
+### Agent安全与权限控制
+
+```python
+class AgentSecurity:
+    def __init__(self):
+        self.permission_matrix = PermissionMatrix()
+
+    def check_permissions(self, agent: Agent, action: Action) -> bool:
+        """
+        企业级权限矩阵：
+        - Agent只能访问授权的工具
+        - 敏感操作需要人工审批
+        - 数据访问遵循最小权限原则
+        """
+        if action.type == "database_write":
+            # 写数据库需要审批流程
+            return self.approval_workflow.request_approval(agent, action)
+
+        if action.type == "customer_data_access":
+            # 客户数据访问需要明确授权
+            return self.verify_data_consent(action.customer_id)
+
+        return self.permission_matrix.check(agent.role, action.type)
+
+    def audit_log(self, agent_id, action, result):
+        """完整审计日志"""
+        logger.info({
+            "agent_id": agent_id,
+            "action": action,
+            "result": "success" if result else "denied",
+            "timestamp": datetime.now().isoformat()
+        })
+```
+
+### 企业级Agent平台的容灾设计
+
+```python
+class AgentFailover:
+    def __init__(self):
+        self.primary_model = "gpt-4o"
+        self.fallback_models = ["claude-3-5-sonnet", "gemini-pro"]
+
+    async def execute_with_fallback(self, prompt: str) -> str:
+        for model in [self.primary_model] + self.fallback_models:
+            try:
+                result = await self.call_model(model, prompt)
+                metrics.record("model_success", model)
+                return result
+            except ModelOverloadedError:
+                # 触发熔断，等待后重试下一个模型
+                await self.circuit_breaker.wait(model)
+                metrics.record("model_fallback", model)
+                continue
+            except ModelRateLimitError:
+                # 排队等待重试
+                await asyncio.sleep(self.get_backoff(model))
+                continue
+
+        # 所有模型都失败，返回兜底答案
+        return self.get_graceful_degradation_response()
+```
+
+### 面试话术
+
+> "企业级Agent平台的核心是'可观测、可控、可扩展'。我的设计经验：
+> 1. **分层路由**：简单问题用小模型省成本，复杂问题才上大模型，每年节省60%成本
+> 2. **全链路追踪**：每个请求带trace_id，从入口到模型调用到工具执行全程可查
+> 3. **多级容灾**：模型不可用时自动切换，核心功能降级但不中断
+> 4. **安全合规**：敏感操作必须有审批流程，所有操作留审计日志"
+
+> "关于Agent编排，我用过两种模式：
+> - **固定工作流**：适合流程稳定的场景（如审批流），用LangGraph实现
+> - **动态编排**：适合灵活响应场景（如客服），用AutoGen实现
+> 实际项目中往往混合使用，固定部分用工作流引擎，灵活部分用Agent协作"
+
+</details>
 
 ---
 
