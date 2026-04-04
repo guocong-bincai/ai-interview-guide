@@ -2694,4 +2694,105 @@ class AutoGPT:
 
 ---
 
+## 18. 2026年Agent岗位分化与面试趋势（新增考点）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 2026年Agent岗位的两条主线
+
+**2026年的Agent招聘市场已经分化成两个明确方向：**
+
+| 方向 | 典型公司 | 面试重点 | 薪资范围 |
+|------|----------|----------|----------|
+| **算法/研究向** | DeepSeek、字节、商汤、月之暗面、OpenAI、Anthropic | 论文复现、复杂推理、多Agent协作、评估体系创新 | 60-150w |
+| **工程/应用向** | 阿里、腾讯、百度、美团、字节电商 | 框架选型（LangGraph/CrewAI/AutoGen）、系统设计、稳定性、可观测性、成本控制 | 40-80w |
+
+**算法向高频考点：**
+
+| 考点 | 难度 | 常见问题 |
+|------|------|----------|
+| **复杂推理** | ⭐⭐⭐⭐⭐ | 如何让Agent做多步数学证明？CoT vs ToT vs GoT如何选型？ |
+| **多Agent协作** | ⭐⭐⭐⭐⭐ | 多个Agent如何避免死锁？如何设计通信协议？ |
+| **评估体系** | ⭐⭐⭐⭐ | 如何评估Agent效果？有哪些Benchmark？ |
+| **Memory设计** | ⭐⭐⭐⭐ | 短期/长期/情节记忆如何设计？有哪些SOTA方案？ |
+
+**工程向高频考点：**
+
+| 考点 | 难度 | 常见问题 |
+|------|------|----------|
+| **框架选型** | ⭐⭐⭐⭐ | LangGraph vs CrewAI vs AutoGen 如何选型？各自适用场景？ |
+| **系统设计** | ⭐⭐⭐⭐ | 如何设计一个日均10万+咨询的客服Agent平台？ |
+| **稳定性** | ⭐⭐⭐⭐ | 如何防止Agent陷入死循环？超时机制如何设计？ |
+| **成本控制** | ⭐⭐⭐⭐ | 如何降低Agent调用成本？小模型路由如何实现？ |
+| **可观测性** | ⭐⭐⭐⭐ | 如何监控Agent行为？有哪些关键指标？ |
+
+### 2026年Agent面试新趋势
+
+**趋势1：Agent评估成为独立考点**
+```
+传统评估：RAGAS、TruLens（已有）
+2026新增：
+- AgentEval：评估Agent任务完成率
+- GAIA Benchmark：通用AI助手评估
+- WebArena：网页操作Agent评估
+- MiniWob++：UI自动化Agent评估
+```
+
+**趋势2：特定领域Agent成为热点**
+| 领域 | Agent类型 | 核心挑战 |
+|------|----------|----------|
+| **代码** | SWE-bench Agent | 代码修复、PR审查 |
+| **数据分析** | NL2SQL Agent | 自然语言转SQL、多表关联 |
+| **运维** | SRE Agent | 告警处理、故障自愈 |
+| **安全** | Red Team Agent | 渗透测试、漏洞挖掘 |
+
+**趋势3：国产Agent框架崛起**
+| 框架 | 特点 | 适用场景 |
+|------|------|----------|
+| **LangGraph** | 图结构工作流、可控性强 | 复杂业务流程 |
+| **CrewAI** | 角色驱动、团队协作 | 内容创作、分析报告 |
+| **Dify** | 可视化编排、开源易用 | 快速原型、企业内网 |
+| **Coze** | 字节出品、插件生态 | 快速搭建聊天机器人 |
+
+### DeepSeek/字节Agent评估体系
+
+**DeepSeek的Agent评估方法：**
+```python
+# DeepSeek内部评估框架
+class AgentEval:
+    def __init__(self):
+        self.task_benchmarks = {
+            "coding": SWEBench(),      # 代码修复
+            "reasoning": MATH(),       # 数学推理
+            "tool_use": GAIA(),        # 工具使用
+            "safety": AdvBench()       # 安全对齐
+        }
+
+    def evaluate(self, agent, benchmark_name):
+        tasks = self.task_benchmarks[benchmark_name].get_tasks()
+        results = []
+        for task in tasks:
+            result = agent.execute(task)
+            score = self.task_benchmarks[benchmark_name].score(task, result)
+            results.append({
+                "task_id": task.id,
+                "success": score > threshold,
+                "score": score,
+                "cost": result.total_cost,
+                "latency": result.end_to_end_time
+            })
+        return AggregateMetrics(results)
+```
+
+**面试话术：**
+
+> "2026年的Agent面试有一个明显趋势：算法岗开始问'你如何评估Agent效果'，工程岗开始问'你的Agent如何控制成本'。我研究过DeepSeek的评估体系，他们用任务完成率+成本效率+延迟三个维度综合打分，这个框架可以直接用到生产环境。"
+
+> "关于框架选型，我的经验是：LangGraph适合复杂有状态的工作流（如审批流），CrewAI适合多角色协作（如研究+写作+审核），AutoGen适合需要灵活讨论的场景（如代码debug）。没有银弹，关键是理解每种框架的调度模型。"
+
+</details>
+
+---
+
 [返回目录 →](../../README.md)
