@@ -1,7 +1,7 @@
 # 🔥 AI 编程工具与自主 Coding Agent 面试题
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-04-03
+> **更新：** 2026-04-04
 > **考点：** AI 编程工具对比、自主 Coding Agent、CWM、SWE-bench、FIM
 
 ## 📋 目录
@@ -414,6 +414,163 @@ claude --dev
 ## 五、 工程实践与面试话术
 
 ### Q10: 在项目中如何落地 AI 编程工具？有哪些最佳实践？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**落地四步法：**
+```
+Step 1: 试点选择 → 从非核心项目开始
+Step 2: 工具选型 → 根据团队技术栈匹配
+Step 3: 流程嵌入 → 集成到现有CI/CD
+Step 4: 效果评估 → 量化效率提升
+```
+
+**最佳实践：**
+- Code Review 必须有人工审核
+- 敏感代码（安全/支付）禁用AI生成
+- 建立团队 Prompt 库，沉淀优秀用法
+- 监控AI生成代码的Bug率，持续优化
+
+</details>
+
+## 六、2026年4月最新动态：Cursor AI Agent发布（新增考点）
+
+### Q11: Cursor全新AI Agent体验 vs Claude Code vs Codex（2026-04-03）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 2026年4月三强格局
+
+**2026年4月3日，Cursor发布全新AI Agent体验，标志着AI编程工具进入"云端自主Agent"时代。**
+
+**三强最新定位：**
+
+| 工具 | 定位 | 核心优势 | 最新动态 |
+|------|------|----------|----------|
+| **Claude Code** | CLI Agent，深度推理 | 复杂任务自主完成，文件系统操作 | 2025年5月发布，2026年持续迭代 |
+| **Cursor** | AI-First IDE，生态完整 | Tab补全+Composer+全新Agent模式 | 2026-04-03发布革命性AI Agent |
+| **OpenAI Codex** | API级集成 | 企业级定制，ChatGPT集成 | API驱动，深度嵌入OpenAI生态 |
+
+**Cursor全新AI Agent的核心突破：**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Cursor AI Agent（2026-04-03）                          │
+├─────────────────────────────────────────────────────────┤
+│  1. 全流程自动化：从需求理解→代码生成→测试→部署建议       │
+│  2. 多文件协同：理解整个代码库，非单文件补全              │
+│  3. 实时协作：类似Copilot但更深度，支持多轮对话修        │
+│  4. 上下文保持：长期任务不丢上下文，支持任务中断续         │
+│  5. 主动操作：可自动执行git、终端命令、文件读写          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### AI编程工具的三代演进（2026面试必考）
+
+**第一代：Tab补全（2019-2023）**
+```
+代表：GitHub Copilot
+能力：单行/片段补全
+局限：需要人类主导，AI只是加速打字
+```
+
+**第二代：同步协作（2023-2025）**
+```
+代表：Cursor Composer
+能力：多文件编辑，AI理解项目结构
+升级：从"打辅助"到"并肩作战"
+```
+
+**第三代：云端自主Agent车队（2025-2026）**
+```
+代表：Claude Code / Cursor AI Agent / Codex
+能力：完全自主，多Agent协同
+变革：从"Copilot"到"Copilot Fleet"
+```
+
+### 选型实战建议
+
+```python
+# 2026年AI编程工具选型决策树
+def select_ai_coding_tool(team_context):
+    if team_context.complexity == "high" and team_context.size == "small":
+        return "Claude Code"  # 深度推理能力强，适合探索性任务
+    elif team_context.ide == "cursor" and team_context.workflow == "iterative":
+        return "Cursor Agent"  # IDE深度集成，协作体验好
+    elif team_context.need_api and team_context.enterprise:
+        return "OpenAI Codex"  # API驱动，企业定制灵活
+    elif team_context.budget == "low" and team_context.skill == "junior":
+        return "GitHub Copilot"  # 性价比高，适合日常辅助
+```
+
+### 面试话术
+
+> "2026年4月的最新动态是Cursor发布了全新AI Agent体验，目标是让AI从'辅助工具'变成'主力开发者'。这背后是三代演进：Tab补全→同步协作→云端自主Agent。我体验下来，Cursor新Agent的优势是'无缝融入IDE'，Claude Code的优势是'推理深度'，Codex的优势是'企业API集成'。"
+
+> "面试时如果被问到选型，我会说：AI编程工具没有绝对优劣，关键看团队场景。探索性任务用Claude Code（推理强），迭代开发用Cursor（体验好），企业集成用Codex（API灵活）。"
+
+</details>
+
+### Q12: AI编程工具的Agent模式是什么？和普通补全/生成有何本质区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+### Agent模式的本质
+
+**普通补全/生成 = 单次往返（One-Shot）**
+```
+输入：用户输入 → AI生成 → 完成
+特点：无需记忆上下文，无需多步规划
+```
+
+**Agent模式 = 持续循环（Loop）**
+```
+输入 → 思考 → 行动 → 观察 → 决策 → ... → 完成
+      ↑_____________________________↓
+         （根据结果调整下一步行动）
+```
+
+### 四大本质区别
+
+| 维度 | 普通补全/生成 | Agent模式 |
+|------|--------------|----------|
+| **执行方式** | 一次性生成 | 多轮循环直到完成 |
+| **工具使用** | 无 | 可调用搜索、终端、文件系统 |
+| **自我修正** | 无 | 可根据错误反馈调整 |
+| **任务复杂度** | 简单片段 | 端到端复杂任务 |
+
+### Agent模式的核心能力
+
+```python
+class AIProgrammingAgent:
+    def __init__(self):
+        self.planner = TaskPlanner()      # 任务分解
+        self.coder = CodeGenerator()       # 代码生成
+        self.tester = TestRunner()         # 测试执行
+        self.reviewer = CodeReviewer()     # 代码审查
+
+    def execute(self, task):
+        plan = self.planner.decompose(task)
+
+        for step in plan.steps:
+            code = self.coder.generate(step)
+            test_result = self.tester.run(code)
+
+            if test_result.failed:
+                # Agent模式：自我修正
+                code = self.reviewer.fix(code, test_result.error)
+
+        return code  # 返回完整解决方案
+```
+
+### 面试话术
+
+> "Agent模式的本质是'循环+工具+自我修正'，普通补全只是单次生成。打个比方：普通补全像是'自动完成单词'，Agent模式像是'有个实习生帮你完成整个任务，你只检查结果'。在SWE-bench测试中，Agent模式因为能自我修正，通过率从20%提升到70%+。"
+
+</details>
 
 <details>
 <summary>💡 答案要点</summary>
