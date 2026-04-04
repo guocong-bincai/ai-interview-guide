@@ -1,7 +1,7 @@
 # 🔥 大模型推理框架面试题（vLLM / SGLang / TensorRT-LLM）
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-04-03
+> **更新：** 2026-04-04
 > **考点：** vLLM、SGLang、TensorRT-LLM、PagedAttention、RadixAttention、推理优化
 
 ## 📋 目录
@@ -450,6 +450,118 @@ Target Model（大模型70B）：并行验证这4个token
 
 </details>
 
+## Q16: 什么是PD分离（Prefill-Decode分离）？为什么是2026年重要优化方向？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景问题：**
+- Prefill阶段：计算密集型（大量矩阵运算），需要高算力
+- Decode阶段：访存密集型（带宽瓶颈），需要高带宽
+- 传统方案：Prefill和Decode混在同一个GPU上，互相干扰
+
+**PD分离解决方案：**
+```
+传统方案（混合部署）：
+GPU A: [Prefill] [Decode] [Prefill] [Decode] → 互相争抢资源
+
+PD分离方案（ disaggregation）：
+GPU集群A（高算力）: 专门处理所有Prefill请求
+GPU集群B（高带宽）: 专门处理所有Decode请求
+      ↓                        ↓
+  KV Cache传输 ←→ 高速网络（RDMA）
+```
+
+**性能提升：**
+| 场景 | 混合部署 | PD分离 | 提升 |
+|------|----------|--------|------|
+| 长Prompt+短回复 | 80 tok/s | 200 tok/s | 2.5x |
+| 短Prompt+长回复 | 40 tok/s | 60 tok/s | 1.5x |
+| 高并发场景 | 延迟抖动大 | 稳定低延迟 | 质量提升 |
+
+**适用场景：**
+- 长上下文应用（RAG、知识库）
+- 高并发API服务
+- 追求稳定低延迟的生产环境
+
+**实现方案：**
+```python
+class DisaggregatedLLM:
+    def __init__(self):
+        self.prefill_cluster = PrefillEngine()   # A100/H100
+        self.decode_cluster = DecodeEngine()     # H100/H200
+        self.kv_transfer = RDMATransfer()       # 高速KV传输
+
+    async def generate(self, prompt, max_tokens):
+        # Step 1: Prefill（算力优先）
+        prefill_result = await self.prefill_cluster.forward(prompt)
+
+        # Step 2: 传输KV Cache（RDMA，高带宽）
+        kv_cache = self.kv_transfer.send(prefill_result.kv_cache)
+
+        # Step 3: Decode（带宽优先）
+        tokens = [prefill_result.last_token]
+        for _ in range(max_tokens):
+            decode_result = await self.decode_cluster.forward(kv_cache, tokens[-1])
+            tokens.append(decode_result.token)
+            kv_cache = decode_result.kv_cache
+
+        return tokens
+```
+
+**面试话术：**
+> "PD分离是2026年推理优化的重要方向。核心思想是'术业有专攻'：Prefill吃算力，Decode吃带宽，把它们分开部署能最大化硬件效率。DeepSeek-V3和很多国产大厂都在用PD分离。面试时能说出PD分离的原理和适用场景，说明你对推理优化有实战理解。"
+
+</details>
+
+## Q17: DeepSeek-V3/R1有哪些独特推理优化？为什么是2026年热点？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**DeepSeek-V3的核心技术创新：**
+
+| 技术 | 原理 | 效果 |
+|------|------|------|
+| **MoE架构** | 混合专家，按需激活 | 激活参数仅37B，推理成本大幅降低 |
+| **多头潜在注意力（MLA）** | 低秩KV压缩，减少显存 | KV Cache减少50%+ |
+| **DeepSeek-R1推理强化** | 强化学习优化推理链 | 数学/代码推理能力对标o1 |
+| **FP8量化** | 8位浮点，精度损失小 | 显存减少50%，速度提升40% |
+
+**DeepSeek的MLA（多头潜在注意力）：**
+```
+传统MHA（Multi-Head Attention）：
+每个token存储完整的K和V向量 → 显存占用大
+
+MLA（Multi-head Latent Attention）：
+先压缩到低维潜在向量 → 解码时再恢复
+→ KV Cache显存减少50%以上
+
+代码示意：
+# 传统MHA
+k = W_k @ x  # [batch, seq, heads, dim]
+v = W_v @ x
+
+# MLA
+z = W_down @ x          # 压缩到低维 [batch, seq, latent_dim]
+k = W_k @ W_down @ x   # 解码时恢复
+v = W_v @ z
+```
+
+**为什么DeepSeek是2026年热点：**
+
+| 原因 | 说明 |
+|------|------|
+| **成本优势** | API价格是GPT-4o的1/10，开发者大量迁移 |
+| **开源友好** | DeepSeek-V3开源，可本地部署 |
+| **推理优化强** | MLA+MoE+FP8组合，推理效率业界领先 |
+| **R1推理模型** | DeepSeek-R1对标OpenAI o1，推理能力强 |
+
+**面试话术：**
+> "DeepSeek在2026年火的原因很简单：便宜+开源+推理强。DeepSeek-V3用MLA（多头潜在注意力）把KV Cache压缩了50%以上，配合MoE架构，推理成本是GPT-4o的1/10。DeepSeek-R1的推理能力在数学和代码任务上已经对标o1，但价格只有o1的1%。这是国产大模型的突破，面试时能分析DeepSeek的技术细节，说明你关注行业前沿。"
+
+</details>
+
 ---
 
-*版本: v2.4 | 更新: 2026-04-03 | by 二狗子 🐕*
+*版本: v2.5 | 更新: 2026-04-04 | by 二狗子 🐕*
