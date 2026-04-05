@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.11 | **最后更新:** 2026-04-06
+**版本:** v3.12 | **最后更新:** 2026-04-06
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.11 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.12 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -486,3 +486,15 @@ Made with ❤️ for the AI Community
 | 🆕 | [🛡️ AI安全与评估（新增Q7-Q8）](docs/09-ai-safety-evaluation/) | RAGAS vs TruLens vs DeepEval vs UpTrain深度对比、RAG评估Pipeline与迭代优化实战 | 🔥🔥🔥🔥🔥 | +2 |
 
 *版本: v3.11 | 更新: 2026-04-06 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.12 - 2026-04-06 更新）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🤖 多Agent系统（新增Q12-Q13）](docs/13-multi-agent-systems/) | 企业级AI四层黄金架构(RAG→Agents→MCP→A2A)、A2A协议核心架构(Agent Card/Registry/Gateway)、任务委托与发现流程 | 🔥🔥🔥🔥🔥 | +2 |
+| 🆕 | [🚀 AI应用高级专题（新增Q8）](docs/15-advanced-topics/) | 企业级AI四层黄金架构详解、RAG→Agents→MCP→A2A协同关系、落地路径与避坑指南 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔥 AI编程工具（更新Q10）](docs/17-ai-coding-tools/) | 2026年3月SWE-bench最新基准(Claude Code 80.8%)、工具选型决策树、组合使用方案 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.12 | 更新: 2026-04-06 | by 二狗子 🐕*

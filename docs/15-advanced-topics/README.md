@@ -340,6 +340,32 @@ class CodingAgent:
 
 </details>
 
+### Q8: 什么是企业级AI四层黄金架构？RAG、AI Agents、MCP、A2A如何协同？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**四层架构是2026年企业级AI落地的标准框架：**
+
+| 层级 | 技术 | 核心职责 | 类比 |
+|------|------|----------|------|
+| **Layer 1** | RAG | 精准知识注入，解决幻觉 | 知识库弹药 |
+| **Layer 2** | AI Agents | 任务闭环执行（Plan-Act-Reflect循环） | 执行大脑 |
+| **Layer 3** | MCP | 工具标准化连接与安全管控 | USB-C接口 |
+| **Layer 4** | A2A | 多专用Agent有序协作 | 团队沟通协议 |
+
+**核心价值：** 四项技术不是竞争关系，而是分层协作：RAG让AI"知道"，Agents让AI"做完"，MCP让AI"用好工具"，A2A让多AI"协同作战"
+
+**落地顺序（从下到上）：**
+1. 先搭RAG → 2. 落地单Agent → 3. 引入MCP → 4. 搭建A2A
+
+> 常见错误：一上来就做A2A，但RAG质量不过关，Agent连工具都无法稳定调用
+
+**面试话术：**
+> "企业级AI的竞争本质是架构设计能力的竞争，不是单点模型能力的竞争。再强大的模型，没有RAG提供精准上下文，Agent也答不准；没有MCP统一工具连接，Agent连系统都调不动；没有A2A，多Agent协同就是空谈。四层各司其职，从下到上依次落地，才是企业级AI的正确路径。"
+
+</details>
+
 ## 四、AI 应用调试与问题排查
 
 ### Q8: AI 应用出现问题，如何系统性地排查？
@@ -492,6 +518,9 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 | **Devin** | 自主编程 Agent，能独立完成开发任务 |
 | **多 Agent 协作** | 多个 Agent 分工合作完成复杂任务 |
 | **协调者模式** | 一个 Agent 协调其他 Agent 的工作 |
+| **四层架构** | RAG(知识)→Agents(执行)→MCP(工具)→A2A(协作) |
+| **Plan-Act-Reflect** | Agent核心循环：规划→执行→反思 |
+| **A2A协议** | Agent间协作协议：Agent Card + Registry + Gateway |
 
 ### AI 产品思维
 
@@ -499,6 +528,7 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 |------|------------|
 | **场景评估** | 技术可行性、商业价值、数据准备、用户体验、风险评估 |
 | **企业级架构** | 高可用、高性能、高并发、安全、可扩展、可观测、成本可控 |
+| **四层黄金架构** | RAG(知识)+Agents(执行)+MCP(连接)+A2A(协同) |
 | **ROI** | AI 方案收益/成本，建议>3 |
 
 ### 调试与优化
@@ -522,6 +552,7 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-06 | 新增Q8企业级AI四层黄金架构；更新Module13新增Q12-Q13 A2A协议与四层架构 |
 | 2026-03-03 | 新增 AI 应用开发高级专题面试题 10 道 |
 
 

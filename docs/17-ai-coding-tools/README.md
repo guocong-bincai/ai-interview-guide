@@ -76,7 +76,7 @@ Pass@10 = k 次内做对的题数 / 总题数
 ```
 
 **面试话术：**
-> "SWE-bench 是最接近真实场景的评测，它用真实的 GitHub Issue 和 PR 测试模型解决实际问题能力。2025 年 11 月 Claude 模型在 SWE-bench 通过率达到 65.8%，代表代码智能的重大突破。"
+> "SWE-bench 是最接近真实场景的评测，它用真实的 GitHub Issue 和 PR 测试模型解决实际问题能力。2026 年 3 月 Claude Code 在 SWE-bench 通过率达到 80.8%，代表代码智能的历史性突破，代表代码智能的重大突破。"
 
 </details>
 
@@ -968,7 +968,7 @@ Self-Hosted模式（安全可控）：
 
 ---
 
-*版本: v2.7 | 更新: 2026-04-06 | by 二狗子 🐕*
+*版本: v2.8 | 更新: 2026-04-06 | by 二狗子 🐕*
 
 ---
 
@@ -1127,6 +1127,66 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
 
 **面试话术：**
 > "Cursor Rules 是我在团队推广 AI 编程工具时的关键工具。我们定义了统一的项目规范：代码风格、安全规则、业务约束全部写进 .cursorrules。这样 AI 生成的代码天然符合团队要求，减少了 60% 的 Code Review 返工。特别是安全规则，比如禁止 SQL 拼接、禁止硬编码 Token，AI 会自动遵守，比人工提醒更可靠。"
+
+</details>
+
+
+---
+
+## 七、2026年AI编程工具评测基准与选型决策（Q10）
+
+### Q10: 2026年主流AI编程工具的SWE-bench评测结果如何？如何根据场景选型？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026年3月最新SWE-bench实测数据：**
+
+| 工具 | SWE-bench分数 | 市场定位 | 月费用 |
+|------|--------------|----------|--------|
+| **Claude Code** | **80.8%** | CLI Agent，推理最强 | $100（Max套餐） |
+| **Cursor** | ~65% | AI-First IDE，Tab补全最强 | $20-40/月 |
+| **Windsurf** | ~55% | 性价比之选，Cascade AI | $15/月 |
+| **GitHub Copilot** | ~50% | IDE原生辅助，快速补全 | $10-19/月 |
+| **Devin** | ~30% | 首个自主编程Agent | 付费订阅 |
+
+**核心结论（2026年3月）：**
+- 单论Agent能力：**Claude Code（80.8%）最强**
+- 单论IDE体验和补全质量：**Cursor领先**
+- 性价比首选：**Windsurf（$15/月）**
+
+**场景选型决策树：**
+
+```
+你是谁？
+├── 个人开发者（预算有限）
+│   ├── 日常补全 → Windsurf（$15，便宜够用）
+│   └── 重度编程 → Claude Code（$100，推理最强）
+├── 企业用户（国内）
+│   ├── 阿里云生态 → 通义灵码（免费+深度集成）
+│   └── 国产化需求 → CoPaw（桌面Agent）
+├── 团队协作
+│   ├── 快速补全为主 → GitHub Copilot（集成度最高）
+│   └── 大型重构为主 → Cursor Composer（多文件编辑最强）
+└── AI编程研究者
+    └── Claude Code（学术研究友好，API可观测）
+```
+
+**组合使用方案（成本最优）：**
+
+| 组合 | 月费用 | 适用场景 |
+|------|--------|----------|
+| **Windsurf + Claude Code** | $115 | 个人开发者性价比最优 |
+| **Cursor + Copilot** | $29-59 | 团队多场景覆盖 |
+| **通义灵码 + Trae** | 免费 | 国内中小团队 |
+
+**Benchmark说明：**
+- **SWE-bench**：用真实GitHub Issue和PR测试，2026年主流模型已突破80%
+- **HumanEval**：Python代码生成基准，GPT-4达85%+
+- **Pass@1**：一次生成正确率，Claude Code最强
+
+**面试话术：**
+> "2026年3月Claude Code在SWE-bench达到80.8%，意味着AI能独立解决8成以上的真实GitHub Issue，这是代码智能的历史性突破。选工具要看场景：日常补全用Copilot或Windsurf，重度重构用Cursor或Claude Code。成本敏感选Windsurf，追求最强推理选Claude Code。我的组合是Windsurf做补全，Claude Code做复杂任务，月成本$115但效率翻倍。"
 
 </details>
 
