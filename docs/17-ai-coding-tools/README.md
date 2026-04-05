@@ -342,6 +342,7 @@ output = prefix + middle + suffix
 | Claude Code（2024） | ~50% |
 | **CWM（2025）** | **65.8%** |
 | Claude 3.7 Sonnet（2026） | ~72% |
+| **Opus 4.6（2026）** | **~80%** |
 
 **为什么 SWE-bench 重要：**
 - 比 HumanEval 更接近真实软件开发场景
@@ -353,7 +354,56 @@ output = prefix + middle + suffix
 
 </details>
 
-### Q9: 什么是 AI 编程工具的"Agent 模式"？和普通补全有什么区别？
+### Q9: SWE-bench Multimodal和Terminal-Bench是什么？2026年有哪些新评测？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026年SWE-bench的重要更新：**
+
+**SWE-bench Multimodal（新发布）：**
+
+| 维度 | 说明 |
+|------|------|
+| **核心变化** | Issue描述中包含图片（如UI截图、错误界面） |
+| **评测难度** | 需要理解图像+代码+文字的跨模态能力 |
+| **适用场景** | 前端Bug修复、视觉相关问题 |
+
+**为什么重要：**
+- 传统SWE-bench只评测纯文本能力
+- 实际开发中大量问题需要看图理解（如"这个按钮位置不对"）
+- SWE-bench Multimodal填补了这个空白
+
+**Terminal-Bench（新评测）：**
+
+| 维度 | 说明 |
+|------|------|
+| **核心** | 评测AI在真实终端环境中的任务完成能力 |
+| **与SWE-bench的区别** | SWE-bench评测代码修复，Terminal-Bench评测命令行操作 |
+| **涵盖任务** | git操作、文件编辑、构建运行、调试排错 |
+
+**Terminal-Bench任务示例：**
+```
+"用git rebase将feature分支变基到main上，然后解决冲突，最后跑测试"
+→ AI需要：执行git命令→解决冲突→运行测试→验证结果
+```
+
+**2026年AI编程评测全景：**
+
+| 评测 | 评测内容 | 侧重能力 |
+|------|----------|----------|
+| **HumanEval** | Python函数补全 | 基础代码生成 |
+| **SWE-bench** | GitHub Issue代码修复 | 真实Bug修复 |
+| **SWE-bench Multimodal** | 带图片的GitHub Issue | 视觉+代码联合理解 |
+| **Terminal-Bench** | 终端命令行任务 | DevOps/运维能力 |
+| **LiveCodeBench** | 多版本持续评测 | 防止数据污染 |
+
+**面试话术：**
+> "SWE-bench Multimodal让评测更接近真实开发场景，因为真实Bug往往需要看截图理解。Terminal-Bench则填补了'AI在终端里干活'的能力评测空白——git操作、服务器部署、CI/CD故障排查这些，SWE-bench测不了。面试时能说出这四个评测的区别，说明你对AI编程评测有系统性了解。"
+
+</details>
+
+### Q10: 什么是 AI 编程工具的"Agent 模式"？和普通补全有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -413,7 +463,7 @@ claude --dev
 
 ## 五、 工程实践与面试话术
 
-### Q10: 在项目中如何落地 AI 编程工具？有哪些最佳实践？
+### Q11: 在项目中如何落地 AI 编程工具？有哪些最佳实践？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -436,7 +486,7 @@ Step 4: 效果评估 → 量化效率提升
 
 ## 六、2026年4月最新动态：Cursor AI Agent发布（新增考点）
 
-### Q11: Cursor全新AI Agent体验 vs Claude Code vs Codex（2026-04-03）
+### Q12: Cursor全新AI Agent体验 vs Claude Code vs Codex（2026-04-03）
 
 <details>
 <summary>💡 答案要点</summary>
@@ -513,7 +563,7 @@ def select_ai_coding_tool(team_context):
 
 </details>
 
-### Q12: AI编程工具的Agent模式是什么？和普通补全/生成有何本质区别？
+### Q13: AI编程工具的Agent模式是什么？和普通补全/生成有何本质区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -630,7 +680,7 @@ class AIProgrammingAgent:
 
 ---
 
-### Q15: GitHub Copilot Workspace是什么？2026年有哪些新变化？
+### Q17: GitHub Copilot Workspace是什么？2026年有哪些新变化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -694,7 +744,7 @@ vs 单Agent：单Agent处理所有步骤
 
 ---
 
-### Q16: Cursor 3 "Glass"有哪些重磅更新？和Claude Code有何区别？
+### Q18: Cursor 3 "Glass"有哪些重磅更新？和Claude Code有何区别？
 
 <details>
 <summary>💡 答案要点</summary>
