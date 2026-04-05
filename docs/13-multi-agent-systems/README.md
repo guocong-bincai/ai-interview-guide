@@ -1375,6 +1375,106 @@ class ProductionPolicyEngine:
 
 ---
 
+## 13. Microsoft Agent Governance Toolkit（2026年4月开源发布）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 什么是Agent Governance Toolkit？
+
+**发布方：** Microsoft（2026年4月2日）
+**定位：** 开源的Agent运行时安全框架
+**官网：** opensource.microsoft.com/blog/2026/04/02/introducing-the-agent-governance-toolkit
+
+### 解决的问题
+
+> "Policy Engine定义了规则，但谁来执行？谁来审计？谁来检测异常行为？Agent Governance Toolkit填补了这个空白。"
+
+### 四大核心组件
+
+| 组件 | 功能 | 解决的问题 |
+|------|------|------------|
+| **Policy Engine** | 定义和执行Agent行为策略 | "Agent能做什么" |
+| **Identity Layer** | Agent身份认证和授权 | "Agent是谁" |
+| **Audit Trail** | 完整记录所有Agent操作 | "Agent做了什么" |
+| **Kill Switch** | 紧急停止Agent操作 | "Agent失控了怎么办" |
+
+### Kill Switch：紧急停止机制
+
+```python
+# Kill Switch的典型实现
+class AgentKillSwitch:
+    def __init__(self):
+        self.active_agents = {}  # agent_id -> status
+        self.global_kill = False  # 全局终止开关
+
+    def emergency_stop(self, agent_id=None):
+        """紧急停止指定Agent或所有Agent"""
+        if agent_id:
+            self.active_agents[agent_id] = "STOPPED"
+            await self.graceful_shutdown(agent_id)
+        else:
+            self.global_kill = True
+            for aid in self.active_agents:
+                self.active_agents[aid] = "STOPPED"
+                await self.graceful_shutdown(aid)
+
+    async def graceful_shutdown(self, agent_id):
+        # 停止接收新任务
+        # 等待当前任务完成或超时
+        # 关闭所有工具连接
+        # 记录最终状态
+        pass
+
+    def is_kill_switch_armed(self) -> bool:
+        return self.global_kill or any(
+            s == "STOPPED" for s in self.active_agents.values()
+        )
+```
+
+### Audit Trail：操作可追溯
+
+```python
+# 每个Agent操作必须记录到审计日志
+@dataclass
+class AuditRecord:
+    timestamp: datetime
+    agent_id: str
+    action: str
+    tool_called: str
+    parameters: dict
+    result: str
+    user_id: str  # 谁触发的
+    session_id: str
+
+# 审计日志必须包含：
+# 1. 谁（user_id/agent_id）
+# 2. 什么时候（timestamp）
+# 3. 做了什么（action/tool/parameters）
+# 4. 结果是什么（result）
+# 5. 上下文是什么（session_id）
+```
+
+### 与Policy Engine的关系
+
+```
+Policy Engine：定义规则
+Agent Governance Toolkit：执行+审计+Kill Switch
+
+两者结合 = 完整的Agent安全体系
+
+Policy Engine负责"规则制定"（静态）
+Agent Governance Toolkit负责"规则执行"（动态）
+```
+
+### 面试话术
+
+> "Microsoft Agent Governance Toolkit是2026年4月发布的开源框架，解决了'Policy Engine定义了规则但谁来执行'的问题。四大组件：Policy Engine（规则）、Identity（身份）、Audit Trail（审计）、Kill Switch（紧急停止）。面试时能说出Kill Switch的graceful shutdown机制和Audit Trail必须包含的五个要素，说明你有企业级Agent安全落地的实战理解。"
+
+</details>
+
+---
+
 **上一模块：** [框架与工具](../12-frameworks-tools/)
 **下一模块：** [MCP Skill 系统](../14-mcp-skill-systems/)
 

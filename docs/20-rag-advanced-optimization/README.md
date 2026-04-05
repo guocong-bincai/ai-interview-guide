@@ -966,4 +966,70 @@ class AgenticRetriever:
 
 ---
 
-*版本: v2.6 | 更新: 2026-04-05 | by 二狗子 🐕*
+### Q15: 如何做生产环境的RAG监控？有哪些关键指标？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么RAG监控在2026年变得更重要：**
+- RAG从"加分项"变成"标配"，监控差异成为竞争优势
+- 数据漂移导致检索质量随时间下降
+- 端到端可观测性是SRE的核心要求
+
+**RAG监控三大维度：**
+
+| 维度 | 指标 | 工具 |
+|------|------|------|
+| **检索质量** | Context Precision/Recall、F1 | RAGAS、DeepEval |
+| **生成质量** | Faithfulness、Answer Relevancy | RAGAS、TruLens |
+| **系统性能** | P50/P95/P99延迟、QPS、成本 | Prometheus+Grafana |
+
+**检索质量随时间漂移的监控：**
+```python
+# 关键：监控embedding drift
+class RAGDriftMonitor:
+    def detect_embedding_drift(self):
+        # 定期用新查询测试检索质量
+        test_queries = load_periodic_eval_set()
+
+        retrieval_metrics = []
+        for query in test_queries:
+            docs = retriever.retrieve(query)
+            metrics = self.evaluate_retrieval(query, docs)
+            retrieval_metrics.append(metrics)
+
+        avg_precision = mean([m["context_precision"] for m in retrieval_metrics])
+
+        # 如果检索精度下降超过阈值，触发告警
+        if avg_precision < self.baseline * 0.9:
+            self.alert("检索质量下降超过10%，需要重新训练Embedding")
+
+        return avg_precision
+```
+
+**端到端RAG监控看板：**
+
+| 指标 | 告警阈值 | 应对措施 |
+|------|----------|----------|
+| **检索召回率** | < 0.7 | 重新索引或调整chunk策略 |
+| **Faithfulness评分** | < 0.85 | 检查Prompt或检索质量 |
+| **P99延迟** | > 5秒 | 检查向量数据库或增加缓存 |
+| **Token消耗** | > 预算120% | 启用缓存或降级模型 |
+
+**2026年RAG监控新趋势：**
+
+| 趋势 | 说明 |
+|------|------|
+| **自动基准更新** | 每周自动更新测试集，防止数据泄露 |
+| **A/B Testing** | 新版本Embedding模型与旧版A/B对比 |
+| **User Feedback Loop** | 用户点击/踩收集，用反馈信号优化检索 |
+| **Cost-per-Query** | 追踪每个Query的成本，优化token使用 |
+
+**面试话术：**
+> "生产环境RAG监控的三个层次：检索质量（Context Precision/Recall）、生成质量（Faithfulness）、系统性能（延迟/QPS）。核心挑战是'数据漂移'——业务数据变了但Embedding没更新，检索质量会悄悄下降。我的策略是每周跑一次评估集对比，发现检索F1下降超过10%就触发告警重新训练Embedding，而不是等问题被用户发现。"
+
+</details>
+
+---
+
+*版本: v2.7 | 更新: 2026-04-05 | by 二狗子 🐕*
