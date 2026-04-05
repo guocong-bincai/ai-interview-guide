@@ -694,4 +694,75 @@ vs 单Agent：单Agent处理所有步骤
 
 ---
 
-*版本: v2.4 | 更新: 2026-04-05 | by 二狗子 🐕*
+### Q16: Cursor 3 "Glass"有哪些重磅更新？和Claude Code有何区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Cursor 3 "Glass"于2026年4月2日重磅发布**
+
+**三大核心更新：**
+
+| 更新 | 说明 | 对比Claude Code |
+|------|------|----------------|
+| **Design Mode** | AI理解设计稿，自动生成前端代码（Figma/图片→代码） | Claude Code无此功能 |
+| **Parallel Cloud Agents** | 云端20个Agent并行执行，加速复杂任务 | Claude Code单Agent串行 |
+| **Self-Hosted Cloud Agents** | 代码和工具执行完全在企业内部网络运行，数据不出域 | 企业安全必备 |
+
+### Design Mode详解
+
+**Design Mode = 设计师稿直接转代码的AI工作流**
+
+```
+设计稿（Figma/图片）
+    ↓
+Cursor AI识别设计元素（颜色/字体/布局/组件）
+    ↓
+生成HTML/CSS/React代码
+    ↓
+AI自动对比设计稿和代码，微调至像素级匹配
+```
+
+**Design Mode适用场景：**
+- 快速原型开发（设计师→可运行页面）
+- UI还原度要求高的项目
+- Design-to-Code自动化流水线
+
+### Self-Hosted Cloud Agents（企业安全关键功能）
+
+**为什么重要：金融、医疗、政府等数据敏感行业**
+
+```
+传统Cloud Agent（数据有风险）：
+代码 → 上传到云端AI处理 → 返回结果
+     ↑ 代码可能包含：
+     - 业务逻辑
+     - 数据库密码
+     - 内部API密钥
+
+Self-Hosted（数据不出域）：
+代码 → 在企业内部机器执行 → 结果返回
+     ↑ 所有处理在本地/私有云
+```
+
+### Cursor 3 vs Claude Code vs Copilot 2026年4月最新格局
+
+| 维度 | Cursor 3 | Claude Code | Copilot |
+|------|----------|-------------|----------|
+| **Design Mode** | ✅ 独有 | ❌ | ❌ |
+| **Self-Hosted** | ✅ | ❌ | ❌ |
+| **并行Agent** | ✅ 20个 | ❌ 单Agent | ❌ |
+| **推理深度** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **IDE集成** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **企业安全** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| **市场份额** | 增长最快 | 领先（Claude系列） | 42% |
+
+### 面试话术
+
+> "Cursor 3在2026年4月的更新非常有战略眼光。Design Mode解决了'设计到代码'的最后一公里，Self-Hosted Cloud Agents则打入了企业安全市场——这是Copilot和Claude Code的盲区。面试时能分析Cursor 3 vs Claude Code的技术差异，说明你关注AI编程工具的演进趋势。"
+
+</details>
+
+---
+
+*版本: v2.5 | 更新: 2026-04-05 | by 二狗子 🐕*

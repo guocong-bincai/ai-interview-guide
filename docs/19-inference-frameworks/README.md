@@ -564,4 +564,59 @@ v = W_v @ z
 
 ---
 
-*版本: v2.5 | 更新: 2026-04-04 | by 二狗子 🐕*
+## 九、2026年推理引擎最新格局：SGLang vs vLLM vs LMDeploy（2026年4月新增）
+
+### Q11: SGLang和LMDeploy在2026年有哪些新突破？如何选择？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026年H100推理引擎性能排行：**
+
+| 引擎 | H100吞吐量 | 适用场景 | 核心优势 |
+|------|------------|----------|----------|
+| **SGLang** | ~16,200 tokens/s | 多轮对话、共享前缀 | RadixAttention缓存复用、29%高于vLLM |
+| **LMDeploy** | ~16,200 tokens/s | 量化模型服务 | C++ TurboMind引擎，量化加速最强 |
+| **vLLM** | ~12,500 tokens/s | 通用生产环境 | 生态最成熟，兼容性最好 |
+
+**SGLang 2026年新突破：**
+
+| 突破 | 时间 | 说明 |
+|------|------|------|
+| **GB300 NVL72性能** | 2026年2月 | SGLang在NVIDIA GB300 NVL72上实现25倍推理性能提升 |
+| **SGLang Diffusion** | 2026年1月 | 支持视频和图像生成加速 |
+| **DeepSeek V3推理** | 2025年12月 | SGLang比vLLM快3.1倍 |
+| **MiMo/LLaDA支持** | 2025年12月 | Day-0支持最新开源模型 |
+
+**LMDeploy的核心优势：**
+```
+LMDeploy = 小米出品的推理引擎
+核心：C++ TurboMind引擎
+强项：量化模型服务（INT4/INT8）
+
+vs SGLang/vLLM:
+- 量化模型场景：LMDeploy > SGLang > vLLM
+- 非量化场景：SGLang ≈ LMDeploy > vLLM
+```
+
+**SGLang vs vLLM选型决策：**
+```python
+def select_inference_engine(workload, hardware):
+    if workload.type == "shared_prefix":  # 多轮对话、客服
+        return "SGLang"  # RadixAttention复用KV cache
+    elif workload.type == "quantized":    # INT4/INT8量化部署
+        return "LMDeploy"  # C++量化加速最强
+    elif hardware.vendor != "NVIDIA":     # AMD/国产芯片
+        return "vLLM"  # 生态最广
+    else:
+        return "vLLM"  # 通用稳妥
+```
+
+**面试话术：**
+> "2026年推理引擎的格局是'三足鼎立'：SGLang在多轮对话场景领先（RadixAttention），LMDeploy在量化模型场景最强（TurboMind），vLLM是通用生产环境的默认选择。特别值得关注的是SGLang在GB300 NVL72上实现了25倍性能提升，这代表了硬件和软件协同优化的新方向。"
+
+</details>
+
+---
+
+*版本: v2.6 | 更新: 2026-04-05 | by 二狗子 🐕*
