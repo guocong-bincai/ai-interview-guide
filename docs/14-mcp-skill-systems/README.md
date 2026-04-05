@@ -788,3 +788,114 @@ A2A负责"谁干什么"，MCP负责"怎么做到"
 ---
 
 [返回目录 →](../../README.md)
+
+---
+
+## 五、MCP 新动态与 2026 前沿（Q13-Q14）
+
+### Q13: MCP Apps 是什么？2026年的交互式UI能力有哪些突破？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**什么是 MCP Apps：**
+
+MCP Apps 是 2026 年 1 月 MCP 生态的重大进化——从纯文本返回到交互式 UI 组件。
+
+**传统 MCP vs MCP Apps：**
+
+| 对比 | 传统 MCP | MCP Apps |
+|------|----------|----------|
+| **工具返回** | 文本 / JSON | 可交互 UI 组件 |
+| **用户体验** | AI 回复文本描述 | 仪表盘、表单、图表 |
+| **渲染方式** | Client 自己处理 | 直接在对话界面渲染 |
+| **安全隔离** | 无特殊隔离 | iframe 沙箱隔离 |
+
+**MCP Apps 能返回的 UI 组件：**
+- 可视化仪表盘
+- 交互式表单
+- 数据图表
+- 多步骤工作流界面
+- 实时预览组件
+
+**技术实现：**
+- 基于 HTML 内容渲染
+- UI 运行在沙箱化 iframe 中
+- iframe 无法访问父窗口
+- 无法发起任意网络请求
+- 权限严格受限
+
+**已支持 MCP Apps 的客户端：**
+- ChatGPT
+- Claude
+- Goose
+- **VS Code（首个完整 MCP Apps 支持的 AI 代码编辑器）**
+
+**MCP Apps 的意义：**
+> MCP Apps = MCP-UI + OpenAI Apps SDK 的融合产物，OpenAI 与 MCP-UI 团队合作制定的共享开放标准
+
+**面试话术：**
+> "MCP Apps 让 MCP 从'工具调用-文本返回'升级到'工具调用-UI交互'时代。比如一个数据分析 MCP Server，调用后直接返回可交互的图表，用户可以在对话界面里直接筛选数据，而不只是看到一段文字描述。安全上，所有 UI 运行在 iframe 沙箱里，不用担心 XSS 问题。"
+
+</details>
+
+### Q14: MCP 捐赠 Linux Foundation 意味着什么？与 A2A 协议是什么关系？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**MCP 捐赠 Linux Foundation（2025年底）：**
+
+**背景：** Anthropic 将 MCP 捐赠给 Linux Foundation 新成立的 Agentic AI Foundation（AAIF）
+
+**创始支持方：**
+- Anthropic、Block、OpenAI（共同发起）
+- Google、Microsoft、Amazon Web Services、Cloudflare、Bloomberg（支持方）
+
+**同时成为 AAIF 创始项目的还有：**
+- Block 的 Goose（开源 AI 代理框架）
+- OpenAI 的 AGENTS.md（Agent 行为规范标准）
+
+**为什么这件事重要：**
+
+| 维度 | 影响 |
+|------|------|
+| **中立治理** | 不受单一公司主导，降低企业采纳门槛 |
+| **行业共识** | OpenAI/Google/Microsoft 共同支持，说明是行业标准 |
+| **长期可持续** | Linux 基金会治理经验（Linux/K8s/Node.js） |
+
+**MCP 生态现状（截至 2026年）：**
+- SDK 月下载量：**9700 万次**
+- 公开 MCP Server：**超过 1 万个**
+- 主流 AI 应用全部接入：Claude Desktop、ChatGPT、VS Code、Cursor、Windsurf、Claude Code
+
+**A2A 协议（Agent-to-Agent，与 MCP 并列）：**
+
+**MCP Dev Summit NYC（2026年4月）同期发布：**
+
+| 协议 | 定位 | 解决什么问题 |
+|------|------|-------------|
+| **MCP** | Agent → 工具/数据源 | 让 AI 调用外部能力 |
+| **A2A** | Agent → Agent 协作 | 让多个 Agent 互相配合 |
+
+**A2A 场景示例：**
+```
+Claude Code分析代码 → A2A → Copilot自动写测试
+GitHub Agent审查PR  → A2A → Slack Agent通知团队
+```
+
+**A2A 任务结构：**
+```json
+{
+    "task_id": "task-123",
+    "agent_id": "claude-code-prod",
+    "capabilities": ["code_analysis", "refactoring"],
+    "status": "in_progress"
+}
+```
+
+**面试话术：**
+> "MCP 捐赠 Linux Foundation 是 2025 年 AI 基础设施领域最重要的事件之一。这意味着 MCP 不再是 Anthropic 的私有协议，而是整个行业的开放标准。OpenAI 和 Google 同时支持同一个协议，说明行业共识已经形成。同时发布的 A2A 协议解决的是另一个问题：Agent 与 Agent 之间的协作标准。MCP + A2A = AI 时代的网络协议（TCP + HTTP）。"
+
+</details>
+

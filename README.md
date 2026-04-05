@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.10 | **最后更新:** 2026-04-06
+**版本:** v3.11 | **最后更新:** 2026-04-06
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.10 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.11 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -474,3 +474,15 @@ Made with ❤️ for the AI Community
 | 🚀 | [🔥 RAG 高级优化（GraphRAG / HyDE / Semantic Chunking）](docs/20-rag-advanced-optimization/) | RAG-Fusion、HyDE、GraphRAG、Semantic Chunking、Context Cliff、Rerank、LLMLingua、RAGAS评估 | 🔥🔥🔥🔥 | 11 |
 
 *版本: v3.0 | 更新: 2026-04-04 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.11 - 2026-04-06 更新）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q13-Q14）](docs/14-mcp-skill-systems/) | MCP Apps交互式UI能力、MCP捐赠Linux Foundation意义、A2A协议对比、企业级MCP架构 | 🔥🔥🔥🔥 | +2 |
+| 🆕 | [🔥 AI编程工具（新增Q8-Q9）](docs/17-ai-coding-tools/) | Windsurf/Trae/通义灵码/CoPaw横评、Cursor Rules企业级配置、AI工具组合使用策略 | 🔥🔥🔥🔥 | +2 |
+| 🆕 | [🛡️ AI安全与评估（新增Q7-Q8）](docs/09-ai-safety-evaluation/) | RAGAS vs TruLens vs DeepEval vs UpTrain深度对比、RAG评估Pipeline与迭代优化实战 | 🔥🔥🔥🔥🔥 | +2 |
+
+*版本: v3.11 | 更新: 2026-04-06 | by 二狗子 🐕*
