@@ -399,11 +399,28 @@ output = prefix + middle + suffix
 | **HumanEval** | Python函数补全 | 基础代码生成 |
 | **SWE-bench** | GitHub Issue代码修复 | 真实Bug修复 |
 | **SWE-bench Multimodal** | 带图片的GitHub Issue | 视觉+代码联合理解 |
+| **SWE-Rebench** | SWE-bench代码复现成功率 | 模型"重写后能否跑通" |
 | **Terminal-Bench** | 终端命令行任务 | DevOps/运维能力 |
 | **LiveCodeBench** | 多版本持续评测 | 防止数据污染 |
+| **Aider Polyglot** | 多语言代码编辑 | 跨语言泛化能力 |
+| **FLTEval** | Flutter移动端代码评测 | 跨平台移动开发 |
+| **React Native Evals** | React Native应用评测 | 移动端UI开发 |
+
+**各评测关系：**
+```
+HumanEval（最简单）
+  ↓
+SWE-bench（真实代码修复）
+  ↓
+SWE-Rebench（SWE-bench的修复能跑通吗？）
+SWE-bench Multimodal（加入视觉理解）
+Terminal-Bench（加入命令行操作）
+Aider Polyglot（跨语言泛化）
+FLTEval/React Native（移动端专属）
+```
 
 **面试话术：**
-> "SWE-bench Multimodal让评测更接近真实开发场景，因为真实Bug往往需要看截图理解。Terminal-Bench则填补了'AI在终端里干活'的能力评测空白——git操作、服务器部署、CI/CD故障排查这些，SWE-bench测不了。面试时能说出这四个评测的区别，说明你对AI编程评测有系统性了解。"
+> "2026年AI编程评测已经形成完整体系：HumanEval测基础、SWE-bench测真实Bug修复、SWE-Rebench测修复能否跑通、SWE-bench Multimodal加入视觉理解、Terminal-Bench测DevOps能力、Aider Polyglot测跨语言泛化。SWE-Rebench特别值得关注——它解决的是'SWE-bench通过但代码跑不通'的问题，代表了从'能修复'到'能工作'的质量跨越。"
 
 </details>
 
