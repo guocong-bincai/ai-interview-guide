@@ -761,4 +761,209 @@ def ab_test(query, config_a, config_b):
 
 ---
 
-*版本: v2.5 | 更新: 2026-04-03 | by 二狗子 🐕*
+## 六、2026年RAG评估新趋势（新增考点）
+
+### Q12: 什么是self-RAG和CRAG？和传统RAG有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**self-RAG = Self-Retrieval-Augmented Generation（自检索增强生成）**
+
+**传统RAG的问题：**
+- 不管查询是否需要检索，都强制检索
+- 检索结果质量差时，模型仍然基于错误上下文生成
+- 无法判断检索是否必要
+
+**self-RAG的核心创新：**
+- 模型自主判断"需不需要检索"
+- 模型自主评估检索结果的质量
+- 质量差时主动修正或忽略错误上下文
+
+**self-RAG流程：**
+```
+用户Query → 模型判断：是否需要检索？
+  ├── 不需要 → 直接生成答案
+  └── 需要 → 检索文档
+              ↓
+      模型判断：文档是否相关？
+        ├── 不相关 → 忽略，用内部知识
+        └── 相关 → 生成答案 + 引用
+```
+
+**CRAG = Corrective RAG（纠错型RAG）**
+```python
+# CRAG的自我纠错流程
+class CorrectiveRAG:
+    def generate(self, query):
+        docs = retriever.retrieve(query)
+
+        # 评估检索质量
+        relevance = assessor.evaluate(query, docs)
+
+        if relevance > 0.8:
+            # 高相关：直接生成
+            return llm.generate(query, docs)
+        elif relevance > 0.3:
+            # 中相关：知识精炼后生成
+            refined = knowledge_refiner.refine(query, docs)
+            return llm.generate(query, refined)
+        else:
+            # 低相关：忽略检索，用内部知识
+            return llm.generate(query, [])  # 无上下文
+```
+
+**对比：**
+
+| 方案 | 检索触发 | 质量控制 | 适用场景 |
+|------|----------|----------|----------|
+| **传统RAG** | 100%触发 | 无 | 简单问答 |
+| **self-RAG** | 模型自主决定 | 反思token评估 | 复杂推理任务 |
+| **CRAG** | 100%触发 | 三级质量过滤 | 高精度要求场景 |
+
+**面试话术：**
+> "self-RAG的突破是让模型'知道自己什么时候该查资料、查到的资料靠不靠谱'。CRAG则是'先查再审，不行就换'。生产环境中，我用CRAG做金融问答，检索质量<0.3的直接走内部知识，幻觉率从15%降到3%。"
+
+</details>
+
+### Q13: DeepEval是什么？和RAGAS、TruLens有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**DeepEval = Python-first RAG评估框架（by confident-ai）**
+
+**三大评估工具对比：**
+
+| 工具 | 定位 | 核心优势 | 适用阶段 |
+|------|------|----------|----------|
+| **RAGAS** | 指标探索 | RAG专属指标全，信仰度/相关性/召回率 | 离线评估 |
+| **TruLens** | 实验看板 | 实时可观测，RAG三元素追踪 | 开发调试 |
+| **DeepEval** | CI/CD集成 | Pytest风格，流水线自动化 | 回归测试 |
+
+**DeepEval核心特点：**
+```python
+# Pytest风格的评估（DeepEval特色）
+from deepeval import evaluate
+from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
+
+# 定义测试用例
+test_cases = [
+    "什么是RAG系统",
+    "self-RAG和CRAG的区别",
+]
+
+# 用装饰器评估
+@evaluate(version=1)
+def test_rag_accuracy():
+    metric = FaithfulnessMetric(threshold=0.8)
+    result = rag_pipeline.run(test_cases[0])
+    metric.measure(test_cases[0], result.answer, result.context)
+    assert metric.score > 0.8
+```
+
+**DeepEval的独特功能：**
+
+| 功能 | 说明 |
+|------|------|
+| **Pytest集成** | 用单元测试的思路评估RAG，无缝接入CI/CD |
+| **红绿对比** | 评估结果直观（通过/失败），适合团队协作 |
+| **自定义指标** | 支持用LLM-as-Judge自定义评估维度 |
+| **幻觉检测** | 内置幻觉检测，发现"答非所问" |
+
+**2026年评估工具选型决策树：**
+```python
+def select_eval_tool(scenario):
+    if scenario == "快速探索指标":
+        return "RAGAS"  # 指标最全
+    elif scenario == "开发调试看过程":
+        return "TruLens"  # 实时追踪
+    elif scenario == "CI/CD自动化":
+        return "DeepEval"  # Pytest风格
+    elif scenario == "生产监控看板":
+        return "TruLens + RAGAS"  # 组合使用
+```
+
+**面试话术：**
+> "DeepEval是2026年CI/CD集成的首选。它的Pytest风格让评估变成'测试用例'，每次代码变更自动跑评估，Faithfulness<0.8就阻止上线。我用它做RAG系统的回归测试，配合GitHub Actions，检索质量波动超过5%自动告警。"
+
+</details>
+
+### Q14: 什么是state-aware retrieval和agentic retrieval？2026年检索新趋势？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**传统检索的问题：**
+- 静态top-k检索，不考虑用户意图的动态变化
+- 不考虑对话上下文（多轮对话场景）
+- 缺乏时效性控制和多样性控制
+
+**state-aware retrieval（状态感知检索）：**
+```python
+# 传统检索 vs 状态感知检索
+# 传统：
+static_docs = vector_db.top_k(query, k=5)
+
+# 状态感知：
+def state_aware_retrieve(query, user_context, conversation_history):
+    # 1. 提取用户真实意图
+    intent = intent_extractor.parse(query)
+
+    # 2. 应用元数据过滤器
+    filtered_docs = apply_filters(intent.metadata_constraints)
+
+    # 3. 时效性权重（近期文档优先）
+    recency_boost(intent.requires_fresh_docs, filtered_docs)
+
+    # 4. 多样性控制（避免重复主题）
+    diversified = diversify(filtered_docs, conversation_history)
+
+    return diversified
+```
+
+**agentic retrieval（智能体式检索）：**
+```python
+# Azure AI Search的agentic retrieval示例
+"""
+用户复杂查询："对比Q1和Q2季度营收，分析增长原因"
+→ 分解为多个子查询：
+  子查询1: Q1季度营收数据
+  子查询2: Q2季度营收数据
+  子查询3: 季度增长原因分析
+→ 并行执行 → 结果融合 → 结构化响应
+"""
+
+# 核心流程：
+class AgenticRetriever:
+    def retrieve(self, complex_query):
+        # 1. 查询分解
+        sub_queries = self.query_decomposer.split(complex_query)
+
+        # 2. 并行检索
+        results = parallel_retrieve(sub_queries)
+
+        # 3. 结果融合
+        fused = self.fusion_engine.merge(results)
+
+        # 4. 返回结构化响应（优化给LLM）
+        return structured_response(fused)
+```
+
+**2026年检索新趋势：**
+
+| 趋势 | 技术 | 效果 |
+|------|------|------|
+| **状态感知 | 对话上下文+意图识别 | 多轮场景召回+25% |
+| **agentic检索 | 查询分解+并行检索 | 复杂问题准确+30% |
+| **动态chunk | 根据查询动态调整块大小 | 上下文利用率+40% |
+| **多跳推理 | 跨文档关联推理 | 推理型问题准确+35% |
+
+**面试话术：**
+> "state-aware retrieval解决的是'用户问了一半的问题，系统不知道在聊什么'的问题。agentic retrieval则是让检索本身变成一个Agent——自动分解复杂查询、并行检索、融合结果。我在金融分析场景用agentic retrieval，用户问'对比去年和今年利润'，系统自动拆解成4个子查询并发生成，复杂问题准确率提升30%。"
+
+</details>
+
+---
+
+*版本: v2.6 | 更新: 2026-04-05 | by 二狗子 🐕*

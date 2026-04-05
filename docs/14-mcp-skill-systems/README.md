@@ -540,4 +540,127 @@ def select_tool_layer():
 
 ---
 
+## 16. MCP 2026 Roadmap：企业就绪与协议演进（2026年4月最新）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### MCP 2026四大优先方向
+
+**MCP在2024年11月发布，2025年成为AI工具集成的事实标准，2026年进入企业级深水区。**
+
+**2026年MCP四大优先方向：**
+
+| 优先方向 | 核心内容 | 为什么重要 |
+|----------|----------|------------|
+| **Transport Evolution** | Streamable HTTP水平扩展、无状态会话 | 企业大规模部署的瓶颈 |
+| **Agent Communication** | Tasks primitive生命周期完善、重试语义 | 多Agent协作的基础 |
+| **Governance Maturation** | SEP提案流程、贡献者梯队、WG委托审查 | 协议健康发展的保障 |
+| **Enterprise Readiness** | 审计日志、SSO鉴权、网关行为、配置迁移 | 大规模落地的最后一公里 |
+
+### Transport Evolution：无状态化与水平扩展
+
+**当前问题：**
+- Streamable HTTP让MCP服务器可以远程运行
+- 但有状态会话与负载均衡器冲突
+- 水平扩展需要临时方案
+
+**解决方案：**
+```python
+# 无状态会话设计
+class MCPGateway:
+    def handle_request(self, request, session_id):
+        # 会话状态外置到Redis，不再保存在服务端
+        session_state = redis.get(f"mcp:session:{session_id}")
+
+        # 每个请求都是独立的，支持水平扩展
+        response = mcp_server.process(request, session_state)
+
+        # 状态写回
+        redis.setex(f"mcp:session:{session_id}", 3600, response.next_state)
+
+        return response
+```
+
+**标准化发现机制：**
+```
+# .well-known/mcp.json（元数据格式）
+{
+    "name": "企业数据库MCP",
+    "version": "1.0",
+    "capabilities": ["sql:query", "schema:read"],
+    "auth": "oauth2",
+    "docs": "https://..."
+}
+
+→ 无需连接即可知道服务器能力
+→ 支持注册中心和爬虫发现
+```
+
+### Agent Communication：Tasks原语的完善
+
+**Tasks primitive（SEP-1686）** 已经作为实验特性发布，解决了基础的Agent间任务传递问题。
+
+**2026年待完善的生命周期问题：**
+
+| 问题 | 当前状态 | 2026年计划 |
+|------|----------|------------|
+| **重试语义** | 无标准 | 任务失败时自动重试次数、间隔 |
+| **结果保留期** | 无标准 | 任务完成后结果保留多久 |
+| **超时策略** | 无标准 | 任务超时如何处理 |
+| **优先级** | 无标准 | 任务优先级如何调度 |
+
+```python
+# 未来的标准化任务定义
+task = {
+    "id": "task-123",
+    "priority": "high",
+    "retry": {"max_attempts": 3, "backoff": "exponential"},
+    "ttl": 3600,  # 完成后保留1小时
+    "timeout": 300  # 超时5分钟
+}
+```
+
+### Governance：SEP提案优先级机制
+
+**2026年新规则：与四大优先方向一致的SEP优先审查。**
+
+```
+SEP 优先级梯队：
+
+第一梯队（快速通道）：
+- Transport Evolution相关
+- Agent Communication相关
+- Enterprise Readiness相关
+- Governance Maturation相关
+
+第二梯队（标准审查）：
+- 与上述四个方向无关的SEP
+- 需要更长审查时间
+- 需要更高论证门槛
+```
+
+
+### Enterprise Readiness：企业就绪的具体挑战
+
+**企业部署MCP的四类实际问题：**
+
+| 问题类型 | 具体挑战 | 解决方案方向 |
+|----------|----------|------------|
+| **审计日志** | 需要记录每个MCP调用 | 结构化日志+SIEM集成 |
+| **SSO鉴权** | MCP服务器需要对接企业IdP | OAuth2/SAML标准 |
+| **网关行为** | 企业需要在MCP请求前加鉴权层 | MCP Gateway标准化 |
+| **配置迁移** | 不同环境的MCP配置如何同步 | 配置即代码+版本控制 |
+
+**重要说明：**
+> 企业级需求大多数会作为"扩展（extensions）"而非"核心协议变更"来实现。这样保证核心协议不因为企业需求而变得臃肿。
+
+### 面试话术
+
+> "MCP 2026 roadmap的核心是'从实验到生产'。Transport Evolution解决水平扩展问题，Agent Communication让多Agent协作更可靠，Enterprise Readiness解决审计/SSO/网关这些企业最后一公里问题。面试时能说出SEP优先级机制和四大优先方向，说明你对MCP不只是会用，而是关注它的演进方向，这对架构师岗位很重要。"
+
+</details>
+
+---
+
 [返回目录 →](../../README.md)
