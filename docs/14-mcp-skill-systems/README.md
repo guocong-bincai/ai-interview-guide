@@ -663,4 +663,128 @@ SEP 优先级梯队：
 
 ---
 
+## 17. Claude Code的MCP内幕与A2A协议v1.0（2026年4月重大更新）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### Claude Code源码泄露揭露的惊天秘密
+
+**2026年3月，Claude Code源码泄露，揭露了其核心架构：**
+
+> "Claude Code本质上是一个巨大的MCP工具集合——不是'MCP的一个应用'，而是'用MCP构建的完整产品'。"
+
+**Claude Code技术内幕：**
+
+| 维度 | 数据 |
+|------|------|
+| 代码规模 | ~512,000行TypeScript |
+| MCP工具模块 | ~40个权限隔离的工具模块 |
+| 架构模式 | 每个功能（文件读取/bash执行/Computer Use）= 独立MCP工具调用 |
+| 权限模型 | 第三方的MCP扩展与内置工具享有同等的权限模型 |
+
+**Claude Code MCP架构图：**
+```
+用户输入
+    ↓
+Claude Code（TypeScript Agent）
+    ↓
+┌─────────────────────────────────────────┐
+│  40个离散MCP工具模块（Permission-Gated） │
+├─────────────────────────────────────────┤
+│  tools/read          → 文件读取         │
+│  tools/bash          → 命令执行         │
+│  tools/computer_use  → 计算机操作       │
+│  tools/search        → 搜索             │
+│  ...（共40个）                          │
+└─────────────────────────────────────────┘
+    ↓
+工具执行结果 → 返回Claude Code → 生成响应
+```
+
+### 为什么这改变了对MCP的认知？
+
+**旧认知：** MCP = 让AI调用几个工具的协议
+
+**新认知：**
+- MCP不只是"工具调用协议"，而是完整的Agent操作系统层
+- Claude Code = 用MCP工具模块构建的完整AI Coding Agent
+- 所有MCP工具都有权限隔离，第三方扩展和内置工具权限平等
+- 这证明了MCP可以支撑超大规模生产级应用
+
+### A2A协议 v1.0（2026年4月，与MCP并列）
+
+**A2A = Agent-to-Agent Protocol**
+
+**MCP Dev Summit NYC（2026年4月2-3日）同期发布：**
+
+| 协议 | 定位 | 主导方 |
+|------|------|--------|
+| **MCP** | Agent→工具/数据源的标准协议 | Anthropic主导 |
+| **A2A** | Agent→Agent协作的标准协议 | Agentic AI Foundation（Linux Foundation） |
+
+**A2A解决什么问题：**
+```
+MCP：Claude Code → 数据库（Claude调用工具）
+A2A：Claude Code Agent → GitHub Copilot Agent（两个Agent互相协作）
+
+场景：
+Claude Code分析代码 → A2A → Copilot自动写测试
+GitHub Agent审查PR → A2A → Slack Agent通知团队
+```
+
+**A2A核心概念：**
+```
+A2A任务结构：
+{
+    "task_id": "task-123",
+    "agent_id": "claude-code-prod",
+    "capabilities": ["code_analysis", "refactoring"],
+    "status": "in_progress",
+    "result": null
+}
+
+A2A消息类型：
+- task propose：提议一个任务
+- task status update：任务状态变更
+- task result：任务完成，返回结果
+- error：任务失败
+```
+
+**MCP + A2A组合 = 完整Agent互操作标准：**
+```
+┌─────────────────────────────────────┐
+│  A2A：Agent↔Agent 协作层           │
+│  （任务分配、状态同步、结果汇总）    │
+└─────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│  MCP：Agent→工具/数据源 接入层      │
+│  （工具调用、文件访问、API集成）     │
+└─────────────────────────────────────┘
+
+两者互补：
+A2A负责"谁干什么"，MCP负责"怎么做到"
+```
+
+### OpenClaw 2026.4.1（2026年4月1日发布）
+
+**OpenClaw最新版本的重要更新：**
+
+| 更新 | 说明 |
+|------|------|
+| **GLM 5.1集成** | 支持智谱最新GLM-5系列模型 |
+| **AWS Bedrock Guardrails** | 企业级安全护栏集成 |
+| **40+稳定性修复** | 生产环境可靠性提升 |
+
+**OpenClaw定位：**
+> "OpenClaw是开源Agent OS，2026.4.1版本标志着它从'极客玩具'走向'企业生产'。GLM 5.1集成意味着国产模型支持，AWS Bedrock Guardrails意味着企业安全标准。"
+
+### 面试话术
+
+> "Claude Code源码泄露证明了MCP已经是生产级Agent架构标准。512,000行TypeScript、40个权限隔离的MCP工具模块，这不是实验项目，这是工业级实现。A2A v1.0则是MCP的'搭档'——MCP解决Agent调用工具的问题，A2A解决Agent之间互相协作的问题。面试时能说出MCP+A2A的组合架构，说明你理解了Agent互操作的全貌。"
+
+</details>
+
+---
+
 [返回目录 →](../../README.md)

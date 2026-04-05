@@ -830,6 +830,75 @@ class ContentModerationAgent:
 | **视频Agent** | 帧采样+时序建模+事件理解 |
 | **企业多模态** | 编排层+工具层+基础设施三层架构 |
 
+## 八、NVIDIA Nemotron 3与GTC 2026多模态Agent新突破（2026年4月新增）
+
+### Q14: NVIDIA Nemotron 3是什么？对多模态Agent生态有何影响？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Nemotron 3 = NVIDIA在GTC 2026发布的统一Agent模型系列**
+
+**Nemotron 3家族构成：**
+
+| 模型 | 定位 | 核心能力 |
+|------|------|----------|
+| **Nemotron 3 Super** | 长上下文推理 | 百万Token上下文，支持复杂多文档分析 |
+| **Nemotron 3 Content Safety** | 多模态内容审核 | 图像+文本+视频安全检测一体化 |
+| **VoiceChat** | 实时语音交互 | 低延迟语音对话，Agent语音控制 |
+| **Nemotron 3 Nano Omni** | 企业级多模态理解（即将发布） | 全模态统一理解 |
+
+**Nemotron 3 Super技术特点：**
+```
+核心架构：混合专家模型（MoE）+ 长上下文注意力
+上下文窗口：百万Token级别
+Agent能力：内置工具调用、长期记忆、多轮对话
+适用场景：企业知识库分析、代码库理解、长文档摘要
+
+对比Gemini 2.0/Claude 3.5：
+- Nemotron 3 Super: 专为Agent任务优化，NVIDIA硬件原生加速
+- Gemini 2.0: 通用多模态，Google生态集成
+- Claude 3.5: 推理能力强，但非NVIDIA专属优化
+```
+
+**VoiceChat：实时语音Agent的关键突破：**
+```python
+# VoiceChat在Agent中的应用
+class VoiceAgent:
+    def __init__(self):
+        self.voice_model = NemotronVoiceChat()  # NVIDIA优化，低延迟
+        self.llm = Nemotron3Super()             # Agent推理
+        self.vlm = Nemotron3ContentSafety()     # 内容安全检测
+
+    async def voice_control(self, audio_stream):
+        # 1. 语音转文本（VoiceChat，低延迟）
+        text = await self.voice_model.stt(audio_stream)
+
+        # 2. Agent推理（Nemotron 3 Super）
+        action = await self.llm.reason(action=["query_db", "send_email"])
+
+        # 3. 内容安全检测
+        safety_result = await self.vlm.check(text, action)
+
+        # 4. 执行并语音回复
+        result = await self.execute(action)
+        return await self.voice_model.tts(result)
+```
+
+**GTC 2026其他多模态Agent重要发布：**
+
+| 发布 | 厂商 | 说明 |
+|------|------|------|
+| **GB300 NVL72** | NVIDIA | 72 GPU集群，SGLang 25倍性能提升 |
+| **Vera Rubin** | NVIDIA | 2026下半年部署，AMD/Google跟进 |
+| **MiMo-V2-Flash** | 多个厂商 | 开源多模态模型，SGLang Day-0支持 |
+
+### 面试话术
+
+> "Nemotron 3是NVIDIA在GTC 2026的核心发布，代表了'硬件原生Agent优化'的趋势。传统模型是软件优先，Nemotron 3是硬件+软件联合优化——在NVIDIA GPU上跑Nemotron 3比跑等效Gemini/Claude有硬件加速优势。VoiceChat的突破在于它让Agent'开口说话'的延迟从秒级降到百毫秒级，这才是真正的语音交互Agent。"
+
+</details>
+
 ---
 
 **上一模块：** [多模态AI基础](../11-multimodal-ai/)
