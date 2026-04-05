@@ -341,8 +341,8 @@ output = prefix + middle + suffix
 | Claude 3.5 Sonnet | ~15% |
 | Claude Code（2024） | ~50% |
 | **CWM（2025）** | **65.8%** |
-| Claude 3.7 Sonnet（2026） | ~72% |
-| **Opus 4.6（2026）** | **~80%** |
+| Claude Sonnet 4.6（2026年3月） | ~79.6% |
+| **Gemini 3.1 Pro（2026年2月）** | **~80.6%** |
 
 **为什么 SWE-bench 重要：**
 - 比 HumanEval 更接近真实软件开发场景
@@ -381,6 +381,10 @@ output = prefix + middle + suffix
 | **核心** | 评测AI在真实终端环境中的任务完成能力 |
 | **与SWE-bench的区别** | SWE-bench评测代码修复，Terminal-Bench评测命令行操作 |
 | **涵盖任务** | git操作、文件编辑、构建运行、调试排错 |
+
+**2026年3月Terminal-Bench最新数据：**
+- GPT-5.4 Thinking：75.1%（通用模型终端任务第一）
+- GPT-5.3-Codex：77.3%（Codex系列最强）
 
 **Terminal-Bench任务示例：**
 ```
@@ -695,7 +699,8 @@ class AIProgrammingAgent:
 
 | 工具 | 定位 | 2026年核心变化 | 市场份额 |
 |------|------|----------------|----------|
-| **Claude Code** | 终端Agent优先 | Opus 4.6发布，深度推理增强 | 领先（Claude系列） |
+| **Claude Code** | 终端Agent优先 | Sonnet 4.6发布，深度推理增强 | 领先（Claude系列） |
+| **Gemini 3.1 Pro** | 多模态+推理 | 2026年2月发布，GPQA Diamond 94.3% | 基准测试领导者 |
 | **Cursor** | IDE-Agent融合 | Cursor 3全新发布，云端20个Agent并行 | 增长最快 |
 | **GitHub Copilot** | IDE原生辅助 | Copilot Workspace + Copilot Fleet多Agent协作 | 42%市场份额 |
 
