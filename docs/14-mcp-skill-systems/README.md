@@ -899,3 +899,68 @@ GitHub Agent审查PR  → A2A → Slack Agent通知团队
 
 </details>
 
+
+---
+
+## 六、Google Antigravity 与 MCP 在各工具中的对比（Q15）
+
+### Q15: Google Antigravity 是什么？MCP 在 Cursor、Claude Code、Antigravity 中的配置有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Google Antigravity = Google 发布的 AI 原生 IDE**
+
+**核心定位：** 内置 MCP Store，像安装浏览器扩展一样一键安装工具
+
+**与 Cursor/Claude Code 的核心区别：**
+
+| 对比 | Cursor | Claude Code | Google Antigravity |
+|------|--------|-------------|-------------------|
+| **形态** | VS Code 分支 AI IDE | CLI 工具 | AI 原生 IDE（独立） |
+| **MCP 部署** | JSON 配置 / UI | CLI 命令 | **MCP Store（一键安装）** |
+| **擅长领域** | 全方位开发 | 快速调试与环境配置 | 自主功能构建与 GCP 集成 |
+| **推荐用户** | VS Code 用户 | 终端爱好者 | 追求极致自动化的开发者 |
+
+**Google Antigravity 独有功能：**
+- **MCP Store**：一键安装 MCP 工具，无需手动配置 JSON
+- **Rube MCP**：上下文优化工具，连接大量 MCP Server 时也不浪费 LLM 上下文窗口
+
+**MCP 在三大工具中的配置对比：**
+
+| 工具 | 配置方式 | 示例 |
+|------|---------|------|
+| **Cursor** | JSON 配置或 UI | `~/.cursor/mcp.json` 或 Settings → MCP |
+| **Claude Code** | CLI 命令 | `claude mcp add` 交互式添加 |
+| **Antigravity** | MCP Store（一键） | 搜索 → 点击安装，无需手动配置 |
+
+**Cursor MCP 配置示例：**
+```json
+// ~/.cursor/mcp.json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+**Claude Code MCP 配置：**
+```bash
+# 交互式添加 MCP Server
+claude mcp add
+
+# 作用域管理：针对当前项目引入特定工具
+# 优势：不会用无关工具干扰上下文
+```
+
+**面试话术：**
+> "Google Antigravity 代表了 AI 开发工具的未来：MCP Store 让工具安装变得像安装浏览器扩展一样简单。Claude Code 的优势是作用域管理——针对每个项目按需引入 MCP 工具，不会用无关工具撑爆 LLM 的上下文。Cursor 则在 JSON 配置和 UI 界面之间提供了最大的灵活性，企业可以统一管理 mcp.json 推送到团队。三个工具的 MCP 配置方式不同，但底层协议完全一致——这就是标准化的力量。"
+
+</details>
+

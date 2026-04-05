@@ -82,46 +82,55 @@ Pass@10 = k 次内做对的题数 / 总题数
 
 ## 二、 Claude Code vs Cursor vs Copilot
 
-### Q3: Claude Code 和 Cursor 深度对比？各自优劣是什么？
+### Q3: 三大AI编程工具的设计哲学和2026年市场格局是什么？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**架构对比：**
+**三种设计哲学（从诞生之日就注定了能力边界）：**
 
-| 维度 | Claude Code | Cursor |
-|------|------------|--------|
-| **形态** | CLI 工具 | 独立 IDE |
-| **交互方式** | 自然语言 CLI | GUI + AI 面板 |
-| **模型** | Claude 3.5/3.7 Sonnet | 多模型（GPT-4、Claude、Cursor 自研） |
-| **上下文** | 超大上下文窗口 | 项目级上下文 |
-| **多文件编辑** | bash + 编辑器 | Composer 可视化 |
-| **价格** | $100/月（Max） | $20/月（Pro） |
+| 工具 | 设计哲学 | 核心定位 | 代表用户 |
+|------|----------|----------|----------|
+| **Claude Code** | Terminal-Native Agentic | 终端原生的全自主智能体，把AI当成"高级研发合伙人" | 热爱CLI的技术负责人 |
+| **Cursor** | AI-Native IDE | AI原生的集成开发环境，让AI全程陪着你写代码 | 日常业务开发者 |
+| **GitHub Copilot** | Plugin/Extension | 插件式通用扩展，零门槛全团队赋能 | 企业规模化落地团队 |
 
-**Claude Code 优势：**
-- 超大上下文（20 万 Token），可以"消化"整个代码库
-- 深度推理能力，复杂任务分解更强
-- 自主探索模式（Dev Mode）可以真正代替人类操作
-- 适合 CLI 自动化、脚本生成
+**2026年开发者"最喜爱"评级：**
+- Claude Code：**46%**（排名第一）
+- Cursor：**19%**
+- GitHub Copilot：**9%**
 
-**Cursor 优势：**
-- IDE 体验更好，补全速度快
-- Tab 补全准确率高（比 Copilot 强）
-- 多文件编辑能力强（Composer）
-- 更好的代码可视化
+**核心结论（2026年4月）：**
+> "没有全能冠军，只有场景适配"——三者代表了AI编码工具的三个核心演进方向
 
-**各自最佳场景：**
+**11维度全对比表（2026年最新）：**
 
-| 场景 | 推荐工具 |
-|------|----------|
-| 日常开发补全 | Cursor / Copilot |
-| 复杂多文件重构 | Cursor Composer |
-| 需要深度理解的探索任务 | Claude Code |
-| 脚本自动化 | Claude Code |
-| 企业内部 AI 编程平台 | OpenAI Codex |
+| 维度 | Claude Code | Cursor | GitHub Copilot |
+|------|------------|--------|----------------|
+| **交互界面** | 终端/CLI原生 | AI原生IDE（VS Code分支） | IDE插件，零学习成本 |
+| **代码补全** | ❌ 无行内补全，聚焦全任务执行 | ⭐⭐⭐⭐⭐ 顶尖行内补全 | ⭐⭐⭐ 通用型补全 |
+| **多文件编辑** | ⭐⭐⭐⭐⭐ 全自主跨文件，数十个文件 | ⭐⭐⭐⭐⭐ Composer可视化 | ⭐⭐ 基础Workspace |
+| **智能体自主性** | ⭐⭐⭐⭐⭐ 全自主，从需求到PR完整链路 | ⭐⭐⭐ 快速迭代 | ⭐⭐ Agent Mode基础 |
+| **代码质量** | ⭐⭐⭐⭐⭐ 资深工程师级，直接落地 | ⭐⭐⭐⭐ 模式感知，无需二次修改 | ⭐⭐⭐ 可靠通用 |
+| **代码库理解** | ⭐⭐⭐⭐⭐ 全量自主读取，无上下文限制 | ⭐⭐⭐⭐⭐ 全仓库索引，深度学习 | ⭐⭐ 基础Workspace理解 |
+| **可扩展性** | ⭐⭐⭐⭐⭐ Skills+Hooks+MCP，极致灵活 | ⭐⭐⭐⭐ Rules+MCP，定制化强 | ⭐⭐ 基础插件扩展 |
+| **企业安全** | ⭐⭐⭐ SOC 2认证推进中 | ⭐⭐⭐⭐ SOC 2 Type 2 | ⭐⭐⭐⭐⭐ SOC 2+IP侵权赔偿 |
+| **Git集成** | ⭐⭐⭐⭐⭐ 全自主（分支/PR/CodeReview） | ⭐⭐⭐⭐ Git UI可视化 | ⭐⭐⭐⭐⭐ GitHub原生集成 |
+| **学习曲线** | 陡峭，仅面向CLI用户 | 极低，VS Code用户无缝上手 | 几乎为零，插件即装即用 |
+| **定价** | $100/月（Max） | $20-200/月 | $0-19/月（最便宜） |
+
+**Claude Code 的独特哲学：**
+> "Claude Code 不是给'写代码的人'准备的，而是给'管项目的人'准备的"
+> 把一个模糊需求，变成完整可运行的代码仓库，你只需做最终审核
+
+**Cursor 的独特哲学：**
+> "让 AI 全程陪着你写代码"，把AI深度融入编码每个环节：变量命名、函数补全、模块设计、bug修复
+
+**GitHub Copilot 的独特哲学：**
+> "不改变开发者原有习惯"，零门槛、无摩擦、全团队覆盖，合规优先
 
 **面试话术：**
-> "我用过 Cursor 和 Claude Code。Cursor 的 Tab 补全真的很强，日常开发效率提升明显；Claude Code 的优势在于深度，它能真正理解整个代码库，适合做大型重构或探索性任务。两者不是替代关系，是互补的。"
+> "2026年三大工具的本质区别是设计哲学不同：Claude Code是'终端原生的全自主智能体'，适合管项目的技术负责人；Cursor是'AI原生的IDE'，适合日常写代码的开发者；Copilot是'插件式通用扩展'，适合企业规模化落地。我用Cursor做日常补全，用Claude Code处理复杂重构，两者不是替代是互补。"
 
 </details>
 
@@ -968,7 +977,7 @@ Self-Hosted模式（安全可控）：
 
 ---
 
-*版本: v2.8 | 更新: 2026-04-06 | by 二狗子 🐕*
+*版本: v2.9 | 更新: 2026-04-06 | by 二狗子 🐕*
 
 ---
 
@@ -1172,13 +1181,26 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
     └── Claude Code（学术研究友好，API可观测）
 ```
 
-**组合使用方案（成本最优）：**
+**组合使用方案（2026年验证最优解）：**
 
 | 组合 | 月费用 | 适用场景 |
 |------|--------|----------|
-| **Windsurf + Claude Code** | $115 | 个人开发者性价比最优 |
+| **Power Stack（最佳组合）** | Cursor $20 + Claude Code $100 = $120 | 硬核个人开发者：日常Cursor，复杂任务Claude Code |
 | **Cursor + Copilot** | $29-59 | 团队多场景覆盖 |
+| **Windsurf + Claude Code** | $115 | 预算有限的个人开发者 |
 | **通义灵码 + Trae** | 免费 | 国内中小团队 |
+
+**Power Stack = Cursor日常编码 + Claude Code处理重活（2026年最优解）：**
+
+```
+日常业务代码开发 → Cursor（顶尖行内补全，沉浸式体验）
+     ↓
+遇到复杂重构 → 切换 Claude Code（全自主跨文件，Multi-Agent并行）
+     ↓
+Claude Code 完成 → 切回 Cursor（审核+迭代）
+```
+
+> "不要忠诚于某一款工具，要根据场景组合"——用每款工具的优势，覆盖不同研发场景
 
 **Benchmark说明：**
 - **SWE-bench**：用真实GitHub Issue和PR测试，2026年主流模型已突破80%
@@ -1187,6 +1209,169 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
 
 **面试话术：**
 > "2026年3月Claude Code在SWE-bench达到80.8%，意味着AI能独立解决8成以上的真实GitHub Issue，这是代码智能的历史性突破。选工具要看场景：日常补全用Copilot或Windsurf，重度重构用Cursor或Claude Code。成本敏感选Windsurf，追求最强推理选Claude Code。我的组合是Windsurf做补全，Claude Code做复杂任务，月成本$115但效率翻倍。"
+
+</details>
+
+
+---
+
+## 八、Claude Code 2026年最新功能详解（Q11）
+
+### Q11: Claude Code 2026年有哪些重磅新功能？Agent Teams、Scheduled Tasks、Auto Mode 是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**截至 2026年3月底，Claude Code 最新版本 v2.1.76 带来了大量新功能：**
+
+#### 1. Multi-Agent 多代理协作（Agent Teams）
+
+**核心能力：** 同时启动多个 Claude Code 代理，分工完成不同模块的开发、测试、重构任务
+
+```
+主代理（协调者）
+    ↓ 分配子任务
+├── Agent 1：前端模块开发
+├── Agent 2：后端 API 开发
+├── Agent 3：测试用例编写
+└── Agent 4：代码审查
+    ↓ 汇总结果
+主代理整合 → 完整项目交付
+```
+
+**适用场景：**
+- 电商网站全模块开发（前端+后端+数据库+部署并行）
+- 大型重构（多模块同时修改）
+- 大规模测试（并行跑单元测试、集成测试、端到端测试）
+
+#### 2. Scheduled Tasks 排程任务（2026年重磅功能）
+
+**核心能力：** Claude Code 可以按计划自动执行任务，即使电脑关机也能继续
+
+| 调度类型 | 说明 | 适用场景 |
+|----------|------|----------|
+| **云端调度** | 在 Anthropic 基础设施上跑，关机也能执行 | PR review、数据同步 |
+| **本地调度** | 在本机执行，可访问本地文件 | 桌面自动化 |
+| **/loop 指令** | 在 CLI session 内快速重复执行 | 快速迭代测试 |
+
+**使用示例：**
+```
+# 每天早上自动 PR review
+/claude "review all pending PRs"
+
+# 每周自动扫描依赖漏洞
+/claude "scan npm packages for vulnerabilities"
+
+# CI 失败后自动分析原因
+/claude "analyze why CI failed and suggest fixes"
+```
+
+#### 3. Auto Mode（研究预览）—— AI自主判断安全操作
+
+**核心能力：** 让 AI 自行判断哪些操作可以安全执行，减少人工确认
+
+```
+用户："帮我重构 auth 模块"
+
+Auto Mode 自动判断：
+✅ 安全：读取文件、分析代码、规划重构方案
+✅ 自动执行：创建备份分支、修改代码、运行测试
+⏸️ 需确认：删除文件、修改生产配置、推送主分支
+```
+
+#### 4. Voice Mode 语音模式
+
+**核心能力：** 按住空格键说话，支持 20 种语言
+
+```
+# 激活语音模式
+/voice
+
+# 按住空格键说话
+# 释放后 Claude Code 执行
+
+# 用中文：
+"帮我把这个函数重构一下，加上错误处理"
+```
+
+#### 5. Hooks—— 动作前后的自动化钩子
+
+**核心能力：** 在 Claude Code 动作前后自动执行 shell 命令
+
+```bash
+# .claude/hooks.yaml
+on_before_edit:
+  - command: "npm run lint:fix"  # 编辑前自动 lint
+on_after_edit:
+  - command: "npm test"         # 编辑后自动跑测试
+on_before_commit:
+  - command: "npm run build"     # 提交前构建
+```
+
+#### 6. Skills—— 自定义可复用命令
+
+**核心能力：** 打包可重复使用的工作流为一个命令
+
+```bash
+# .claude/skills/review-pr.skill
+/name review-pr
+/description 自动化 PR 审查
+/prompt |
+  1. 获取 PR 变更的文件列表
+  2. 对每个文件进行代码审查
+  3. 检查：安全性、性能、可读性、最佳实践
+  4. 生成审查报告，包含问题严重程度
+  5. 提出具体的修改建议
+
+# 使用
+/review-pr
+```
+
+```bash
+# .claude/skills/deploy-staging.skill
+/name deploy-staging
+/description 部署到预发环境
+/prompt |
+  1. 确保所有测试通过
+  2. 构建生产版本
+  3. 部署到 staging 环境
+  4. 运行烟雾测试
+  5. 报告部署结果
+
+# 使用
+/deploy-staging
+```
+
+#### 7. MCP Lazy Loading（MCP 懒加载）
+
+**核心能力：** MCP 工具按需加载，不一次性全部加载
+
+```
+旧模式（全部加载）：
+启动 Claude Code → 加载所有 MCP 工具（10+ 秒）
+
+新模式（懒加载）：
+启动 Claude Code → 仅加载核心能力（1-2 秒）
+执行任务时才加载需要的 MCP 工具
+```
+
+**效果：** 启动时间减少 80%+，同时降低上下文干扰
+
+#### 8. Claude Code 的全环境支持
+
+| 环境 | 支持情况 |
+|------|----------|
+| **Terminal CLI** | macOS、Linux、WSL、Windows |
+| **VS Code / Cursor** | 原生扩展，inline diff、侧边栏面板 |
+| **JetBrains** | IntelliJ、PyCharm、WebStorm 等 |
+| **桌面 App** | 可视化 diff，多 session 并行 |
+| **浏览器** | 直接运行，支持 iOS 手机 App |
+| **Slack/Telegram/iMessage** | 推送任务，收到 Pull Request |
+| **远程控制** | 手机远程控制桌面 session |
+
+#### 面试话术
+
+> "Claude Code 2026年的核心进化是从'工具'到'平台'。我最喜欢三个功能：1）Multi-Agent，让我可以同时启动多个代理并行开发大型项目；2）Scheduled Tasks，设置好规则后 Claude Code 自动做 PR review，不用我每天早上手动去看；3）Auto Mode，AI 自己判断哪些操作安全，减少我 80% 的确认操作。Hooks 和 Skills 则让 Claude Code 完全融入我的工作流——编辑前自动 lint，提交前自动测试，我只需要专注决策。"
 
 </details>
 

@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.12 | **最后更新:** 2026-04-06
+**版本:** v3.13 | **最后更新:** 2026-04-06
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.12 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.13 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -498,3 +498,14 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 AI编程工具（更新Q10）](docs/17-ai-coding-tools/) | 2026年3月SWE-bench最新基准(Claude Code 80.8%)、工具选型决策树、组合使用方案 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.12 | 更新: 2026-04-06 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.13 - 2026-04-06 更新）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 AI编程工具（新增Q11，更新Q3）](docs/17-ai-coding-tools/) | Claude Code 2026最新功能(Multi-Agent/Scheduled Tasks/Auto Mode/Voice/Hooks/Skills)、三大工具设计哲学对比表(11维度)、Power Stack组合策略 | 🔥🔥🔥🔥🔥 | +2 |
+| 🆕 | [🔌 MCP协议（新增Q15）](docs/14-mcp-skill-systems/) | Google Antigravity与MCP Store、MCP在Cursor/Claude Code/Antigravity中的配置对比、Rube MCP上下文优化 | 🔥🔥🔥 | +1 |
+
+*版本: v3.13 | 更新: 2026-04-06 | by 二狗子 🐕*
