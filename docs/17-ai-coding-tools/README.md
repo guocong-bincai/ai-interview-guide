@@ -835,6 +835,66 @@ Self-Hosted（数据不出域）：
 
 </details>
 
+### Q19: Claude Code Week 14（2026年3月30日-4月3日）有哪些新功能？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Claude Code Week 14更新内容（官方Changelog）：**
+
+| 新功能 | 说明 | 重要性 |
+|--------|------|--------|
+| **Computer Use in CLI** | 命令行直接调用Computer Use能力 | ⭐⭐⭐⭐⭐ |
+| **Interactive in-product lessons** | 内置交互式教程，新手快速上手 | ⭐⭐⭐ |
+| **Flicker-free rendering** | 消除界面闪烁，提升使用体验 | ⭐⭐ |
+| **Per-tool MCP result-size overrides** | 每个MCP工具可独立设置结果大小限制 | ⭐⭐⭐⭐ |
+| **Plugin executables on PATH** | 插件可执行文件加入系统PATH | ⭐⭐⭐ |
+
+**Computer Use in CLI详解：**
+
+```bash
+# 2026年4月新增：CLI中直接调用Computer Use
+claude-code --computer-use
+
+# 自动化任务示例：
+# 1. 截取屏幕
+# 2. 分析UI元素
+# 3. 鼠标点击/键盘输入
+# 4. 验证结果
+
+# 之前：Computer Use需要通过API
+# 现在：直接在终端用Claude Code执行
+```
+
+**Per-tool MCP result-size overrides的意义：**
+
+```json
+// .claude/mcp-settings.json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "...",
+      "resultSizeLimit": "10mb"  // 文件读取限制10MB
+    },
+    "bash": {
+      "command": "...",
+      "resultSizeLimit": "1mb"   // bash输出限制1MB
+    }
+  }
+}
+
+// 解决痛点：
+// - 大文件读取不再OOM
+// - 小命令不会被大结果撑爆
+// - 不同工具有不同的资源限制策略
+```
+
+**面试话术：**
+
+> "Claude Code Week 14最值得关注的更新是'Computer Use in CLI'——把Anthropic的Computer Use能力直接集成到命令行，这意味着开发者可以在终端里直接让AI操控电脑（截图、点击、输入）。Per-tool MCP result-size overrides则解决了生产环境中'MCP工具返回数据量不可控'的问题，企业可以精细控制每个工具的资源消耗。"
+
+</details>
+
 ---
 
-*版本: v2.5 | 更新: 2026-04-05 | by 二狗子 🐕*
+*版本: v2.6 | 更新: 2026-04-05 | by 二狗子 🐕*
