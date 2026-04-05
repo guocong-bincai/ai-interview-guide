@@ -1188,6 +1188,193 @@ class AgentFailover:
 
 ---
 
+## 12. Agent Policy Engine：企业级Agent安全与权限控制（2026年考点）
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 为什么企业级Agent需要Policy Engine？
+
+**核心问题：LLM不受控，不能让它"自由发挥"**
+- Agent能调用工具、读写数据、发送消息——这些操作需要边界控制
+- LLM只是文本生成器，无法"理解"安全边界
+- 必须用结构化Policy Engine在LLM外部强制执行约束
+
+### Policy Engine四层架构
+
+```python
+# Policy Engine在LLM和工具之间的位置
+class PolicyEngine:
+    def __init__(self):
+        self.action_classifier = ActionClassifier()      # Layer 1: 动作分类
+        self.resource_budget = ResourceBudget()          # Layer 2: 资源预算
+        self.scope_guard = ScopeGuard()                 # Layer 3: 范围约束
+        self.approval_gate = ApprovalGate()              # Layer 4: 审批门
+
+    def authorize(self, proposed_action: Action) -> Decision:
+        # Layer 1: 风险分类
+        risk_level = self.action_classifier.classify(proposed_action)
+
+        # Layer 2: 资源检查
+        if not self.resource_budget.check(proposed_action):
+            return Decision.REJECT("预算耗尽")
+
+        # Layer 3: 范围检查
+        if not self.scope_guard.is_allowed(proposed_action):
+            return Decision.REJECT("超出范围")
+
+        # Layer 4: 高风险需要审批
+        if risk_level == "high" and not self.approval_gate.has_approval(proposed_action):
+            return Decision.PENDING_APPROVAL(proposed_action)
+
+        return Decision.APPROVE()
+```
+
+### Layer 1：动作风险分类
+
+| 风险等级 | 动作类型 | 无需审批 |
+|----------|----------|----------|
+| **read-only** | 查询、搜索、读取数据 | ✅ 自动批准 |
+| **reversible-write** | 修改个人设置、发送草稿消息 | ✅ 自动批准（有限额） |
+| **irreversible-write** | 删除数据、发送外部消息、支付 | ❌ 必须审批 |
+| **external-communication** | 发送邮件、API调用、写库 | ❌ 必须审批 |
+
+### Layer 2：资源预算控制
+
+```python
+# 硬性限制，LLM无法突破
+class ResourceBudget:
+    def __init__(self):
+        self.limits = {
+            "api_calls_per_hour": 1000,
+            "tokens_per_day": 1_000_000,
+            "cost_per_session": 10.0,  # 美元
+            "time_elapsed_max": 3600,   # 秒
+        }
+
+    def check(self, action: Action) -> bool:
+        current = self.get_current_usage(action.agent_id)
+
+        for resource, limit in self.limits.items():
+            if current[resource] >= limit:
+                return False  # 超出限制
+
+        return True
+
+    def get_current_usage(self, agent_id: str) -> dict:
+        # 从Redis或数据库读取实时使用量
+        return redis.hgetall(f"agent:{agent_id}:usage")
+```
+
+### Layer 3：Scope约束（范围边界）
+
+**Scope = Agent只能访问特定的工具、数据源、外部系统**
+
+```python
+# 范围约束在集成层强制执行，Agent技术上无法越界
+class ScopeGuard:
+    def __init__(self):
+        # 每个Agent只能调用授权的工具
+        self.agent_permissions = {
+            "customer_service_agent": {
+                "allowed_tools": ["search_kb", "reply_template", "view_order"],
+                "allowed_data": ["customer_db:read"],
+                "blocked_tools": ["delete_user", "refund", "send_external_email"]
+            }
+        }
+
+    def is_allowed(self, action: Action) -> bool:
+        agent_id = action.agent_id
+        perms = self.agent_permissions.get(agent_id, {})
+
+        # 检查工具是否在白名单
+        if action.tool not in perms.get("allowed_tools", []):
+            return False
+
+        # 检查工具是否在黑名单
+        if action.tool in perms.get("blocked_tools", []):
+            return False
+
+        return True
+```
+
+### Layer 4：审批门（Human-in-the-Loop）
+
+```python
+# 高风险操作必须人工审批
+class ApprovalGate:
+    async def request_approval(self, action: Action) -> bool:
+        # 构造审批请求
+        approval_req = {
+            "action": action.to_summary(),
+            "risk": action.risk_level,
+            "agent": action.agent_id,
+            "requester": action.requested_by,
+            "timestamp": datetime.now()
+        }
+
+        # 发送到审批队列
+        await self.approval_queue.send(approval_req)
+
+        # 等待人工响应（超时则拒绝）
+        result = await self.approval_queue.wait_for_response(
+            timeout=300,  # 5分钟超时
+            required_approvers=1
+        )
+
+        return result.approved
+```
+
+### 为什么不work：仅靠Prompt约束
+
+| 方法 | 为什么不够 | 效果 |
+|------|------------|------|
+| System Prompt加约束 | LLM只生成文本，不强制执行 | 可被越狱绕过 |
+| Prompt说"不要调用删除API" | LLM可能"忘记" | 不安全 |
+| **Policy Engine（结构化）** | LLM的输出必须经过Policy检查 | 安全，不可用Prompt绕过 |
+
+**关键认知：**
+> "边界必须结构化地执行，不能靠Prompt'建议'。如果Agent技术上能调用危险工具，它迟早会调用。Policy Engine是外部强制约束，不是LLM的内部知识。"
+
+### 生产环境实现
+
+```python
+# 完整的Policy Engine Pipeline
+class ProductionPolicyEngine:
+    def __init__(self):
+        self.classifier = RiskClassifier()
+        self.budget = ResourceBudget()
+        self.scope = ScopeGuard()
+        self.approval = ApprovalGate()
+        self.audit = AuditLogger()
+
+    async def process(self, llm_output: str, context: AgentContext) -> ProcessedAction:
+        # 1. 解析LLM输出的动作
+        action = self.parse_action(llm_output)
+
+        # 2. 强制执行Policy检查
+        decision = await self.authorize(action, context)
+
+        # 3. 记录审计日志
+        await self.audit.log(decision, action, context)
+
+        # 4. 执行或拒绝
+        if decision == Decision.APPROVE:
+            return await self.executor.execute(action)
+        elif decision == Decision.PENDING:
+            return await self.approval.request(action)
+        else:
+            return self.create_rejection_response(decision.reason)
+```
+
+### 面试话术
+
+> "Policy Engine是2026年企业级Agent面试的核心考点。核心观点是'边界必须结构化，Prompt不可靠'。我用四层防护：风险分类决定检查强度，资源预算防止过度消耗，Scope约束在技术层面禁止越界，高风险操作必须人工审批。面试时能画出Policy Engine架构图并解释各层职责，说明你有企业级Agent落地经验。"
+
+</details>
+
+---
+
 **上一模块：** [框架与工具](../12-frameworks-tools/)
 **下一模块：** [MCP Skill 系统](../14-mcp-skill-systems/)
 
