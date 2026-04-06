@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.17 | **最后更新:** 2026-04-07
+**版本:** v3.18 | **最后更新:** 2026-04-07
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-07 | **📝 版本:** v3.17 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-07 | **📝 版本:** v3.18 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -534,14 +534,15 @@ Made with ❤️ for the AI Community
 
 ---
 
-## 📚 新增模块（v3.17 - 2026-04-07 更新）
+## 📚 新增模块（v3.18 - 2026-04-07 更新）
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q19）](docs/14-mcp-skill-systems/) | 企业级MCP分布式部署(负载均衡+动态节点感知)、JWT鉴权完整实现、Session/多租户隔离设计、Nacos+Spring AI Alibaba MCP Gateway | 🔥🔥🔥 | +1 |
 | 🆕 | [🔌 MCP协议（新增Q18）](docs/14-mcp-skill-systems/) | Stdio vs SSE传输层5维度深度对比、MCP协议生命周期管理(Initialize/Ping/Shutdown完整状态机)、Sampling原语(Server反向请求Client生成)、去中心化AI计算原理 | 🔥🔥🔥 | +1 |
 | 🆕 | [🔥 AI编程工具（新增Q21）](docs/17-ai-coding-tools/) | SWE-bench Multimodal(视觉+代码联合理解)、Terminal-Bench(DevOps能力评测)、2026年3月最新数据(GPT-5.3-Codex 77.3%)、SWE-Rebench"假通过"问题解决 | 🔥🔥🔥 | +1 |
 
-*版本: v3.17 | 更新: 2026-04-07 | by 二狗子 🐕*
+*版本: v3.18 | 更新: 2026-04-07 | by 二狗子 🐕*
 
 ---
 
