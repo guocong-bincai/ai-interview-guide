@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.13 | **最后更新:** 2026-04-06
+**版本:** v3.14 | **最后更新:** 2026-04-06
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.13 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-06 | **📝 版本:** v3.14 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -509,3 +509,15 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q15）](docs/14-mcp-skill-systems/) | Google Antigravity与MCP Store、MCP在Cursor/Claude Code/Antigravity中的配置对比、Rube MCP上下文优化 | 🔥🔥🔥 | +1 |
 
 *版本: v3.13 | 更新: 2026-04-06 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.14 - 2026-04-06 更新）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🤖 多Agent系统（新增Q13）](docs/13-multi-agent-systems/) | Agent成熟度L1-L5分级框架(L1被动执行→L5团队协调者)、Gartner预测2028年70%应用达L5、Coze/Dify/n8n横评、LangChain vs LlamaIndex定位 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔌 MCP协议（新增Q16）](docs/14-mcp-skill-systems/) | AI协议三件套(MCP+A2A+AG-UI)、AG-UI标准事件类型(HTTP/SSE)、三件套协同工作流、AG-UI vs 传统REST | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔥 AI编程工具（新增Q12）](docs/17-ai-coding-tools/) | Claude Code vs Cursor实测基准(5.5倍Token差距、30%返工率、12%速度差)、上下文窗口实际对比(200K vs 70-120K)、复杂度阈值选型 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.14 | 更新: 2026-04-06 | by 二狗子 🐕*

@@ -964,3 +964,98 @@ claude mcp add
 
 </details>
 
+
+---
+
+## 七、AI 协议"三件套"：MCP + A2A + AG-UI（Q16）
+
+### Q16: AI 协议"三件套"是什么？MCP、A2A、AG-UI 分别解决什么问题？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**AI 协议"三件套"是 2026 年 AI Agent 互联互通的核心标准：**
+
+| 协议 | 定位 | 解决的问题 | 类比 |
+|------|------|------------|------|
+| **MCP** | Agent ↔ 工具/数据源 | 让 AI 调用外部能力 | USB-C 接口 |
+| **A2A / ACP** | Agent ↔ Agent 协作 | 让多个 Agent 互相配合 | HTTP 协议 |
+| **AG-UI** | Agent ↔ 用户界面 | 让 Agent 与前端交互 | WebSockets |
+
+### MCP（Model Context Protocol）
+
+**解决 Agent 调用工具的问题**
+
+- 基于 JSON-RPC 2.0 规范
+- 定义了 Agent 调用外部工具（API）的标准
+- Anthropic 主导，Linux Foundation 托管
+- 月下载量 9700 万次，1 万+ MCP Server
+
+### A2A / ACP（Agent-to-Agent / Agent Control Protocol）
+
+**解决 Agent 与 Agent 协作的问题**
+
+- Google 主导的 A2A + 其他厂商的 ACP
+- 通过"Agent Card"广播和发现彼此能力
+- 定义任务分配、角色扮演等通信标准
+- 与 MCP 互补：A2A 让 Agent 之间互相沟通，MCP 让 Agent 调用工具
+
+### AG-UI（Agent User Interaction）
+
+**解决 Agent 与前端用户界面交互的问题**
+
+**核心定位：** 定义 Agent 与前端之间的标准化事件流协议
+
+**基于技术：** HTTP/SSE（Server-Sent Events）
+
+**标准事件类型：**
+
+| 事件类型 | 说明 |
+|----------|------|
+| `TEXTMESSAGECONTENT` | 流式文本响应 |
+| `TOOLCALLSTART` | 工具调用开始 |
+| `TOOLCALLEND` | 工具调用结束 |
+| `STATE_DELTA` | 状态变更（如进度更新） |
+| `APPROVAL_REQUIRED` | 需要用户审批 |
+| `TASK_COMPLETE` | 任务完成 |
+
+**为什么需要 AG-UI？**
+
+```
+传统方式：
+Agent（后端） → REST API → 前端轮询 → 展示结果
+
+AG-UI 方式：
+Agent（后端） → SSE 流式推送 → 前端实时展示（工具调用进度、状态变化）
+```
+
+**典型应用场景：**
+- 前端实时显示 Agent 的思考过程
+- 工具调用时显示进度条
+- 需要审批时弹出确认框
+- 流式文本逐步渲染
+
+### 三件套协同工作流
+
+```
+用户界面（前端）
+     ↓ AG-UI（事件流）
+┌────────────────────────────────────┐
+│          Agent 协作层               │
+│  主Agent ← A2A → 子Agent           │
+└────────────────────────────────────┘
+     ↓ MCP（工具调用）
+┌────────────────────────────────────┐
+│         工具/数据源层              │
+│  数据库Server / API Server / 文件系统 │
+└────────────────────────────────────┘
+```
+
+**面试话术：**
+> "AI 协议三件套解决的是 Agent 生态的互联互通问题。MCP 是 USB-C 接口，解决 Agent 调用工具；A2A 是 HTTP，解决 Agent 之间的通信；AG-UI 是 WebSockets，解决 Agent 和前端的实时交互。三者各司其职，共同构成 Agent 的通信基础设施。我在项目中用过 AG-UI，让前端实时显示 Agent 的工具调用进度，用户能看到 Agent 在'思考'和'执行'，体验比传统轮询好很多。"
+
+</details>
+
+---
+
+*版本: v2.3 | 更新: 2026-04-06 | by 二狗子 🐕*
