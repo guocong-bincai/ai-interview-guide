@@ -1451,3 +1451,159 @@ Cursor：
 
 </details>
 
+---
+
+## 十、SWE-bench Multimodal 与 Terminal-Bench：2026年AI编程评测新基准（Q21）
+
+### Q21: 什么是 SWE-bench Multimodal 和 Terminal-Bench？2026年最新评测数据如何？
+
+<details>
+<summary>💡 答案要点</summary>
+
+### SWE-bench Multimodal：加入视觉理解的新一代评测
+
+**为什么需要 SWE-bench Multimodal？**
+
+传统 SWE-bench 只评测纯文本能力，但实际开发中有大量问题需要看图理解：
+
+| 问题类型 | 纯文本描述 | 视觉信息需求 |
+|----------|-----------|-------------|
+| 前端 Bug | "这个按钮位置不对" | 需要截图判断按钮实际位置 |
+| UI 错误 | "页面显示错位" | 需要截图对比设计稿 |
+| 错误界面 | "这个报错弹窗什么意思" | 需要截图显示完整错误信息 |
+| 数据可视化 | "图表数据不准确" | 需要截图看图表实际样子 |
+
+**SWE-bench Multimodal 核心变化：**
+
+| 维度 | 传统 SWE-bench | SWE-bench Multimodal |
+|------|----------------|---------------------|
+| **Issue 描述** | 纯文本 | 文本 + 图片（截图/UI/错误界面） |
+| **评测能力** | 代码理解 | 代码 + 视觉联合理解 |
+| **适用场景** | 后端 Bug 修复 | 前端/UI/可视化 Bug 修复 |
+| **评测难度** | 高 | 更高（跨模态推理） |
+
+**评测流程：**
+```
+1. Issue 包含截图（如 UI 错误的屏幕截图）
+2. AI 模型需要：
+   a. 理解截图中的视觉信息
+   b. 理解代码逻辑
+   c. 判断两者之间的矛盾
+   d. 生成修复方案
+3. 验证修复是否正确
+```
+
+### Terminal-Bench：AI 编程的 DevOps 能力评测
+
+**Terminal-Bench 是什么：**
+
+评测 AI 在真实终端环境中的任务完成能力，涵盖 git 操作、文件编辑、构建运行、调试排错等场景。
+
+| 维度 | 说明 |
+|------|------|
+| **核心评测** | AI 在真实终端的命令行操作能力 |
+| **与 SWE-bench 区别** | SWE-bench 评测代码修复，Terminal-Bench 评测命令行操作 |
+| **涵盖任务** | git 操作、文件编辑、构建运行、调试排错 |
+| **评分方式** | 任务完成率 + 正确性 |
+
+**Terminal-Bench 任务示例：**
+```bash
+# 示例任务
+"用 git rebase 将 feature 分支变基到 main 上，然后解决冲突，最后跑测试"
+
+# AI 需要：
+1. 执行 git rebase main
+2. 遇到冲突后解决冲突（编辑文件）
+3. git add + git rebase --continue
+4. 运行测试（npm test / pytest）
+5. 验证测试是否通过
+```
+
+### 2026年3月最新 Terminal-Bench 数据
+
+| 模型 | Terminal-Bench 分数 | 定位 |
+|------|---------------------|------|
+| **GPT-5.4 Thinking** | **75.1%** | 通用模型终端任务第一 |
+| **GPT-5.3-Codex** | **77.3%** | Codex 系列最强 |
+| Claude Sonnet 4.6 | ~72% | Claude 系列领先 |
+| GPT-4o | ~65% | 基础水平 |
+
+**GPT-5.3-Codex 为什么最强：**
+```
+Codex = GPT-5 底座 + 深度代码训练 + 终端操作强化
+
+关键能力：
+1. 代码理解：深度理解 git/terminal 命令语义
+2. 错误处理：遇到错误后能自我修复
+3. 多步推理：复杂任务的多步操作规划
+4. 上下文记忆：跨多个终端会话保持状态
+```
+
+### 2026年 AI 编程评测全景图
+
+**完整评测体系：**
+
+```
+HumanEval（最基础）
+  ↓  基础代码生成
+SWE-bench（真实代码修复）
+  ↓  GitHub Issue 真实 Bug
+  ├── SWE-bench Multimodal（加入视觉理解）
+  │     → 前端/UI Bug 修复
+  ├── SWE-Rebench（SWE-bench 修复能否跑通）
+  │     → 代码质量验证
+  └── Terminal-Bench（终端命令行操作）
+        → DevOps/运维能力
+            ↓
+    Aider Polyglot（跨语言泛化）
+    FLTEval（Flutter 移动端）
+    React Native Evals（React Native）
+```
+
+**各评测关键指标：**
+
+| 评测 | 分数 | 意义 |
+|------|------|------|
+| **SWE-bench** | ~80%（Claude Sonnet 4.6） | AI 能独立解决 8 成真实 Bug |
+| **SWE-bench Multimodal** | 新评测，暂无公开数据 | 视觉+代码联合理解 |
+| **Terminal-Bench** | ~77%（GPT-5.3-Codex） | AI 能独立完成终端操作 |
+| **SWE-Rebench** | ~65%（相对 SWE-bench 通过率） | 修复的代码质量 |
+| **LiveCodeBench** | 持续评测（防数据污染） | 长期能力稳定性 |
+
+### SWE-Rebench：解决"通过但跑不通"问题
+
+**问题：**
+```
+SWE-bench 通过 ≠ 代码能跑通
+
+原因：
+- SWE-bench 只验证修复逻辑是否正确
+- 不验证代码是否语法错误、依赖是否完整
+- 存在"通过但跑不通"的情况
+```
+
+**SWE-Rebench 解决方案：**
+```python
+# 对 SWE-bench 的每个修复：
+1. 提取 SWE-bench 通过的修复代码
+2. 应用到真实代码库
+3. 运行测试套件（pytest/unittest）
+4. 如果测试通过 → SWE-Rebench PASS
+5. 如果测试失败 → SWE-Rebench FAIL
+
+# 结果：
+SWE-bench: 75% 通过
+SWE-Rebench: ~55% 真正能跑通
+→ 说明有 ~20% 是"假通过"
+```
+
+### 面试话术
+
+> "2026年AI编程评测已经形成完整体系：HumanEval测基础、SWE-bench测真实Bug修复、SWE-bench Multimodal加入视觉理解（前端/UI Bug也能考）、Terminal-Bench测DevOps能力（GPT-5.3-Codex达到77%）。最值得关注的是SWE-Rebench——它发现SWE-bench通过的代码里有~20%实际跑不通，这解决了'能修复但质量差'的问题。面试时能说出这个评测演进链条，说明你不只是在用工具，而是在理解AI编程能力的边界。"
+
+</details>
+
+---
+
+*版本: v2.11 | 更新: 2026-04-07 | by 二狗子 🐕*
+
