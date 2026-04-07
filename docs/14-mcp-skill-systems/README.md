@@ -1600,4 +1600,211 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 ---
 
-*版本: v2.6 | 更新: 2026-04-07 | by 二狗子 🐕*
+## 十一、MCP 2026 前沿演进：Streamable HTTP、OAuth 2.1、零知识证明与 HITL（Q20）
+
+### Q20: MCP 的 Streamable HTTP 是什么？OAuth 2.1 + PKCE + Resource Indicators 如何加固安全？HITL/Elicitation 有什么用？
+
+<details>
+<summary>💡 答案要点</summary>
+
+### Streamable HTTP：2026 年传输层的重大演进
+
+**为什么从 SSE 升级到 Streamable HTTP？**
+
+| 维度 | SSE（已过时） | **Streamable HTTP（2026 标准）** |
+|------|-------------|--------------------------------|
+| **连接类型** | 单向长连接 | 双向持久连接（HTTP/1.1 或 HTTP/2） |
+| **状态管理** | 有状态（Session 绑定） | **无状态 + Session Resumption** |
+| **扩缩容** | 垂直扩展，受限于单连接 | **水平扩展，K8s 友好** |
+| **自动重连** | 需手动处理 | 协议层支持 Session Resume |
+| **适用场景** | 本地/简单部署 | **云原生/企业级生产环境** |
+
+**Streamable HTTP 的核心优势——无状态化：**
+```
+传统 SSE（有状态）：
+  Client → Server：建立连接，Server 记住 session_id
+  问题：Server 重启 → session 丢失 → Client 需重新握手
+
+Streamable HTTP（无状态）：
+  Client → Server：携带 session_token，每个请求都是独立的
+  Server 无状态 → 任意节点可处理 → K8s Pod 任意扩缩
+  → 微服务架构友好，K8s 自动扩缩容无感知
+```
+
+**工作原理：**
+```python
+# Streamable HTTP 的每个请求都携带认证信息
+# 不依赖持久连接状态
+headers = {
+    "Authorization": "Bearer <token>",
+    "MCP-Session-ID": "<session_token>"  # 可选，用于会话恢复
+}
+
+response = requests.post(
+    "https://mcp.example.com/message",
+    json={"jsonrpc": "2.0", "method": "tools/call", ...},
+    headers=headers
+)
+```
+
+### OAuth 2.1 + PKCE：企业级安全标准
+
+**为什么需要比 JWT 更强的方案？**
+
+传统 JWT 的问题：
+```
+1. Token 泄露：JWT 一旦泄露，可在有效期内任意使用
+2. 无法撤回：Token 有效期内的任何操作都无法撤销
+3. 范围不可控：Token 无法限制只能访问特定 MCP Server
+```
+
+**OAuth 2.1 + PKCE 解决方案：**
+
+```
+OAuth 2.1（2026 企业标配）：
+1. PKCE（Proof Key for Code Exchange）
+   → 防止 Authorization Code 被拦截替换
+   → 即使有人截获了 code，没有 code_verifier 也无法换 token
+
+2. 短有效期 Access Token + Refresh Token
+   → Access Token 有效期 15 分钟，过期自动刷新
+   → 泄露窗口极短
+
+3. Resource Indicators（RFC 8707）
+   → Token 绑定特定 MCP Server 的 URI
+   → 即使 Token 泄露，也无法访问其他 Server
+```
+
+**Resource Indicators 详解：**
+
+```json
+// Client 请求 Token 时，指定能访问的 MCP Server
+{
+    "grant_type": "authorization_code",
+    "code": "...",
+    "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
+    "resource": "https://api.weather-mcp.example.com",
+    "scope": "tools:execute resources:read"
+}
+
+// 生成的 Token 只能访问 weather-mcp，无法访问 db-mcp
+// 即使 Token 泄露，攻击者也无法横向移动
+```
+
+**三者的关系：**
+```
+OAuth 2.1（框架）
+  ├── PKCE（防拦截）
+  ├── 短有效期 Token（缩小泄露窗口）
+  └── Resource Indicators（范围限定）
+
+= 企业级 MCP 安全标准
+```
+
+### Human-in-the-Loop（HITL）与 Elicitation 原语
+
+**为什么需要 HITL？**
+
+Agent 自主执行有边界：
+```
+AI 可以自动：发邮件、查数据、生成报告
+AI 不应自动：高风险操作需要人工确认
+
+例如：
+  ✅ 自动：查询客户账户余额
+  ✅ 自动：生成转账凭证草稿
+  ❌ 自动执行：实际转出 100 万
+  ❌ 自动执行：删除生产数据库
+  ❌ 自动执行：发送对外公开发布内容
+```
+
+**Elicitation 原语（2026 下半年将标准化）：**
+
+Agent 在执行高风险操作前，暂停并请求人类确认：
+
+```
+Agent 决策链：
+
+识别高风险操作（如转账 $1,000,000）
+    ↓
+发送 Elicitation 请求 → 等待人类批准/拒绝
+    ↓
+┌─────────────────────────────────────┐
+│ 人类审批界面                         │
+│ "确认向 张三 转账 $1,000,000？"     │
+│ [批准] [拒绝] [修改金额]            │
+└─────────────────────────────────────┘
+    ↓
+人类选择：[批准]
+    ↓
+Agent 执行该操作
+```
+
+**标准 Elicitation 消息格式（MCP 协议层）：**
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "tools/elicitation",
+    "params": {
+        "reason": "HIGH_RISK_FINANCIAL_TRANSFER",
+        "tool": "execute_transfer",
+        "arguments": {
+            "to": "张三",
+            "amount": 1000000,
+            "currency": "USD"
+        },
+        "options": [
+            {"label": "批准执行", "action": "approve"},
+            {"label": "拒绝", "action": "reject"},
+            {"label": "修改金额", "action": "modify", "default": 100000}
+        ],
+        "timeout_seconds": 300
+    },
+    "id": 42
+}
+```
+
+**HITL 的四象限分类：**
+
+| 场景 | 风险等级 | 策略 |
+|------|----------|------|
+| 查询数据、生成摘要 | 低 | 完全自主 |
+| 发送内部邮件、生成草稿 | 中 | 事后通知 |
+| 修改配置、发布内容 | 高 | 事前审批 |
+| 转账、删除数据、解密文件 | 极高 | 多重审批 + 审计 |
+
+### Stateless Server：无状态化与 K8s 部署
+
+**传统 Stateful SSE 的问题：**
+```
+K8s Pod 扩缩容：
+  Pod A 处理 Client 的 SSE 连接
+  Pod A 被 K8s 终止（资源调度）
+  → Client 连接断开
+  → 需要 Client 重新建立连接
+  → 体验差，不适合生产
+```
+
+**Stateless Streamable HTTP 方案：**
+```
+每个请求都是独立的，携带完整上下文：
+  1. Client 发送请求，携带 session_token
+  2. 任意 K8s Pod 处理请求，验证 token
+  3. 返回结果
+  4. 无状态，Pod 任意扩缩
+
+K8s HPA（水平自动扩缩容）：
+  高负载 → 自动新增 Pod → 负载分散
+  低负载 → 自动缩减 Pod → 节省成本
+  → 完美适配 Streamable HTTP 的无状态特性
+```
+
+### 面试话术
+
+> "MCP 2026 年的演进有四条主线：1）Streamable HTTP 替代 SSE，实现真正的无状态和 K8s 水平扩缩；2）OAuth 2.1 + PKCE + Resource Indicators 把安全从'有就比没有强'升级到企业级标准——Token 泄露窗口极短，且能限制只能访问特定 Server；3）HITL/Elicitation 原语让高风险操作有人类把关，突破'Agent 只能自主执行'的限制；4）Stateless Server 配合 K8s 实现真正的云原生生产部署。面试时能说出这四个演进方向，说明你对 MCP 的理解已经脱离了入门的'会用'，进入了生产落地的'用好'阶段。"
+
+</details>
+
+---
+
+*版本: v2.7 | 更新: 2026-04-07 | by 二狗子 🐕*
