@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 280+ 道高频面试题 | 20 个核心模块 | 从基础到进阶系统化学习**
+**🎯 320+ 道高频面试题 | 23 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.19 | **最后更新:** 2026-04-07
+**版本:** v3.21 | **最后更新:** 2026-04-07
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -35,7 +35,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 280+ 道 |
+| 📝 **总题数** | 320+ 道 |
 | 📂 **核心模块** | 19 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-07 | **📝 版本:** v3.19 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-07 | **📝 版本:** v3.21 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -463,7 +463,7 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 多模态Agent（Vision-Language Agent）](docs/21-multimodal-agents/) | GPT-4V、Gemini、LLaVA、视觉Agent、Document AI、Video Agent、企业级多模态架构 | 🔥🔥🔥🔥 | 18 |
 | 🆕 | [🤖 AI Agent基础（新增Q18）](docs/05-ai-agent-basics/) | 2026 Agent岗位分化、算法向vs工程向、GAIA/WebArena评估、国产框架选型 | 🔥🔥🔥🔥 | +1 |
 
-*版本: v3.0 | 更新: 2026-04-04 | by 二狗子 🐕*
+*版本: v3.21 | 更新: 2026-04-04 | by 二狗子 🐕*
 
 ---
 
@@ -473,7 +473,7 @@ Made with ❤️ for the AI Community
 |------|------|------|--------|------|
 | 🚀 | [🔥 RAG 高级优化（GraphRAG / HyDE / Semantic Chunking）](docs/20-rag-advanced-optimization/) | RAG-Fusion、HyDE、GraphRAG、Semantic Chunking、Context Cliff、Rerank、LLMLingua、RAGAS评估 | 🔥🔥🔥🔥 | 11 |
 
-*版本: v3.0 | 更新: 2026-04-04 | by 二狗子 🐕*
+*版本: v3.21 | 更新: 2026-04-04 | by 二狗子 🐕*
 
 ---
 
@@ -534,7 +534,7 @@ Made with ❤️ for the AI Community
 
 ---
 
-## 📚 新增模块（v3.19 - 2026-04-07 更新）
+## 📚 新增模块（v3.21 - 2026-04-07 更新）
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
@@ -543,7 +543,7 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q18）](docs/14-mcp-skill-systems/) | Stdio vs SSE传输层5维度深度对比、MCP协议生命周期管理(Initialize/Ping/Shutdown完整状态机)、Sampling原语(Server反向请求Client生成)、去中心化AI计算原理 | 🔥🔥🔥 | +1 |
 | 🆕 | [🔥 AI编程工具（新增Q21）](docs/17-ai-coding-tools/) | SWE-bench Multimodal(视觉+代码联合理解)、Terminal-Bench(DevOps能力评测)、2026年3月最新数据(GPT-5.3-Codex 77.3%)、SWE-Rebench"假通过"问题解决 | 🔥🔥🔥 | +1 |
 
-*版本: v3.19 | 更新: 2026-04-07 | by 二狗子 🐕*
+*版本: v3.21 | 更新: 2026-04-07 | by 二狗子 🐕*
 
 ---
 
@@ -554,3 +554,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q17）](docs/14-mcp-skill-systems/) | A2A完整8状态任务机(input-required/人机协作关键)、MCP Tasks原语 vs 工具调用对比、2024-2026演进时间线(A2A v0.3→v1.0/MCP Tasks/MCP Apps)、完整Agent Card JSON结构 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.16 | 更新: 2026-04-06 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.21 - 2026-04-07 第二批）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🧠 Agent规划与反思深度（ReAct优化/Reflexion/LATS）](docs/22-agent-planning-reflection/) | ReAct三大缺陷(上下文漂移/高延迟/规划执行耦合)、Plan-and-Solve vs REWOO vs ReAct对比、Generator-Evaluator反思架构、Reflexion跨任务记忆机制、LATS树搜索与Reflexion区别、动态重规划触发条件、生产级五大工程挑战 | 🔥🔥🔥🔥🔥 | 10 |
+
+*版本: v3.21 | 更新: 2026-04-07 | by 二狗子 🐕*
