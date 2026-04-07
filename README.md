@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.21 | **最后更新:** 2026-04-07
+**版本:** v3.22 | **最后更新:** 2026-04-08
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-07 | **📝 版本:** v3.21 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-08 | **📝 版本:** v3.22 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -564,3 +564,15 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 Agent规划与反思深度（ReAct优化/Reflexion/LATS）](docs/22-agent-planning-reflection/) | ReAct三大缺陷(上下文漂移/高延迟/规划执行耦合)、Plan-and-Solve vs REWOO vs ReAct对比、Generator-Evaluator反思架构、Reflexion跨任务记忆机制、LATS树搜索与Reflexion区别、动态重规划触发条件、生产级五大工程挑战 | 🔥🔥🔥🔥🔥 | 10 |
 
 *版本: v3.21 | 更新: 2026-04-07 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.22 - 2026-04-08 更新）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 大模型推理框架（新增Q18-Q19）](docs/19-inference-frameworks/) | vLLM 0.5 PagedAttention动态调整/FP8 KV Cache量化/MoE增强、TGI 2.0万亿参数/gRPC流式优化/AWQ量化40%提升、TensorRT-LLM 1.8全链路编译/FlashAttention 3.0/7620 tok/s吞吐量、DeepSpeed-MII 0.9自动优化/零代码部署 | 🔥🔥🔥🔥🔥 | +2 |
+| 🆕 | [🔥 大模型推理框架（新增Q19）](docs/19-inference-frameworks/) | 2026年H100统一基准测试(vLLM 0.5 95.3%显存利用率/TensorRT-LLM 1.8 7620 tok/s并发128)、四大框架选型决策树(极致性能→TRT-LLM/高并发稳定→vLLM/快速部署→DeepSpeed-MII/多轮对话→SGLang) | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔥 多模态Agent（新增Q22）](docs/21-multimodal-agents/) | Qwen3-VL核心突破(256K交错上下文/MoE架构235B-A22B/DeepStack推理/MMMU超Gemini 2.5 Pro)、全系列对比(2B/4B/8B/32B/30B-A3B/235B-A22B)、企业应用场景(发票识别/GUI Agent) | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.22 | 更新: 2026-04-08 | by 二狗子 🐕*

@@ -1,7 +1,7 @@
 # 🔥 多模态Agent面试题（Vision-Language Agent）
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-04-04
+> **更新：** 2026-04-08
 > **考点：** GPT-4V、Gemini、LLaVA、视觉Agent、Document AI、Video Agent
 
 ## 📋 目录
@@ -903,6 +903,122 @@ class VoiceAgent:
 
 **上一模块：** [多模态AI基础](../11-multimodal-ai/)
 **下一模块：** [多Agent系统](../13-multi-agent-systems/)
+
+---
+
+## 八、Qwen3-VL：2026年国产视觉语言模型新标杆
+
+### Q22: Qwen3-VL有哪些核心突破？和GPT-4V/Gemini 2.5 Pro如何对比？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Qwen3-VL发布时间线：**
+- Qwen-VL（2023年）：基础图像理解和对话
+- Qwen2-VL（2024年）：图像+短视频理解，Agent任务
+- Qwen2.5-VL（2025年）：长视频、复杂文档解析、多语言支持
+- **Qwen3-VL（2025年12月）：全面超越，视觉-语言统一架构**
+
+**Qwen3-VL核心突破（面试重点）：**
+
+| 突破 | 原理 | 效果 |
+|------|------|------|
+| **256K交错上下文** | 原生支持文本+图像+视频的交错序列 | 单张100页PDF可一次理解 |
+| **MoE视觉架构** | 混合专家模型，235B-A22B变体仅激活22B参数 | 成本大幅降低 |
+| **DeepStack多视角推理** | 增强的深度推理能力，支持复杂视觉任务 | MMMU基准超越Gemini 2.5 Pro |
+| **原生交错输入** | 同一序列中自由混合文本、图像、视频token | 对话流畅性大幅提升 |
+| **多模态Agent优化** | 针对GUI操作、机器人控制等任务专项优化 | GUI Agent基准SOTA |
+
+**Qwen3-VL模型系列：**
+
+| 变体 | 参数量 | 激活参数 | 特点 | 适用场景 |
+|------|--------|----------|------|----------|
+| **Qwen3-VL-2B** | 2B | 2B | 轻量快速 | 边缘设备、移动端 |
+| **Qwen3-VL-4B** | 4B | 4B | 均衡 | 消费级GPU |
+| **Qwen3-VL-8B** | 8B | 8B | 高性能 | 单卡部署 |
+| **Qwen3-VL-32B** | 32B | 32B | 旗舰开源 | 生产环境 |
+| **Qwen3-VL-30B-A3B** | 30B MoE | 3B激活 | MoE省显存 | 低显存高性能 |
+| **Qwen3-VL-235B-A22B** | 235B MoE | 22B激活 | 极致性能 | 企业级部署 |
+
+**架构创新：DeepStack（深度堆叠推理）：**
+
+```python
+# DeepStack原理：多层视觉特征渐进式融合
+class DeepStackVLArchitecture:
+    def forward(self, interleaved_input):
+        # 输入: [文本token, 图像token, 文本token, 视频帧token, ...]
+        # 真正的交错混合，不是简单的图文拼接
+
+        # Stage 1: 视觉编码器独立提取特征
+        visual_features = self.vision_encoder(interleaved_input.images)
+
+        # Stage 2: DeepStack多层交叉注意力
+        for layer in range(self.num_deep_layers):
+            # 每层都对齐和融合视觉+文本
+            fused = self.deep_cross_attention(
+                text_features,
+                visual_features,
+                layer_depth=layer
+            )
+
+        # Stage 3: 统一到语言模型空间
+        output = self.llm(fused)
+
+# vs 传统方案（Qwen2-VL）：
+# 传统: 图像 → 视觉token → 投影层 → LLM
+# Qwen3: 图像 → 视觉token → DeepStack多层融合 → LLM
+# → 视觉和语言的理解深度显著增强
+```
+
+**交错输入（Interleaved Input）示例：**
+
+```python
+# Qwen3-VL支持真正的交错输入
+interleaved_content = [
+    {"type": "text", "content": "请分析这份财报的关键信息"},
+    {"type": "image", "url": "balance_sheet.png"},  # 资产负债表
+    {"type": "text", "content": "这张图显示了哪些风险点？"},
+    {"type": "image", "url": "cash_flow.png"},      # 现金流量表
+    {"type": "text", "content": "基于以上两张图，给出投资建议"}
+]
+
+# 传统模型: 需要多次调用，每次一张图
+# Qwen3-VL: 一次调用，完整理解整个多页文档
+response = qwen3_vl.chat(interleaved_content)
+```
+
+**Qwen3-VL vs 竞品对比（2026年最新）：**
+
+| 维度 | Qwen3-VL-235B | GPT-4o | Gemini 2.5 Pro | Claude 3.7 |
+|------|---------------|--------|----------------|------------|
+| **上下文** | **256K** | 128K | 1M | 200K |
+| **多图** | ✅ 原生 | ✅ | ✅ | ✅ |
+| **视频理解** | ✅ 原生 | ✅ | ✅ | ✅ |
+| **MoE架构** | ✅ 235B/22B | ❌ | ❌ | ❌ |
+| **开源** | ✅ | ❌ | ❌ | ❌ |
+| **中文优化** | **SOTA** | 中等 | 中等 | 中等 |
+| **价格** | 开源免费 | $5/1M tok | $1.25/1M tok | $3/1M tok |
+| **MMMU** | **SOTA开源** | 高 | 高 | 高 |
+| **文档理解** | **强** | 强 | 强 | 强 |
+
+**Qwen3-VL典型应用场景：**
+
+| 场景 | 示例 | Qwen3-VL优势 |
+|------|------|-------------|
+| **复杂文档理解** | 100页财报一次分析 | 256K上下文 |
+| **视频理解** | 2小时电影摘要 | 原生视频token |
+| **GUI Agent** | 操控电脑/手机界面 | Agent专项优化 |
+| **多模态对话** | 图文混合问答 | 交错输入原生 |
+| **视觉推理** | 数学题图表分析 | DeepStack推理 |
+
+**面试话术：**
+> "Qwen3-VL是2025年底阿里发布的重磅多模态模型，三个核心突破：1）256K交错上下文支持——可以一次处理100页PDF或多小时视频；2）MoE架构——235B-A22B变体只需22B激活参数，成本大幅降低；3）DeepStack推理——多层视觉-语言深度融合，MMMU基准超越Gemini 2.5 Pro。最重要的是它是开源的，中文理解SOTA，企业内网部署零成本。我项目里用Qwen3-VL-32B做发票识别，一张发票+多条问题一次问，准确率比GPT-4o高15%。"
+
+</details>
+
+---
+
+**版本: v2.7 | 更新: 2026-04-08 | by 二狗子 🐕*
 
 ---
 
