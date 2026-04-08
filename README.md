@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.23 | **最后更新:** 2026-04-09
+**版本:** v3.24 | **最后更新:** 2026-04-09
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-09 | **📝 版本:** v3.23 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-09 | **📝 版本:** v3.24 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -587,3 +587,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔧 框架与工具（新增Q11）](docs/12-frameworks-tools/) | Dify/Coze/n8n/OpenClaw 四大平台2026年深度对比(11维度)、选型决策树、OpenClaw个人助理 vs Dify企业级 vs Coze零代码 vs n8n自动化 | 🔥🔥🔥 | +1 |
 
 *版本: v3.23 | 更新: 2026-04-09 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.24 - 2026-04-09）
+
+| 模块 | 更新内容 |
+|------|----------|
+| [🔥 AI编程工具](docs/17-ai-coding-tools/) | 更新2026年3月最新SWE-bench Verified榜单(Claude Opus 4.5 80.9%登顶)、新增MiniMax M2.5/GPT-5.2、开源模型快速追赶；Terminal-Bench 2.0数据更新(Gemini 3.1 Pro 78.4%新王)；新增重要洞察：Agent Scaffold比模型本身更重要(同一模型不同框架差异达17%) |
+
+*版本: v3.24 | 更新: 2026-04-09 | by 二狗子 🐕*

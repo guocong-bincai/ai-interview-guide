@@ -76,7 +76,7 @@ Pass@10 = k 次内做对的题数 / 总题数
 ```
 
 **面试话术：**
-> "SWE-bench 是最接近真实场景的评测，它用真实的 GitHub Issue 和 PR 测试模型解决实际问题能力。2026 年 3 月 Claude Code 在 SWE-bench 通过率达到 80.8%，代表代码智能的历史性突破，代表代码智能的重大突破。"
+> "SWE-bench 是最接近真实场景的评测，它用真实的 GitHub Issue 和 PR 测试模型解决实际问题能力。2026 年 3 月 Claude Opus 4.5 在 SWE-bench Verified 通过率达到 80.9%（最高分），Claude Code 达 80.8%。重要洞察：同一模型用不同 Agent Scaffold 评测，结果差异高达 17 个百分点，说明"脚手架比模型更重要"。"
 
 </details>
 
@@ -1153,7 +1153,11 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
 
 | 工具 | SWE-bench分数 | 市场定位 | 月费用 |
 |------|--------------|----------|--------|
+| **Claude Opus 4.5** | **80.9%** | 旗舰模型，代码能力最强 | API计费 |
 | **Claude Code** | **80.8%** | CLI Agent，推理最强 | $100（Max套餐） |
+| **Gemini 3.1 Pro** | **80.6%** | 多模态+推理，2026年2月发布 | API计费 |
+| **MiniMax M2.5** | **80.2%** | 开源最强，MoE架构 | API计费 |
+| **GPT-5.2** | **80.0%** | OpenAI旗舰代码模型 | API计费 |
 | **Cursor** | ~65% | AI-First IDE，Tab补全最强 | $20-40/月 |
 | **Windsurf** | ~55% | 性价比之选，Cascade AI | $15/月 |
 | **GitHub Copilot** | ~50% | IDE原生辅助，快速补全 | $10-19/月 |
@@ -1519,14 +1523,16 @@ Cursor：
 5. 验证测试是否通过
 ```
 
-### 2026年3月最新 Terminal-Bench 数据
+### 2026年3月最新 Terminal-Bench 2.0 数据
 
-| 模型 | Terminal-Bench 分数 | 定位 |
+| 模型 | Terminal-Bench 2.0 分数 | 定位 |
 |------|---------------------|------|
-| **GPT-5.4 Thinking** | **75.1%** | 通用模型终端任务第一 |
+| **Gemini 3.1 Pro** | **78.4%** | 通用模型终端任务第一（2026年3月新王） |
 | **GPT-5.3-Codex** | **77.3%** | Codex 系列最强 |
-| Claude Sonnet 4.6 | ~72% | Claude 系列领先 |
-| GPT-4o | ~65% | 基础水平 |
+| Claude Opus 4.6 | **74.7%** | Claude 系列领先（较1月65.4%大幅提升） |
+| Claude Code | ~58% | 独立 Agent Scaffold 评测 |
+
+> **注意**：Terminal-Bench 已升级到 2.0 版本，与 1.0 评测体系不同。Gemini 3.1 Pro 凭借长上下文理解能力在 Terminal 任务中超越 Codex。Claude Opus 4.6 从 1 月的 65.4% 跃升至 74.7%，说明模型本身的终端操作能力被低估了。
 
 **GPT-5.3-Codex 为什么最强：**
 ```
@@ -1564,9 +1570,9 @@ SWE-bench（真实代码修复）
 
 | 评测 | 分数 | 意义 |
 |------|------|------|
-| **SWE-bench** | ~80%（Claude Sonnet 4.6） | AI 能独立解决 8 成真实 Bug |
+| **SWE-bench Verified** | 80.9%（Claude Opus 4.5） | AI 能独立解决 8 成真实 Bug |
 | **SWE-bench Multimodal** | 新评测，暂无公开数据 | 视觉+代码联合理解 |
-| **Terminal-Bench** | ~77%（GPT-5.3-Codex） | AI 能独立完成终端操作 |
+| **Terminal-Bench 2.0** | 78.4%（Gemini 3.1 Pro） | AI 能独立完成终端操作 |
 | **SWE-Rebench** | ~65%（相对 SWE-bench 通过率） | 修复的代码质量 |
 | **LiveCodeBench** | 持续评测（防数据污染） | 长期能力稳定性 |
 
