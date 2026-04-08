@@ -1,8 +1,8 @@
 # 🛠️ AI 框架与运维面试题
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-03-02
-> **考点：** LangChain、向量数据库、测试评估、部署运维
+> **更新：** 2026-04-09
+> **考点：** LangChain、向量数据库、测试评估、部署运维、Dify/Coze/n8n/OpenClaw
 
 ## 📋 目录
 
@@ -1424,6 +1424,118 @@ class StreamResumer:
 
 ---
 
+### Q11: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026 年 AI Agent 平台格局**
+
+2026 年 AI Agent 市场分化出四条主线，各平台定位清晰：
+
+| 平台 | 一句话定位 | 类型 | 开源 | 最适合谁 |
+|------|-----------|------|------|----------|
+| **OpenClaw** | 跑在你电脑上的开源个人 AI 助理 | 个人 AI Agent | ✅（Fair-code） | 技术爱好者、追求隐私的个人用户 |
+| **Dify** | 企业级 AI 应用开发平台 | LLMOps / AI 应用构建 | ✅（开源版+商业版） | 企业 IT 团队、AI 应用开发者 |
+| **Coze** | 字节跳动推出的低代码 AI Bot 构建器 | Bot 构建平台 | ❌（商业平台） | 营销人员、客服团队、非技术用户 |
+| **n8n** | 开源的工作流程自动化引擎 | 工作流程自动化+AI | ✅（Fair-code） | 中小企业、运营人员 |
+
+**四维度深度对比**
+
+| 对比维度 | OpenClaw | Dify | Coze | n8n |
+|----------|-----------|------|------|-----|
+| **主要用途** | 个人全能 AI 助理 | 企业 AI 应用开发 | 快速构建 AI Bot | 工作流程自动化 + AI |
+| **技术门槛** | 中高（需命令行） | 中（需理解 API 概念） | 低（可视化操作） | 中低（拖拉式） |
+| **部署方式** | 本机运行 | 云端/私有化部署 | 云端（SaaS） | 云端/自架 |
+| **数据控制** | 完全本地 | 可私有化 | 存在云端 | 可完全自控 |
+| **AI 模型** | Claude/GPT/本地 Ollama | 多模型管理 | GPT-4/豆包等 | OpenAI/Claude 等 |
+| **自动化能力** | 强（Shell+API） | 中（聚焦 AI 应用） | 弱（Bot 为主） | 极强（500+ 整合） |
+| **协作功能** | 无（个人工具） | 团队协作+权限管理 | 基本协作 | 团队版支持 |
+| **中文支持** | 通过 AI 模型支持 | 界面和文档皆有中文 | 完整中文支持 | 界面有中文 |
+| **社群生态** | ClawHub 技能库 | 活跃开源社区 | 插件市场 | 数千 workflow 模板 |
+
+**OpenClaw 核心特色**
+
+```bash
+# 安装
+brew install --cask openclaw
+
+# 核心功能
+openclaw chat                    # 启动对话
+openclaw skills install <name>  # 安装技能
+openclaw connect telegram        # 连接 Telegram
+openclaw connect whatsapp        # 连接 WhatsApp
+openclaw connect slack           # 连接 Slack
+
+# 可用技能（Skills）
+- GitHub: 仓库管理、Issue 处理
+- Gmail: 邮件读写、搜索
+- Calendar: 日程管理
+- Spotify: 音乐控制
+- Home: 智能家居
+```
+
+OpenClaw = 个人 AI 管家，支持 50+ 整合，隐私优先，数据全部存在本地。
+
+**Dify 核心特色**
+
+```bash
+# Docker Compose 快速部署
+cd dify/docker
+docker-compose up -d
+
+# 创建 AI 应用
+# 1. 选择模型（OpenAI/Claude/Gemini）
+# 2. 配置 RAG 知识库
+# 3. 设计工作流
+# 4. 发布为 API
+
+# API 调用示例
+curl -X POST http://localhost/api/v1/chat-messages \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "公司年假政策是什么？",
+    "response_mode": "streaming",
+    "conversation_id": "",
+    "user": "employee_001"
+  }'
+```
+
+**Coze vs Dify 决策树**
+
+```
+需要本地部署吗？
+  ├─ 是 → 选 Dify（完全私有，数据不出企业）
+  └─ 否 → 继续判断
+
+技术团队强吗？
+  ├─ 强 → 选 Dify（灵活，可代码扩展）
+  └─ 弱 → 继续判断
+
+需要快速上线吗？
+  ├─ 是（<1周）→ 选 Coze（5分钟上线）
+  └─ 否 → 选 Dify（质量优先）
+
+预算有限吗？
+  ├─ 是 → 选 Dify 开源版（免费）
+  └─ 否 → Coze 国际版
+```
+
+**2026 选型一句话建议**
+
+> - **个人效率、隐私优先** → OpenClaw（完全本地，数据不联网）
+> - **企业 AI 应用、需私有化** → Dify（最完整的企业功能）
+> - **快速验证、无技术团队** → Coze（零代码，5分钟上线）
+> - **业务流程自动化+AI** → n8n（500+ 整合，擅长串接现有系统）
+
+**面试话术：**
+
+> "2026 年选 Agent 平台，核心是匹配场景和个人/企业需求。我选平台看三步：1）个人还是企业？个人用 OpenClaw（完全本地，隐私好）；企业用 Dify（私有化部署，功能全）。2）有技术团队吗？有技术团队用 Dify（可代码扩展），没有用 Coze（零代码，5分钟上线）。3）核心需求是什么？AI 应用开发用 Dify，流程自动化用 n8n。实际上我们公司是 Dify+自研混合：核心 AI 能力用 Dify 构建，快速迭代；复杂定制用代码扩展，兼顾速度和灵活性。"
+
+</details>
+
+---
+
 ## 📝 速记卡片
 
 | 话题 | 核心要点 |
@@ -1442,11 +1554,13 @@ class StreamResumer:
 | **Dify部署** | Docker Compose快速/K8s生产,优化4点(连接池/缓存/索引/异步) |
 | **Function Calling** | 并行调用缩短3倍延迟，重试+超时+熔断保障可靠性 |
 | **Streaming流式** | SSE协议，TTFT从5s→300ms，Nginx关闭缓冲 |
+| **Dify/Coze/n8n/OpenClaw** | 个人助理→OpenClaw，企业AI→Dify，低代码Bot→Coze，自动化→n8n |
 
 ## 📊 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-09 | 新增 Q11 Dify/Coze/n8n/OpenClaw 四平台对比 |
 | 2026-03-02 | 新增 10 道框架与运维面试题 |
 
 

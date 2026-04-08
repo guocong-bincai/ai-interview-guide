@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 320+ 道高频面试题 | 23 个核心模块 | 从基础到进阶系统化学习**
+**🎯 320+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.22 | **最后更新:** 2026-04-08
+**版本:** v3.23 | **最后更新:** 2026-04-09
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-08 | **📝 版本:** v3.22 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-09 | **📝 版本:** v3.23 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -576,3 +576,14 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 多模态Agent（新增Q22）](docs/21-multimodal-agents/) | Qwen3-VL核心突破(256K交错上下文/MoE架构235B-A22B/DeepStack推理/MMMU超Gemini 2.5 Pro)、全系列对比(2B/4B/8B/32B/30B-A3B/235B-A22B)、企业应用场景(发票识别/GUI Agent) | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.22 | 更新: 2026-04-08 | by 二狗子 🐕*
+
+---
+
+## 📚 新增模块（v3.23 - 2026-04-09 更新）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 Agent 可观测性与生产监控（新增专题）](docs/23-agent-observability/) | LangSmith/Arize Phoenix/OpenTelemetry/Prometheus 可观测性架构、Agent 异常检测(循环/幻觉/上下文膨胀)、Token 成本监控与优化策略、SLA 设计/告警规则/A/B 测试实战 | 🔥🔥🔥🔥 | 7 |
+| 🆕 | [🔧 框架与工具（新增Q11）](docs/12-frameworks-tools/) | Dify/Coze/n8n/OpenClaw 四大平台2026年深度对比(11维度)、选型决策树、OpenClaw个人助理 vs Dify企业级 vs Coze零代码 vs n8n自动化 | 🔥🔥🔥 | +1 |
+
+*版本: v3.23 | 更新: 2026-04-09 | by 二狗子 🐕*
