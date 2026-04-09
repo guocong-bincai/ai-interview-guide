@@ -1808,3 +1808,165 @@ K8s HPA（水平自动扩缩容）：
 ---
 
 *版本: v2.7 | 更新: 2026-04-07 | by 二狗子 🐕*
+
+---
+
+## 十二、MCP 2026 官方路线图：传输层演进、Agent通信、治理成熟与企业就绪（Q21）
+
+### Q21: MCP 2026 官方路线图四大优先方向是什么？SEP优先级机制如何运作？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景说明**
+
+MCP 协议 2025年11月发布首个正式版以来，生产部署快速增长。2026年路线图由 Core Maintainer 团队基于生产经验、社区反馈和痛点梳理得出，四大优先方向已确定，SEP 将获得快速审查通道。
+
+---
+
+**方向一：传输层演进与可扩展性（Transport Evolution and Scalability）**
+
+Streamable HTTP 已解锁远程 MCP 服务部署，但大规模运行暴露出一系列问题：
+
+```
+当前痛点：
+  有状态会话（Stateful Sessions）→ 与负载均衡器冲突
+  水平扩展（Horizontal Scaling）→ 需要大量 workaround
+  服务发现（Server Discovery）→ 无法在不连接的情况下了解 Server 能力
+
+2026 解决方案分两部分：
+
+① 传输与会话模型演进
+   → 服务端能水平扩展，无需持有状态
+   → 清晰明确的状态机制（Session）
+
+② 标准元数据格式（.well-known）
+   → 通过 .well-known 端点暴露 Server 能力
+   → 注册中心/爬虫无需建立连接即可发现服务
+   → 类比：Web 的 robots.txt / OpenAPI spec
+
+重要声明：我们不会在此周期增加更多官方传输协议
+       保持协议集最小化是 MCP 的设计原则之一
+```
+
+**面试话术：**
+> "MCP 的传输层演进核心解决两个问题：一是让 Streamable HTTP 支持真正的水平扩展（无状态），这对 K8s 环境下的生产部署至关重要；二是通过 .well-known 做服务发现，不需要每个爬虫都建立连接，降低资源消耗。这两个改进让 MCP 从'本地工具连接协议'升级为'企业级生产服务协议'。"
+
+---
+
+**方向二：Agent 通信（Agent Communication）**
+
+Tasks 原语（SEP-1686）作为实验特性已发布并运行良好，但早期生产使用暴露了具体缺陷：
+
+```
+Tasks 当前问题：
+  1. 瞬时失败时没有重试语义（Retry Semantics）
+     → 网络抖动导致任务直接失败，无法自动恢复
+  2. 结果完成后保留策略不明确（Expiry Policies）
+     → 任务完成后结果存多久？内存泄漏风险
+
+MCP 团队计划：
+  Ship 实验版 → 收集生产反馈 → 迭代改进
+  这正是"生产驱动开发"的典型案例
+```
+
+---
+
+**方向三：治理成熟（Governance Maturation）**
+
+当前痛点：每个 SEP 无论领域都需要 Core Maintainer 完整审查，形成瓶颈。
+
+```
+现状问题：
+  SEP-XXX（安全领域）→ 需 Core Maintainer 全员review
+  SEP-YYY（传输层）→ 同样需 Core Maintainer 全员review
+  → 拖慢 Working Group 进度
+
+2026 改进：
+  ① 贡献者阶梯（Contributor Ladder）
+     → 清晰路径：社区参与者 → 维护者
+  
+  ② 委托审查模型（Delegation Model）
+     → 可信 Working Group 可在其领域接受 SEP
+     → 无需等待完整 Core Review
+     → Core Maintainer 保留战略监督权
+```
+
+---
+
+**方向四：企业就绪（Enterprise Readiness）**
+
+这是四大方向中定义最不完整的一个，因为需要实际使用者来定义：
+
+```
+企业生产暴露的典型问题：
+  ① Audit Trails（审计日志）
+     → 什么操作？谁调用了什么工具？何时何地？
+  ② SSO-integrated Auth（单点登录鉴权）
+     → 企业内部统一身份认证集成
+  
+  ③ Gateway Behavior（网关行为）
+     → 企业级流量管理、路由、限流
+  
+  ④ Configuration Portability（配置可移植性）
+     → MCP Server 配置如何在环境间迁移？
+
+重要判断：
+  企业就绪工作预计主要通过 Extension 而非 Core Spec 落地
+  → 企业需求是真实的，但不应让基础协议变得更重
+
+当前状态：企业 WG 尚未正式成立
+  → 如果你在企业基础设施领域，希望主导或参与，可联系 MCP 社区
+```
+
+---
+
+**SEP 优先级机制（对贡献者的实际影响）**
+
+MCP 路线图新增了明确的 SEP 审查容量分配指引：
+
+```
+优先级对照表：
+
+  ✅ 四大优先方向内的 SEP
+     → 审查速度最快
+     → 维护者容量集中投入
+  
+  ⚠️ 四大优先方向外的 SEP
+     → 不自动拒绝
+     → 但面临更长审查时间线和更高论证门槛
+     → 需明确说明为何重要
+
+实用建议：
+  ① 写 SEP 前先检查是否属于四大优先方向
+  ② 不属于优先方向？先联系对应 Working Group 获得背书
+  ③ 有 WG 背书 + 与路线图明确关联的 SEP 推进最快
+```
+
+---
+
+**路线图"地平线"上的其他探索（不在四大优先但值得关注）**
+
+```
+持续探索方向：
+  ① Triggers and Event-Driven Updates（触发器与事件驱动）
+     → Agent 对外部事件做出实时响应
+  ② Streamed and Reference-Based Result Types
+     → 流式结果和引用型结果
+  ③ Deeper Security and Authorization（更深层安全授权）
+     → SEP-1932 (DPoP) - 替代令牌 Delegated Proof of Possession
+     → SEP-1933 (Workload Identity Federation) - 工作负载身份联合
+  ④ Extensions Ecosystem Maturation（扩展生态成熟）
+```
+
+---
+
+**面试话术：**
+
+> "MCP 2026 路线图最核心的信息是：协议正在从'能用'向'好用'进化。四大优先方向里，我最关注的是传输层演进（让 K8s 水平扩展成为可能）和企业就绪（审计日志、SSO、网关），这两点直接决定了 MCP 能否在大型企业生产环境落地。治理成熟方向的委托审查模型也很有意思——它解决的是'核心维护者成为瓶颈'这个开源协议常见问题。至于 SEP 优先级机制，面试时如果提到你计划给 MCP 贡献 SEP，说清楚你的提案属于哪个优先方向会大幅增加被接受的机会。"
+
+</details>
+
+---
+
+*版本: v2.8 | 更新: 2026-04-10 | by 二狗子 🐕*

@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.25 | **最后更新:** 2026-04-09
+**版本:** v3.26 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -597,3 +597,14 @@ Made with ❤️ for the AI Community
 | [🔥 AI编程工具](docs/17-ai-coding-tools/) | 更新2026年3月最新SWE-bench Verified榜单(Claude Opus 4.5 80.9%登顶)、新增MiniMax M2.5/GPT-5.2、开源模型快速追赶；Terminal-Bench 2.0数据更新(Gemini 3.1 Pro 78.4%新王)；新增重要洞察：Agent Scaffold比模型本身更重要(同一模型不同框架差异达17%) |
 
 *版本: v3.24 | 更新: 2026-04-09 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.26 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q21）](docs/14-mcp-skill-systems/) | MCP 2026官方路线图四大优先方向（传输层演进/Agent通信/治理成熟/企业就绪）、.well-known服务发现与无状态水平扩展、Tasks原语Retry与Expiry机制、SEP优先级审查机制（四大方向内外差异化）、企业级Audit/SSO/Gateway/配置可移植性、DPoP/Workload Identity Federation安全扩展 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.26 | 更新: 2026-04-10 | by 二狗子 🐕*
+
