@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.26 | **最后更新:** 2026-04-10
+**版本:** v3.27 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -607,4 +607,15 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q21）](docs/14-mcp-skill-systems/) | MCP 2026官方路线图四大优先方向（传输层演进/Agent通信/治理成熟/企业就绪）、.well-known服务发现与无状态水平扩展、Tasks原语Retry与Expiry机制、SEP优先级审查机制（四大方向内外差异化）、企业级Audit/SSO/Gateway/配置可移植性、DPoP/Workload Identity Federation安全扩展 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.26 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.27 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 AI编程工具（新增Q23）](docs/17-ai-coding-tools/) | Claude Code vs Cursor双工具策略（Token效率5.5x差距/12%速度差/30%返工率差异）、开发者画像选型决策树（5类开发者+推荐方案）、双工具组合工作流、真实成本分析（订阅+API+时间回报率）、Claude Code自主代理 vs Cursor IDE增强架构差异详解 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.27 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
