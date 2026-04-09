@@ -1609,6 +1609,76 @@ SWE-Rebench: ~55% 真正能跑通
 
 </details>
 
+### Q22: 什么是 Gemini CLI 和 2026 年新兴 CLI 工具？和 Claude Code 有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026年 CLI 工具格局（2026-04月最新）**
+
+2026年，除了 Claude Code 和 Cursor，终端 CLI 工具快速崛起：
+
+| 工具 | 推出方 | 核心模型 | 定价 | 特色 |
+|------|--------|----------|------|------|
+| **Claude Code** | Anthropic | Claude 3.5/Opus 4.6 | API计费 | 代码库理解最强 |
+| **Gemini CLI** | Google | Gemini 2.5 Pro/Flash | 免费额度+按量 | 100万token超长上下文 |
+| **Codex CLI** | OpenAI | GPT-4o/o4-mini | API计费 | OpenAI生态无缝衔接 |
+| **Cline** | 开源社区 | 多模型可选 | 开源免费 | VS Code插件形态 |
+| **OpenCode** | 开源社区 | 多模型可选 | 开源免费+API费 | 纯开源替代 |
+
+**Gemini CLI 核心优势**
+
+```
+Gemini CLI = Google开源的终端AI编程工具（2025年中发布）
+
+核心差异化：
+1. 超长上下文：Gemini 2.5 Pro支持100万token窗口
+   → 能一次性分析整个中型项目
+   → 查找bug不用逐文件追问
+
+2. 免费额度：个人开发者有免费API额度
+   → 零成本试用，降低门槛
+
+3. 工具调用强：文件读写、Web搜索、Shell命令
+   → 能独立完成复杂任务
+```
+
+**Gemini CLI vs Claude Code 核心对比**
+
+| 维度 | Gemini CLI | Claude Code |
+|------|-----------|-------------|
+| **上下文窗口** | 100万token（Gemini 2.5 Pro） | ~200K token |
+| **价格** | 免费额度+按量 | API全自费 |
+| **代码库理解** | 强（超长上下文） | 强（深度推理） |
+| **调试能力** | 一般 | 深入 |
+| **国内可用性** | 需配置API | 需配置API |
+
+**选型建议**
+
+```
+任务类型决定工具：
+├── 超大代码库分析（>10万行）
+│   └── Gemini CLI（百万token碾压）
+├── 深度调试/重构
+│   └── Claude Code（推理能力最强）
+├── OpenAI生态用户
+│   └── Codex CLI（无缝衔接）
+├── 预算有限
+│   └── Gemini CLI（免费额度）或 Cline（开源免费）
+└── 追求稳定商业化体验
+    └── Claude Code 或 Cursor IDE
+```
+
+**面试话术：**
+
+> "2026年CLI编程工具不只是Claude Code一家独大。Gemini CLI的出现带来了差异化价值：100万token超长上下文，一次性能分析整个项目，特别适合大代码库的场景。我在项目中用它分析过30万行的遗留代码库，传统工具需要逐文件追问，Gemini CLI直接给出全局依赖分析报告。Claude Code在调试和代码质量上依然最强，两者组合使用效果最好。"
+
+</details>
+
+---
+
+*版本: v2.12 | 更新: 2026-04-09 | by 二狗子 🐕*
+
 ---
 
 *版本: v2.11 | 更新: 2026-04-07 | by 二狗子 🐕*
