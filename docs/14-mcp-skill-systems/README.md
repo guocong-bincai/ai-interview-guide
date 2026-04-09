@@ -1970,3 +1970,139 @@ MCP 路线图新增了明确的 SEP 审查容量分配指引：
 ---
 
 *版本: v2.8 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 十三、MCP 工具安全：tools.allow 与 tools.alsoAllow 的正确用法（Q22）
+
+### Q22: MCP 工具的 alsoAllow 和 allow 有什么区别？为什么 tools.alsoAllow 更安全？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心区别：一字之差，天壤之别**
+
+这个问题在实际 MCP 部署中是高频踩坑点，面试中考的是你有没有实际配置过 MCP 工具：
+
+```
+tools.allow 的效果：
+{
+  "tools": {
+    "allow": ["minimax__web_search", "minimax__understand_image"]
+  }
+}
+→ 替换所有工具策略
+→ 默认工具（exec、read、write 等）全部失效！
+→ Agent 只能使用显式声明的工具
+→ 非常危险，生产环境极易踩坑
+
+tools.alsoAllow 的效果：
+{
+  "tools": {
+    "alsoAllow": ["minimax__web_search", "minimax__understand_image"]
+  }
+}
+→ 在当前工具策略（由 profile 定义）基础上追加
+→ 保留所有默认工具
+→ 只新增声明的工具
+→ 安全、推荐的做法
+```
+
+---
+
+**为什么 alsoAllow 更安全？**
+
+```
+典型场景：给所有 Agent 追加联网搜索能力
+
+❌ 错误做法（使用 allow）：
+  tools.allow: ["minimax__web_search"]
+  → exec 工具没了！
+  → Agent 无法执行命令
+  → 无法读写文件
+  → 系统瘫痪
+
+✅ 正确做法（使用 alsoAllow）：
+  tools.alsoAllow: ["minimax__web_search"]
+  → 保留所有默认工具（exec/read/write 等）
+  → 只追加 web_search
+  → 原有能力不受影响
+```
+
+---
+
+**alsoAllow 的精细化配置**
+
+```
+全局配置（所有 Agent 生效）：
+{
+  "tools": {
+    "alsoAllow": [
+      "minimax__web_search",
+      "minimax__understand_image"
+    ]
+  }
+}
+
+特定 Agent 配置（只给 rd 和 qa Agent 授权）：
+{
+  "agents": {
+    "list": [{
+      "id": "rd",
+      "tools": {
+        "alsoAllow": ["minimax__web_search"]
+      }
+    }, {
+      "id": "qa",
+      "tools": {
+        "alsoAllow": ["minimax__understand_image"]
+      }
+    }]
+  }
+}
+```
+
+---
+
+**alsoAllow 的实际应用场景**
+
+| 场景 | 配置方式 | 原因 |
+|------|---------|------|
+| 给所有 Agent 开放搜索能力 | alsoAllow | 保留默认工具，安全追加 |
+| 限制特定 Agent 使用某工具 | Agent 级 alsoAllow | 精细化权限控制 |
+| 完全替换工具集 | allow | 需要严格沙箱时（极少用） |
+| 追加多个工具 | alsoAllow 数组 | 一行配置搞定 |
+
+---
+
+**常见报错与排查**
+
+```
+问题1：minimax__web_search 报 401 错误
+  原因：API Key 无效或权限不足
+  解决：确认 Key 同时具有 web_search + vision 权限
+
+问题2：Agent 说"工具不可用"
+  原因：配置了 allow 而非 alsoAllow，其他工具被禁用
+  解决：改 alsoAllow + 重启 OpenClaw
+
+问题3：minimax__understand_image 返回空白
+  原因：图片 URL 无法访问或格式不支持
+  解决：确认图片可公网访问（JPEG/PNG/WebP），不支持 PDF/GIF/SVG
+
+问题4：配置热重载后工具仍不可用
+  原因：配置文件语法错误导致热重载失败
+  解决：检查 gateway.log 确认错误行号
+```
+
+---
+
+**面试话术：**
+
+> "alsoAllow 和 allow 的区别是生产级 MCP 配置的高频踩坑点。allow 会替换整个工具策略，一不小心就会让 exec、read、write 这些默认工具全部失效。alsoAllow 是在现有策略基础上追加，保留了所有默认工具，更安全。我的经验是：99% 的场景都用 alsoAllow，只有在需要严格沙箱隔离时才会用 allow 做完全替换。"
+
+</details>
+
+---
+
+*版本: v2.9 | 更新: 2026-04-10 | by 二狗子 🐕*

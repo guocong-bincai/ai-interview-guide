@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.28 | **最后更新:** 2026-04-10
+**版本:** v3.29 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -627,6 +627,18 @@ Made with ❤️ for the AI Community
 | 🆕 | [🤖 多Agent系统（新增Q14）](docs/13-multi-agent-systems/) | A2A+MCP混合架构三大模式（编排器-工作器/流水线/对等协作）、A2A九状态任务机（queued→input-required→auth-required→completed/canceled/rejected/failed）、Agent Card结构与well-known发现机制、企业级生产部署四层检查清单（注册表/MCP治理/可观测性/熔断降级）、三阶段落地路线图（1-6个月） | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.28 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.29 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 RAG高级优化（新增Q13）](docs/20-rag-advanced-optimization/) | 2026年RAG四大新范式（Graph-RAG/Agentic RAG/长期记忆系统/无检索推理）、传统RAG失效三大原因、Agentic RAG循环架构（思考→检索→行动）、Memory-Augmented AI vs 传统RAG对比、新评估指标（任务完成率/决策正确率/长期一致性）、RAG终局2026→2028展望 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔌 MCP协议（新增Q22）](docs/14-mcp-skill-systems/) | alsoAllow vs allow核心区别（allow替换全工具集/alsoAllow追加保留默认）、alsoAllow精细化配置（全局vs Agent级）、MCP工具安全踩坑案例（401报错/工具不可用/图片空白）、OpenClaw minimax MCP实战配置（web_search+understand_image）、热重载与gateway.log排查 | 🔥🔥🔥 | +1 |
+
+*版本: v3.29 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 
