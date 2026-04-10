@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.38 | **最后更新:** 2026-04-10
+**版本:** v3.39 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -745,6 +745,18 @@ Made with ❤️ for the AI Community
 | 🆕 | [💻 AI编程工具（新增Q28）](docs/17-ai-coding-tools/) | Claude Code v2.1.89-91（2026年4月连发三版）：MCP工具结果500KB永续化（大型输出完整保留）、插件二进制直接执行（减少shell中转）、Headless Defer机制（CI/CD不阻塞）、SSE线性时间处理优化、AWS Bedrock设置向导（小白友好）、成本可视化增强（预算告警） | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.38 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+
+---
+
+## 📚 数据更新（v3.39 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [💻 AI编程工具（新增Q29）](docs/17-ai-coding-tools/) | Claude Code v2.1.92（2026-04-04）：Agentic设计解决审批疲劳、低风险自动执行高风险审批；2026年Top 10 MCP Servers推荐（文件系统/GitHub/数据库/浏览器/Docker等）；Claude Code vs Cursor MCP生态对比 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.39 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 
