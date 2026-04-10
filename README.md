@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.31 | **最后更新:** 2026-04-10
+**版本:** v3.32 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -659,6 +659,17 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 RAG高级优化（新增Q14）](docs/20-rag-advanced-optimization/) | 2026年3月arXiv RAG前沿论文精选（10篇）、五大方向（多模态RAG/MMGraphRAG/REVEAL、自适应记忆GAM-RAG/HippoRAG、鲁棒性RGB/LIT-RAGBench评估、领域特化医疗RAG-X/机器人RAG/时间序列RAG、拓扑推理RAGNav） | 🔥🔥🔥 | +1 |
 
 *版本: v3.31 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.32 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q24）](docs/14-mcp-skill-systems/) | MCP企业生产实践：Kotlin SDK 0.4.0（WebSocket/QPS10000/体积-60%）、阿里云百炼平台DevOps全生命周期（开发→测试→部署→运维→安全）、事件驱动架构（降低60%资源消耗）、语义相似度缓存（响应350ms→120ms）、MCP企业安全四件套（RBAC/上下文注入防御/动态沙箱/审计日志）、多语言SDK完整矩阵 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.32 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 
