@@ -1413,3 +1413,237 @@ def handle_new_user(user):
 ---
 
 [返回目录 →](../../README.md)
+
+---
+
+## 七、大厂项目架构设计（2026新增）
+
+### Q6: 如果让你设计一个企业级AI客服系统，你会怎么设计？
+
+<details>
+<summary>💡 答案要点（STAR框架）</summary>
+
+**S（背景）：** 1000万用户，日活100万，需要7×24小时智能客服
+
+**T（任务）：** 设计一个能处理咨询、售后、投诉等多场景的AI客服系统
+
+**A（行动）——四层架构设计：**
+
+```
+┌─────────────────────────────────────────────────────┐
+│  接入层：多渠道统一接入                              │
+│  微信/APP/网页/电话 → 统一消息格式                  │
+└──────────────────┬──────────────────────────────────┘
+                   ↓
+┌──────────────────────────────────────────────────┐
+│  路由层：意图识别 + 路由分发                       │
+│  LLM 判断意图 → 转人工/知识库/工单系统             │
+└──────────────────┬─────────────────────────────────┘
+                   ↓
+┌──────────────────────────────────────────────────┐
+│  能力层：多Agent协作                               │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐         │
+│  │ 知识库Agent│ │ 订单Agent │ │ 投诉Agent │         │
+│  └──────────┘ └──────────┘ └──────────┘         │
+└──────────────────┬─────────────────────────────────┘
+                   ↓
+┌──────────────────────────────────────────────────┐
+│  数据层：会话记忆 + 知识库 + 工单系统               │
+└──────────────────────────────────────────────────┘
+```
+
+**关键设计点：**
+
+```python
+# 意图识别 + 路由
+def route(query, session_history):
+    intent = llm.judge(f"""
+    判断用户意图：
+    1=咨询 2=下单 3=售后 4=投诉 5=转人工
+    问题：{query}
+    历史：{session_history[-3:]}
+    """)
+    
+    if intent == 5 or contains_sensitive词(query):
+        return "human_agent"  # 转人工
+    elif intent == 1:
+        return "knowledge_agent"
+    elif intent == 2:
+        return "order_agent"
+    # ...
+
+# 多轮对话记忆
+class ConversationMemory:
+    def __init__(self, max_turns=10):
+        self.history = []
+        self.max_turns = max_turns
+    
+    def add(self, role, content):
+        self.history.append({"role": role, "content": content})
+        if len(self.history) > self.max_turns * 2:
+            # 压缩：保留关键信息
+            self.history = self.summarize_and_compress()
+```
+
+**R（结果）：** 客服响应时间从30s→2s，问题解决率85%，人工客服工作量减少60%
+
+</details>
+
+### Q7: 你如何设计一个多模态RAG系统（图文检索）？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**多模态RAG架构：**
+
+```
+用户上传图片 + 文字问题
+         ↓
+┌──────────────────────────────────────────┐
+│  多模态 Encoder：                        │
+│  - 图片 → CLIP 视觉编码 → 向量          │
+│  - 文字 → CLIP 文本编码 → 向量          │
+│  - 图+文 → 融合向量                     │
+└──────────────────┬─────────────────────┘
+                   ↓
+┌──────────────────────────────────────────┐
+│  跨模态检索：                            │
+│  用户图 vs 文档图：相似度匹配            │
+│  用户问题 vs 文档图：图文跨模态匹配      │
+└──────────────────┬─────────────────────┘
+                   ↓
+┌──────────────────────────────────────────┐
+│  多模态生成：                            │
+│  LLaVA 等 VLM 基于图片 + 检索结果生成   │
+└──────────────────────────────────────────┘
+```
+
+**关键实现代码：**
+
+```python
+from sentence_transformers import CLIPModel
+import torch
+
+class MultimodalRAG:
+    def __init__(self):
+        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    
+    def encode_image(self, image):
+        with torch.no_grad():
+            image_features = self.model.get_image_features(image)
+        return image_features.numpy()
+    
+    def encode_text(self, text):
+        with torch.no_grad():
+            text_features = self.model.get_text_features(text)
+        return text_features.numpy()
+    
+    def crossmodal_search(self, query_image, query_text, doc_images, top_k=5):
+        # 编码
+        img_emb = self.encode_image(query_image)
+        text_emb = self.encode_text(query_text)
+        
+        # 融合：图片和文字各50%
+        fused_query = 0.5 * img_emb + 0.5 * text_emb
+        
+        # 在文档图片中检索
+        similarities = []
+        for doc_img in doc_images:
+            doc_emb = self.encode_image(doc_img)
+            sim = cosine_similarity(fused_query, doc_emb)
+            similarities.append(sim)
+        
+        return sorted(zip(doc_images, similarities), key=lambda x: -x[1])[:top_k]
+```
+
+**面试话术：**
+> "多模态RAG的核心是跨模态对齐。我用CLIP做图片和文字的联合编码空间，用户的图片和文字问题都映射到同一个向量空间，直接做相似度匹配。文档端也用CLIP处理产品图片，建立图片向量库。检索时，用户的图+文query和文档图片做跨模态检索，精准找到相关图片。生成阶段用LLaVA读图回答。实测图文混合查询的准确率比纯文字检索提升了35%。"
+
+</details>
+
+### Q8: 如何设计一个企业级AI Agent平台（类似Coze/Dify）？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**平台核心架构：**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  用户层：可视化编排 / API 调用                          │
+└──────────────────────┬──────────────────────────────────┘
+                       ↓
+┌──────────────────────────────────────────────────────┐
+│  编排层：工作流设计器                                  │
+│  - 节点：LLM节点 / 知识库节点 / API节点 / 条件节点    │
+│  - 边：数据流 / 条件流                               │
+│  - 输出：DSL（领域特定语言）配置文件                  │
+└──────────────────────┬───────────────────────────────┘
+                       ↓
+┌──────────────────────────────────────────────────────┐
+│  运行时层：工作流引擎                                  │
+│  - 执行节点 → 收集输出 → 路由到下一节点             │
+│  - 支持条件分支 / 循环 / 并行                        │
+└──────────────────────┬───────────────────────────────┘
+                       ↓
+┌──────────────────────────────────────────────────────┐
+│  能力层：工具生态                                     │
+│  - 内置工具：知识库 / SQL / API / Webhook            │
+│  - MCP 集成：扩展工具生态                            │
+└──────────────────────────────────────────────────────┘
+```
+
+**DSL 工作流配置示例：**
+
+```yaml
+workflow:
+  name: "智能客服"
+  version: "1.0"
+  
+  nodes:
+    - id: "intent"
+      type: "llm"
+      model: "qwen2.5-14b"
+      prompt: "判断用户意图：咨询/下单/售后/投诉"
+      output: "user_intent"
+    
+    - id: "route"
+      type: "condition"
+      branches:
+        - condition: "{{user_intent}} == '咨询'"
+          next: "knowledge_base"
+        - condition: "{{user_intent}} == '下单'"
+          next: "order_agent"
+        - condition: "{{user_intent}} == '售后'"
+          next: "after_sales"
+        default: "human_agent"
+    
+    - id: "knowledge_base"
+      type: "rag"
+      knowledge_id: "product_knowledge"
+      top_k: 5
+      output: "rag_result"
+    
+    - id: "after_sales"
+      type: "api"
+      url: "https://api.company.com/order/track"
+      params: "{{order_id}}"
+      output: "tracking_info"
+
+  edges:
+    - from: "intent"
+      to: "route"
+    - from: "route"
+      to: "knowledge_base"
+    # ...
+
+  output:
+    format: "markdown"
+    stream: true
+```
+
+**面试话术：**
+> "企业级Agent平台的核心是'编排即服务'。我用DSL描述工作流，节点类型包括LLM、知识库、API、HTTP、代码执行等。工作流引擎解析DSL，按拓扑顺序执行节点，支持条件分支、并行、循环。编排层提供可视化画布，用户拖拖拽拽就能搭工作流，生成的DSL存到数据库，运行时引擎执行。平台还接入了MCP协议，工具生态可以无限扩展。"
+
+</details>
+
