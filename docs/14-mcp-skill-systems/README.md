@@ -2493,3 +2493,157 @@ MCP 企业安全四件套：
 ---
 
 *版本: v2.11 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 十六、MCP Apps（SEP-1865）：Agent驱动的交互式UI与协议时间线全览（Q26）
+
+### Q26: MCP Apps（SEP-1865）是什么？A2A v0.3与MCP协议发展时间线有哪些关键节点？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**MCP Apps（SEP-1865）：让工具返回交互式UI组件**
+
+```
+2026年1月，MCP推出 MCP Apps（SEP-1865）
+官方扩展，允许工具返回交互式 UI 组件
+
+传统 MCP 工具返回：
+  → 纯文本/JSON
+  → LLM 理解后组织成文字回复
+  → 用户体验割裂
+
+MCP Apps 工具返回：
+  → 仪表板、表单、可视化组件
+  → 直接在 Claude/ChatGPT/VS Code 等 AI 客户端中渲染
+  → 用户无需离开 AI 对话界面
+
+示例场景：
+  → 数据库查询工具 → 返回可交互的数据表格
+  → 日历工具 → 返回月视图日历组件
+  → 代码审查工具 → 返回带批注的代码diff
+  → 股票查询 → 返回实时K线图
+
+技术意义：
+  MCP Apps = MCP 从"工具调用协议"向"应用构建平台"演进的标志
+  协议层支持 UI 渲染 = AI 客户端变成"应用宿主"
+```
+
+---
+
+**MCP Apps vs 传统 MCP 工具对比**
+
+```
+传统 MCP 工具：
+  tools/call → 返回 JSON → LLM 解释 → 文字回复
+
+MCP Apps（SEP-1865）：
+  tools/call → 返回 JSON + UI 组件规范
+  → AI 客户端（如 Claude Desktop）直接渲染
+  → 用户交互（点击/填写）→ 事件回传 Agent
+
+MCP Apps UI 组件类型：
+  → Dashboard（仪表板）
+  → Form（表单，带输入验证）
+  → Chart/Visualization（图表可视化）
+  → Table（可交互数据表格）
+  → CodeDiff（带批注的代码对比）
+```
+
+---
+
+**A2A + MCP 协议完整发展时间线**
+
+```
+2024年11月：Anthropic 发布 MCP（实验性协议）
+              → 解决 Agent-to-Tool 碎片化问题
+
+2025年3月：OpenAI 支持 MCP
+             → 协议开始向多厂商扩展
+
+2025年4月：Google 发布 A2A（50+ 合作伙伴）
+             → 解决 Agent-to-Agent 发现与协作问题
+             → Google DeepMind 同月支持 MCP
+
+2025年7月：A2A v0.3
+             → 增加 gRPC 支持
+             → 签名安全卡（Agent Card 签名验证）
+
+2025年11月：MCP 规范重大更新
+              → 新增 Tasks 原语（重试语义、过期策略）
+              → Streamable HTTP 传输取代 SSE
+              → 长时异步任务支持
+
+2025年12月：MCP 捐赠给 Linux Foundation AAIF
+              → 协议中立化，企业采用门槛降低
+
+2026年1月：MCP Apps（SEP-1865）
+              → 工具返回交互式 UI 组件
+              → MCP 从工具协议 → 应用构建平台
+
+2026年3月：MCP 生态 5,800+ 服务器
+              A2A 生态 100+ 合作伙伴（从 50+ 增长）
+              Claude Code Agent Teams 正式发布
+
+2026年：两个协议共存为行业标准
+         MCP = Agent 连接工具和数据的事实标准
+         A2A = Agent 之间协作的事实标准
+```
+
+---
+
+**A2A v0.3 关键更新**
+
+```
+A2A v0.3（2025年7月）两个重要特性：
+
+① gRPC 传输支持
+   → 除了 HTTP/SSE，还支持 gRPC
+   → 高性能场景（低延迟、强类型）
+   → 企业内部部署首选
+
+② 签名安全卡（Signed Agent Card）
+   → Agent Card 带数字签名
+   → 接收方验证 Agent 身份真实性
+   → 防止 Agent 身份伪造（企业安全关键）
+```
+
+---
+
+**MCP Apps 的面试价值**
+
+```
+面试常问："MCP 未来演进方向是什么？"
+
+MCP Apps 回答要点：
+
+  ① 从工具协议 → 应用平台
+     传统：MCP = 调用函数的协议
+     现在：MCP = 构建完整应用的协议
+
+  ② AI 客户端变成应用宿主
+     Claude Desktop / VS Code = AI Native OS
+     应用直接运行在 AI 客户端里
+
+  ③ 前端开发的范式转移
+     从"写 HTML/CSS" → "描述 UI 组件规范"
+     MCP Apps 让 LLM 生成结构化 UI 而非文字
+
+  ④ 影响：
+     → MCP 工具开发者需要理解 UI 组件规范
+     → 前端开发者新机会：MCP UI Component 开发
+     → AI 应用 UX 设计新方向
+```
+
+---
+
+**面试话术：**
+
+> "MCP Apps（SEP-1865）是2026年1月的重磅更新——它让MCP工具可以返回交互式UI组件（仪表板、表单、K线图），直接渲染在Claude/VS Code等AI客户端里。这意味着MCP不再只是'调用函数的协议'，而是'构建应用的协议'。AI客户端正在变成应用宿主，就像浏览器之于HTML。前端开发的范式也在转移——从写HTML/CSS变成描述UI组件规范。A2A v0.3的gRPC支持和签名安全卡，则是面向高性能企业场景的关键升级。整条时间线说明2026年的趋势：MCP和A2A不再是竞争关系，而是AI Agent技术栈的两层基础设施——MCP处理工具，A2A处理协作。"
+
+</details>
+
+---
+
+*版本: v2.12 | 更新: 2026-04-10 | by 二狗子 🐕*

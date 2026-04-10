@@ -2005,3 +2005,200 @@ Agent Card 发布在 `/.well-known/agent.json`，供其他 Agent 发现和对接
 ---
 
 *版本: v2.0 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 十四、多Agent三大架构模式：Commander/P2P/Hybrid与五种协议对比（Q14）
+
+### Q14: 多Agent系统有哪些主流架构模式？Commander、P2P、Hybrid三种模式各适合什么场景？CrewAI/AutoGen/LangGraph/MCP/A2A如何选择？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**单Agent的三个结构性瓶颈（为什么需要多Agent）**
+
+```
+即使 1M token 上下文，处理 500 个文件代码库 + 100 篇参考文献 + 多轮对话历史
+仍然力不从心——三个结构性瓶颈不是靠更大模型能解决的：
+
+① 上下文窗口瓶颈
+   "Lost in the Middle" 效应
+   上下文越长，模型对中间部分注意力越弱
+
+② 专业化瓶颈
+   一个 Agent 很难同时在代码审查、安全审计、UI设计、内容写作都做到专家
+   → 不同 Agent 配置不同 System Prompt + 工具集 = 各领域"专家"
+
+③ 并行性瓶颈
+   单 Agent 串行执行——一个时刻只能做一件事
+   → 可并行任务（同时搜索5个数据源、同时审查3个文件）效率远低于多Agent
+```
+
+---
+
+**多Agent系统的核心价值：分治**
+
+```
+复杂任务 → 拆解为独立子任务 → 分配给专业化 Agent → 聚合结果
+
+类比软件工程微服务架构：
+  每个服务做好一件事，通过明确接口通信
+
+多Agent结构性优势：
+  → 3-5x 并行效率提升
+  → N × 1M 聚合上下文容量
+  → 容错：单点故障可降级
+  → 专业化：每个 Agent 一个角色
+```
+
+---
+
+**五种通信协议完整对比表**
+
+```
+维度         MCP                A2A               Claude Subagents   tmux send-keys   CrewAI/AutoGen/LangGraph
+
+主导方       Anthropic→LF AAIF  Google→LF         Anthropic          开源             开源社区各自
+
+通信模式     Tool/Resource调用   Agent间JSON-RPC   父-子Agent消息     文本命令注入     框架内函数调用
+
+发现机制     手动配置/Registry  Agent Card        内置（同进程）     无               代码中定义
+
+状态管理     Tasks原语          Task生命周期      内存中             无               框架各异
+
+传输协议     stdio/SHTTP        HTTPS+SSE+gRPC    进程内             Unix管道         进程内/HTTP
+
+适用场景     工具集成/数据源     跨组织Agent互操作 单用户多任务并行   CLI工具编排      复杂工作流编排
+
+成熟度       生产级(97M下载)    稳定中(v0.3)      正式发布           久经考验         生产级
+
+学习曲线     中等               较高              低                 极低             中等
+```
+
+---
+
+**模式一：自上而下指挥（Commander Pattern）**
+
+```
+核心：一个主Agent（Commander/Orchestrator）负责任务分解和分配
+      Worker Agent 只接收指令、执行、返回结果
+
+Claude Code Agent tool（subagent机制）= 这个模式的典型实现
+
+        🎯 Commander
+        任务分解 + 决策
+             ↓
+      ┌──────┼──────┐
+      ↓      ↓      ↓
+   🔍      💻      ✅
+Research  Coding  Review
+ Agent    Agent    Agent
+  ↓        ↓       ↓
+结果聚合  结果聚合  结果聚合
+
+优点：
+  ✅ 清晰的控制流，容易理解和调试
+  ✅ 全局视角——Commander拥有完整任务上下文
+  ✅ 容易实现任务优先级和资源分配
+  ✅ 天然支持异步执行（run_in_background）
+
+缺点：
+  ❌ Commander成为单点瓶颈——上下文窗口压力大
+  ❌ Worker之间无法直接通信，必须通过Commander中转
+  ❌ Commander的决策质量决定整个系统的质量上限
+  ❌ 扩展性受限于Commander的处理能力
+```
+
+---
+
+**模式二：点对点协作（P2P Pattern）**
+
+```
+核心：Agent之间直接通信，没有中央协调者
+A2A协议天然支持这种模式
+
+  🤖 Agent A ←→ 🤖 Agent B ←→ 🤖 Agent C
+  研究分析   ↔    代码实现    ↔   质量验证
+
+Claude Code Agent Teams = 部分实现了P2P
+teammate之间可以直接通信
+
+优点：
+  ✅ 无单点瓶颈，天然水平扩展
+  ✅ Agent之间直接通信，延迟低
+  ✅ 更接近真实组织协作模式
+
+缺点：
+  ❌ 控制流不清晰，调试困难
+  ❌ 需要解决"谁来协调协调者"的问题
+  ❌ 循环依赖风险
+```
+
+---
+
+**模式三：混合模式（Hybrid）——生产环境最常用**
+
+```
+实际生产中最常用的模式：
+
+  Commander Agent 做高层决策和任务分配
+  Worker Agent 在需要时可以直接通信
+
+  Research Agent 发现信息需要 Coding Agent 关注
+  → 直接通知，不通过 Commander 中转
+
+为什么最终都会演化为 Hybrid：
+  → 纯粹的 Commander 模式扩展性差
+  → 纯粹的 P2P 模式控制流混乱
+  → Hybrid 兼得两者优点
+```
+
+---
+
+**选型决策树**
+
+```
+任务是否可预定义流程？
+  是（如"搜索→分析→生成报告"）
+  → Commander 模式
+  否（如多Agent共同调试bug）
+  → P2P 或 Hybrid 模式
+
+大多数生产系统：
+  → 最终演化为 Hybrid 模式
+```
+
+---
+
+**五种协议选型指南**
+
+```
+需要外部工具和数据接入？
+  → MCP（Agent-to-Tool的事实标准）
+
+需要多个Agent协作（跨组织/跨厂商）？
+  → A2A（Agent-to-Agent的事实标准）
+
+单用户多任务并行（Claude Code）？
+  → Claude Subagents（父子消息模式）
+
+CLI工具编排（tmux/ssh场景）？
+  → tmux send-keys（最简单直接）
+
+复杂工作流编排（LangGraph/CrewAI）？
+  → CrewAI/AutoGen/LangGraph（框架内函数调用）
+
+生产级多Agent系统 = MCP（内部工具）+ A2A（外部协作）
+```
+
+---
+
+**面试话术：**
+
+> "多Agent架构的核心是回答'谁来做决策'这个问题。Commander模式控制清晰但有单点瓶颈；P2P模式无瓶颈但调试困难；Hybrid是大多数生产系统的最终形态——Commander负责高层决策，Worker之间在需要时直接通信。选协议时记住：MCP是Agent-to-Tool的事实标准，解决的是'Agent如何调用工具'；A2A是Agent-to-Agent的事实标准，解决的是'Agent如何发现并协作另一个Agent'。生产级系统两者都要——Agent内部用MCP访问工具集，对外通过A2A与其他Agent通信。"
+
+</details>
+
+---
+
+*版本: v2.6 | 更新: 2026-04-10 | by 二狗子 🐕*

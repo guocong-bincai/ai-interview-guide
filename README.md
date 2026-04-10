@@ -699,3 +699,8 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔍 向量索引优化](docs/06-vector-index-optimization/) | Pinecone vs Milvus vs Qdrant对比/DiskANN vs HNSW选型/混合搜索实现/企业级选型决策树 | +3 |
 
 *版本: v3.34 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+
+| 🆕 | [🔀 多Agent系统（新增Q14）](docs/13-multi-agent-systems/) | 多Agent三大架构模式：单Agent三大结构性瓶颈（lost-in-middle/专业化/并行性）、五种协议对比表（CrewAI/AutoGen/LangGraph/MCP/A2A/tmux send-keys）、Commander/P2P/Hybrid模式选型决策树 | +1 |
+| 🆕 | [🔌 MCP协议（新增Q26）](docs/14-mcp-skill-systems/) | MCP Apps（SEP-1865）交互式UI组件（仪表板/表单/K线图）、A2A v0.3（gRPC+签名安全卡）、完整协议时间线（2024-11 MCP→2026-03 MCP 5800+服务器）、应用平台演进意义 | +1 |
+
