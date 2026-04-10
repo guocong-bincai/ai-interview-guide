@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.35 | **最后更新:** 2026-04-10
+**版本:** v3.36 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -711,6 +711,19 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔀 多Agent系统（新增Q16）](docs/13-multi-agent-systems/) | ArXiv 2026年4月五大研究热点：HippoCamp PC多模态Agent基准（48.3%准确率）、OmniMem终身记忆框架（F1+411%）、HERA多Agent RAG共同演化（+38.69%）、BloClaw科学发现工作空间（0.2%错误率路由）、NARCBench合谋检测（token级别局部化），生产启示与面试价值 | 🔥🔥🔥 | +1 |
 
 *版本: v3.35 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+
+---
+
+## 📚 数据更新（v3.36 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 推理框架（新增Q21）](docs/19-inference-frameworks/) | 七框架终极对比：oMLX（Mac SSD分页KV/M1-M5芯片）、MLC LLM（iOS Android WebGPU/医疗App案例）、LMDeploy TurboMind（昇腾性能超越A100）、按硬件选框架决策树（A100/H100/B200/昇腾/Mac/手机）、A100 80GB基准数据（TTFT/吞吐量/编译时间）、三大常见误区 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [💻 AI编程工具（新增Q26）](docs/17-ai-coding-tools/) | Windsurf Cascade跨会话记忆机制（自动项目记忆文件 vs Claude CLAUDE.md手动声明）、JetBrains插件+MCP集成+拖拽设计实现；Copilot Spaces团队知识库+BugBot PR审查；四大工具完整定价表（Free→$200+）；Copilot Enterprise($39/含Claude Opus)+Cursor Ultra($200)+Windsurf Enterprise(混合部署)；Claude Code订阅选择（Pro/Max/API Key）；五大场景选型决策树 | 🔥🔥🔥 | +1 |
+
+*版本: v3.36 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 

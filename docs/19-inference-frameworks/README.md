@@ -1030,3 +1030,167 @@ docker run -d --gpus all \
 
 ---
 
+
+---
+
+## 十一、2026年七框架终极对比：oMLX/MLC LLM/LMDeploy新成员与硬件选型（Q21）
+
+### Q21: 除了vLLM/SGLang/TensorRT-LLM，2026年还有哪些推理框架值得关注？oMLX/MLC LLM/LMDeploy各适合什么场景？如何按硬件选框架？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026年七框架完整定位矩阵**
+
+```
+框架         定位                  核心优势                      最佳硬件
+─────────────────────────────────────────────────────────────────────────────
+vLLM        云端灵活标杆          新模型兼容最快，动态显存管理     NVIDIA/AMD云
+TensorRT-LLM 云端性能天花板        算力压榨到物理极限              纯NVIDIA
+SGLang      Agent流之王            RadixAttention，前缀缓存       NVIDIA/AMD云
+LMDeploy    国产竞速引擎           TurboMind，昇腾等国产硬件适配    昇腾/国产GPU
+oMLX        Mac杀手级应用          SSD分页KV缓存，Mac生态         Apple Silicon
+Ollama      极简本地测试器         一行代码即跑，试错成本最低       CPU/消费级GPU
+MLC LLM     跨端跨平台部署         iOS/Android/WebGPU             手机NPU/Web
+```
+
+---
+
+**oMLX：Apple Silicon专属，Mac AI编程最佳选择**
+
+```
+核心定位：Mac杀手级应用，仅限macOS 15.0+（M1-M5芯片）
+
+核心技术：SSD分页KV缓存
+  → 冷数据扔到SSD，热数据留在内存
+  → Agent跑一整天不会掉链子
+
+为什么其他框架在Mac上不行：
+  → KV缓存很快就爆，需要重新加载
+  → oMLX解决了这个问题
+
+典型场景：AI编程助手Mac客户端
+  → 本地运行，不能联网
+  → 处理整个项目代码上下文（可能超过100k tokens）
+  → 频繁切换不同文件，项目上下文不变
+
+效果（M3 Max 64GB）：
+  → 70B模型流畅运行
+  → 切换文件响应时间：5秒 → 0.5秒
+  → 用户满意度+40%
+```
+
+---
+
+**MLC LLM：唯一能将大模型塞进手机App的框架**
+
+```
+核心定位：跨端跨平台部署，iOS/Android/WebGPU
+
+核心技术：
+  → iOS的Swift API
+  → Android的Java/JNI API
+  → WebGPU浏览器直接运行
+
+典型场景：医疗AI诊断助手手机App
+  → 完全离线运行
+  → 处理医学影像+病历文本
+  → 隐私要求极高，数据不能上传
+
+效果（旗舰手机）：
+  → 7B多模态模型运行
+  → 推理速度8 tokens/s（满足实时交互）
+  → 通过医疗行业隐私合规审查
+```
+
+---
+
+**LMDeploy：国产算力首选**
+
+```
+核心定位：国产竞速引擎，背靠书生·浦语团队
+
+核心技术：TurboMind
+  → 编译时间5-10分钟（vs TRT-LLM的30-60分钟）
+  → 性能仅落后5-10%
+  → 国产硬件（昇腾910B等）深度优化
+
+vs TensorRT-LLM对比：
+  LMDeploy：编译快5-6倍，国产硬件首选
+  TRT-LLM：极致性能，编译耗时但一次能用几个月
+
+适用场景：
+  → 华为昇腾等国产算力卡
+  → 信创合规要求
+  → 需要快速迭代的团队
+```
+
+---
+
+**按硬件选框架：你的机器决定了80%的答案**
+
+```
+场景① Mac (Apple Silicon M1-M5)
+  → 唯一首选：oMLX
+  → 备选：Ollama（仅限随便聊两句）
+
+场景② Windows (AI PC/游戏本/RTX显卡)
+  → 本地开发测试：Ollama/LM Studio（GGUF格式，下载即跑）
+  → 生产部署：TensorRT-LLM（RTX 4090首字延迟<50ms，吞吐量3-5x Ollama）
+
+场景③ Linux云服务器集群 (NVIDIA A100/H100/B200)
+  → 常规PaaS/大模型路由：vLLM（超快加载，极强生态包容性）
+  → 专一模型大规模吞吐：TensorRT-LLM（编译一次用几个月，省算力成本）
+
+场景④ 国产算力 (昇腾/燧原等)
+  → LMDeploy（性能优秀，编译时间均衡）
+  → vLLM昇腾分支
+```
+
+---
+
+**A100 80GB性能基准对比（Llama-3-70B）**
+
+```
+框架           TTFT    吞吐量      显存    编译时间
+TensorRT-LLM  45ms    8500 tok/s  72GB    35分钟
+vLLM          120ms   7200 tok/s  75GB    无需编译
+SGLang        110ms   7500 tok/s  74GB    无需编译
+LMDeploy      60ms    8000 tok/s  73GB    5分钟
+Ollama        200ms   3500 tok/s  78GB    无需编译
+
+核心洞察：
+  → 追求极致性能 → TRT-LLM
+  → 追求灵活性+快速迭代 → vLLM/SGLang
+  → 国产硬件 → LMDeploy
+```
+
+---
+
+**三大常见误区**
+
+```
+误区①："TRT-LLM最强，应该优先选它"
+  → 真相：编译要花30-60分钟，切换模型会让你崩溃
+  → 只有"模型定型 + 追求极致 + 有MLOps团队"才选TRT-LLM
+
+误区②："Ollama太简单，不适合生产"
+  → 真相：日均<10万请求的生产环境，Ollama完全够用
+  → 不要被"企业级"标签迷惑，选择适合自己规模的
+
+误区③："国产框架性能肯定不如国外"
+  → 真相：昇腾910B上，LMDeploy性能甚至超过A100上的vLLM
+  → 有信创要求 → 直接上LMDeploy
+```
+
+---
+
+**面试话术：**
+
+> "2026年推理框架选型本质是'硬件决定论'。Mac用户别纠结，oMLX是唯一选择，SSD分页KV缓存让其他框架在Mac上根本无法跑长上下文Agent。手机端选MLC LLM，它是唯一能打包进iOS/Android App的成熟方案，医疗App隐私合规案例说明它已经生产就绪。国产算力选LMDeploy，TurboMind在昇腾910B上的性能甚至不输A100上的vLLM。SGLang的核心优势是RadixAttention——解决'怎么让同一个用户用得更快'，PagedAttention解决'怎么让更多用户同时用'。TRT-LLM适合模型定型后追求极致性价比的场景，编译一次用几个月，省的是真金白银。"
+
+</details>
+
+---
+
+*版本: v2.7 | 更新: 2026-04-10 | by 二狗子 🐕*
