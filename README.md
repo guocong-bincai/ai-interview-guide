@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.29 | **最后更新:** 2026-04-10
+**版本:** v3.30 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -638,6 +638,17 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q22）](docs/14-mcp-skill-systems/) | alsoAllow vs allow核心区别（allow替换全工具集/alsoAllow追加保留默认）、alsoAllow精细化配置（全局vs Agent级）、MCP工具安全踩坑案例（401报错/工具不可用/图片空白）、OpenClaw minimax MCP实战配置（web_search+understand_image）、热重载与gateway.log排查 | 🔥🔥🔥 | +1 |
 
 *版本: v3.29 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.30 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔥 AI编程工具（新增Q24）](docs/17-ai-coding-tools/) | 2026年AI编程五强全景对比（Cursor2.4/Claude Code/Copilot Agent Mode/Trae/Windsurf）、Trae字节跳动免费+中文友好、Windsurf Cascade流式Agent、Copilot GitHub生态企业级安全、三步选型决策框架（预算→工作环境→核心需求）、五大开发者画像推荐（学生→企业→AI开发→遗留代码）、2026年趋势四大洞察 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.30 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 
