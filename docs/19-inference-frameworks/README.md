@@ -765,3 +765,268 @@ def select_inference_engine_2026(workload, hardware):
 ---
 
 *版本: v2.7 | 更新: 2026-04-08 | by 二狗子 🐕*
+
+---
+
+## 六、新兴推理框架补充（Ollama / XInference / TGI / llama.cpp）
+
+### Q16: Ollama 和 vLLM 有什么区别？各自适用场景是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Ollama vs vLLM 核心对比：**
+
+| 维度 | Ollama | vLLM |
+|------|--------|------|
+| **定位** | 本地模型运行平台 | 高性能推理服务引擎 |
+| **使用方式** | 下载即用，无需代码 | API 服务化部署 |
+| **适用人群** | 个人开发者、本地测试 | 企业级生产部署 |
+| **模型支持** | 专注开源模型（Llama/Qwen等） | 所有 HuggingFace 模型 |
+| **性能** | 中等（本地推理） | 极致优化（高并发） |
+| **部署难度** | ⭐（5分钟上手） | ⭐⭐⭐⭐（需要配置） |
+
+**Ollama 核心优势：**
+```bash
+# 一键运行模型，零配置
+ollama run llama3.2        # 运行 Llama 3.2
+ollama run qwen2.5:14b      # 运行 Qwen 2.5 14B
+ollama run deepseek-r1:7b   # 运行 DeepSeek R1
+
+# API 模式
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt": "解释 Transformer 架构"
+}'
+```
+
+**选型建议：**
+
+| 场景 | 推荐 | 原因 |
+|------|------|------|
+| 本地开发/个人使用 | Ollama | 零配置，一键运行 |
+| 快速验证 POC | Ollama | 5分钟跑起来 |
+| 生产环境/高并发 | vLLM | 极致性能，支持分布式 |
+| 需要 API 服务化 | vLLM | 原生 OpenAI 兼容 |
+| 资源受限（Mac/Windows） | Ollama | 原生支持 Mac GPU |
+
+**面试话术：**
+> "Ollama 是给个人开发者用的，理念是'下载即用'，不需要写一行代码就能跑起 Llama。vLLM 是给企业用的，性能极致优化，支持高并发和分布式。我的经验是：本地开发用 Ollama 快速验证，生产环境用 vLLM 部署。如果你的场景需要 100 QPS 以上的推理服务，Ollama 根本扛不住，必须用 vLLM。"
+
+</details>
+
+### Q17: XInference 和 vLLM 有什么区别？什么场景选 XInference？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**XInference（Xorbits Inference）定位：**
+
+- **一句话定位：** 统一的多模型推理平台，支持 LLM + Embedding + 重排序 + 图片生成
+- **核心理念：** 一个平台跑所有模型，不需要分别部署
+
+**XInference vs vLLM 对比：**
+
+| 维度 | XInference | vLLM |
+|------|------------|------|
+| **模型类型** | LLM + Embedding + 重排序 + 图生模型 | 仅 LLM |
+| **部署模式** | 统一平台，多模型管理 | 单一模型服务 |
+| **多模型支持** | ✅ 原生支持 | ❌ 需要分别部署 |
+| **推理优化** | 中等 | 极致 |
+| **适用场景** | 多模型企业应用 | 单一模型高并发 |
+
+**XInference 典型场景：**
+```python
+# 一个平台启动多种模型
+from xinference import LLM, Embedding
+
+# 启动 LLM
+llm = LLM("qwen2.5-14b")
+
+# 启动 Embedding（向量化模型）
+embedding = Embedding("bge-large-zh")
+
+# 启动 Rerank（重排序模型）
+rerank = Rerank("bge-reranker-large")
+
+# RAG 场景：一套代码跑完所有模型
+query_embedding = embedding.encode("用户问题")
+docs = vector_db.search(query_embedding, k=20)
+reranked = rerank.rerank("用户问题", docs, top_k=5)
+answer = llm.generate("用户问题", context=reranked)
+```
+
+**选型建议：**
+
+| 场景 | 推荐 | 原因 |
+|------|------|------|
+| RAG + Embedding + Rerank | XInference | 一个平台跑完所有模型 |
+| 只需要 LLM 推理 | vLLM | 性能更极致 |
+| 多模型管理平台 | XInference | 统一 API，统一管理 |
+| 超高并发 LLM 服务 | vLLM | 推理优化更强 |
+
+**面试话术：**
+> "XInference 的核心价值是'统一'——一个平台同时跑 LLM、Embedding、Rerank 模型。vLLM 只管 LLM，Embedding 和 Rerank 得另外部署。我的 SaaS 平台用 XInference，因为要给用户同时提供问答和语义搜索功能，一个平台管所有模型，运维成本低。但如果你的场景只有一个 LLM 模型需要高并发服务，vLLM 性能更强。"
+
+</details>
+
+### Q18: HuggingFace TGI 和 vLLM 有什么关系？各自优劣是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**TGI（HuggingFace Text Generation Inference）定位：**
+
+- **开发方：** HuggingFace 官方
+- **核心理念：** HuggingFace 生态的最佳推理底座
+- **定位：** vLLM 的主要竞争对手
+
+**TGI vs vLLM 对比：**
+
+| 维度 | TGI | vLLM |
+|------|------|------|
+| **开发方** | HuggingFace 官方 | UC Berkeley（非官方） |
+| **生态集成** | ✅ HuggingFace 原生 | 需转换格式 |
+| **量化支持** | BF16/FP16/INT8/INT4 | 更丰富（AWQ/GPTQ） |
+| **多模态支持** | ✅ 原生（VLLM 支持） | ✅ 支持 |
+| **吞吐量** | 高 | 极高（vLLM 略优） |
+| **稳定生产时间** | 2023年 | 2023年 |
+| **社区活跃度** | HuggingFace 背书 | 最活跃 |
+
+**TGI 特色功能：**
+```bash
+# TGI 部署命令
+model=meta-llama/Llama-3.1-8B-Instruct
+volume=$PWD/data
+
+docker run -d --gpus all \
+  -p 8080:80 \
+  -v $volume:/data \
+  --shm-size 1g \
+  ghcr.io/huggingface/text-generation-inference:latest \
+  --model-id $model \
+  --num-shard 1 \
+  --quantize bitsandbytes
+```
+
+**TGI vs vLLM 选型决策树：**
+```
+已在 HuggingFace 生态？
+    ├── 是 → TGI（无缝集成）
+    ↓ 否
+追求极致吞吐量？
+    ├── 是 → vLLM
+    ↓ 否
+需要快速部署/文档齐全？
+    ├── 是 → TGI（HuggingFace 官方背书）
+    ↓ 否
+需要自定义量化（AWQ/GPTQ）？
+    ├── 是 → vLLM
+    ↓ 否
+选择 TGI
+```
+
+**面试话术：**
+> "TGI 是 HuggingFace 亲儿子，对自家模型支持最好，文档齐全，生态集成无缝。vLLM 是 UC Berkeley 的开源项目，社区更活跃，性能通常比 TGI 略强。我的选型是：如果模型直接来自 HuggingFace，用 TGI 更省心；如果追求极致性能或者需要自定义量化，用 vLLM。两者都支持 OpenAI 兼容 API，迁移成本不高。"
+
+</details>
+
+### Q19: llama.cpp 是什么？它有哪些独特优势？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**llama.cpp 核心定位：**
+
+- **开发方：** Georgi Gerganov（非主流 AI 团队）
+- **核心理念：** 纯 CPU 运行大模型，极致量化，Mac/Windows 友好
+- **独特价值：** 让没有 GPU 的机器也能跑大模型
+
+**llama.cpp 核心创新：**
+
+| 技术 | 说明 | 效果 |
+|------|------|------|
+| **GGUF 量化格式** | 专为本地运行设计的量化格式 | 4GB 显存跑 7B 模型 |
+| **纯 CPU 推理** | 不需要 GPU | MacBook 也能跑 Llama |
+| **Metal 加速（Mac）** | 苹果 GPU 加速 | M1/M2/M3 Mac 流畅运行 |
+| **轻量级** | 单文件，无依赖 | 嵌入式/边缘部署 |
+
+**llama.cpp 性能对比（Llama-2-7B）：**
+
+| 推理方式 | 硬件 | 内存占用 | 速度 |
+|----------|------|----------|------|
+| FP16（原始） | RTX 3090 | 14GB | 30 tok/s |
+| Q4_K_M（llama.cpp） | RTX 3090 | 4GB | 25 tok/s |
+| Q4_K_M（llama.cpp） | Mac M2 Pro | 4GB | 18 tok/s |
+| Q4_K_M（llama.cpp） | Mac M2 | 4GB | 12 tok/s |
+| Q4_K_M（llama.cpp） | 纯 CPU（64GB RAM） | 0 GPU | 8 tok/s |
+
+**llama.cpp 适用场景：**
+
+| 场景 | 适用性 | 原因 |
+|------|--------|------|
+| Mac/Windows 本地运行 | ✅ 最佳选择 | Metal/CPU 原生支持 |
+| 边缘/嵌入式部署 | ✅ 唯一选择 | 轻量，无 GPU 依赖 |
+| CPU-only 服务器 | ✅ 可选 | 量化后可用 |
+| GPU 高并发生产环境 | ❌ 不推荐 | 性能不如 vLLM/TGI |
+
+**面试话术：**
+> "llama.cpp 的价值是'让 AI 民主化'——不需要 GPU，MacBook 也能跑 7B 模型。我用它做过本地知识库 demo，在飞机上没网也能跑。它用 GGUF 量化格式，4GB 显存就能跑 Llama-2-7B。但生产环境追求性能的话，还得用 vLLM 或 TGI。llama.cpp 是开发阶段的神器，生产阶段的主力是 vLLM。"
+
+</details>
+
+### Q20: 如何根据场景选择推理框架？完整的选型决策树是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**完整选型决策树：**
+
+```
+第一步：你在什么环境？
+    ├── 个人电脑/Mac（无 GPU）
+    │   └── ✅ Ollama 或 llama.cpp
+    │       （零配置，快速上手）
+    │
+    ├── Linux 服务器（GPU）
+    │
+    ↓
+第二步：你的场景是什么？
+    ├── 高并发生产服务（>100 QPS）
+    │   └── ✅ vLLM
+    │       （极致吞吐量，支持分布式）
+    │
+    ├── 需要多模型（LLM + Embedding + Rerank）
+    │   └── ✅ XInference
+    │       （统一平台，一个 API 管所有）
+    │
+    ├── HuggingFace 模型，快速部署
+    │   └── ✅ TGI
+    │       （官方支持，文档齐全）
+    │
+    ├── 本地开发/快速验证
+    │   └── ✅ Ollama
+    │       （5分钟跑起来）
+    │
+    └── 极致性能 + NVIDIA 生产环境
+        └── ✅ TensorRT-LLM
+            （H100 上 10x throughput）
+```
+
+**实际场景选型案例：**
+
+| 场景 | 推荐框架 | 配置 | 效果 |
+|------|----------|------|------|
+| Mac 开发 | Ollama | `ollama run qwen2.5:14b` | 5分钟跑起来 |
+| Linux 生产（1000 QPS） | vLLM | 8×A100 + Tensor并行 | 5000 tok/s |
+| 多模型 RAG 平台 | XInference | LLM + bge + reranker | 一个平台管所有 |
+| 企业内网（无外网） | llama.cpp | Q4 量化 + CPU | 无 GPU 也能跑 |
+| 极致性能 | TensorRT-LLM | H100 集群 | 10x throughput |
+
+**面试话术：**
+> "推理框架选型其实就一句话：先想清楚你在什么环境、要求什么性能。我的决策树是：Mac 开发用 Ollama，生产高并发用 vLLM，多模型平台用 XInference，极致性能用 TensorRT-LLM。实际上很多公司是组合使用——开发用 Ollama 快速验证，生产用 vLLM 部署模型。框架不是非此即彼，而是各有所长。"
+
+</details>
+
+---
+

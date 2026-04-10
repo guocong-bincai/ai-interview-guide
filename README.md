@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.33 | **最后更新:** 2026-04-10
+**版本:** v3.34 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -447,7 +447,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-09 | **📝 版本:** v3.25 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-09 | **📝 版本:** v3.34 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -678,7 +678,7 @@ Made with ❤️ for the AI Community
 |------|------|----------|--------|------|
 | 🆕 | [💻 AI编程工具（新增Q25）](docs/17-ai-coding-tools/) | AI编程助手三强格局定型（JetBrains万人调查）：90%开发者用AI工具/74%用专门AI工具、Copilot认知度76%使用率29%、Cursor认知度69%使用率18%、Claude Code从3%→18%爆发增长/NPS54/CSAT91%、Composer 2两阶段训练+自总结+成本优势(/bin/zsh.50/.50)、Supermaven 72%补全接受率、语义代码搜索（概念关联vs关键词匹配）、Copilot Agent Mode GA、三种哲学与场景选型表 | 🔥🔥🔥🔥 | +1 |
 
-*版本: v3.33 | 更新: 2026-04-10 | by 二狗子 🐕*
+*版本: v3.34 | 更新: 2026-04-10 | by 二狗子 🐕*
 
 
 
@@ -687,3 +687,15 @@ Made with ❤️ for the AI Community
 
 
 
+
+---
+
+## 📚 内容更新（v3.34 - 2026-04-10 逐模块补充）
+
+| 序号 | 模块 | 新增内容 | 题数 |
+|------|------|----------|------|
+| 🆕 | [🔥 推理框架](docs/19-inference-frameworks/) | Ollama vs vLLM vs TGI vs XInference vs llama.cpp 选型对比、v3.34追加5题 | +5 |
+| 🆕 | [🏢 大厂真题](docs/18-big-tech-interview-questions/) | 腾讯W1-W2级AI工程师真题：RAG项目优化追问/多Agent通信冲突处理/线上排查方法/高频追问 | +3+追问 |
+| 🆕 | [🔍 向量索引优化](docs/06-vector-index-optimization/) | Pinecone vs Milvus vs Qdrant对比/DiskANN vs HNSW选型/混合搜索实现/企业级选型决策树 | +3 |
+
+*版本: v3.34 | 更新: 2026-04-10 | by 二狗子 🐕*

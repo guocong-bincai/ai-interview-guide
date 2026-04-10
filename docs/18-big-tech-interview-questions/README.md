@@ -1682,3 +1682,157 @@ class AntiRepetitionGenerator:
 ---
 
 [返回目录 →](../../README.md)
+
+---
+
+## 六、腾讯 AI 应用工程师面试题（2026年最新）
+
+### 腾讯W1-W2级面试真题
+
+**面试官开场问题：**
+> "自我介绍 + 挑一个你认为最有技术含量的 AI 项目详细讲"
+
+**问题1：讲一下你做过的 RAG 项目？用了哪些优化手段？**
+
+<details>
+<summary>💡 答案要点</summary>
+
+**回答框架（STAR法则）：**
+
+```
+S（背景）：我负责的短剧平台有530万用户，日活80万，用户经常问"这个短剧在哪看""更新到第几集了"等问题。
+T（任务）：需要构建一个能精准回答用户问题的知识库系统。
+A（行动）：我设计了四层优化：
+  1. 文档解析层：用 PDF.plumber 解析短剧介绍，用 OCR 处理截图
+  2. 语义分块层：按剧情/演员/更新时间三维度切分，每块512 tokens
+  3. 检索层：HNSW 索引 + BM25 混合检索，RRF 融合排序
+  4. 生成层：加 "请基于以下资料回答，不要编造" 约束 prompt
+R（结果）：用户问题准确率从 65% 提升到 89%，日均减少客服 30% 工作量。
+```
+
+**追问1：分块大小怎么选的？**
+> "我测过 256/512/1024 三个档，512 效果最好。太小（如256）切断了上下文，相关性下降；太大（如1024）引入了太多噪声。Context Cliff 的阈值是 2500 tokens，我控制在 512 是因为用户问题通常简短，512 的块既能覆盖完整语义，又不会超过阈值。"
+
+**追问2：检索用了什么向量模型？Embedding 怎么调优的？**
+> "用的是 BGE-large-zh，1536 维。调优方法：1）用锚点文本构建难负例；2）温度从 0.01→0.05 逐步调；3）用 MRL 训练加速。最后在测试集上 Recall@10 从 78% 提升到 91%。"
+
+</details>
+
+**问题2：多 Agent 系统中，Agent 之间怎么通信？遇到冲突怎么办？**
+
+<details>
+<summary>💡 答案要点</summary>
+
+**两种通信模式：**
+
+```python
+# 模式1：中心调度（简单场景）
+class CentralScheduler:
+    def route(self, task):
+        if "搜索" in task:
+            return SearchAgent().handle(task)
+        elif "生成" in task:
+            return WriterAgent().handle(task)
+
+# 模式2：P2P 通信（复杂场景，如 A2A 协议）
+class Agent:
+    def __init__(self, name):
+        self.name = name
+        self.inbox = []  # 消息队列
+    
+    def send(self, receiver, message):
+        # 通过消息队列或 HTTP 发送
+        message_queue.put({
+            "from": self.name,
+            "to": receiver,
+            "content": message,
+            "type": "request"
+        })
+    
+    def receive(self):
+        # 接收其他 Agent 的消息
+        return self.inbox.pop()
+```
+
+**冲突处理策略：**
+
+| 冲突类型 | 解决方案 | 代码 |
+|----------|----------|------|
+| 工具调用冲突（两个 Agent 调用同一资源） | 互斥锁 + 任务队列 | `mutex.lock()` |
+| 结果冲突（两个 Agent 输出不一致） | 仲裁 Agent 投票 | `judge_agent.decide()` |
+| 状态冲突（数据不一致） | 乐观锁 + 重试 | `version=1, update if version==1` |
+
+**面试话术：**
+> "我的多 Agent 通信用 A2A 协议，Agent 之间通过标准化消息格式通信。冲突处理分三种：资源冲突用互斥锁，输出冲突用仲裁 Agent 投票，状态冲突用乐观锁。我在订单系统用过这个，InventoryAgent 和 PaymentAgent 同时修改库存，通过消息队列串行化，完美解决了并发冲突。"
+
+</details>
+
+**问题3：线上 RAG 系统出问题了，响应很慢，怎么排查？**
+
+<details>
+<summary>💡 答案要点</summary>
+
+**排查思路（从外到内）：**
+
+```
+第一步：确认是 RAG 的哪一步慢？
+    ├── 检索慢 → 向量数据库问题
+    ├── 生成慢 → LLM 推理问题
+    └── 整体都慢 → 网络/系统问题
+
+第二步：逐层定位
+```
+
+**排查工具和方法：**
+
+```python
+# 1. 打点计时
+import time
+start = time.time()
+docs = vector_db.search(query_emb, k=10)
+检索耗时 = time.time() - start
+
+start = time.time()
+answer = llm.generate(prompt)
+生成耗时 = time.time() - start
+
+# 2. 查看 vLLM 监控
+# vLLM 自带 Prometheus metrics
+# 关键指标：
+#   - engine_load_percent: GPU 利用率
+#   - time_to_first_token: 首 Token 延迟
+#   - time_per_output_token: Token 间延迟
+
+# 3. 查看向量数据库慢查询
+# Milvus: 
+#   db.config().getMetric().SlowQuery
+# Pinecone:
+#   index.describe_stats() 查看延迟分布
+```
+
+**常见原因和解决方案：**
+
+| 原因 | 症状 | 解决 |
+|------|------|------|
+| HNSW ef 参数太小 | 召回率低 | 增大 ef=200→500 |
+| 向量维度太高 | 检索慢 | 用 PCA 降维 |
+| LLM GPU 利用率低 | 生成慢 | 检查 batch_size |
+| 网络带宽瓶颈 | 跨服务通信慢 | 优化序列化 |
+| KV Cache 不命中 | 延迟抖动 | 增大 cache 容量 |
+
+**面试话术：**
+> "我的排查顺序是：打点确定慢在哪一步（检索还是生成）→ 看监控判断是 GPU 卡脖子还是内存瓶颈 → 最后看具体指标。生产环境我会在 RAG 链路每个节点打日志，延迟超过 500ms 自动告警。有一次排查发现是 Embedding 服务内存泄漏导致 GC 频繁，定位到修了内存管理代码后，P99 从 2s 降到 300ms。"
+
+</details>
+
+### 腾讯AI面试高频追问
+
+**追问1：vLLM 的 PagedAttention 和 SGLang 的 RadixAttention 有什么区别？**
+> "PagedAttention 是 vLLM 的分页显存管理，每个请求的 KV Cache 按需分配，显存利用率高。RadixAttention 是 SGLang 的基数树管理，能跨请求复用相同前缀（比如 System Prompt）。对于多轮对话，SGLang 省 40-50% 显存；对于单轮问答，vLLM 性能更稳定。"
+
+**追问2：如果用户问了一个需要多跳推理的问题（比如"苹果公司CEO和谷歌CEO谁更关注环保"），你的 RAG 怎么处理？**
+> "单级 RAG 做不到，需要：1）Query Decomposition 把问题分解成两个子问题；2）分别检索苹果CEO环保措施 和 谷歌CEO环保措施；3）最后聚合对比。如果涉及更复杂的关系，我会用 GraphRAG 构建知识图谱，通过实体关系路径找到关联信息。"
+
+**追问3：你们怎么做 RAG 的效果评估？有没有自动化的流程？**
+> "我们用 RAGAS 四指标：Faithfulness、Answer Relevancy、Context Recall、Context Precision。每周跑一次评估，用 500 道题覆盖 5 个场景。Pipeline 是：代码变更 → 触发评估 → P80 阈值判断 → 通过才允许上线。评估结果和上次对比，下降超过 5% 自动告警。"
+

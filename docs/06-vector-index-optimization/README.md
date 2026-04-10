@@ -596,3 +596,286 @@ print(f"最优k={best_k}, Recall={best_recall}")
 ---
 
 [返回目录 →](../../README.md)
+
+---
+
+## 三、向量数据库选型深度对比（Pinecone / Milvus / Qdrant / Weaviate）
+
+### Q10: Pinecone、Milvus、Qdrant 三大向量数据库怎么选？各自优劣是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**三大向量数据库定位对比：**
+
+| 数据库 | 定位 | 创始团队 | 特点 | 适合场景 |
+|--------|------|----------|------|----------|
+| **Pinecone** | 全托管云原生 | Pinecone（YC） | 零运维、性能稳定 | 企业级 SaaS |
+| **Milvus** | 开源分布式 | Zilliz（LF板） | 功能最全、支持混合标量 | 超大规模数据 |
+| **Qdrant** | 开源轻量级 | Qdrant 团队 | Rust 实现、性能高 | 中小规模、边缘部署 |
+
+**Pinecone vs Milvus vs Qdrant 核心对比：**
+
+| 维度 | Pinecone | Milvus | Qdrant |
+|------|----------|--------|--------|
+| **部署方式** | 全托管云服务 | 自部署/云 | 自部署/云 |
+| **运维难度** | ⭐（零运维） | ⭐⭐⭐⭐（复杂） | ⭐⭐（简单） |
+| **扩展性** | 自动弹性 | 手动扩容 | 水平扩容 |
+| **索引类型** | 私有实现 | HNSW/IVF/DiskANN | HNSW + 多filter |
+| **混合搜索** | ✅ 支持 | ✅ 支持 | ✅ 原生支持 |
+| **性能** | 稳定但非极致 | 高（但调优复杂） | 高（Rust 性能好） |
+| **成本** | 按量付费，较贵 | 开源免费 | 开源免费 |
+| **多模态支持** | 有限 | ✅ 原生 | ✅ 原生 |
+
+**Pinecone 适用场景：**
+```
+✅ 适合：
+  - 不想运维的团队
+  - 快速上线的小公司
+  - SaaS 产品需要向量检索
+  - 数据量 <10 亿
+
+❌ 不适合：
+  - 超大规模（>10亿）数据
+  - 需要深度定制的场景
+  - 数据主权要求高的企业
+  - 成本敏感的项目
+
+Pinecone 代码示例：
+import pinecone
+pinecone.init(api_key="...")
+index = pinecone.Index("my-rag")
+index.query(vector=query_emb, top_k=10, include_metadata=True)
+```
+
+**Milvus 适用场景：**
+```
+✅ 适合：
+  - 超大规模数据（>1亿）
+  - 需要 DiskANN 等磁盘索引
+  - 需要混合标量过滤（metadata filter）
+  - 团队有运维能力
+
+❌ 不适合：
+  - 小团队/快速验证
+  - 不想运维 Kubernetes
+  - 边缘部署
+
+Milvus 架构：
+┌─────────────┐
+│  SDK Client │ ← Python/Go/Java SDK
+└──────┬──────┘
+       │ Milvus Lite / Milvus Cluster
+┌──────┴──────┐
+│ Proxy Layer │ ← 接入层，无状态
+└──────┬──────┘
+       │
+┌──────┴──────┐
+│ Query Node  │ ← 查询节点，可水平扩展
+│ Storage Node│ ← 存储节点
+└─────────────┘
+```
+
+**Qdrant 适用场景：**
+```
+✅ 适合：
+  - Rust 技术栈团队
+  - 需要高性能轻量级方案
+  - 中小规模数据（<1亿）
+  - 边缘部署/嵌入式
+  - 需要丰富过滤条件
+
+❌ 不适合：
+  - 超大规模（不如 Milvus）
+  - 需要完整 SQL 支持
+
+Qdrant 特色：支持多维向量过滤
+```
+
+**选型决策树：**
+
+```
+数据量 < 1000万，不需要运维？
+    ├── 是 → Pinecone（5分钟接入）
+    ↓ 否
+数据量 > 1亿，需要超大规模？
+    ├── 是 → Milvus（DiskANN 支持）
+    ↓ 否
+团队用 Rust，需要高性能轻量级？
+    ├── 是 → Qdrant
+    ↓ 否
+中小规模，需要快速部署？
+    → Qdrant 或 Milvus Lite
+```
+
+**面试话术：**
+> "向量数据库选型要看三件事：数据量、运维能力、预算。Pinecone 是零运维的云服务，适合不想折腾的团队；Milvus 是功能最全的开源方案，超大规模数据首选；Qdrant 是 Rust 实现，性能高且轻量，适合中小规模。我之前公司数据量 5000 万，用的 Milvus，上了 Kubernetes 集群运维成本挺高的，后来迁移到 Qdrant 轻量很多。"
+
+</details>
+
+### Q11: 什么是向量数据库的"混合搜索"？为什么重要？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**混合搜索 = 向量检索 + 标量过滤 + 关键词检索 融合**
+
+**为什么需要混合搜索？**
+
+```
+用户问题："帮我找2024年发布的、关于AI大模型的学术论文"
+
+向量检索（语义）：找出"关于AI大模型的学术论文"
+→ 找到语义相关的文档
+→ 但可能包含2023年或2025年的
+
+标量过滤（metadata filter）："2024年"
+→ 按时间过滤，只保留2024年的
+
+混合搜索 = 语义相关 + 时间符合 = 精准答案
+```
+
+**实现方式对比：**
+
+```python
+# Pinecone 混合搜索
+index.query(
+    vector=query_emb,
+    filter={"year": {"$eq": 2024}, "category": "论文"},  # 标量过滤
+    top_k=10,
+    include_metadata=True
+)
+
+# Milvus 混合搜索
+search_params = {
+    "metric_type": "IP",
+    "params": {"nprobe": 10}
+}
+results = collection.search(
+    data=[query_emb],
+    anns_field="embedding",
+    expr='year == 2024 and category == "论文"',  # 标量过滤表达式
+    search_params=search_params,
+    top_k=10
+)
+
+# Qdrant 混合搜索（原生支持，最灵活）
+from qdrant_client import QdrantClient
+client = QdrantClient("localhost", port=6333)
+results = client.search(
+    collection_name="papers",
+    query_vector=query_emb,
+    query_filter={
+        "must": [
+            {"key": "year", "match": {"value": 2024}},
+            {"key": "category", "match": {"value": "论文"}}
+        ]
+    },
+    top=10
+)
+```
+
+**为什么 Qdrant 混合搜索更强？**
+
+```python
+# Qdrant 支持复杂条件组合
+{
+    "must": [                    # AND
+        {"key": "year", "range": {"gte": 2023, "lte": 2025}},
+        {"key": "authors", "match": {"any": ["张三", "李四"]}}
+    ],
+    "should": [                 # OR（加分项）
+        {"key": "cited_by", "range": {"gt": 100}}
+    ],
+    "must_not": [               # NOT
+        {"key": "status", "match": {"value": "draft"}}
+    ]
+}
+# Pinecone 和 Milvus 的过滤表达能力不如 Qdrant
+```
+
+**面试话术：**
+> "混合搜索是生产环境的标配。纯向量检索只能解决'语义相关性'，但实际业务一定有多维过滤条件——时间、类别、作者、状态等。Qdrant 的过滤表达式最灵活，支持 must/should/must_not 组合。我在论文检索场景用 Qdrant，支持按年份+作者+引用数三维过滤，精准度比纯向量检索提升 40%。"
+
+</details>
+
+### Q12: 什么是 DiskANN？它解决了什么问题？和 HNSW 怎么选？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**DiskANN 核心定位：**
+
+- **诞生命题：** HNSW 全量内存才能快，但数据太大放不下怎么办？
+- **解决方案：** 借助 SSD 磁盘存储 + 图索引，实现"内存级速度 + 磁盘级容量"
+
+**DiskANN 原理：**
+
+```
+传统 HNSW（内存）：全量放内存 → 速度快，但受限于内存容量
+
+DiskANN（磁盘）：
+
+SSD 存储图索引（Vamana图）：
+    ┌─────────────────┐
+    │    图索引文件    │ ← SSD 上
+    │  (几百GB没问题)  │
+    └─────────────────┘
+           ↓
+    ┌─────────────────┐
+    │   内存缓存层     │ ← 热数据放内存
+    └─────────────────┘
+           ↓
+    ┌─────────────────┐
+    │   Beam Search   │ ← 磁盘图搜索
+    └─────────────────┘
+
+搜索过程：
+1. Beam Search 在 SSD 图上搜索
+2. 热路径数据缓存到内存
+3. SSD 延迟 ~100μs，内存延迟 ~1μs
+4. 通过缓存命中加速，P99 延迟接近内存 HNSW
+```
+
+**DiskANN vs HNSW 对比：**
+
+| 维度 | HNSW | DiskANN |
+|------|------|---------|
+| **存储介质** | 全内存 | SSD + 部分内存 |
+| **数据规模** | <1亿 | 1亿~100亿 |
+| **内存需求** | 100% 数据 | 10-20% 数据 |
+| **延迟** | 1-5ms | 5-20ms |
+| **召回率** | ~95% | ~90% |
+| **成本** | 高（内存贵） | 低（SSD便宜） |
+
+**选型建议：**
+
+| 数据规模 | 推荐方案 | 原因 |
+|----------|----------|------|
+| <100万 | HNSW（内存） | 延迟最低，效果最好 |
+| 100万-1亿 | HNSW 或 IVF-PQ | 内存可接受 |
+| 1亿-10亿 | DiskANN | 内存放不下，只能磁盘 |
+| >10亿 | 分片 + DiskANN | 需要分布式架构 |
+
+**Milvus DiskANN 配置：**
+```python
+index_params = {
+    "metric_type": "IP",
+    "index_type": "DISKANN",
+    "params": {
+        "search_list_size": 100  # Beam Search 宽度
+    }
+}
+collection.create_index(
+    field_name="embedding",
+    index_params=index_params
+)
+```
+
+**面试话术：**
+> "DiskANN 是 Milvus 在 2025 年的重磅功能，解决的是'数据太大内存放不下'的问题。原理是把图索引放到 SSD 上，通过 Beam Search 搜索，配合内存缓存加速。HNSW 100万数据要16GB内存，DiskANN 只需要2GB。超过1亿数据，DiskANN 是唯一选择。我们在亿级馆藏检索场景用了 DiskANN，P99 延迟控制在 15ms 以内，成本比纯内存方案降了 70%。"
+
+</details>
+
+---
+
