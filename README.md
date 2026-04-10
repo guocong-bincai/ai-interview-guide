@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.30 | **最后更新:** 2026-04-10
+**版本:** v3.31 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -648,6 +648,18 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 AI编程工具（新增Q24）](docs/17-ai-coding-tools/) | 2026年AI编程五强全景对比（Cursor2.4/Claude Code/Copilot Agent Mode/Trae/Windsurf）、Trae字节跳动免费+中文友好、Windsurf Cascade流式Agent、Copilot GitHub生态企业级安全、三步选型决策框架（预算→工作环境→核心需求）、五大开发者画像推荐（学生→企业→AI开发→遗留代码）、2026年趋势四大洞察 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.30 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.31 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q23）](docs/14-mcp-skill-systems/) | MCP 18个月9700万下载里程碑、Linux Foundation接管标志性意义（M×N问题→标准化）、Google Colab MCP Server云原生Agent（解决TPU/GPU算力+安全沙箱+环境管理三大痛点）、2026-2027路线图（Agent-to-Agent通信+权限审计+分布式编排）、开发者行动指南（Agent/工具/企业三层） | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔥 RAG高级优化（新增Q14）](docs/20-rag-advanced-optimization/) | 2026年3月arXiv RAG前沿论文精选（10篇）、五大方向（多模态RAG/MMGraphRAG/REVEAL、自适应记忆GAM-RAG/HippoRAG、鲁棒性RGB/LIT-RAGBench评估、领域特化医疗RAG-X/机器人RAG/时间序列RAG、拓扑推理RAGNav） | 🔥🔥🔥 | +1 |
+
+*版本: v3.31 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 
