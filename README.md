@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.37 | **最后更新:** 2026-04-10
+**版本:** v3.38 | **最后更新:** 2026-04-10
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -734,6 +734,18 @@ Made with ❤️ for the AI Community
 | 🆕 | [💻 AI编程工具（新增Q27）](docs/17-ai-coding-tools/) | Cline（开源自由派/零订阅/Claude Sonnet 4配合/完整控制权/VS Code系）+ Amazon Q Developer（AWS专用/$19/月/深度集成Lambda/EC2/S3）；2026年五大趋势（Agent Mode标配/多文件理解分水岭/免费层战争/Cognition收购Windsurf/Claude主导代码质量）；六大工具完整定位表+决策树；Cline vs Cursor vs Copilot开源对比 | 🔥🔥🔥 | +1 |
 
 *版本: v3.37 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+
+---
+
+## 📚 数据更新（v3.38 - 2026-04-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [💻 AI编程工具（新增Q28）](docs/17-ai-coding-tools/) | Claude Code v2.1.89-91（2026年4月连发三版）：MCP工具结果500KB永续化（大型输出完整保留）、插件二进制直接执行（减少shell中转）、Headless Defer机制（CI/CD不阻塞）、SSE线性时间处理优化、AWS Bedrock设置向导（小白友好）、成本可视化增强（预算告警） | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.38 | 更新: 2026-04-10 | by 二狗子 🐕*
+
 
 
 
