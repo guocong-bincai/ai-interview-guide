@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.39 | **最后更新:** 2026-04-10
+**版本:** v3.40 | **最后更新:** 2026-04-12
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -35,8 +35,8 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 320+ 道 |
-| 📂 **核心模块** | 19 个 |
+| 📝 **总题数** | 335+ 道 |
+| 📂 **核心模块** | 20 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
 | 🎓 **适用人群** | 初级 ~ 高级工程师 |
@@ -117,8 +117,8 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 14 | [🎯 多智能体协作](docs/14-multi-agent-systems/) | AutoGen、CrewAI、Agent通信、任务编排 | 🔥🔥🔥🔥 | 10 |
-| 15 | [🔌 MCP & Skill系统](docs/15-mcp-skill-systems/) | MCP协议、Skill设计、OpenClaw框架、沙箱技术 | 🔥🔥🔥 | 13 |
+| 15 | [🎯 多智能体协作](docs/13-multi-agent-systems/) | AutoGen、CrewAI、Agent通信、任务编排 | 🔥🔥🔥🔥 | 10 |
+| 14 | [🔌 MCP & Skill系统](docs/14-mcp-skill-systems/) | MCP协议、Server开发、Client集成、vs Function Calling、企业级部署 | 🔥🔥🔥🔥 | 14 |
 | 16 | [🚀 前沿技术与趋势](docs/16-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
 | 17 | [🔥 AI 编程工具与 Coding Agent](docs/17-ai-coding-tools/) | AI 编程工具对比、自主 Coding Agent、CWM、SWE-bench、FIM | 🔥🔥🔥 | 10 |
 
@@ -344,6 +344,7 @@ ai-interview-guide/
 │   ├── 11-multimodal-ai/            # ⭐⭐⭐⭐ 多模态
 │   ├── 12-frameworks-tools/         # ⭐⭐⭐ 框架工具
 │   ├── 13-multi-agent-systems/      # ⭐⭐⭐⭐ 多智能体
+│   ├── 14-mcp-skill-systems/      # ⭐⭐⭐⭐ MCP协议与工具系统
 │   ├── 14-mcp-skill-systems/        # ⭐⭐⭐ MCP协议
 │   ├── 15-advanced-topics/          # ⭐⭐⭐⭐⭐ 前沿技术
 │   └── 16-resume-interview-tips/    # 简历面试
