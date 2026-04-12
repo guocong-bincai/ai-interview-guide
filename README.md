@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.41 | **最后更新:** 2026-04-12
+**版本:** v3.42 | **最后更新:** 2026-04-13
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -767,3 +767,15 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔀 多Agent系统（新增Q14）](docs/13-multi-agent-systems/) | 多Agent三大架构模式：单Agent三大结构性瓶颈（lost-in-middle/专业化/并行性）、五种协议对比表（CrewAI/AutoGen/LangGraph/MCP/A2A/tmux send-keys）、Commander/P2P/Hybrid模式选型决策树 | +1 |
 | 🆕 | [🔌 MCP协议（新增Q26）](docs/14-mcp-skill-systems/) | MCP Apps（SEP-1865）交互式UI组件（仪表板/表单/K线图）、A2A v0.3（gRPC+签名安全卡）、完整协议时间线（2024-11 MCP→2026-03 MCP 5800+服务器）、应用平台演进意义 | +1 |
 
+
+---
+
+## 📚 数据更新（v3.42 - 2026-04-13）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q27）](docs/14-mcp-skill-systems/) | 什么情况下不应该用MCP（MCP边界与反套路面试题）：6大不适场景详解（简单集成/一次性脚本/高频交易/流处理）、MCP适合场景 vs 不适合场景对比表、工程判断标准、真实踩坑案例 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🏗️ Transformer架构（新增Q10）](docs/04-transformer-architecture/) | Transformer+SSM混合架构（Mamba核心原理）：SSM vs Transformer O(n²) vs O(n)对比、Selection Mechanism让参数\"看输入说话\"、2026年主流模型混合策略（Gemini 2/Claude 3.5/Llama 4）、硬件感知并行性、面试话术与加分项 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🛡️ AI安全与评估（新增Q13）](docs/09-ai-safety-evaluation/) | 神经符号融合（Neural-Symbolic Fusion）：2026年幻觉控制新范式、与传统RAG/CoT/低温方法对比、AlphaFold 3符号校验架构、三步工程落地法（识别校验点→设计验证API→融合决策）、五大应用场景表、面试话术 | 🔥🔥🔥 | +1 |
+
+*版本: v3.42 | 更新: 2026-04-13 | by 二狗子 🐕*
