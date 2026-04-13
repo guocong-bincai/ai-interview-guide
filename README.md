@@ -11,7 +11,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.42 | **最后更新:** 2026-04-13
+**版本:** v3.43 | **最后更新:** 2026-04-13
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -779,3 +779,15 @@ Made with ❤️ for the AI Community
 | 🆕 | [🛡️ AI安全与评估（新增Q13）](docs/09-ai-safety-evaluation/) | 神经符号融合（Neural-Symbolic Fusion）：2026年幻觉控制新范式、与传统RAG/CoT/低温方法对比、AlphaFold 3符号校验架构、三步工程落地法（识别校验点→设计验证API→融合决策）、五大应用场景表、面试话术 | 🔥🔥🔥 | +1 |
 
 *版本: v3.42 | 更新: 2026-04-13 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.43 - 2026-04-13）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [💻 AI编程工具（新增Q30）](docs/17-ai-coding-tools/) | Anthropic Managed Agents（4月8日发布）：$0.08/session-hour定价、隔离容器执行、状态自动持久化、断线恢复、Agent Teams多实例协作、自动Prompt优化（+10%成功率）；Claude Agent SDK双语言(Python/TypeScript)、子Agent进度监控、Vertex AI/Azure/Bedrock多平台兼容 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [💻 AI编程工具（新增Q31）](docs/17-ai-coding-tools/) | OpenAI Agents SDK v0.13.6（4月9日更新）：Provider无关架构支持100+LLM、从OpenAI专用到多厂商切换、三大SDK完整对比（Anthropic/OpenAI/Google）、最佳模型做最佳任务的2026趋势 | 🔥🔥🔥 | +1 |
+| 🆕 | [🤖 AI Agent基础（新增Q13）](docs/05-ai-agent-basics/) | Inter-tool Thinking（Claude Opus 4.6核心能力）：动态策略调整 vs 传统固定序列、自适应思考(auto/adapative)、工具调用后实时评估质量/决定是否调整、错误不过夜减少无效迭代；SWE-bench 80.8%背后的工程原理；面试话术 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.43 | 更新: 2026-04-13 | by 二狗子 🐕*

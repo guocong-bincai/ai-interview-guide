@@ -2827,3 +2827,145 @@ Top 10 MCP Servers（killer-skills.com推荐）：
 ---
 
 *版本: v2.15 | 更新: 2026-04-10 | by 二狗子 🐕*
+
+---
+
+## 十八、Anthropic Managed Agents vs OpenAI Agents SDK v0.13.6：2026年4月新发布（Q30-Q31）
+
+### Q30: Anthropic Managed Agents是什么？和Claude Code有什么区别？为什么它是企业级AI编程的重大突破？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**发布背景（2026年4月8日）：**
+
+Anthropic在4月8日发布了Managed Agents（Public Beta），这是Anthropic全栈Agent战略的终极形态——不是让你自己搭 Harness，而是把整个Agent运行环境做成托管服务。
+
+```
+Claude Code vs Managed Agents 的本质区别：
+
+Claude Code：
+  → 你提供 Harness（Claude Code）
+  → 你管理环境（本地/云端）
+  → 你负责错误恢复和状态持久化
+  → 适合：个人开发者、小团队
+
+Managed Agents：
+  → Anthropic提供完整 Harness（隔离容器）
+  → Anthropic管理执行环境
+  → Anthropic负责状态持久化、断线恢复、错误自动处理
+  → 适合：企业级大规模部署
+```
+
+**核心能力：**
+
+| 能力 | 说明 |
+|------|------|
+| **隔离容器执行** | 每个Agent运行在独立隔离容器中，环境完全隔离 |
+| **状态自动持久化** | Session自动保存，断线后可恢复，不用担心状态丢失 |
+| **Agent Teams** | 多个Claude实例拥有独立上下文，可互相通信、共享任务列表 |
+| **自动Prompt优化** | （研究预览）内测中提升10个百分点任务成功率 |
+| **定价** | $0.08/session-hour + token费用 |
+
+**Agent Teams 详解：**
+
+```
+传统方式：
+  用户 → Agent A → 用户 → Agent B → 用户合并结果
+
+Managed Agents Agent Teams：
+  Orchestrator Agent → 任务分解
+       ↓
+  Agent A（研究） ←→ Agent B（编码） ←→ Agent C（测试）
+       ↓
+  Orchestrator Agent → 汇总结果 → 返回用户
+```
+
+首批客户：Notion、Rakuten、Asana（都是企业级大规模应用）
+
+**Claude Agent SDK 也更新了（4月）：**
+
+| SDK | 说明 |
+|-----|------|
+| **Python** | `claude-agent-sdk` |
+| **TypeScript** | `@anthropic-ai/claude-agent-sdk` |
+| **新能力** | 子Agent进度监控（`agentProgressSummaries`）+ 子Agent恢复 |
+| **多平台兼容** | Vertex AI / Azure Foundry / Amazon Bedrock |
+
+**面试话术：**
+
+> "Managed Agents的本质是'把Claude Code变成云服务'。Claude Code需要自己搭环境、自己管状态、自己处理错误；Managed Agents让企业直接用Anthropic的基础设施，按session-hour付费。最大的亮点是Agent Teams——多个Claude实例可以像真实团队一样协作，而不是像以前那样串行调用。这对需要多角色协作的企业场景（如Notion的文档处理、Rakuten的客服）价值巨大。定价$0.08/session-hour，对比自建Claude Code集群的成本，很有竞争力。"
+
+---
+
+### Q31: OpenAI Agents SDK v0.13.6有哪些更新？为什么它是2026年最值得关注的多框架SDK？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**4月9日更新：OpenAI Agents SDK v0.13.6**
+
+这是OpenAI的Agent开发框架，2026年4月发生了重大进化——从"OpenAI专用"变成了"Provider无关"。
+
+```
+升级前（OpenAI only）：
+  Agents SDK → 只能接OpenAI模型
+  → 局限性：GPT在其他场景（如本地部署）不如Claude
+
+升级后（Provider agnostic）：
+  Agents SDK → 支持 100+ LLM
+  → 可以接OpenAI / Anthropic / Google / 本地模型 / 开源模型
+  → 灵活切换，按需选择
+```
+
+**核心架构：**
+
+```python
+# Agents SDK v0.13.6 的多Provider支持
+from agents import Agent, set_default_model
+
+# 切到Claude
+set_default_model("claude-opus-4-5")
+agent1 = Agent(instructions="分析代码架构")
+
+# 切到GPT
+set_default_model("gpt-5.4")
+agent2 = Agent(instructions="生成测试用例")
+
+# 切到Gemini
+set_default_model("gemini-3.1-pro")
+agent3 = Agent(instructions="处理多语言输入")
+```
+
+**与Anthropic Claude Agent SDK的对比：**
+
+| 维度 | OpenAI Agents SDK | Anthropic Claude Agent SDK |
+|------|------------------|---------------------------|
+| **Provider支持** | 100+ LLM（多厂商） | Anthropic全家桶为主 |
+| **定位** | 框架（通用） | 官方SDK（深度集成） |
+| **工具生态** | 依赖MCP扩展 | 内置完整工具集+MCP |
+| **Agent Teams** | 多Agent协作 | Agent Teams（托管服务） |
+| **适用场景** | 多模型切换需求 | 深度Claude能力 |
+
+**为什么2026年"Provider无关"很重要：**
+
+1. **成本优化**：不同任务用不同模型，不被单一厂商绑定
+2. **合规需求**：金融/医疗要求本地部署，OpenAI进不去
+3. **能力互补**：Claude强推理、GPT强速度、Gemini强多模态
+4. **谈判筹码**：不依赖单一厂商，议价能力更强
+
+**2026年4月三大SDK完整对比：**
+
+| SDK | 厂商 | Provider | 最新版本 | 核心优势 |
+|-----|------|----------|----------|----------|
+| Claude Agent SDK | Anthropic | Anthropic为主 | GA | 深度集成、安全优先 |
+| OpenAI Agents SDK | OpenAI | 100+ | v0.13.6 | Provider无关 |
+| Google Agent SDK | Google | Gemini为主 | GA | Vertex AI原生集成 |
+
+**面试话术：**
+
+> "OpenAI Agents SDK v0.13.6的核心变化是'不再绑定OpenAI'。2026年的Agent开发趋势是'最佳模型做最佳任务'——Claude强推理就用Claude，GPT强速度就用GPT，不需要为每个厂商学一套SDK。Provider无关的框架让这个变得简单。但需要注意，Claude Agent SDK毕竟是Anthropic亲儿子，它的Claude能力集成深度（如Inter-tool Thinking、安全Harness）是OpenAI SDK比不上的。选SDK要看场景：多模型切换选OpenAI，深度Claude能力选官方SDK。"
+
+---
+
+*版本: v2.16 | 更新: 2026-04-13 | by 二狗子 🐕*
