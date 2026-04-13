@@ -2,7 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-**🎯 322+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+> **⚠️ 本次更新(v3.44)：新增 Q32 - 所有主流AI编程基准测试被攻破（Berkeley 2026年4月重磅论文）| +1道高质量面试题**
+
+**🎯 323+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -25,7 +27,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 18个模块从易到难，230+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 18个模块从易到难，323+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
