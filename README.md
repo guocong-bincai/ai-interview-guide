@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.44)：新增 Q32 - 所有主流AI编程基准测试被攻破（Berkeley 2026年4月重磅论文）| +1道高质量面试题**
+> **⚠️ 本次更新(v3.48)：新增 Q17 N-Day-Bench（真实代码漏洞发现）+ Q11 LangChain 2026四月新功能 | +2道高质量面试题**
 
 **🎯 328+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.43 | **最后更新:** 2026-04-13
+**版本:** v3.48 | **最后更新:** 2026-04-14
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -792,4 +792,4 @@ Made with ❤️ for the AI Community
 | 🆕 | [💻 AI编程工具（新增Q31）](docs/17-ai-coding-tools/) | OpenAI Agents SDK v0.13.6（4月9日更新）：Provider无关架构支持100+LLM、从OpenAI专用到多厂商切换、三大SDK完整对比（Anthropic/OpenAI/Google）、最佳模型做最佳任务的2026趋势 | 🔥🔥🔥 | +1 |
 | 🆕 | [🤖 AI Agent基础（新增Q13）](docs/05-ai-agent-basics/) | Inter-tool Thinking（Claude Opus 4.6核心能力）：动态策略调整 vs 传统固定序列、自适应思考(auto/adapative)、工具调用后实时评估质量/决定是否调整、错误不过夜减少无效迭代；SWE-bench 80.8%背后的工程原理；面试话术 | 🔥🔥🔥🔥 | +1 |
 
-*版本: v3.43 | 更新: 2026-04-13 | by 二狗子 🐕*
+*版本: v3.48 | 更新: 2026-04-13 | by 二狗子 🐕*

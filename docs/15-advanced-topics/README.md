@@ -564,3 +564,51 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 ---
 
 [返回目录 →](../../README.md)
+
+---
+
+### Q11: LangChain 2026年4月发布了哪些重要新功能？Deep Agents v0.5、Continual Learning、Harness Hill-Climbing有什么区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Deep Agents v0.5（开源替代 Claude Managed Agents）：**
+
+LangChain 发布的 Deep Agents 是 Claude Managed Agents 的开源替代品，核心特性：
+- **异步子 Agent**：非阻塞式子 Agent 支持，提升并发效率
+- **多模态文件系统**：支持图片、文档等多种文件类型的原生处理
+- **模型无关**：可对接任何 LLM 提供商
+
+**Continual Learning vs 权重更新：**
+
+传统 continual learning = 更新模型权重（LLM 微调）
+LangChain 认为 Agent 场景的 continual learning 应在三个层面发生：
+| 层面 | 学习方式 | 实现难度 |
+|------|----------|----------|
+| **模型权重层** | 预训练/SFT/RLHF | 高（需要大量算力） |
+| **工具/知识层** | RAG、MCP、向量库更新 | 中（动态注入） |
+| **行为/经验层** | Agent 自我反思、记忆积累 | 低（框架层面实现） |
+
+**Harness Hill-Climbing with Evals：**
+
+核心观点：构建更好的 Agent = 构建更好的 harness（测试框架）
+- 用 Evals 自动化评估 Agent 表现
+- 每次改动跑全套评估，看分数是否提升
+- 避免"凭感觉"优化，要用数据驱动
+
+**生产级 Self-Healing Agent：**
+
+LangChain 工程师分享的生产实践：
+- 每次部署后自动检测回归
+- 自动判断是否为本次变更引起
+- 自动触发 Agent 修复 PR，无需人工介入直到 review
+
+**面试话术：**
+> "LangChain 2026 年 4 月的三条主线：Deep Agents v0.5（异步+多模态）、Continual Learning 新视角（三个层面独立迭代）、Harness Hill-Climbing（用 Evals 数据驱动优化）。对我影响最大的是 Continual Learning 的三层框架——不是只有微调才能让 Agent 学习，RAG 更新工具知识、Agent 自我反思积累经验都是学习，而且成本更低、见效更快。"
+
+**延伸阅读：**
+- LangChain Blog: https://blog.langchain.dev/
+- Deep Agents: https://blog.langchain.dev/deep-agents-v0-5/
+- Continual Learning: https://blog.langchain.dev/continual-learning-for-ai-agents/
+
+</details>
