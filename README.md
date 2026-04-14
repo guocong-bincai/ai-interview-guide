@@ -101,11 +101,8 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 11 | [🏛️ 工程架构与部署](docs/11-production-deployment/) | 流式输出、缓存、监控、MLOps、CI/CD | 🔥🔥🔥🔥🔥 | 14 |
-| 12 | [🎨 多模态应用](docs/12-multimodal-ai/) | CLIP、BLIP、LLaVA、图文检索、生图Agent、评估方案 | 🔥🔥🔥 | 13 |
-| 13 | [🔧 框架与工具](docs/13-frameworks-tools/) | LangChain、LlamaIndex、AutoGPT | 🔥🔥🔥🔥 | 8 |
-| 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、高并发 | 🔥🔥🔥🔥🔥 | 12 |
-| 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、图文检索、多模态RAG | 🔥🔥🔥 | 8 |
+| 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、MLOps、CI/CD | 🔥🔥🔥🔥🔥 | 14 |
+| 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、LLaVA、图文检索、生图Agent、评估方案 | 🔥🔥🔥 | 13 |
 | 12 | [🔧 框架与工具](docs/12-frameworks-tools/) | LangChain、Coze、Dify、Function Calling、Streaming | 🔥🔥🔥🔥🔥 | 12 |
 
 **学习重点:** 系统架构、生产部署、多模态集成
@@ -332,32 +329,31 @@ cd ai-interview-guide
 
 ```
 ai-interview-guide/
-├── 📂 docs/                    # 16个核心模块（按难度排序）
-│   ├── 01-basic-concepts/           # ⭐⭐ LLM基础
-│   ├── 02-prompt-engineering/       # ⭐⭐ Prompt工程
-│   ├── 03-rag-system/               # ⭐⭐⭐ RAG系统
-│   ├── 04-transformer-architecture/ # ⭐⭐⭐⭐ Transformer
-│   ├── 05-ai-agent-basics/          # ⭐⭐⭐⭐ Agent基础
-│   ├── 06-vector-index-optimization/# ⭐⭐⭐⭐ 向量索引
-│   ├── 07-model-training/           # ⭐⭐⭐⭐ 模型微调
-│   ├── 08-inference-optimization/   # ⭐⭐⭐⭐⭐ 推理优化
-│   ├── 09-ai-safety-evaluation/     # ⭐⭐⭐⭐ 安全评估
-│   ├── 10-production-deployment/    # ⭐⭐⭐⭐⭐ 生产部署
-│   ├── 11-multimodal-ai/            # ⭐⭐⭐⭐ 多模态
-│   ├── 12-frameworks-tools/         # ⭐⭐⭐ 框架工具
-│   ├── 13-multi-agent-systems/      # ⭐⭐⭐⭐ 多智能体
-│   ├── 14-mcp-skill-systems/      # ⭐⭐⭐⭐ MCP协议与工具系统
-│   ├── 14-mcp-skill-systems/        # ⭐⭐⭐ MCP协议
-│   ├── 15-advanced-topics/          # ⭐⭐⭐⭐⭐ 前沿技术
-│   └── 16-resume-interview-tips/    # 简历面试
-├── 📂 cases/                   # 实战案例
-│   ├── pdf-parsing.md              # PDF解析案例
-│   ├── cost-optimization.md        # 成本优化案例
-│   ├── retrieval-optimization.md   # 检索优化案例
-│   └── production-deployment.md    # 生产部署案例
-└── 📂 assets/                  # 资源文件
-    ├── images/                     # 架构图、流程图
-    └── code/                       # 完整代码示例
+├── README.md
+└── 📂 docs/                    # 23个核心模块（按难度排序）
+    ├── 01-basic-concepts/           # ⭐⭐ LLM基础
+    ├── 02-prompt-engineering/       # ⭐⭐ Prompt工程
+    ├── 03-rag-system/               # ⭐⭐⭐ RAG系统
+    ├── 04-transformer-architecture/ # ⭐⭐⭐⭐ Transformer架构
+    ├── 05-ai-agent-basics/          # ⭐⭐⭐⭐ Agent基础
+    ├── 06-vector-index-optimization/# ⭐⭐⭐⭐ 向量索引优化
+    ├── 07-model-training/           # ⭐⭐⭐⭐ 模型微调
+    ├── 08-inference-optimization/   # ⭐⭐⭐⭐⭐ 推理优化
+    ├── 09-ai-safety-evaluation/     # ⭐⭐⭐⭐ 安全评估
+    ├── 10-production-deployment/    # ⭐⭐⭐⭐⭐ 生产部署
+    ├── 11-multimodal-ai/            # ⭐⭐⭐⭐ 多模态
+    ├── 12-frameworks-tools/         # ⭐⭐⭐ 框架工具
+    ├── 13-multi-agent-systems/      # ⭐⭐⭐⭐ 多智能体协作
+    ├── 14-mcp-skill-systems/        # ⭐⭐⭐⭐ MCP协议与工具系统
+    ├── 15-advanced-topics/          # ⭐⭐⭐⭐⭐ 前沿技术
+    ├── 16-resume-interview-tips/    # 简历与面试技巧
+    ├── 17-ai-coding-tools/          # ⭐⭐⭐⭐ AI编程工具
+    ├── 18-big-tech-interview-questions/ # ⭐⭐⭐⭐⭐ 国内大厂真题
+    ├── 19-inference-frameworks/     # ⭐⭐⭐⭐⭐ 推理框架(vLLM/SGLang)
+    ├── 20-rag-advanced-optimization/# ⭐⭐⭐⭐ RAG高级优化
+    ├── 21-multimodal-agents/        # ⭐⭐⭐⭐ 多模态Agent
+    ├── 22-agent-planning-reflection/# ⭐⭐⭐⭐⭐ Agent规划与反思
+    └── 23-agent-observability/      # ⭐⭐⭐⭐ Agent可观测性
 ```
 
 ---
@@ -450,7 +446,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-09 | **📝 版本:** v3.34 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-14 | **📝 版本:** v3.52 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -685,12 +681,6 @@ Made with ❤️ for the AI Community
 
 
 
-
-
-
-
-
-
 ---
 
 ## 📚 内容更新（v3.34 - 2026-04-10 逐模块补充）
@@ -759,10 +749,6 @@ Made with ❤️ for the AI Community
 | 🆕 | [💻 AI编程工具（新增Q29）](docs/17-ai-coding-tools/) | Claude Code v2.1.92（2026-04-04）：Agentic设计解决审批疲劳、低风险自动执行高风险审批；2026年Top 10 MCP Servers推荐（文件系统/GitHub/数据库/浏览器/Docker等）；Claude Code vs Cursor MCP生态对比 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.39 | 更新: 2026-04-10 | by 二狗子 🐕*
-
-
-
-
 
 
 
