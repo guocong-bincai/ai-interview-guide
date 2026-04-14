@@ -1,7 +1,7 @@
 # 🔥 AI 编程工具与自主 Coding Agent 面试题
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-04-04
+> **更新：** 2026-04-15
 > **考点：** AI 编程工具对比、自主 Coding Agent、CWM、SWE-bench、FIM
 
 ## 📋 目录
@@ -3486,4 +3486,96 @@ claude plugin install pinecone
 
 </details>
 
-*版本: v2.20 | 更新: 2026-04-14 | by 二狗子 🐕*
+---
+
+## 十一、Claude Code Routines：Hacker News 2026年4月热门话题（Q36）
+
+### Q36: Claude Code Routines 是什么？为什么它是 2026 年 AI 编程自动化的重大升级？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**发布背景：**
+
+Claude Code Routines 是 Claude Code 的研究预览功能，于 2026 年 4 月登上 Hacker News 热门榜（294 votes），标志着 AI 编程工具从「人工触发」向「自动执行」的又一次跨越。
+
+**Routines vs Scheduled Tasks 的区别：**
+
+| 维度 | Scheduled Tasks | Routines |
+|------|----------------|---------|
+| **定位** | CLI 内的定时指令 | 打包好的持久化配置 |
+| **触发方式** | 单一调度 | 调度 + API + GitHub 三种触发 |
+| **持久化** | 临时 | 保存配置，永久有效 |
+| **云端执行** | 需要手动配置 | Anthropic 托管，开箱即用 |
+
+**Routines 的三大触发方式：**
+
+| 触发类型 | 说明 | 面试场景 |
+|----------|------|----------|
+| **Scheduled** | 定时执行（每小时/每天/每周） | 定时 PR review、定时代码扫描 |
+| **API** | HTTP POST 调用端点 + Bearer Token | CI/CD 集成、监控告警联动 |
+| **GitHub** | PR opened/push/issue/workflow 事件 | 自动代码审查、自动文档更新 |
+
+**典型使用场景：**
+
+```
+场景1：Backlog 维护
+- 触发：每周工作日定时
+- 动作：连接 issue tracker，自动打标签、分派人
+- 结果：Slack 推送每日已整理的待办队列
+
+场景2：Alert 告警处理
+- 触发：监控工具 POST 到 API 端点
+- 动作：拉取错误栈 → 关联最近 commits → 开 draft PR 附修复方案
+- 结果：on-call 工程师直接 review PR，不用从头排查
+
+场景3：PR 自动审查
+- 触发：GitHub pull_request.opened
+- 动作：执行团队审查 checklist，security/performance/style 检查
+- 结果：审查者专注设计，不做机械检查
+
+场景4：部署验证
+- 触发：CD pipeline 部署后调用 API
+- 动作：冒烟测试 → 扫描错误日志 → 发布 go/no-go 到发布频道
+- 结果：部署窗口关闭前自动拦截风险
+
+场景5：文档漂移检测
+- 触发：每周一次
+- 动作：扫描合并的 PR → 检查变更 API 的文档引用 → 提更新 PR
+- 结果：文档和代码同步，不再过期
+```
+
+**Routines 的技术架构：**
+
+```
+用户定义 Routine（一次）
+    ├── Prompt（Claude Code 指令）
+    ├── Repositories（关联的代码仓库）
+    ├── Connectors（连接器：Slack/GitHub/Jira等）
+    └── Triggers（触发器列表）
+            ├── Scheduled（定时）
+            ├── API（HTTP 端点）
+            └── GitHub（事件驱动）
+
+Anthropic 托管执行
+    → 即使你电脑关机，Routine 也在云端自动跑
+    → 输出结果推送到 Slack/PR/监控平台
+```
+
+**为什么重要（面试核心）：**
+
+| 维度 | 传统 Claude Code | Claude Code Routines |
+|------|-----------------|---------------------|
+| **执行方式** | 人工打开 terminal，敲命令 | 配置好之后自动触发 |
+| **覆盖场景** | 需要人工介入的交互任务 | 无人值守的自动化工作流 |
+| **团队协作** | 个人效率工具 | 团队共享的自动化基础设施 |
+
+**面试话术：**
+
+> "Claude Code Routines 的本质是'AI 编程工具的自动化基础设施'。Scheduled Tasks 是让你'下班后还能跑任务'，Routines 是让'团队不需要任何人触发，AI 自己按照配置的规则自动工作'。GitHub 触发器让 PR review 完全自动化，API 触发器让它融入 CI/CD，Scheduled 触发器让它做定时任务。这代表了 AI 编程工具从'个人效率工具'到'团队自动化基础设施'的转变，2026 年面试会越来越多问'你怎么实现团队级别的 AI 自动化'。"
+
+</details>
+
+---
+
+*版本: v2.21 | 更新: 2026-04-15 | by 二狗子 🐕*
