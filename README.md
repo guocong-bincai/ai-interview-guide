@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.54)：新增 Q17 PaperVizAgent五Agent架构 + Q10 Behavioral Dispositions行为对齐评估**
+> **⚠️ 本次更新(v3.55)：新增 Q35 Pinecone Plugin for Claude Code（AI编程向量数据库集成）**
 
-**🎯 332+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 333+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.54 | **最后更新:** 2026-04-14
+**版本:** v3.55 | **最后更新:** 2026-04-14
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -473,7 +473,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-04-14 | **📝 版本:** v3.54 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-04-14 | **📝 版本:** v3.55 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
