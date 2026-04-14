@@ -2352,6 +2352,67 @@ NARCBench        多智能体系统需要安全审计，
 
 </details>
 
+## 十六、Google Research 双Agent框架：PaperVizAgent + ScholarPeer（Q17）
+
+### Q17: PaperVizAgent 的五Agent架构是什么？为什么"Critic循环"是生成高质量学术图表的关键？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：学术图表生成的痛点**
+
+AI 可以帮研究者写文字，但生成顶会/期刊需要的复杂方法图和精确统计图要难得多——这需要理解技术内容、遵循学术规范、还要视觉美观。
+
+**PaperVizAgent 解决方案：五Agent协作系统**
+
+```
+┌─────────────────────────────────────────────────────┐
+│              PaperVizAgent 架构                     │
+├─────────────────────────────────────────────────────┤
+│  输入：方法章节文本 + 图表描述（caption）           │
+│                                                     │
+│  ① Retriever（检索Agent）                          │
+│     → 从文献库检索相关学术图表作为参考              │
+│                                                     │
+│  ② Planner（规划Agent）                             │
+│     → 组织内容结构，确定可视化方案                  │
+│                                                     │
+│  ③ Stylist（风格Agent）                            │
+│     → 合成学术规范（论文格式、配色、布局标准）      │
+│                                                     │
+│  ④ Visualizer（可视化Agent）                       │
+│     → 渲染图像 或 生成统计图的Python代码           │
+│                                                     │
+│  ⑤ Critic（评审Agent） ← 关键创新！                │
+│     → 对照原文检查一致性                            │
+│     → 若发现不一致 → 反馈给Visualizer → 迭代优化   │
+│     → 循环直到通过评审                             │
+└─────────────────────────────────────────────────────┘
+```
+
+**Critic 循环：质量保障的关键**
+
+> "传统生成流程是'一锤子买卖'——生成完就结束。PaperVizAgent 的创新在于引入了 Critic Agent 作为质量门卫，它会对照原文检查生成结果，发现问题就打回重做。这个循环迭代机制确保了最终输出既视觉美观又技术准确。"
+
+**性能对比（PaperVizAgent vs baselines）：**
+
+| 维度 | PaperVizAgent | GPT-Image-1.5 | Paper2Any |
+|------|---------------|---------------|-----------|
+| Faithfulness（忠于原文）| 最优 | 差 | 中等 |
+| Conciseness（简洁性）| 最优 | 中等 | 差 |
+| Readability（可读性）| 最优 | 中等 | 中等 |
+| Aesthetics（美观度）| 最优 | 差 | 中等 |
+
+**ScholarPeer：AI 审稿人**
+
+> "与 PaperVizAgent 对应，Google 还发布了 ScholarPeer——一个自动化学术论文审稿Agent。它能严格评估论文质量，包括内嵌图表，目前在自动化审稿中领先。"
+
+**面试话术：**
+
+> "PaperVizAgent 展示了多Agent系统的真正威力——不是多个 Agent 简单拼接，而是各司其职、循环迭代。Retriever 找参考、Planner 规划、Stylist 规范风格、Visualizer 生成、Critic 评审质量。这套架构可以迁移到任何需要高质量输出的场景——不只是画图，代码生成、报告撰写、数据分析都行。关键是引入 Critic 循环，让质量检查成为生成流程的一部分，而不是事后补漏。"
+
+</details>
+
 ---
 
-*版本: v2.7 | 更新: 2026-04-10 | by 二狗子 🐕*
+*版本: v2.8 | 更新: 2026-04-14 | by 二狗子 🐕*
