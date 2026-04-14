@@ -15,7 +15,7 @@
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
 **版本:** v3.54 | **最后更新:** 2026-04-14
 
-[📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
+[📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🛠️ 作者项目](#-作者开源项目) · [🤝 贡献指南](#-贡献指南)
 
 </div>
 
@@ -392,6 +392,33 @@ ai-interview-guide/
 
 ---
 
+## 🧑‍💻 作者开源项目
+
+> 如果本仓库对你有帮助，欢迎关注作者的其他项目 ⬇️
+
+### 📚 面试备战系列
+
+| 项目 | 定位 | 链接 |
+|------|------|------|
+| **AI 应用/Agent 面试宝典** | 本仓库，AI 应用工程师、LLM 工程师、Agent 开发 | [guocong-bincai/ai-interview-guide](https://github.com/guocong-bincai/ai-interview-guide) |
+| **Go 后端高级工程师面试宝典** | 4~8 年 Go 开发，MySQL/Redis/微服务/系统设计/算法 | [guocong-bincai/go-interview-guide](https://github.com/guocong-bincai/go-interview-guide) |
+
+### 🛠️ 开源工具
+
+| 项目 | 介绍 | 链接 |
+|------|------|------|
+| **Yapi MCP Pro** | 将 Yapi 接入 MCP 协议，让 AI 直接读取接口文档辅助开发。GitHub 同类项目全球 Star 数第一 🏆 | [guocong-bincai/Yapi_mcp_pro](https://github.com/guocong-bincai/Yapi_mcp_pro) |
+
+> 💡 **使用场景：** 用 Cursor / Claude Code 开发时，通过 Yapi MCP Pro 让 AI 自动获取接口定义，无需手动粘贴 API 文档，大幅提升 AI 辅助编程效率。这也是 MCP 协议在企业研发中的典型落地案例，面试时可作为实战项目讲解。
+
+### 🌐 线上产品
+
+| 产品 | 介绍 | 访问 |
+|------|------|------|
+| **VoicePaper（英文书）** | 免费无广告外刊精读小程序 & 网站，沉浸式英文阅读体验 | [voicepaper.top](https://voicepaper.top/) · [源码](https://github.com/guocong-bincai/VoicePaper) |
+
+---
+
 ## 🔗 相关资源
 
 ### 📚 推荐学习资源
@@ -449,6 +476,11 @@ ai-interview-guide/
 **📅 最后更新:** 2026-04-14 | **📝 版本:** v3.54 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
+
+---
+
+**作者其他项目：**
+[🐹 Go 后端面试宝典](https://github.com/guocong-bincai/go-interview-guide) · [🔌 Yapi MCP Pro](https://github.com/guocong-bincai/Yapi_mcp_pro) · [📖 VoicePaper 英文书](https://voicepaper.top/)
 
 </div>
 
