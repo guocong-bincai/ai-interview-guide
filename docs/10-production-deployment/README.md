@@ -1039,3 +1039,45 @@ WHERE time > now() - 7d
 ---
 
 [返回目录 →](../../README.md)
+---
+
+### Q15: Cloudflare Sandboxes是什么？2026年4月GA对企业级Agent部署有什么意义？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Cloudflare Sandboxes 核心定位：**
+
+Cloudflare Sandboxes = 给 AI Agent 配备自己的专属电脑（持久化隔离环境），2026年4月13日正式 GA（全面可用）。
+
+**解决的问题：**
+
+| 挑战 | 说明 | Cloudflare 方案 |
+|------|------|----------------|
+| **Burstiness** | 需要快速扩缩沙箱，但不想为空闲算力付费 | 按需启动 + 弹性计费 |
+| **快速状态恢复** | 每个 Session 要能快速启动并恢复历史状态 | 持久化状态 + 快速恢复 |
+| **安全** | Agent 需要访问服务，但不能持有凭证 | Secure Credential Injection |
+| **控制** | 需要程序化控制沙箱生命周期、命令执行、文件等 | 完整 API 控制 |
+| **人体工学** | 人类和 Agent 都要能用简单界面操作 | PTY 支持 + 统一 API |
+
+**关键新功能（GA版本）：**
+
+| 功能 | 说明 |
+|------|------|
+| **Secure Credential Injection** | Agent 无需持有凭证即可进行认证调用 |
+| **PTY 支持** | Agent 和人类都有真实终端 |
+| **Persistent Storage** | 沙箱间持久化存储 |
+| **Cloudflare Containers** | Figma 等企业在用的大规模容器化方案 |
+
+**企业案例：Figma Make**
+- Figma 用 Cloudflare Containers 运行 Figma Make 中的非可信 Agent 代码
+- 核心需求：可靠、高可扩展的沙箱 + 隔离用户和 Agent 编写的代码
+
+**面试话术：**
+> "Cloudflare Sandboxes GA 是 2026 年企业级 Agent 部署的重要里程碑。它解决了一个根本问题：Agent 要像开发者一样工作（克隆仓库、构建代码、运行服务器），但传统 VM/容器方案在 burstiness（突发扩展）、状态恢复、安全凭证方面都有硬伤。Cloudflare 的方案是给每个 Agent 配一台专属电脑——持久化、隔离、按需启动，凭证注入让 Agent 永远不需要接触密钥。这对 AI 应用开发工程师的启示是：Agent 基础设施正在从'共享环境'走向'专属隔离环境'，这和微服务从共享单体到容器化的演进如出一辙。"
+
+**延伸阅读：**
+- Cloudflare Sandboxes: https://github.com/cloudflare/sandbox-sdk
+- GA 公告：https://blog.cloudflare.com/sandbox-ga/
+
+</details>
