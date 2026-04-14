@@ -3311,3 +3311,60 @@ Mythos（受限访问）
 ---
 
 *版本: v2.19 | 更新: 2026-04-14 | by 二狗子 🐕*
+
+---
+
+### Q13: MiniMax M2.7是什么？它和M2.5有什么关系？Self-Evolving Agent Model是什么意思？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**MiniMax M2.7 核心信息：**
+
+| 属性 | 详情 |
+|------|------|
+| **参数量** | 229B MoE（Mixture-of-Experts）|
+| **基准性能** | SWE-Pro 56.22%（≈ GPT-5.3-Codex）|
+| **SWE-Pro排名** | 开源最强，匹配 GPT-5.3-Codex |
+| **MLEBench** | 22个ML竞赛，24h最佳成绩：9金5银1铜（66.6%中奖率）|
+| **GDPval-AA** | ELO 1495，开源最高 |
+| **开源地址** | HuggingFace: MiniMaxAI/MiniMax-M2.7 |
+| **部署支持** | SGLang、vLLM、Transformers、NVIDIA NIM |
+
+**Self-Evolving Agent Model 含义：**
+
+M2.7 参与了自身开发迭代的全流程：
+- 内部版本自主优化编程 scaffold（脚手架代码）
+- 跑了 100+ 轮 self-play：分析失败轨迹 → 修改代码 → 跑评估 → 决定是否保留
+- 自动发现的优化：最优采样参数（temperature/frequency penalty）、自动查重bug模式、循环检测
+- **结果：内部评测集性能提升 30%**
+
+**Agent Teams（多Agent协作）：**
+
+M2.7 原生支持多实例协作，每个实例维持独立角色身份：
+- 目标场景：企业级 AI Agent 自动化（需要稳定角色边界 + 对抗性推理）
+- 类比：Claude Code Agent Teams 的 MiniMax 开源版本
+
+**OpenRoom 演示项目：**
+
+MiniMax 开源的交互式 Web GUI demo，展示 Agent 在浏览器中的实时交互能力，绝大部分由 AI 构建。
+
+**M2.7 vs M2.5 关系：**
+
+| 维度 | M2.5 | M2.7 |
+|------|------|------|
+| **参数量** | 较小 MoE | 229B 大 MoE |
+| **编程能力** | SWE-bench 80.2% | SWE-Pro 56.22% |
+| **特色** | 开源最强编程 | Self-Evolving + Agent Teams |
+| **架构** | MoE | 更大 MoE + 自进化 |
+
+> 注：不同 benchmark（SWE-bench vs SWE-Pro）不能直接对比分数
+
+**面试话术：**
+> "MiniMax M2.7 是 2026 年开源模型的重大里程碑——它不只是性能强，关键是'自进化'能力。M2.7 自主跑了 100+ 轮迭代优化，自己发现最优采样参数、循环检测等优化规则，30% 的内部评测提升完全来自 AI 自我优化。这代表了一种新的模型开发范式：模型成为研发流程的一部分，而不是被动接受训练。在 Agent 能力上，M2.7 原生支持 Agent Teams，提供了 Claude Code Agent Teams 的开源替代方案。"
+
+**延伸阅读：**
+- HuggingFace：https://huggingface.co/MiniMaxAI/MiniMax-M2.7
+- MLEBench Lite：https://github.com/MiniMax-AI/MiniMax-M2.7
+
+</details>
