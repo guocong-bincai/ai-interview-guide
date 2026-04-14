@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.56)：新增 Q15 Anthropic可信Agent四组件框架（Model/Harness/Tools/Environment）**
+> **⚠️ 本次更新(v3.57)：新增 Q16 Gemma 4（Google DeepMind 2026年4月发布，PLE/Shared KV Cache/MoE架构，端侧多模态重大突破）**
 
-**🎯 334+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 335+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.56 | **最后更新:** 2026-04-14
+**版本:** v3.57 | **最后更新:** 2026-04-15
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -102,7 +102,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 10 | [🏛️ 工程架构与部署](docs/10-production-deployment/) | 流式输出、缓存、监控、MLOps、CI/CD | 🔥🔥🔥🔥🔥 | 14 |
-| 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、LLaVA、图文检索、生图Agent、评估方案 | 🔥🔥🔥 | 13 |
+| 11 | [🎨 多模态应用](docs/11-multimodal-ai/) | CLIP、BLIP、LLaVA、图文检索、生图Agent、Gemma 4、端侧部署 | 🔥🔥🔥 | 14 |
 | 12 | [🔧 框架与工具](docs/12-frameworks-tools/) | LangChain、Coze、Dify、Function Calling、Streaming | 🔥🔥🔥🔥🔥 | 12 |
 
 **学习重点:** 系统架构、生产部署、多模态集成

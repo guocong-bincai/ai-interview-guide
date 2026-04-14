@@ -1,8 +1,8 @@
 # 🎨 多模态大模型面试题
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-03-05
-> **考点：** CLIP、BLIP、多模态理解、图文生成
+> **更新：** 2026-04-15
+> **考点：** CLIP、BLIP、多模态理解、图文生成、Gemma 4、端侧部署
 
 ## 📋 目录
 
@@ -11,6 +11,7 @@
 3. [BLIP模型](#三blip模型)
 4. [应用实战](#四应用实战)
 5. [速记卡片](#五速记卡片)
+6. [Gemma 4](#六gemma-4google-deepmind-2026年4月重磅发布)
 
 ## 一、多模态基础
 
@@ -1606,6 +1607,100 @@ embeddings = clip_model.get_text_features(texts)  # 批量快10倍
 
 ---
 
+## 六、Gemma 4：Google DeepMind 2026年4月重磅发布
+
+### Q16: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Gemma 4 发布背景（2026年4月2日）：**
+
+Google DeepMind 发布 Gemma 4 系列多模态模型，特点是：真正开源（Apache 2.0）、前沿性能、多模态（图像+文本+音频）、支持设备端部署。
+
+**Gemma 4 模型家族：**
+
+| 模型 | 参数量 | 激活参数 | 上下文窗口 | 支持模态 |
+|------|--------|----------|-----------|----------|
+| **Gemma 4 E2B** | 5.1B（含embedding） | 2.3B | 128K | 图像+文本+音频 |
+| **Gemma 4 E4B** | 8B（含embedding） | 4.5B | 128K | 图像+文本+音频 |
+| **Gemma 4 31B** | 31B（dense） | - | 256K | 图像+文本 |
+| **Gemma 4 26B A4B** | 26B（MoE） | 4B | 256K | 图像+文本 |
+
+**Gemma 4 基准性能：**
+
+| 指标 | Gemma 4 31B | Gemma 4 26B A4B | 说明 |
+|------|------------|----------------|------|
+| **LMArena Score** | 1452 | 1441 | 文本任务，31B达到前沿水平 |
+| **多模态能力** | 与文本生成相当 | 与文本生成相当 | 真正多模态融合 |
+
+**核心架构创新一：Per-Layer Embeddings（PLE）**
+
+传统模型的 embedding 是全局共享的，Gemma 4 的 PLE 让每层有不同的 embedding 表：
+```
+传统：layer 1 → layer 2 → ... → layer n（每层用相同embedding）
+Gemma 4：layer 1(E1) → layer 2(E2) → ... → layer n(En)（每层独立embedding）
+```
+**效果：**
+- 每层可以专注不同粒度的语义（浅层抓细节，深层抓抽象）
+- 多模态对齐更精细（图像token和文本token在各层交互）
+- 参数量利用效率更高
+
+**核心架构创新二：Shared KV Cache**
+
+```python
+# 传统KV Cache：每个attention head独立K/V
+# Shared KV Cache：跨层共享K/V，内存效率大幅提升
+
+# Gemma 4的Shared KV Cache：
+# - Key投影跨层共享
+# - Value投影也支持跨层共享（可选）
+# - 内存占用减少约40%
+```
+
+**核心架构创新三：MoE（26B A4B）**
+
+26B MoE 模型，每次推理只激活 4B 参数：
+- 推理成本 ≈ 4B 模型
+- 能力 ≈ 26B 模型
+- 每个 token 经过路由选择 top-4 experts
+
+**多模态能力：**
+
+| 能力 | 说明 |
+|------|------|
+| **图像输入** | 支持可变长宽比，token数可配置（速度/质量 tradeoff） |
+| **音频输入** | E2B和E4B支持音频（小型设备端） |
+| **文本生成** | 基于Gemma文本模型，256K超长上下文 |
+
+**任意地点部署：**
+
+| 平台 | 库/工具 |
+|------|---------|
+| **标准** | Transformers、vLLM、SGLang |
+| **Mac** | MLX（Apple Silicon原生加速） |
+| **端侧** | llama.cpp（量化后可在手机跑）、Mistral.rs |
+| **浏览器** | WebGPU + transformers.js |
+| **微调** | TRL（官方推荐）、Unsloth Studio |
+
+**与竞品对比：**
+
+| 维度 | Gemma 4 31B | Qwen2.5-VL | LLaVA-1.6 |
+|------|------------|------------|------------|
+| **参数量** | 31B | 72B | 34B |
+| **上下文** | 256K | 128K | 32K |
+| **多模态** | 原生融合 | 分离编码器 | 线性投影 |
+| **开源** | Apache 2.0 | Qwen License | MIT |
+| **端侧** | ✅ 26B MoE | ❌ | ❌ |
+
+**面试话术：**
+
+> "Gemma 4 是 2026年4月Google的开源重磅更新。核心创新是Per-Layer Embeddings——让每层attention有独立的embedding表，实现更精细的多模态对齐。Shared KV Cache把内存占用减少40%。26B MoE版本最值得关注：激活4B参数就能达到26B的效果，配合llama.cpp量化，跑在手机上不是问题。Apache 2.0 license是真正开源，不像某些'开源'模型有限制。企业选型时，边缘设备选26B MoE，服务器选31B dense，多模态+长上下文+Gemma生态是它的核心优势。"
+
+</details>
+
+---
+
 ## 五、速记卡片
 
 ### 多模态核心概念
@@ -1885,6 +1980,7 @@ class ImageQualityEvaluator:
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-15 | 新增 Q16 Gemma 4（Google DeepMind 2026年4月发布，PLE/Shared KV Cache/MoE架构，端侧多模态突破） |
 | 2026-03-05 | 新增多模态大模型面试题 8 道 |
 
 
