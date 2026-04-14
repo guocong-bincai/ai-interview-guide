@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.57)：新增 Q16 Gemma 4（Google DeepMind 2026年4月发布，PLE/Shared KV Cache/MoE架构，端侧多模态重大突破）**
+> **⚠️ 本次更新(v3.58)：新增 Q15 Sentence Transformers v5.4多模态Embedding（跨模态RAG新标准）+ Q13 TRL v1.0（75+后训练方法、chaos-adaptive设计哲学）**
 
-**🎯 335+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 337+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.57 | **最后更新:** 2026-04-15
+**版本:** v3.58 | **最后更新:** 2026-04-15
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -86,7 +86,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 07 | [⚙️ 向量索引优化](docs/07-vector-index-optimization/) | HNSW、IVF、混合检索、RRF融合 | 🔥🔥🔥🔥 | 9 |
-| 08 | [🎓 模型微调与训练](docs/08-model-training/) | LoRA、RLHF、DPO、数据准备、标注策略 | 🔥🔥🔥🔥 | 13 |
+| 08 | [🎓 模型微调与训练](docs/07-model-training/) | LoRA、RLHF、DPO、TRL v1.0、微调策略 | 🔥🔥🔥🔥 | 14 |
 | 09 | [⚡ 推理优化](docs/09-inference-optimization/) | KV Cache、量化、投机采样、Continuous Batching、vLLM | 🔥🔥🔥🔥🔥 | 13 |
 | 10 | [🛡️ AI 安全与评估](docs/10-ai-safety-evaluation/) | 幻觉缓解、Prompt注入防御、评估指标、RAGAS | 🔥🔥🔥🔥🔥 | 14 |
 
@@ -502,7 +502,7 @@ Made with ❤️ for the AI Community
 
 | 序号 | 模块 | 内容 | 高频度 | 题数 |
 |------|------|------|--------|------|
-| 🚀 | [🔥 RAG 高级优化（GraphRAG / HyDE / Semantic Chunking）](docs/20-rag-advanced-optimization/) | RAG-Fusion、HyDE、GraphRAG、Semantic Chunking、Context Cliff、Rerank、LLMLingua、RAGAS评估 | 🔥🔥🔥🔥 | 11 |
+| 🚀 | [🔥 RAG 高级优化（GraphRAG / HyDE / Semantic Chunking）](docs/20-rag-advanced-optimization/) | RAG-Fusion、HyDE、GraphRAG、Semantic Chunking、Context Cliff、Rerank、LLMLingua、RAGAS评估 | 🔥🔥🔥🔥 | 12 |
 
 *版本: v3.21 | 更新: 2026-04-04 | by 二狗子 🐕*
 

@@ -1640,4 +1640,98 @@ GNN-RAG/TRACE/PathRAG：
 
 ---
 
-*版本: v2.10 | 更新: 2026-04-10 | by 二狗子 🐕*
+## 十五、Sentence Transformers v5.4：多模态 Embedding 与跨模态 RAG 新标准（Q15）
+
+### Q15: Sentence Transformers v5.4 的多模态 Embedding 能力是什么？对 RAG 系统有什么影响？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**发布背景：**
+
+2026年4月9日，Sentence Transformers 发布 v5.4 版本，核心更新是**多模态 Embedding 和 Reranker**——用同一套 API 同时处理文本、图像、音频、视频，实现真正的跨模态 RAG。
+
+**核心能力：**
+
+| 能力 | 传统方案 | Sentence Transformers v5.4 |
+|------|----------|----------------------------|
+| **Embedding** | 仅文本 | 文本+图像+音频+视频，同一空间 |
+| **Reranker** | 仅文本对 | 混合模态文档对评分 |
+| **API** | 多套 | 统一 API，一行代码 |
+
+**支持的输入类型：**
+
+```python
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer('Qwen3-VL-2B')
+
+# 文本 Embedding
+text_emb = model.encode("什么是 RAG")
+
+# 图像 Embedding
+image_emb = model.encode(Image.fromuri("photo.jpg"))
+
+# 音频 Embedding
+audio_emb = model.encode(Audio.fromuri("recording.mp3"))
+
+# 视频 Embedding
+video_emb = model.encode(Video.fromuri("clip.mp4"))
+
+# 跨模态相似度
+score = text_emb @ image_emb.T  # 文本查询 vs 图像文档
+```
+
+**多模态 RAG 实战：**
+
+```python
+# 1. 构建多模态知识库
+documents = [
+    {"type": "text", "content": "产品说明书文本"},
+    {"type": "image", "content": "产品图片"},
+    {"type": "text+image", "content": "图文混合文档"},
+]
+
+# 2. 编码入库
+texts = [d["content"] for d in documents if d["type"] == "text"]
+images = [d["content"] for d in documents if d["type"] == "image"]
+
+text_vectors = model.encode(texts)
+image_vectors = model.encode(images)
+
+# 3. 跨模态检索
+query_vec = model.encode("这个产品的外观是什么样的")
+scores = query_vec @ image_vectors.T  # 文本 Query → 图像检索
+
+# 4. Rerank
+reranker = SentenceTransformer('cross-encoder')
+scores = reranker.predict([(query, doc) for doc in documents])
+```
+
+**适用场景：**
+
+| 场景 | 说明 |
+|------|------|
+| **图文混合检索** | 用户问"这种药的外观"，检索产品图 |
+| **以图搜文** | 用户上传截图，找相关文档说明 |
+| **视频问答** | "这个操作演示在哪里"，定位视频片段 |
+| **音频检索** | "会议里谁说了这个词"，定位音频片段 |
+
+**与 CLIP 的区别：**
+
+| 维度 | CLIP | Sentence Transformers v5.4 |
+|------|------|---------------------------|
+| **训练目标** | 图文对比 | 多模态语义理解 |
+| **任务类型** | 图文匹配 | 检索+Rerank+分类 |
+| **RAG 集成** | 需单独接 LLM | 原生支持 RAG 流程 |
+| **文本能力** | 弱 | 强（基于 Qwen3-VL） |
+
+**面试话术：**
+
+> "Sentence Transformers v5.4 的核心突破是'一个模型处理所有模态'。以前做多模态 RAG 需要 CLIP 处理图像、单独模型处理文本，检索还要单独接 reranker，现在一个 API 全搞定。用 Qwen3-VL 作为底座，文本和视觉理解都很强，RAG 的检索精度比纯 CLIP 方案提升明显。对于面试，能说出'跨模态 Embedding 统一向量空间 + Rerank'的架构，说明你对 RAG 系统有工程化视角。"
+
+</details>
+
+---
+
+*版本: v2.11 | 更新: 2026-04-15 | by 二狗子 🐕*

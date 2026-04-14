@@ -1,8 +1,8 @@
 # 🎓 大模型微调与训练面试题
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-03-05
-> **考点：** LoRA、RLHF、DPO、微调策略、训练优化
+> **更新：** 2026-04-15
+> **考点：** LoRA、RLHF、DPO、微调策略、训练优化、TRL v1.0
 
 ## 📋 目录
 
@@ -1164,10 +1164,115 @@ variants = llm_paraphrase(
 | LoRA | 80-90% | 无 |
 | QLoRA | 90-95% | -15% |
 
+## 六、TRL v1.0：Hugging Face 2026年3月后训练库重磅更新（Q13）
+
+### Q13: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**TRL 发布背景：**
+
+2026年3月31日，Hugging Face 发布 TRL v1.0——标志着一个研究代码库正式成为生产级基础设施。TRL 是 Hugging Face 的后训练（Post-Training）库，月下载量 300 万次，被 major 下游项目视为稳定基础设施。v1.0 不是简单的版本号更新，而是工程化成熟的标志。
+
+**TRL 支持的 75+ 后训练方法：**
+
+```
+PPO 时代（2017-2023）：Policy + Reward Model + Value Model + RL Loop
+    ↓
+DPO 时代（2023-2024）：ORPO、KTO —— 无需独立 Reward Model
+    ↓
+GRPO/RLVR 时代（2024-2026）：Verifiers、确定性奖励、无需 learned reward model
+```
+
+**后训练方法演进与 TRL 的应对：**
+
+| 阶段 | 方法 | TRL 支持 |
+|------|------|----------|
+| **PPO** | 独立 Reward Model + 强化学习 | ✅ SFT → Reward → PPO 全流程 |
+| **DPO** | 直接偏好优化，无需 RM | ✅ DPO、ORPO、KTO |
+| **GRPO** | 基于验证器的强化学习 | ✅ GRPO、REFT |
+| **在线 RL** | 实时采样优化 | ✅ 在线 DPO、在线 PPO |
+
+**TRL v1.0 的核心设计哲学：Chaos-Adaptive Design**
+
+> "不要试图捕获今天什么是稳定的。而是围绕'什么会变化'来设计。"
+
+**核心洞察：**
+
+| 传统设计 | TRL v1.0 |
+|----------|----------|
+| 围绕 Reward Model 的原始形态抽象 | 围绕"可变的奖励"抽象 |
+| 假设 PPO 是 canonical | PPO、DPO、GRPO 并列 |
+| 强假设，短生命周期 | 承认"强假设寿命短" |
+
+**Reward Model 的三次变身（说明 chaos-adaptive 必要性）：**
+
+```
+第一阶段（PPO）：Reward Model 是核心 —— 学习出来的奖励信号
+第二阶段（DPO）：Reward Model 变成 optional —— 直接优化偏好
+第三阶段（GRPO）：Reward Model 变成 verifiers —— 确定性检查
+
+结论：任何围绕 Reward Model 原始形态的抽象，两年内就会过时
+TRL v1.0 的解法：把"奖励"本身变成接口，而不是实现
+```
+
+**TRL v1.0 三大核心组件：**
+
+| 组件 | 职责 | 关键类 |
+|------|------|--------|
+| **SFTTrainer** | 有监督微调 | SFT 阶段训练 |
+| **RewardTrainer** | 奖励模型训练 | 为 RLHF 准备 RM |
+| **PPOTrainer** | PPO 强化学习训练 | RLHF 核心 |
+| **DPOTrainer** | DPO 直接偏好优化 | 替代 PPO 的简化版 |
+| **GRPOTrainer** | GRPO 强化学习 | verifier-based RL |
+
+**使用示例：**
+
+```python
+from trl import SFTTrainer, DPOTrainer, GRPOTrainer
+
+# SFT 阶段
+trainer = SFTTrainer(model, dataset=texts, ...)
+trainer.train()
+
+# DPO 阶段
+trainer = DPOTrainer(model, ref_model, dataset=prefs)
+trainer.train()
+
+# GRPO 阶段（2026年主流）
+trainer = GRPOTrainer(
+    model,
+    dataset=train_dataset,
+    reward_function=verifier.validate,  # 用验证器替代 learned RM
+)
+trainer.train()
+```
+
+**TRL v1.0 vs 其他后训练库：**
+
+| 库 | 方法数 | 生产使用 | 特色 |
+|----|--------|----------|------|
+| **TRL v1.0** | 75+ | ⭐⭐⭐⭐⭐ | 生态最全，Hugging Face 官方 |
+| **OpenRLHF** | 50+ | ⭐⭐⭐⭐ | 分布式 RLHF |
+| **veRL** | 30+ | ⭐⭐⭐ | 字节开源 |
+| **trlx** | 20+ | ⭐⭐ | 早期领导者 |
+
+**面试话术：**
+
+> "TRL v1.0 的面试价值在于'讲清楚后训练方法的演进史'。从 PPO 到 DPO 再到 GRPO，每次范式转变都伴随着'什么才算奖励'的根本性重新定义。TRL v1.0 的设计哲学很值得借鉴——它不追方法，而是围绕'变化'设计，把'奖励函数'变成接口而不是实现。这种思维在 AI 应用开发中也很重要：你设计的系统要能适应算法演进，而不是每个新方法都要重写。"
+
+**延伸阅读：**
+- TRL 文档：https://huggingface.co/docs/trl
+- Paper Index：https://huggingface.co/docs/trl/en/paper_index
+
+</details>
+
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-15 | 新增 Q13 TRL v1.0（75+后训练方法、chaos-adaptive设计哲学） |
 | 2026-03-05 | 新增大模型微调与训练面试题 11 道 |
 
 
