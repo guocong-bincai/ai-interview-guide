@@ -2945,6 +2945,58 @@ IBM Research 2026年4月发布的 ALTK-Evolve，给出了系统性答案：
 
 </details>
 
+## 七、Anthropic 可信 Agent 框架：Model/Harness/Tools/Environment 四组件（Q15）
+
+### Q15: Anthropic 的"可信 Agent"框架是什么？为什么 Agent = Model + Harness + Tools + Environment？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：Agent 的定义**
+
+Anthropic 2026年4月发布的"Trustworthy Agents in Practice"给出了明确定义：
+
+> "Agent 是一个 AI 模型，通过指导自己的流程和工具使用来完成任务——即自主决定如何实现用户想要的东西，而不是遵循固定脚本。"
+
+与传统 Chatbot 的区别：Agent 在一个**自我导向的循环**中运作：
+```
+计划(Plan) → 行动(Act) → 观察(Observe) → 调整(Adjust) → 重复直到完成
+```
+
+**Agent 的四组件架构：**
+
+| 组件 | 作用 | 示例 |
+|------|------|------|
+| **Model（模型）** | "智能"核心，决定任务能力 | 训练过程决定模型的知识和推理方式 |
+| **Harness（控制架）** | 模型运行的指令和 guardrails | 标记超过100美元的费用、未经用户确认不提交费用 |
+| **Tools（工具）** | 模型可以使用的服务和应用 | 邮件、日历、费用软件 |
+| **Environment（环境）** | Agent 运行的位置和访问权限 | Claude Code、Claude Cowork、企业笔记本 |
+
+**可信 Agent 的五大原则：**
+
+```
+1. Keeping humans in control（人类保持控制）
+2. Aligning with human values（与人类价值观对齐）
+3. Securing agents' interactions（安全化 Agent 交互）
+4. Maintaining transparency（保持透明度）
+5. Protecting privacy（保护隐私）
+```
+
+**Agent 面临的核心风险：**
+
+| 风险 | 描述 | 防护 |
+|------|------|------|
+| **自主性风险** | Agent 误解用户意图，执行意外操作 | 关键决策需人工确认 |
+| **Prompt Injection** | 攻击者通过注入指令劫持 Agent | 验证指令来源、隔离不受信任的内容 |
+
+> "随着 Agent 获得更多能力和更关键的任务，这两类风险都会加剧。"
+
+**面试话术：**
+
+> "Anthropic 的可信 Agent 框架告诉我，Agent 不是单一技术，而是四个组件的系统工程：Model 提供智能，Harness 提供约束，Tools 扩展能力，Environment 定义边界。任何一环出问题都会导致 Agent 不可信。我在面试时会强调：'我不是在选一个最强模型，而是在设计一个可信的系统'——这正是 2026 年企业级 Agent 岗位的核心要求。"
+
+</details>
+
 ---
 
 [返回目录 →](../../README.md)]
