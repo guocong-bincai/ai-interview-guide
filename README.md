@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.61)：新增 VAKRA Benchmark（IBM Research 2026-04-15，企业级API Agent评测基准，8000+真实API，MCP协议执行）**
+> **⚠️ 本次更新(v3.62)：新增 Automated Alignment Researchers（AAR，Anthropic 2026-04-14对齐研究自动化）+ MCP 10语言SDK（Go/PHP/Ruby/Rust/Swift）**
 
-**🎯 340+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 342+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.61 | **最后更新:** 2026-04-16
+**版本:** v3.62 | **最后更新:** 2026-04-16
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -27,7 +27,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 18个模块从易到难，323+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 18个模块从易到难，325+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -37,7 +37,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 335+ 道 |
+| 📝 **总题数** | 337+ 道 |
 | 📂 **核心模块** | 20 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -72,7 +72,7 @@
 | 03 | [📚 RAG 系统](docs/03-rag-system/) | RAG流程、GraphRAG知识图谱、Agentic RAG多跳推理、幻觉解决 | 🔥🔥🔥🔥🔥 | 17 |
 | 04 | [💼 项目实战经验](docs/04-project-experience/) | **RAG/Agent项目、成本优化、冷启动、STAR法则** | 🔥🔥🔥🔥🔥 | 5 |
 | 05 | [🏗️ Transformer架构](docs/05-transformer-architecture/) | Self-Attention、Multi-Head、BERT vs GPT、Q K V计算 | 🔥🔥🔥🔥 | 9 |
-| 06 | [🤖 AI Agent基础](docs/06-ai-agent-basics/) | ReAct、记忆/规划、Human-in-the-Loop、Token优化、上下文重写 | 🔥🔥🔥🔥🔥 | 19 |
+| 06 | [🤖 AI Agent基础](docs/05-ai-agent-basics/) | ReAct、记忆/规划、Human-in-the-Loop、AAR自动对齐研究、Trustworthy Agent框架 | 🔥🔥🔥🔥🔥 | 21 |
 
 **学习重点:** RAG完整流程、项目经验总结、向量检索、Agent基本模式
 **预计时间:** 2-3周
@@ -117,7 +117,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 15 | [🎯 多智能体协作](docs/13-multi-agent-systems/) | AutoGen、CrewAI、Agent通信、任务编排 | 🔥🔥🔥🔥 | 10 |
-| 14 | [🔌 MCP & Skill系统](docs/14-mcp-skill-systems/) | MCP协议、Server开发、Client集成、vs Function Calling、企业级部署 | 🔥🔥🔥🔥 | 14 |
+| 14 | [🔌 MCP & Skill系统](docs/14-mcp-skill-systems/) | MCP协议、Server开发、Client集成、vs Function Calling、企业级部署、10语言SDK | 🔥🔥🔥🔥 | 28 |
 | 16 | [🚀 前沿技术与趋势](docs/16-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
 | 17 | [🔥 AI 编程工具与 Coding Agent](docs/17-ai-coding-tools/) | AI 编程工具对比、自主 Coding Agent、CWM、SWE-bench、FIM | 🔥🔥🔥 | 37 |
 
