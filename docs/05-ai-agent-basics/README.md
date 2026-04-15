@@ -1,6 +1,7 @@
 # 🤖 AI Agent 面试题
 
 > **难度：** ⭐⭐⭐
+> **更新：** 2026-04-16
 > **考点：** 智能体设计模式、ReAct、Function Calling、多 Agent 协作
 
 ## 📋 目录
@@ -2133,6 +2134,65 @@ class AgentMonitor:
 
 **面试话术：**
 > "Agent评测分离线和在线两套。离线用自建Benchmark：覆盖任务成功率、工具调用准确率、步骤效率、Token成本4个维度，测试集至少100条覆盖各种边界情况。评判方式用LLM-as-Judge，比精确匹配更灵活，准确率和人工评估一致性>85%。在线用生产监控：记录每次交互，收集用户1-5星反馈，每周生成报告。我们的Agent上线后，通过持续评测发现工具参数错误率偏高，针对性优化Prompt后，工具准确率从72%→91%。"
+
+</details>
+
+---
+
+### 主流 Benchmark 三：VAKRA（IBM Research 2026年4月新版企业级Agent评测）
+
+**VAKRA = Tool-grounded, Executable Benchmark for Enterprise Agents**
+
+| 维度 | 说明 |
+|------|------|
+| **发布时间** | 2026年4月15日 |
+| **发布方** | IBM Research |
+| **定位** | 企业级 API Agent 评测基准 |
+| **规模** | 8000+ 本地托管 API，62个领域，真实数据库 |
+| **核心特点** | 可执行环境 + 完整执行轨迹 |
+
+**四大评测任务：**
+
+| 任务 | 测试能力 | 实例数 | 工具数 |
+|------|----------|--------|--------|
+| **API Chaining** | 商业智能 API 链式调用 | 2077 | SLOT-BIRD + SEL-BIRD |
+| **Tool Selection** | 从仪表板 API 中选择正确工具 | 1597 | REST-BIRD，6-328个/域 |
+| **Multi-Hop Reasoning** | 多跳推理 | 869 | REST-BIRD |
+| **Doc Retrieval + API** | 文档检索 + API 调用混合 | 待确认 | MCP 协议 |
+
+**VAKRA vs 传统 Benchmark：**
+
+| 维度 | 传统 Benchmark（AgentBench等） | VAKRA |
+|------|------------------------------|-------|
+| **环境** | 模拟/离线评测 | **真实可执行环境** |
+| **API** | 静态测试用例 | **8000+ 真实 API** |
+| **数据** | 人工构造 | **真实数据库** |
+| **执行** | 不可执行 | **MCP 协议真实调用** |
+| **评测方式** | 最终答案匹配 | **完整执行轨迹验证** |
+
+**VAKRA 的 MCP 架构亮点：**
+
+```python
+# VAKRA 使用 MCP 协议连接 API
+# get_data(tool_universe_id) 初始化数据源
+# 避免大量数据通过 MCP 传输
+
+# API 选择限制：OpenAI API 最多 128 个工具
+# VAKRA 提供 tool shortlisting 机制处理这个问题
+```
+
+**关键洞察：模型在 VAKRA 上表现很差**
+
+> "Unlike traditional benchmarks that test isolated skills, VAKRA measures compositional reasoning across APIs and documents... models perform poorly on VAKRA"
+
+这说明：
+- 即使是 GPT-4，在真实企业 API 场景下也表现不佳
+- API Agent 的评测需要真实执行环境，而非静态测试
+- 2026 年企业级 Agent 岗位面试，VAKRA 代表了"真实能力评估"的新方向
+
+**面试话术：**
+
+> "VAKRA 是 2026年4月 IBM Research 发布的企业级 Agent 评测基准，和传统 Benchmark 的本质区别是'真实可执行'——8000+ 真实 API、真实数据库、MCP 协议调用，不是静态测试用例。四个任务覆盖 API 链式调用、工具选择、多跳推理、文档+API 混合。关键洞察是'模型在 VAKRA 上表现很差'，这告诉我们：即使 GPT-4 在简单场景下很强，在真实企业 API 环境里也远未达到可靠水平。面试时能说出 VAKRA 的特点，说明你对 Agent 评测有实战理解，不只是纸上谈兵。"
 
 </details>
 
