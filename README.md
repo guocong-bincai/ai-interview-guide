@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.63)：新增 Q29 新版官方MCP Server（Sequential Thinking/Memory/Everything/Fetch，知识图谱记忆+链式推理）**
+> **⚠️ 本次更新(v3.64)：新增 Q34 GenericAgent 自进化技能树（2026-04-16 GitHub Trending，3K行核心代码+9原子工具+6x Token效率）**
 
-**🎯 343+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 344+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.63 | **最后更新:** 2026-04-16"
+**版本:** v3.64 | **最后更新:** 2026-04-16""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -119,7 +119,7 @@
 | 15 | [🎯 多智能体协作](docs/13-multi-agent-systems/) | AutoGen、CrewAI、Agent通信、任务编排 | 🔥🔥🔥🔥 | 10 |
 | 14 | [🔌 MCP & Skill系统](docs/14-mcp-skill-systems/) | MCP协议、Server开发、Client集成、Sequential Thinking/Memory新Server、企业级部署 | 🔥🔥🔥🔥 | 29 |
 | 16 | [🚀 前沿技术与趋势](docs/16-advanced-topics/) | 自主Agent、产品思维、调试优化 | 🔥🔥🔥 | 10 |
-| 17 | [🔥 AI 编程工具与 Coding Agent](docs/17-ai-coding-tools/) | AI 编程工具对比、自主 Coding Agent、CWM、SWE-bench、FIM | 🔥🔥🔥 | 37 |
+| 17 | [🔥 AI 编程工具与 Coding Agent](docs/17-ai-coding-tools/) | AI 编程工具对比、自主 Coding Agent、GenericAgent自进化技能树、SWE-bench | 🔥🔥🔥 | 38 |
 
 **学习重点:** 前沿技术、系统创新、团队领导
 **预计时间:** 持续学习
