@@ -1193,4 +1193,86 @@ Ollama        200ms   3500 tok/s  78GB    无需编译
 
 ---
 
-*版本: v2.7 | 更新: 2026-04-10 | by 二狗子 🐕*
+### Q25: DFlash是什么？为什么"块扩散"是2026年投机采样新的突破方向？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**DFlash 是什么？**
+
+DFlash（Block Diffusion for Flash Speculative Decoding）是 2026 年 z-lab 发布的**基于块扩散模型的投机采样方法**，用于加速 LLM 推理。
+
+| 指标 | 数值 |
+|------|------|
+| 论文 | arXiv:2602.06036 |
+| 支持框架 | vLLM（nightly）、SGLang、Transformers |
+| 支持模型 | Qwen3.5、Kimi-K2.5、LLaMA3.1 等 10+ 模型 |
+
+**核心原理：块扩散 vs 传统投机采样**
+
+传统投机采样（Speculative Decoding）：
+```
+小模型 → 生成 k 个候选 token → 大模型并行验证 → 接受/拒绝
+问题：小模型生成的 token 质量有限，拒绝率高时效率下降
+```
+
+DFlash 改进思路：
+```
+用块扩散模型（Block Diffusion Model）作为 draft model
+     ↓
+块级生成：一次生成一个 block（多个 token）
+     ↓
+大模型并行验证整个 block
+     ↓
+接受率更高（因为扩散模型能捕捉更长依赖）
+```
+
+**DFlash 提供的预训练 Draft 模型：**
+
+| Draft Model | 适用场景 |
+|-------------|----------|
+| z-lab/Kimi-K2.5-DFlash | Kimi 系列加速 |
+| z-lab/Qwen3.5-4B-DFlash | 小模型加速 |
+| z-lab/Qwen3.5-9B-DFlash | 中等模型加速 |
+| z-lab/Qwen3.5-27B-DFlash | 大模型加速 |
+| z-lab/Qwen3-Coder-Next-DFlash | 代码专用加速 |
+| z-lab/LLaMA3.1-8B-Instruct-DFlash-UltraChat | 通用对话加速 |
+
+**为什么值得关注：**
+
+| 优势 | 说明 |
+|------|------|
+| **更高接受率** | 块扩散能捕捉更长依赖关系，draft 质量更高 |
+| **端到端加速** | 与 vLLM/SGLang 原生集成，一行命令启用 |
+| **多模型支持** | 开源 10+ 预训练 draft 模型，覆盖主流 LLM |
+| **支持代码场景** | Qwen3-Coder-Next-DFlash 专门针对代码生成优化 |
+
+**vLLM 使用示例：**
+
+```bash
+# 安装（需要 nightly build）
+uv pip install -e ".[vllm]"
+uv pip install -U vllm
+
+# 代码中使用
+from vllm import LLM, SamplingParams
+
+# 启用 DFlash
+llm = LLM(
+    model="z-lab/Qwen3.5-9B-DFlash",
+    speculative_config={
+        "method": "dflash",
+        "draft_model": "z-lab/Qwen3.5-4B-DFlash"
+    }
+)
+```
+
+**面试话术：**
+
+> "DFlash 是 2026 年投机采样方向的重大突破。传统投机采样用小模型逐 token 生成，DFlash 用块扩散模型一次生成一个 block（多个 token），大模型并行验证。关键是块扩散能捕捉更长依赖——比如代码中跨多行的逻辑关联，传统小模型很难预测，但扩散模型可以。实测在 Qwen3-Coder 上加速效果显著。而且 DFlash 已经与 vLLM/SGLang 原生集成，生产环境可用。2026 年面试如果问到推理优化，除了 PagedAttention 和 Continuous Batching，还要能说出 DFlash 的差异化思路。"
+
+</details>
+
+---
+
+*版本: v2.7 | 更新: 2026-04-16 | by 二狗子 🐕*
