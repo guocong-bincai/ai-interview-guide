@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.69)：新增 Q25 DFlash 块扩散投机采样（z-lab 2026-04 突破，vLLM/SGLang原生集成，10+预训练Draft模型）**
+> **⚠️ 本次更新(v3.69)：新增 Q18 Agent网关安全盲区（Flying Penguin 2026-04 安全架构长文）**
 
 **🎯 350+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.68 | **最后更新:** 2026-04-20"""
+**版本:** v3.69 | **最后更新:** 2026-04-20"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
