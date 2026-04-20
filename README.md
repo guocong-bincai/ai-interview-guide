@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.71)：新增 Q18 MCP协议特有安全攻击向量（Confused Deputy/Token Passthrough/SSRF）**
+> **⚠️ 本次更新(v3.72)：新增 Q19 MCP企业级Readiness问题（Audit Trails/DPoP/WIF/XAA）**
 
-**🎯 352+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 353+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.71 | **最后更新:** 2026-04-21"""
+**版本:** v3.72 | **最后更新:** 2026-04-21"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -831,3 +831,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q18）](docs/14-mcp-skill-systems/) | MCP协议特有安全攻击向量：Confused Deputy（混乱代理）攻击流程与per-client consent防御、Token Passthrough反模式与令牌验证、SSRF三大攻击向量（云元数据/内部IP/DNS重绑定）与SSRFProtection实现、Token Passthrough的风险分析 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.71 | 更新: 2026-04-21 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.72 - 2026-04-21）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q19）](docs/14-mcp-skill-systems/) | MCP 2026年企业级Readiness问题：Audit Trails（金融/医疗/政府合规）、Enterprise Auth（SEP-1932 DPoP/SEP-1933 WIF进展）、Gateway Proxy Patterns（Session/Authorization传播边界）、Configuration Portability（XAA跨Client共享配置） | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.72 | 更新: 2026-04-21 | by 二狗子 🐕*
