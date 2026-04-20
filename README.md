@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.69)：新增 Q18 Agent网关安全盲区（Flying Penguin 2026-04 安全架构长文）**
+> **⚠️ 本次更新(v3.70)：新增 Q17 SEP-1686 Tasks 原语（2026年MCP最重要企业级更新）**
 
-**🎯 350+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 351+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.69 | **最后更新:** 2026-04-20"""
+**版本:** v3.70 | **最后更新:** 2026-04-21"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -811,3 +811,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🤖 AI Agent基础（新增Q13）](docs/05-ai-agent-basics/) | Inter-tool Thinking（Claude Opus 4.6核心能力）：动态策略调整 vs 传统固定序列、自适应思考(auto/adapative)、工具调用后实时评估质量/决定是否调整、错误不过夜减少无效迭代；SWE-bench 80.8%背后的工程原理；面试话术 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.48 | 更新: 2026-04-13 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.70 - 2026-04-21）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q17）](docs/14-mcp-skill-systems/) | SEP-1686 Tasks原语（2026年MCP最重要企业级更新）：call-now-fetch-later模式、vs传统工具调用本质区别、6大企业级应用场景（医药/代码迁移/测试/研究/多Agent）、亚马逊真实踩坑案例（hallucinated job_id）、生命周期详解 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.70 | 更新: 2026-04-21 | by 二狗子 🐕*

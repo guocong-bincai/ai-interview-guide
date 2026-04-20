@@ -1546,9 +1546,14 @@ AI/ML类：
 
 ## 📝 更新记录
 
-| 日期 | 更新内容 |
-|------|----------|
-| 2026-04-12 | 首次创建MCP模块，涵盖14道高频面试题 |
+| 日期 | 版本 | 更新内容 |
+|------|------|----------|
+| 2026-04-21 | v3.70 | 新增 Q17 SEP-1686 Tasks原语（2026年MCP最重要企业级更新） |
+| 2026-04-16 | v3.63 | 新增 Q29 新版官方MCP Server（Sequential Thinking/Memory/Everything/Fetch） |
+| 2026-04-16 | v3.62 | 新增 Q28 MCP 10种官方SDK（Go/PHP/Ruby/Rust/Swift新支持）；Q16 OWASP Agent Top 10（2026新威胁） |
+| 2026-04-13 | v3.42 | 新增 Q27 什么情况下不应该用MCP（高频反套路面试题） |
+| 2026-04-12 | v3.41 | 新增 Q15 OWASP MCP Top 10 安全风险（10大漏洞详解）、Q16 OWASP Agent Top 10（2026新威胁） |
+| 2026-04-08 | v3.40 | 首次创建MCP协议与工具系统模块（14道高频面试题） |
 
 ---
 
@@ -1820,9 +1825,134 @@ Agent安全：
 
 </details>
 
-**📚 参考文献：**
-- OWASP Agent Top 10 (2026): https://owasp.org/www-project-ai-top-10/
-- 安全内参分析: https://www.secrss.com/articles/86149
+### Q17: SEP-1686 Tasks 原语是什么？为什么它是2026年MCP最重要的企业级更新？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景问题：长任务处理的困境**
+
+MCP 传统工具调用是"即发即忘"模式——调用工具，等待结果，完成。但现实中有大量 **长时间运行的任务**：
+- 药物分子分析（数小时）
+- 代码迁移（分钟到小时）
+- 测试套件执行（数千个测试用例）
+- 深度研究（多轮搜索和推理）
+
+**传统 workaround（糟糕的解决方案）：**
+```python
+# 把一个工具拆成三个工具——这是灾难！
+tool `start_job`: 开始任务，返回 job_id
+tool `get_status(job_id)`: 查询状态
+tool `get_result(job_id)`: 获取结果
+```
+
+问题：
+1. Agent 可能hallucinate job_id（亚马逊团队真实踩坑）
+2. Agent 可能不会正确轮询
+3. 每个 MCP Server 自己实现这套约定，不通用
+
+**SEP-1686 Tasks 的核心解决方案：**
+
+> "引入 **task primitive** 和 **task ID**，客户端可以主动查询任务状态和结果，有效期由服务器定义（可长达数天）。"
+
+**关键概念：**
+
+| 概念 | 说明 |
+|------|------|
+| **Task** | MCP 协议原生的长时间任务抽象 |
+| **Task ID** | 任务的唯一标识符，客户端可用它查询状态和获取结果 |
+| **call-now, fetch-later** | 发起任务时不阻塞，后续主动拉取结果 |
+
+**Tasks vs 传统工具调用的本质区别：**
+
+| 维度 | 传统工具调用 | Tasks 原语 |
+|------|-------------|------------|
+| **执行模式** | 同步等待结果 | 异步，发起后不阻塞 |
+| **状态查询** | 无（只能等） | task ID 主动查询 |
+| **结果获取** | 一次性 | 可延迟，多次尝试 |
+| **适用场景** | 短任务（<1分钟） | 长任务（分钟到天） |
+| **客户端控制** | 服务器驱动 | 客户端主导轮询 |
+
+**MCP Tasks 生命周期：**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  MCP Tasks 生命周期                      │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  1. 发起任务（返回 task_id，不阻塞）                     │
+│     → tools/call 返回 { taskId: "task_abc123" }         │
+│                                                          │
+│  2. 查询状态（客户端主动）                               │
+│     → tasks/getStatus { taskId: "task_abc123" }         │
+│     ← { status: "processing", 进度: "45%" }            │
+│                                                          │
+│  3. 获取结果（任务完成后）                               │
+│     → tasks/getResult { taskId: "task_abc123" }        │
+│     ← { status: "completed", result: {...} }           │
+│                                                          │
+│  4. 删除任务（清理资源）                                 │
+│     → tasks/delete { taskId: "task_abc123" }          │
+└─────────────────────────────────────────────────────────┘
+```
+
+**企业级应用场景（来自 Amazon 真实案例）：**
+
+| 场景 | 挑战 | Tasks 解决方案 |
+|------|------|----------------|
+| **医疗生命科学** | 药物分析任务耗时数小时 | 并发发起 + 主动轮询状态 |
+| **企业自动化平台** | SDLC 流程跨部门协调 | 后台任务 + 不阻塞 Agent |
+| **代码迁移** | 分钟到小时的分析迁移 | start → poll → getResult |
+| **测试执行** | 数千测试用例，小时级别 | 流式日志 + 最终结果 |
+| **深度研究** | 多轮搜索推理 | 后台运行 + 完成通知 |
+
+**代码示例（Python MCP SDK）：**
+
+```python
+# 发起一个长时间任务（不阻塞）
+result = client.call_tool(
+    "analyze_drug_interactions",
+    args={"molecules": [...]},
+    timeout=3600  # 期望执行时间，但不是阻塞上限
+)
+
+# result 是 TaskResult，不是最终结果
+print(result.task_id)  # "task_abc123"
+print(result.status)   # "processing"
+
+# 客户端主动轮询状态
+import time
+while result.status == "processing":
+    status = client.tasks.get_status(result.task_id)
+    print(f"进度: {status.progress}%")
+    time.sleep(30)
+
+# 获取最终结果（任务完成后）
+if result.status == "completed":
+    final_result = client.tasks.get_result(result.task_id)
+    print(final_result.data)
+
+# 清理资源
+client.tasks.delete(result.task_id)
+```
+
+**为什么这是 2026 年 MCP 最重要的更新：**
+
+1. **解决企业级刚需**：长时间任务（分钟到天）是企业 AI 的核心场景
+2. **标准化工作流集成**：AWS Step Functions、Google Workflows、CI/CD 都可以用 MCP 包装
+3. **多 Agent 并行**：slow Agent 不再阻塞整个系统，其他 Agent 可以继续工作
+4. **客户端主导**：Host Application 控制轮询，而不是让 Agent 自己管理（避免 hallucination）
+
+**面试话术：**
+> "SEP-1686 Tasks 是 MCP 协议从'玩具'到'企业级'的分水岭。传统工具调用适合秒级任务，但企业场景（代码迁移、测试执行、研究分析）都是分钟到小时级别。
+> 
+> 之前大家的 workaround 是把一个工具拆成 start/get_status/get_result 三个工具，但这是 convention-based，不通用，而且 Agent 可能 hallucinate job_id。
+> 
+> Tasks 原语让 MCP 原生支持长任务：发起后不阻塞，客户端用 task_id 主动查询状态和结果。亚马逊内部已经有 six 大真实案例（医疗、企业自动化、代码迁移、测试、深度研究、多Agent通信）在用这个。
+> 
+> 这也是为什么 2026 年我会在面试中说：'MCP 不只是让 AI 调工具，它是企业级 AI 工作流的标准协议。'"
+
+</details>
 
 ---
 
