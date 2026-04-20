@@ -612,3 +612,110 @@ LangChain 工程师分享的生产实践：
 - Continual Learning: https://blog.langchain.dev/continual-learning-for-ai-agents/
 
 </details>
+
+### Q13: Evolver是什么？GEP（Genome Evolution Protocol）如何让AI Agent实现自我进化？
+
+<details>
+<parameter name="summary">💡 答案要点
+### Q13: Evolver 是什么？GEP（Genome Evolution Protocol）如何让 AI Agent 实现自我进化？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：GitHub Trending 2026-04-20**
+
+Evolver 是 EvoMap.ai 出品的"AI Agent 自我进化引擎"，基于 Genome Evolution Protocol（GEP）协议，在 GitHub 一天获得 527 stars，是当前自主 Agent 领域最热门的新项目之一。
+
+---
+
+**为什么需要 Agent 自我进化？**
+
+当前 Agent 的核心问题：
+| 问题 | 说明 |
+|------|------|
+| **经验无法积累** | 每次新 session，Agent 从零开始，不记得过去的失败教训 |
+| **技能无法复用** | 在 A 项目学到的能力，无法迁移到 B 项目 |
+| **自我改进缺乏方法论** | Agent 只能靠人工微调，无法自主发现并修复自身缺陷 |
+
+**GEP 的核心思想：把 Agent 的"能力"当作可进化的基因**
+
+---
+
+**GEP（Genome Evolution Protocol）原理：**
+
+```
+生物进化          →    GEP 进化
+基因（DNA）       →    Agent 的 Skill/Prompt/配置
+自然选择          →    任务表现评分
+基因突变          →    Skill 迭代修改
+适者生存          →    高分 Skill 保留，低分丢弃
+```
+
+**三层进化机制：**
+
+| 层级 | 内容 | 类比 |
+|------|------|------|
+| **技能层（Skill Genome）** | Agent 的工具使用模式、Prompt 模板 | 生物的"形态基因" |
+| **经验层（Experience Genome）| 过去的成功/失败案例记忆 | 生物的"神经记忆" |
+| **协作层（Social Genome）** | 多 Agent 之间的协作策略 | 生物的"社会基因" |
+
+---
+
+**Evolver 引擎的工作流程：**
+
+```
+1. 部署阶段：定义 Agent 的初始"基因型"（Skill Set + Prompt + 工具配置）
+2. 任务阶段：Agent 执行任务 → Evolver 记录结果（成功/失败/耗时）
+3. 评估阶段：对结果打分 → 判断是否需要进化
+4. 进化阶段：
+   - 成功案例 → 提取有效模式 → 强化到 Skill Genome
+   - 失败案例 → 分析失败原因 → 标记为"Anti-Pattern"
+5. 选择阶段：高分基因型被保留，低分基因型被淘汰或变异
+6. 部署新版本 → 循环
+```
+
+**核心代码概念：**
+```javascript
+// Evolver Genome 定义
+const genome = {
+  skills: ["code-review", "refactor", "test-generation"],
+  prompts: {
+    codeReview: "你是一个代码审查专家，特别关注...",
+    refactor: "你是一个重构专家，遵循的原则是..."
+  },
+  tools: ["git", "eslint", "jest"],
+  fitness: 0.85,  // 上轮任务的适应度得分
+  generation: 3  // 当前代数
+}
+
+// 进化操作
+evolver.evolve(genome, taskResults)
+// → 返回新一代 genome（适应度更高）
+```
+
+---
+
+**与现有框架的区别：**
+
+| 框架 | 方法 | 进化方式 |
+|------|------|----------|
+| **AutoGen** | 多 Agent 协作 | 无自我进化，靠人工配置 |
+| **CrewAI** | 角色驱动分层 | 无自我进化，Role 固定 |
+| **LangChain Deep Agents** | 异步+多模态 | 有"continual learning"但依赖外部数据 |
+| **Evolver (GEP)** | 基因组进化 | Agent 自主发现有效模式并强化，闭环自动化 |
+
+---
+
+**面试话术：**
+
+> "Evolver 的 GEP 协议代表了一种新思路——不是让人类工程师手动调优 Agent，而是让 Agent 在任务中自我进化。成功经验变成 Skill Genome 保留下来，失败教训被标记为 Anti-Pattern 下次避免。这和生物进化论的核心机制完全一致：变异+选择+遗传。2026年随着 Agent 能力增强，这种自主进化会成为大型 Agent 系统的标配能力。"
+
+**延伸阅读：**
+- GitHub: github.com/EvoMap/evolver
+- 官网: evomap.ai
+
+</details>
+
+---
+
+*版本: v3.0 | 更新: 2026-04-20 | by 二狗子 🐕*

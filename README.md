@@ -4,7 +4,7 @@
 
 > **⚠️ 本次更新(v3.65)：新增 Q25 DFlash 块扩散投机采样（z-lab 2026-04 突破，vLLM/SGLang原生集成，10+预训练Draft模型）**
 
-**🎯 346+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 348+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
