@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.72)：新增 Q19 MCP企业级Readiness问题（Audit Trails/DPoP/WIF/XAA）**
+> **⚠️ 本次更新(v3.74)：新增 Q21 MCP Client类型（Internal/External）与 Sampling 回调机制**
 
-**🎯 353+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 355+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.72 | **最后更新:** 2026-04-21"""
+**版本:** v3.74 | **最后更新:** 2026-04-21"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -841,3 +841,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q19）](docs/14-mcp-skill-systems/) | MCP 2026年企业级Readiness问题：Audit Trails（金融/医疗/政府合规）、Enterprise Auth（SEP-1932 DPoP/SEP-1933 WIF进展）、Gateway Proxy Patterns（Session/Authorization传播边界）、Configuration Portability（XAA跨Client共享配置） | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.72 | 更新: 2026-04-21 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.74 - 2026-04-21）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔌 MCP协议（新增Q20-Q21）](docs/14-mcp-skill-systems/) | Q20 MCP Sampling原语（Server主动请求LLM/Tool-enabled Sampling多轮循环/Human-in-the-Loop）；Q21 MCP Client类型（Internal vs External/Sampling回调机制/企业级External Client架构） | 🔥🔥🔥🔥 | +2 |
+
+*版本: v3.74 | 更新: 2026-04-21 | by 二狗子 🐕*

@@ -1548,6 +1548,8 @@ AI/ML类：
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
+| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制 |
+| 2026-04-21 | v3.73 | 新增 Q20 MCP Sampling原语（Agentic行为核心） |
 | 2026-04-21 | v3.72 | 新增 Q19 MCP企业级Readiness问题（Audit Trails/DPoP/WIF/XAA） |
 | 2026-04-21 | v3.71 | 新增 Q18 MCP协议特有安全攻击向量（Confused Deputy/Token Passthrough/SSRF） |
 | 2026-04-21 | v3.70 | 新增 Q17 SEP-1686 Tasks原语（2026年MCP最重要企业级更新） |
@@ -2507,6 +2509,123 @@ Why:
 - 能画出完整的 Sampling 序列图（包括多轮工具循环）
 - 理解 Tool-enabled Sampling 和普通 Sampling 的区别
 - 知道 Sampling 与传统 function calling 的设计哲学差异
+
+</details>
+
+### Q21: MCP Client 有哪几种类型？Internal vs External Client 的区别？Sampling 如何实现回调？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**MCP Client 的两种类型：**
+
+| 类型 | 说明 | 典型场景 |
+|------|------|----------|
+| **Internal Client** | MCP SDK 内置的 Client，AI 应用自带 | Claude Code、Cursor IDE 集成 |
+| **External Client** | 独立运行的 MCP Client，通过网络连接 | 远程 MCP Server、企业网关 |
+
+**Internal Client（内置客户端）：**
+
+```
+Claude Code / Cursor
+    ↓
+内置 MCP Client（直接在进程内）
+    ↓
+stdio transport（通过 stdin/stdout 通信）
+    ↓
+MCP Server（本地进程）
+```
+
+特点：
+- Client 和 AI 应用在同一进程
+- 通过 stdio 传输协议（本地进程通信）
+- 无需网络，延迟最低
+- Claude Code 集成 MCP 时使用 Internal Client
+
+
+**External Client（外部客户端）：**
+
+```
+Claude Code / Cursor
+    ↓
+外部 MCP Client（独立进程或服务）
+    ↓
+Streamable HTTP（网络通信）
+    ↓
+MCP Server（远程 Server）
+```
+
+特点：
+- Client 可以是独立服务（如企业 MCP Gateway）
+- 支持远程 MCP Server（不只是本地）
+- Streamable HTTP 是 2026 年标准传输协议
+- 支持企业级认证、限流、审计
+
+**Sampling 回调机制：**
+
+Sampling 的核心是 **Server → Client → LLM** 的反向调用路径。当 Server 请求采样时：
+
+```python
+# Server 端代码示例（伪代码）
+class MyMCPServer:
+    async def analyze_data(self, query: str):
+        # Server 不直接调 LLM，而是请求 Client 代为调用
+        response = await self.mcp_client.sampling.create_message(
+            messages=[{"role": "user", "content": query}],
+            systemPrompt="你是一个数据分析师",
+            tools=[{"name": "sql_query", ...}]
+        )
+        return response
+```
+
+```python
+# Client 端需要实现 Sampling 处理器
+class MCPClient:
+    async def handle_sampling_request(self, request):
+        # 1. 展示给用户审批
+        if not await self.user_approval(request):
+            return "denied"
+        
+        # 2. 转发给 LLM
+        llm_response = await self.llm.generate(
+            messages=request.messages,
+            tools=request.tools
+        )
+        
+        # 3. 如果 LLM 调用工具，先让用户审批工具调用
+        if llm_response.stop_reason == "toolUse":
+            await self.user_approval_tools(llm_response.tool_calls)
+        
+        # 4. 返回结果给 Server
+        return llm_response
+```
+
+**为什么 External Client + Sampling 是企业级 MCP 的关键：**
+
+```
+企业需求：
+- 集中管理 LLM 访问权限（不想让每个 Server 都配置 API Key）
+- 统一审计所有 LLM 调用
+- 多 AI 应用共享同一个 MCP Server 集群
+
+External Client + Sampling 架构：
+Client（独立服务）→ 持有 LLM API Key
+Server A/B/C → 通过 Client 代为调用 LLM
+                → 权限控制在 Client 层
+                → 审计日志在 Client 层
+                → Server 不需要知道 LLM API Key
+```
+
+**面试话术：**
+
+> "MCP Client 分 Internal 和 External 两种。Internal Client 是 AI 应用内置的，比如 Claude Code 的 MCP 集成直接通过 stdio 调用本地 Server，延迟最低但只能连接本地进程。External Client 是独立服务，通过 Streamable HTTP 连接远程 Server，适合企业级部署——所有 LLM 调用通过 Client 代理，权限控制和审计都在 Client 层。Sampling 是这个架构的关键：Server 不能直接调 LLM，必须通过 Client 代为调用，Client 做 Human-in-the-Loop 审批后转发给 LLM。这对企业很有价值——Server 不需要持有 API Key，Client 统一管控所有 LLM 访问。"
+
+</details>
+
+**⭐ 面试加分项：**
+- 理解 stdio 和 Streamable HTTP 两种传输协议的应用场景
+- 知道企业 MCP Gateway 如何作为 External Client 统一管理 LLM 访问
+- 能区分 MCP Client 和传统 API Gateway 的本质区别（MCP 是双向协议，不只是路由）
 
 </details>
 
