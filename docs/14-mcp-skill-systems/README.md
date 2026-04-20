@@ -2355,6 +2355,161 @@ XAA 正在解决"一个配置，多个 AI 应用共用"的问题：
 
 </details>
 
+### Q20: MCP Sampling 原语是什么？为什么它让 Server 实现 Agentic 行为成为可能？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Sampling 是什么：**
+
+MCP Sampling（采样原语）是 MCP 协议的一个扩展机制，允许 **MCP Server 请求 MCP Client 调用 LLM**（而非传统的 Client 调用 Server）。这是 MCP 协议中最重要的双向能力之一。
+
+**Sampling 的核心价值：**
+
+| 能力 | 说明 |
+|------|------|
+| **Server 发起的 LLM 调用** | Server 可以请求 Client 让 LLM 生成内容 |
+| **Tool-enabled Sampling** | Server 请求 LLM 时可以带上 Tools，LLM 可以调用工具并多轮循环 |
+| **Human-in-the-Loop** | 所有 Sampling 必须有人工审批环节 |
+| **无 API Key** | Server 不需要持有 LLM API Key，所有调用通过 Client 控制 |
+
+**Sampling vs 传统 Tool Calling 的本质区别：**
+
+```
+传统 Tool Calling（单向）：
+Client（AI Model）→ 调用 Server 的工具
+Server 是被动的，Client 是主动的
+
+MCP Sampling（双向）：
+Server → 请求 Client 调用 LLM（带工具）
+Server 是主动的，Client 提供 LLM 资源
+```
+
+</details>
+
+<details>
+<summary>📋 详细答案</summary>
+
+#### Sampling 协议流程
+
+**1. Server 请求 Sampling：**
+
+```json
+{
+  "method": "sampling/createMessage",
+  "params": {
+    "messages": [...],
+    "tools": [{"name": "get_weather", ...}],
+    "systemPrompt": "你是一个有帮助的助手",
+    "maxTokens": 1000
+  }
+}
+```
+
+**2. Client 做 Human-in-the-Loop 审批：**
+
+```
+Server 发送采样请求 → Client 展示 UI 给用户 → 用户审批/修改 → Client 转发给 LLM
+```
+
+**3. LLM 处理（可能带工具调用）：**
+
+如果 LLM 选择调用工具：
+```json
+{
+  "stopReason": "toolUse",
+  "content": [
+    {"type": "tool_use", "name": "get_weather", "input": {"city": "Paris"}},
+    {"type": "tool_use", "name": "get_weather", "input": {"city": "London"}}
+  ]
+}
+```
+
+**4. 多轮工具循环：**
+
+```
+Server → Client → LLM → tool_use
+LLM 返回 tool_use → Server 执行工具 → Server 发送新 Sampling（带 tool_results）
+→ 重复，直到 LLM 返回最终文本
+```
+
+**完整序列图：**
+
+```
+Server → Client: sampling/createMessage (messages + tools)
+Client → User: 展示采样请求，用户审批
+User → Client: 批准/修改
+Client → LLM: 转发请求
+LLM → Client: tool_use (weather)
+Client → User: 展示工具调用，用户审批
+User → Client: 批准
+Client → Server: tool_use 结果
+Server → Client: sampling/createMessage (history + tool_results)
+Client → User: 展示继续请求
+User → Client: 批准
+Client → LLM: 转发 tool_results
+LLM → Client: 最终文本响应
+Client → User: 展示最终响应
+User → Client: 批准
+Client → Server: 最终响应
+```
+
+#### 为什么 Sampling 让 Server 实现 Agentic 行为？
+
+**传统架构：**
+
+```
+Agent（外部）→ MCP Server（工具）
+Agent 是大脑，Server 是手
+Server 被动等待 Agent 调用
+```
+
+**Sampling 架构：**
+
+```
+MCP Server（内置 LLM 能力）
+Server 可以主动思考（通过 Sampling）
+Server 可以调用工具（通过 Sampling 中的 tools）
+Server 自己就是 Agent！
+```
+
+**典型应用场景：**
+
+| 场景 | Sampling 如何实现 |
+|------|------------------|
+| **智能知识库** | Server 收到查询 → 通过 Sampling 让 LLM 分析 → 生成 RAG 查询 → 检索 → Sampling 总结 |
+| **数据分析 Agent** | Server 收到分析请求 → Sampling 让 LLM 写 SQL → 执行 → Sampling 解释结果 |
+| **自动化工作流** | Server 收到触发 → Sampling 让 LLM 决策 → Sampling 调用工具执行 → 循环 |
+
+**Human-in-the-Loop 必须性：**
+
+> ⚠️ MCP 规范要求：采样请求**必须**有人工审批环节
+
+```
+Why:
+- Server 发起的 LLM 调用可能产生有害内容
+- 没有人工监督的自动生成不符合安全要求
+- 用户需要知道并控制 AI 何时被调用
+
+实践要求：
+- Client 必须展示 UI 给用户审批
+- 必须允许用户修改 prompt
+- 最终响应必须经过用户批准才能返回给 Server
+```
+
+**面试话术：**
+
+> "MCP Sampling 是协议中最容易被忽视但最重要的能力——它让 Server 从'工具提供方'变成'主动思考方'。传统模式下 Server 被动等待 Client 调用，但 Sampling 让 Server 可以主动请求 LLM 做决策、带工具多轮循环。关键约束是 Human-in-the-Loop：所有采样必须经过用户审批，这既保证了安全，也意味着 Server 不能自主运行。实际应用中，智能知识库可以用 Sampling 做 RAG，数据分析 Agent 可以用它来写 SQL 执行后解释结果。"
+
+</details>
+
+**⭐ 面试加分项：**
+- 能画出完整的 Sampling 序列图（包括多轮工具循环）
+- 理解 Tool-enabled Sampling 和普通 Sampling 的区别
+- 知道 Sampling 与传统 function calling 的设计哲学差异
+
+</details>
+
 ---
 
 ## 八、2026年MCP面试新趋势：高频陷阱题与反套路指南
