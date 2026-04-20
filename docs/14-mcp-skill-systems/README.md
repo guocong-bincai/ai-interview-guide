@@ -1956,6 +1956,214 @@ client.tasks.delete(result.task_id)
 
 ---
 
+### Q18: MCP协议有哪些特有的安全攻击向量？Confused Deputy、Token Passthrough、SSRF如何防御？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**MCP 安全的特殊性：**
+
+传统 Web 安全防御的是"恶意用户 → 服务器"的攻击路径，但 MCP 服务器往往持有**敏感上下文**（代码库、数据库访问、API 密钥），攻击面更大、后果更严重。
+
+**三大特有攻击向量：**
+
+| 攻击 | 本质问题 | 危险程度 |
+|------|----------|----------|
+| **Confused Deputy（混乱代理）** | 攻击者利用 MCP 代理服务器骗取第三方 API 的授权码 | ⭐⭐⭐⭐⭐ |
+| **Token Passthrough（令牌穿透）** | MCP 服务器不验证令牌是否颁发给自己，直接透传给下游 API | ⭐⭐⭐⭐ |
+| **SSRF（服务端请求伪造）** | 恶意 MCP 服务器诱导客户端访问内部资源（如云元数据） | ⭐⭐⭐⭐ |
+
+</details>
+
+<details>
+<summary>📋 详细答案</summary>
+
+#### 1. Confused Deputy Problem（混乱代理问题）
+
+**攻击场景：**
+
+MCP 代理服务器连接 MCP 客户端和第三方 API（如 GitHub、Google）。攻击利用以下条件组合：
+1. MCP 代理使用**静态 client_id** 向第三方授权服务器认证
+2. MCP 代理允许客户端**动态注册**（每个获得自己的 client_id）
+3. 第三方授权服务器对静态 client_id 设置了** consent cookie**（首次授权后跳过consent）
+
+**攻击流程：**
+
+```
+1. 正常用户通过 MCP 代理访问 GitHub，GitHub 设置 consent cookie
+2. 攻击者注册恶意客户端，redirect_uri 指向 attacker.com
+3. 攻击者发送钓鱼链接给用户
+4. 用户点击链接，浏览器携带 consent cookie 访问 GitHub
+5. GitHub 检测到 cookie，跳过 consent 页面，直接颁发授权码
+6. 授权码通过 redirect_uri 发给攻击者
+7. 攻击者用授权码换取 access_token，冒充用户访问 MCP 代理
+```
+
+**防御方案（per-client consent）：**
+
+```
+MCP 代理服务器必须在转发到第三方授权服务器之前：
+1. 检查该 client_id 是否已获得当前用户授权
+2. 显示 MCP 层自己的 consent 页面（不能跳过）
+3. 使用 __Host- 前缀 cookie + Secure + HttpOnly + SameSite=Lax
+4. 对 redirect_uri 进行精确匹配验证（不允许模式匹配）
+5. OAuth state 参数在 consent 审批后才设置（不能提前）
+```
+
+**代码示例：**
+```python
+# ✅ 正确的 per-client consent 实现
+async def authorize(self, client_id: str, user_id: str, third_party: str):
+    # 1. 检查是否已有授权
+    if not self.consent_store.has_consent(user_id, client_id):
+        # 2. 显示 MCP 自己的 consent 页面
+        raise ConsentRequired(
+            client_name=self.get_client_name(client_id),
+            scopes=self.get_requested_scopes(client_id),
+            redirect_uri=self.get_registered_redirect_uri(client_id)
+        )
+    
+    # 3. consent 批准后才转发到第三方
+    return await self.forward_to_third_party_auth(user_id, third_party)
+```
+
+#### 2. Token Passthrough（令牌穿透反模式）
+
+**什么是 Token Passthrough：**
+
+MCP 服务器接受来自客户端的令牌，不验证令牌是否颁发给自己，直接透传给下游 API。
+
+```python
+# ❌ 危险的 Token Passthrough
+async def tools_call(self, token: str, tool_request):
+    # 没有验证 token 的 audience 是否是本服务器
+    downstream_response = await self.downstream_api.call(
+        token=token  # 直接透传！
+    )
+    return downstream_response
+```
+
+**风险：**
+
+| 风险 | 说明 |
+|------|------|
+| 安全控制绕过 | 下游 API 的 rate limiting、访问控制被绕过 |
+| 审计日志失效 | 服务器无法区分不同客户端，日志显示错误的请求来源 |
+| 信任边界破坏 | 一个服务被攻破可横向移动到其他服务 |
+| 凭证盗用 | 攻击者拿到令牌后通过 MCP 服务器作为代理访问其他服务 |
+
+**防御：**
+
+```python
+# ✅ 正确的令牌验证
+async def tools_call(self, token: str, tool_request):
+    # 1. 验证令牌是颁发给本服务器的
+    claims = self.verify_token(token)  # 解码 JWT
+    if claims.get("aud") != self.server_audience:
+        raise Unauthorized("Token not issued for this server")
+    
+    # 2. 验证权限范围
+    if "tools:write" not in claims.get("scope", ""):
+        raise Forbidden("Insufficient scope")
+    
+    # 3. 记录审计日志（包含真实客户端身份）
+    self.audit_log.append({
+        "client_id": claims["sub"],
+        "tool": tool_request.name,
+        "timestamp": now()
+    })
+    
+    return await self.downstream_api.call(tool_request)
+```
+
+#### 3. SSRF（服务端请求伪造）
+
+**攻击场景：**
+
+恶意 MCP 服务器在 OAuth 元数据中发现（MCP 客户端获取）阶段诱导客户端请求内部资源。
+
+**攻击向量：**
+
+| 类型 | 目标 | 说明 |
+|------|------|------|
+| **直接内部IP** | `http://192.168.1.1/admin` | 访问内网管理接口 |
+| **云元数据** | `http://169.254.169.254/` | AWS/GCP/Azure 元数据端点，暴露IAM凭证 |
+| **本地服务** | `http://localhost:6379/` | Redis、数据库、admin面板 |
+| **DNS重绑定** | attacker.com 解析先安全后变恶意 | TOCTOU 攻击 |
+
+**MCP 客户端受害流程：**
+
+```
+1. 恶意 MCP 服务器返回 401 + WWW-Authenticate header
+2. header 中包含 resource_metadata URL 指向 169.254.169.254
+3. MCP 客户端跟随该 URL 获取元数据
+4. 云凭证泄露给攻击者
+5. 错误信息通过后续请求泄露给攻击者
+```
+
+**防御方案：**
+
+```python
+# ✅ SSRF 防护
+class SSRFProtection:
+    BLOCKED_IP_RANGES = [
+        "10.0.0.0/8",      # 私有
+        "172.16.0.0/12",   # 私有
+        "192.168.0.0/16",  # 私有
+        "169.254.0.0/16",  #链路本地（含元数据端点）
+        "127.0.0.0/8",     # 回环
+        "fc00::/7",        # IPv6 私有
+        "fe80::/10",       # IPv6 链路本地
+    ]
+    
+    def validate_url(self, url: str):
+        parsed = urlparse(url)
+        
+        # 1. 必须 HTTPS（生产环境）
+        if parsed.scheme == "http" and parsed.hostname not in ("localhost", "127.0.0.1", "::1"):
+            raise SSRFDetected("HTTP only allowed for loopback")
+        
+        # 2. IP 范围黑名单（使用库函数，避免手动解析）
+        ip = resolve_hostname(parsed.hostname)  # 注意 TOCTOU
+        if self.is_ip_blocked(ip):
+            raise SSRFDetected(f"Blocked IP range: {ip}")
+        
+        # 3. 验证 redirect 目标（如果跟随重定向）
+        # ...
+```
+
+**关键要点：**
+
+| 要点 | 说明 |
+|------|------|
+| 使用库函数验证 IP | 手动解析容易被八进制/十六进制编码绕过 |
+| HTTPS 强制 | 除 loopback 外不允许 HTTP |
+| 注意 TOCTOU | DNS 解析在验证和使用之间可能变化 |
+| 使用 egress proxy | 在服务端部署 SSRF 防护代理（如 smokescreen） |
+
+</details>
+
+**面试话术：**
+
+> "MCP 安全有三大特有攻击：Confused Deputy、Token Passthrough、SSRF。
+> 
+> Confused Deputy 是最危险的——攻击者利用 MCP 代理服务器的静态 client_id 和动态客户端注册的组合，绕过第三方 API 的 consent。防御必须做到：在转发到第三方之前先显示 MCP 自己的 consent 页面，不能跳步。
+> 
+> Token Passthrough 是反模式——MCP 服务器必须验证令牌是颁发给自己的，不能直接透传。透传会绕过下游 API 的安全控制，导致审计日志失效。
+> 
+> SSRF 利用 OAuth 元数据发现阶段，诱导 MCP 客户端访问云元数据端点（169.254.169.254）或其他内部资源。防御需要 IP 黑名单 + HTTPS 强制 + egress proxy。
+> 
+> 这三个问题都是传统 Web 安全里没有的，是 MCP 特有的攻击面。"
+
+**⭐ 面试加分项：**
+- 能画出 Confused Deputy 攻击的时序图
+- 了解 OWASP SSRF Prevention Cheat Sheet
+- 知道 NIST SSDF（Secure Software Development Framework）如何覆盖这些风险
+
+</details>
+
+---
+
 ## 八、2026年MCP面试新趋势：高频陷阱题与反套路指南
 
 ### Q27: 什么情况下不应该用MCP？MCP的边界在哪里？
@@ -2240,6 +2448,8 @@ Agent 内置 Memory（短期） + MCP Memory Server（长期知识图谱）
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
+| 2026-04-21 | v3.71 | 新增 Q18 MCP协议特有安全攻击向量（Confused Deputy/Token Passthrough/SSRF） |
+| 2026-04-21 | v3.70 | 新增 Q17 SEP-1686 Tasks原语（2026年MCP最重要企业级更新） |
 | 2026-04-16 | v3.63 | 新增 Q29 新版官方MCP Server（Sequential Thinking/Memory/Everything/Fetch） |
 | 2026-04-16 | v3.62 | 新增 Q28 MCP 10种官方SDK（Go/PHP/Ruby/Rust/Swift新支持）；Q16 Automated Alignment Researchers（AI对齐研究自动化） |
 | 2026-04-13 | v3.42 | 新增 Q27 什么情况下不应该用MCP（高频反套路面试题） |
