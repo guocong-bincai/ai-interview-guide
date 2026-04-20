@@ -2673,3 +2673,86 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 > "2026年的AI安全评估有个新方向——不只是测试'模型说什么'，而是测试'模型做什么'。Behavioral Dispositions Framework 通过把心理学量表变成情境判断测试，发现了很多对齐盲区。比如模型在'自我报告'里表现出同理心，但在真实冲突场景中的应对策略却显得过于生硬。这种评估方法对产品设计很重要——如果你的客服 Agent 总是'正确但冷漠'，用户会流失。我的判断是：2026年的对齐评估会从'能力测试'升级到'行为测试'。"
 
 </details>
+
+### Q18: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：Flying Penguin 2026年4月长文**
+
+这篇 HN 高分文章（20+ 讨论）指出了一个被普遍忽视的问题：2026年的 Agent 系统安全设计，正在重蹈 MS-DOS 的覆辙——把安全寄托在"相信 LLM 不会滥用"上，而不是真正的隔离。
+
+---
+
+**MS-DOS 的教训：**
+
+| 问题 | 说明 |
+|------|------|
+| 任何程序都可以 peek/poke 内核 | 没有内存保护 |
+| 所有数据存在一个磁盘 | 没有访问控制 |
+| 所有人共享同一个密码 | 没有身份隔离 |
+| 后果 | 一次漏洞，所有数据泄露 |
+
+**当前 Agent Gateway 的问题：**
+
+> "Agent gateways feel like we are racing backwards into the MS-DOS era... when you look at gateways out there they can hand the model an exec tool and trust it. One process, one token, with the LLM holding the line."
+
+| 不安全的设计 | 说明 |
+|-------------|------|
+| **Gateway as 单一信任边界** | 所有 Agent 能力通过一个网关输出，出问题全部暴露 |
+| **LLM 作为安全守门员** | 把安全建立在"LLM 不会误用工具"上 |
+| **Exec 工具全开** | Agent 可以执行任意系统命令，没有任何限制 |
+| **共享进程+Token** | 一个进程处理所有请求，没有隔离 |
+
+---
+
+**两种安全架构的对比：**
+
+| 维度 | NemoClaw | Wirken（Flying Penguin 推荐）|
+|------|----------|------------------------------|
+| **网络暴露** | Ollama 绑定 0.0.0.0（暴露网络） | Inference 保留在 loopback |
+| **隔离方式** | 整个 Agent 跑在沙箱里 | 每个 Channel 是独立进程 |
+| **身份认证** | 依赖单一 Telegram token | 每个 Channel 有独立 Ed25519 身份 |
+| **密钥存储** | 可能在 Gateway 进程内 | Vault 运行在独立进程（out-of-process）|
+| **Shell 执行** | Gateway 整体受信任 | Shell 在硬化的容器里运行，配置在工具层 |
+| **高危命令** | 无特殊处理 | 16个高危命令前缀每次调用都弹窗确认 |
+
+**核心设计哲学：**
+
+```
+NemoClaw 安全思路（错误）：
+  沙箱 → 包裹整个 Agent
+  → Agent 内部可以自由调用任何工具
+  → 安全靠 LLM 自觉
+
+Wirken 安全思路（正确）：
+  工具层安全 → 每个危险工具独立限制
+  进程隔离 → Channel 之间互不感知
+  Vault 隔离 → 密钥不在 Agent 进程内
+  → 安全靠架构，不是靠 LLM 自觉
+```
+
+**工具层安全的 5 个关键实践：**
+
+| 实践 | 说明 |
+|------|------|
+| **1. 进程级隔离** | 每个 Channel 是独立进程，有独立身份（Ed25519）|
+| **2. Vault Out-of-Process** | 密钥存储在 Agent 进程外部，Agent 无法直接访问 |
+| **3. Shell in Hardened Container** | Shell 执行在容器内，而非主机上 |
+| **4. 高危命令前缀拦截** | 16 个高危命令前缀（如 `rm -rf`）每次都弹窗 |
+| **5. First-Use Memory** | 新工具首次使用有 30 天记忆期，之后再次确认 |
+
+**面试话术：**
+
+> "Flying Penguin 的文章点出了一个根本问题：2026年我们讨论 AI 安全，大部分人在讨论对齐、幻觉、信息泄露，但没人愿意提 Agent 执行层面的安全——因为承认它危险，就意味着承认现在的架构有漏洞。真正安全的 Agent 系统，应该把'谁可以执行什么'交给架构决定，而不是交给 LLM 判断。进程隔离、Vault 外置、工具层硬化、Ed25519 身份认证——这才是生产级 Agent 安全应该有的样子，不是靠一个 Gateway 包打天下。"
+
+**延伸阅读：**
+- Flying Penguin: https://www.flyingpenguin.com/build-an-openclaw-free-secure-always-on-local-ai-agent/
+- NVIDIA NemoClaw Tutorial: https://developer.nvidia.com/blog/build-a-secure-always-on-local-ai-agent-with-nvidia-nemoclaw-and-openclaw/
+
+</details>
+
+---
+
+*版本: v3.0 | 更新: 2026-04-20 | by 二狗子 🐕*
