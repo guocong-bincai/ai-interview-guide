@@ -1548,7 +1548,7 @@ AI/ML类：
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
-| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制；Q22 MCP授权流程（PRM/OAuth2.1/DPoP三件套） |
+| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制；Q22 MCP授权流程（PRM/OAuth2.1/DPoP三件套）；Q23 MCP Server Card（AI自动发现/能力评估/标准化） |
 | 2026-04-21 | v3.73 | 新增 Q20 MCP Sampling原语（Agentic行为核心） |
 | 2026-04-21 | v3.72 | 新增 Q19 MCP企业级Readiness问题（Audit Trails/DPoP/WIF/XAA） |
 | 2026-04-21 | v3.71 | 新增 Q18 MCP协议特有安全攻击向量（Confused Deputy/Token Passthrough/SSRF） |
@@ -2748,6 +2748,134 @@ headers = {
 - 了解 RFC 9728（PRM）、RFC 9449（DPoP）、OAuth 2.1 的核心区别
 - 能画出完整 MCP 授权流程的时序图
 - 理解 Dynamic Client Registration（DCR）和预注册的适用场景
+
+</details>
+
+### Q23: MCP Server Card 是什么？如何让 AI 应用自动发现和评估 Server 能力？
+
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：**
+
+2026 年 MCP 生态有 5000+ 社区 Server，如何让 AI 应用（如 Claude Code、Cursor）自动知道一个 Server 能做什么、该用什么参数调用？这是 MCP Server Card 项目要解决的核心问题。
+
+**Server Card 是什么：**
+
+Server Card 是一个 **标准化元数据文档**，Server 通过它向 AI 应用声明自己的能力：
+
+
+```yaml
+# 示例 Server Card
+server:
+  name: "enterprise-db"
+  version: "1.0.0"
+  description: "企业数据库 MCP Server"
+
+capabilities:
+  tools:
+    - name: "sql_query"
+      description: "执行只读 SQL 查询"
+      inputSchema:
+        type: "object"
+        properties:
+          query: { type: "string" }
+        required: ["query"]
+    - name: "get_tables"
+      description: "获取所有表名"
+
+  resources:
+    - uri: "schema://tables"
+      description: "数据库表结构"
+
+
+  prompts:
+    - name: "analyze_schema"
+      description: "分析数据库结构"
+      arguments:
+        - name: "table_name"
+          description: "表名"
+```
+
+**为什么 Server Card 重要（三个核心价值）：**
+
+| 价值 | 说明 | 应用场景 |
+|------|------|----------|
+| **AI 自动发现** | AI 应用启动时自动读取 Server Card，知道能用什么工具 | Cursor 连接新 Server 后自动弹出可用工具列表 |
+| **能力评估** | AI 可以根据 Card 决定是否信任这个 Server | 安全 Agent 在执行危险操作前检查 Server Card |
+| **标准化接口** | 所有 Server 用同一格式描述自己 | MCP Registry 统一索引，所有 AI 应用兼容 |
+
+
+**Server Card 的工作原理：**
+
+```
+用户配置 MCP Server（mcp.json）：
+{
+  "mcpServers": {
+    "db": {
+      "url": "https://mcp.company.com/db"
+    }
+  }
+}
+
+↓
+
+AI 应用启动时：
+1. 连接到 Server
+2. 请求 Server Card（通过 MCP protocol）
+3. Server 返回 Card（JSON）
+4. AI 应用展示可用工具 / 注册到工具列表
+5. 用户可以直接调用
+```
+
+
+**Server Card vs OpenAPI Spec：**
+
+| 维度 | OpenAPI Spec | Server Card |
+|------|-------------|-------------|
+| **目标** | REST API 文档 | MCP Server 能力声明 |
+| **使用者** | 人类开发者 | AI 应用（机器可读） |
+| **格式** | JSON/YAML | MCP 协议原生格式 |
+| **自动化** | 手动阅读 | 自动解析并使用 |
+
+**Server Card 安全影响：**
+
+```
+没有 Server Card：
+- AI 连接 Server 后不知道它有什么能力
+- 只能通过尝试错误发现（可能触发危险操作）
+
+有 Server Card：
+- AI 在连接前就知道 Server 能做什么
+- 可以做权限预检查
+- 可以拒绝高风险 Server（如"可以执行任意 SQL"）
+```
+
+**Server Card 工作组：**
+
+
+MCP 官方有专门的 **Server Card Working Group**，正在定义标准格式：
+
+```
+工作组目标：
+1. 定义 Server Card 标准 Schema
+2. 定义如何验证 Server Card 的合法性
+3. 定义 AI 应用如何解析和使用 Server Card
+4. 与 MCP Registry 集成
+```
+
+**面试话术：**
+
+> "Server Card 是 MCP Server 的'能力清单'，让 AI 应用连接后立刻知道能用什么工具、该用什么参数，而不用'试错式'探索。它本质上是一个标准化的元数据文档，解决了 5000+ Server 生态的'能力发现'问题——Cursor 连接新 Server 后自动弹出可用工具列表就是靠 Server Card。安全上，Server Card 让 AI 在执行危险操作前就能预判，比事后检查更安全。Server Card Working Group 正在推动标准化，未来所有 MCP Registry 上的 Server 都会带标准 Card。"
+
+</details>
+
+
+**⭐ 面试加分项：**
+- 了解 MCP Server Card Working Group 的进展
+- 能区分 Server Card 和 OpenAPI Spec 的定位差异
+- 理解 Server Card 对 AI Agent 安全的重要性
 
 </details>
 
