@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.78)：新增 Q25-Q26 MCP Registry/Skills Over MCP（Server分发/动态能力组合）**
+> **⚠️ 本次更新(v3.79)：新增 Q13-Q14 向量索引模块（Rerank两阶段检索/ColBERT/HNSW生产调参实战）**
 
 **🎯 360+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.78 | **最后更新:** 2026-04-21"""
+**版本:** v3.79 | **最后更新:** 2026-04-22"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -85,7 +85,7 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 07 | [⚙️ 向量索引优化](docs/07-vector-index-optimization/) | HNSW、IVF、混合检索、RRF融合 | 🔥🔥🔥🔥 | 9 |
+| 07 | [⚙️ 向量索引优化](docs/07-vector-index-optimization/) | HNSW、IVF、混合检索、RRF融合、两阶段Rerank、ColBERT、HNSW调参 | 🔥🔥🔥🔥 | 11 |
 | 08 | [🎓 模型微调与训练](docs/07-model-training/) | LoRA、RLHF、DPO、TRL v1.0、微调策略 | 🔥🔥🔥🔥 | 14 |
 | 09 | [⚡ 推理优化](docs/09-inference-optimization/) | KV Cache、量化、投机采样、Continuous Batching、vLLM | 🔥🔥🔥🔥🔥 | 13 |
 | 10 | [🛡️ AI 安全与评估](docs/10-ai-safety-evaluation/) | 幻觉缓解、Prompt注入防御、评估指标、RAGAS | 🔥🔥🔥🔥🔥 | 14 |
@@ -874,21 +874,11 @@ Made with ❤️ for the AI Community
 
 ---
 
-## 📚 数据更新（v3.77 - 2026-04-21）
+## 📚 数据更新（v3.79 - 2026-04-22）
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 🆕 | [🔌 MCP协议（新增Q24）](docs/14-mcp-skill-systems/) | MCP Triggers/Events（事件驱动Agent/被动响应→主动感知/推模式 vs 拉模式/Triggers and Events Working Group） | 🔥🔥🔥🔥 | +1 |
-
-*版本: v3.77 | 更新: 2026-04-21 | by 二狗子 🐕*
-
----
-
-## 📚 数据更新（v3.78 - 2026-04-21）
-
-
-| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
-|------|------|----------|--------|------|
+| 🆕 | [⚙️ 向量索引优化（新增Q13-Q14）](docs/06-vector-index-optimization/) | Q13 Rerank两阶段检索（向量检索+Rerank/ColBERT Late Interaction/Cross-Encoder生产实现）；Q14 HNSW生产调参实战（M/ef/efConstruction参数选择/性能陷阱/Benchmark数据） | 🔥🔥🔥🔥 | +2 |
 | 🆕 | [🔌 MCP协议（新增Q25-Q26）](docs/14-mcp-skill-systems/) | Q25 MCP Registry（Server分发/版本管理/签名验证/私有Registry）；Q26 Skills Over MCP（动态能力发现/Skill组合/Agent自动规划） | 🔥🔥🔥🔥 | +2 |
 
-*版本: v3.78 | 更新: 2026-04-21 | by 二狗子 🐕*
+*版本: v3.79 | 更新: 2026-04-22 | by 二狗子 🐕*
