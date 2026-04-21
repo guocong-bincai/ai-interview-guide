@@ -1548,7 +1548,7 @@ AI/ML类：
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
-| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制 |
+| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制；Q22 MCP授权流程（PRM/OAuth2.1/DPoP三件套） |
 | 2026-04-21 | v3.73 | 新增 Q20 MCP Sampling原语（Agentic行为核心） |
 | 2026-04-21 | v3.72 | 新增 Q19 MCP企业级Readiness问题（Audit Trails/DPoP/WIF/XAA） |
 | 2026-04-21 | v3.71 | 新增 Q18 MCP协议特有安全攻击向量（Confused Deputy/Token Passthrough/SSRF） |
@@ -2626,6 +2626,128 @@ Server A/B/C → 通过 Client 代为调用 LLM
 - 理解 stdio 和 Streamable HTTP 两种传输协议的应用场景
 - 知道企业 MCP Gateway 如何作为 External Client 统一管理 LLM 访问
 - 能区分 MCP Client 和传统 API Gateway 的本质区别（MCP 是双向协议，不只是路由）
+
+</details>
+
+### Q22: MCP 授权流程（Authorization Flow）是怎么工作的？PRM、OAuth 2.1、DPoP 如何协同？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**MCP 授权的特殊性：**
+
+MCP Server 持有敏感资源（用户数据、数据库、管理接口），但 Server 不知道自己该信任谁——这是 Client 的用户要来访问。这和传统 API 的"已知客户端"场景不同，需要一个完整的授权流程来建立互信。
+
+**MCP 授权三件套：**
+
+| 组件 | 作用 | 对应标准 |
+|------|------|----------|
+| **PRM（Protected Resource Metadata）** | Server 告诉 Client"授权服务器在哪" | RFC 9728 |
+| **OAuth 2.1** | 标准授权协议（Authorization Code + PKCE） | RFC 6749 + 7636 |
+| **DPoP（Demonstrating Proof of Possession）** | 绑定 Token 到客户端密钥，防 Token 被盗滥用 | RFC 9449 |
+
+**完整授权流程（Step by Step）：**
+
+```
+1️⃣ Client 连接 Server → Server 返回 401 + WWW-Authenticate Header
+                                   ↓
+                     resource_metadata="https://server.com/.well-known/oauth-protected-resource"
+
+2️⃣ Client 获取 PRM 文档 → 知道授权服务器、支持的 Scopes
+
+3️⃣ Client 通过 OIDC Discovery → 找到授权服务器的 endpoints
+
+4️⃣ Client 注册（或预注册）到授权服务器
+
+5️⃣ 用户在浏览器登录授权服务器 → 授权服务器返回 authorization_code
+
+6️⃣ Client 用 authorization_code 换 access_token
+
+7️⃣ Client 每次请求带 access_token → Server 验证 Token + Scopes
+```
+
+**PRM 文档示例：**
+
+```json
+{
+  "resource": "https://your-server.com/mcp",
+  "authorization_servers": ["https://auth.your-server.com"],
+  "scopes_supported": ["mcp:tools", "mcp:resources"]
+}
+```
+
+**WWW-Authenticate Header 示例：**
+
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="mcp",
+  resource_metadata="https://your-server.com/.well-known/oauth-protected-resource"
+```
+
+**OAuth 2.1 为什么重要：**
+
+```
+OAuth 2.0（有漏洞）：
+- 隐式授权（implicit grant）不安全，Token 直接泄露
+- 不强制 PKCE，授权码拦截攻击可行
+
+
+OAuth 2.1（修复版）：
+- 废除 implicit grant
+- 强制 PKCE（Proof Key for Code Exchange）
+- 强制使用 Token 绑定（DPoP 可选但推荐）
+```
+
+**DPoP Token 绑定原理：**
+
+```python
+# 客户端生成 DPoP 证明（JWT）
+dpop_proof = {
+    "htm": "POST",           # HTTP 方法
+    "htu": "/mcp/tools/call", # 请求目标
+    "iat": 1713600000,       # 发行时间
+    "jti": "unique-123"     # 防重放
+}
+# 用客户端私钥签名
+signature = sign(dpop_proof, client_private_key)
+
+# 每次请求带上
+headers = {
+    "Authorization": "Bearer <access_token>",
+    "DPoP": <dpop_proof_jwt>
+}
+
+# Server 验证：Token + DPoP proof 匹配才能用
+# 即使 Token 被截获，没有私钥也无法伪造 DPoP proof
+```
+
+**企业 MCP 授权架构：**
+
+```
+用户浏览器 → MCP Client → MCP Server
+                 ↓
+            Keycloak（企业 IdP）
+            - 用户登录（SSO）
+            - Token 颁发
+            - 权限控制
+
+企业场景：
+- 员工离职 → IdP 禁用账户 → 所有 Token 立即失效 ✅
+- 静态 API Key → 手动删除 ❌
+- DPoP 绑定 → Token 被截也无法用 ✅
+```
+
+**面试话术：**
+
+> "MCP 的授权流程是 OAuth 2.1 + PRM + DPoP 三层。PRM 解决'Server 告诉 Client 授权服务器在哪'的问题；OAuth 2.1 是标准授权协议（强制 PKCE，修复了 2.0 的安全漏洞）；DPoP 是可选但推荐的 Token 绑定，把 Token 绑定到客户端私钥，即使 Token 被截获也無法滥用。企业 MCP 部署推荐用 Keycloak 等 IdP 做授权，员工离职后 Token 自动失效，比静态 API Key 安全得多。"
+
+</details>
+
+**⭐ 面试加分项：**
+- 了解 RFC 9728（PRM）、RFC 9449（DPoP）、OAuth 2.1 的核心区别
+- 能画出完整 MCP 授权流程的时序图
+- 理解 Dynamic Client Registration（DCR）和预注册的适用场景
 
 </details>
 
