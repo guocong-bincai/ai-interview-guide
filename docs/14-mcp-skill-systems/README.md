@@ -1548,7 +1548,7 @@ AI/ML类：
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
-| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制；Q22 MCP授权流程（PRM/OAuth2.1/DPoP三件套）；Q23 MCP Server Card（AI自动发现/能力评估/标准化）；Q24 MCP Triggers/Events（事件驱动Agent） |
+| 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制；Q22 MCP授权流程（PRM/OAuth2.1/DPoP三件套）；Q23 MCP Server Card（AI自动发现/能力评估/标准化）；Q24 MCP Triggers/Events（事件驱动Agent）；Q25 MCP Registry（Server分发/私有Registry）；Q26 Skills Over MCP（动态能力发现/自动组合） |
 | 2026-04-21 | v3.73 | 新增 Q20 MCP Sampling原语（Agentic行为核心） |
 | 2026-04-21 | v3.72 | 新增 Q19 MCP企业级Readiness问题（Audit Trails/DPoP/WIF/XAA） |
 | 2026-04-21 | v3.71 | 新增 Q18 MCP协议特有安全攻击向量（Confused Deputy/Token Passthrough/SSRF） |
@@ -2993,11 +2993,245 @@ class OrderProcessingAgent:
 - 能区分 Triggers/Events 和传统消息队列（如 Kafka）的定位
 - 理解事件驱动 Agent 和轮询 Agent 的本质差异
 
+</details>
+
+### Q25: MCP Registry 是什么？如何发布和分发企业级 MCP Server？
+
+<details>
+<summary>💡 答案要点</summary>
+
+
+**MCP Registry 的定位：**
+
+MCP 生态有 5000+ 社区 Server，如何高效分发和发现？MCP Registry 就是"MCP 界的 npm"——标准化的 Server 上架和分发平台。
+
+**官方 MCP Registry：**
+
+| 平台 | URL | 特点 |
+|------|-----|------|
+| **MCP Registry** | registry.modelcontextprotocol.com | 官方运营，权威可信 |
+| **Smithery.ai** | smithery.ai | 社区驱动，最大市场 |
+| **MCP Market** | mcp.market | 分类清晰，有评分系统 |
+
+**Registry 的核心价值：**
+
+
+| 价值 | 说明 |
+|------|------|
+| **标准化分发** | Server 开发者一次性发布，所有 MCP Client 都能安装 |
+| **版本管理** | Semantic versioning，Client 可以锁定版本 |
+| **依赖解析** | 自动解析 Server 的依赖（如需要哪些 env vars） |
+| **可信度评分** | 社区评分，开发者可以判断 Server 质量 |
+| **认证机制** | 官方认证的 Server 更可信 |
+
+**发布 Server 到 Registry 的流程：**
+
+
+```bash
+# 1. 开发 Server（以 Python/FastMCP 为例）
+# mcp_server.py
+from mcp.server import MCPServer
+
+server = MCPServer("my-enterprise-db")
+
+@server.tool()
+def sql_query(query: str):
+    """执行只读 SQL 查询"""
+    ...
+
+# 2. 打包配置
+# mcp.json
+{
+  "name": "@company/enterprise-db",
+  "version": "1.0.0",
+  "description": "企业数据库 MCP Server",
+  "entrypoint": "python -m mcp_server"
+}
+
+
+# 3. 认证（官方 Registry 需要）
+# 先在 registry.modelcontextprotocol.com 注册账号
+# 创建 API token
+
+# 4. 发布
+gx publish --registry https://registry.modelcontextprotocol.com
+
+
+# 5. 其他开发者安装
+npx @smithery/cli@latest install @company/enterprise-db
+```
+
+**企业级 Registry 部署：**
+
+
+```
+公开 Registry（供外部使用）：
+- MCP 官方 Registry
+- Smithery.ai / mcp.market
+
+私有 Registry（供企业内部）：
+- 企业内部 NPM/ PyPI 风格的私有 Registry
+- 只有企业内部 AI 应用能访问
+- 完全控制 Server 来源，防止供应链攻击
+```
+
+
+**Registry 相关的安全机制：**
+
+
+```
+Registry 安全三件套：
+1. 签名验证：Server 发布时用私钥签名，Client 验证签名
+2. 权限 scopes：Registry API token 有不同权限（publish vs read-only）
+3. Moderation policy：违规 Server 会被下架
+```
+
+**Registry Aggregators：**
+
+
+第三方平台聚合多个 Registry 的 Server：
+```
+Smithery.ai = MCP Registry + npm Registry + GitHub
+Smithery 做了统一的安装 CLI，支持：
+npx @smithery/cli@latest install @github      # GitHub MCP Servernpx @smithery/cli@latest install @company/db  # 私有 Server
+```
+
+**面试话术：**
+
+> "MCP Registry 是 MCP 生态的'应用商店'，解决 5000+ Server 的分发问题。开发者一次性发布到 Registry，所有 MCP Client（Cursor、Claude Code、VS Code）都能安装。Registry 支持版本管理、依赖解析和评分系统，企业可以部署私有 Registry 掌控内部 Server 来源。发布流程是：开发 Server → 打包 mcp.json → 认证 → publish → 其他开发者通过 CLI 安装。企业级场景推荐用私有 Registry + 签名验证，防止供应链攻击。"
 
 </details>
 
----
+**⭐ 面试加分项：**
+- 了解 MCP Registry Moderation Policy 的内容
+- 知道 Registry Aggregators（如 Smithery）的聚合价值
+- 能区分公开 Registry 和私有 Registry 的适用场景
 
+</details>
+
+### Q26: MCP Skills Over MCP 是什么？为什么它让 AI Agent 能动态组合多工具能力？
+
+<details>
+<summary>💡 答案要点</summary>
+
+
+
+**背景：**
+
+MCP Server 是静态能力声明（写死有哪些工具），但 AI Agent 需要的是动态能力组合。Skills Over MCP 就是解决这个问题的方案。
+
+**Skills Over MCP 是什么：**
+
+
+
+| 概念 | 说明 |
+|------|------|
+| **Skill** | 一个可复用的能力单元（如"发送邮件"、"查询数据库"） |
+| **MCP Server** | 提供 Skill 的基础设施 |
+| **Skills Over MCP** | AI Agent 动态发现、组合、执行 Skills 的框架 |
+
+**核心思想：**
+
+```
+传统 MCP（静态）：
+Server A: [tool_1, tool_2, tool_3]    # 固定工具集
+Server B: [tool_4, tool_5]
+
+Skills Over MCP（动态）：
+Agent 需要"发送邮件给客户"→ 动态发现哪些 Server 有邮件能力 → 组合执行
+```
+
+
+**Skills Over MCP 的价值：**
+
+
+| 价值 | 说明 |
+|------|------|
+| **动态能力发现** | Agent 可以运行时问"谁有能力做 X" |
+| **能力组合** | 一个 Task 需要多个 Skill，Agent 自动组合 |
+| **可复用性** | Skill 可以跨 Agent 复用，不用重复开发 |
+| **标准化封装** | Skill 有标准 Interface，Server 实现可替换 |
+
+
+**Skills Over MCP 和 Server Card 的关系：**
+
+```
+Server Card = "这个 Server 能做什么"
+Skill = "谁能帮我做到 X"（跨 Server 查询）
+
+
+Skills Over MCP = Server Card 的上一层抽象
+让 Agent 不用知道具体 Server，只关心能力
+```
+
+
+**Skills Over MCP 工作流：**
+
+
+```python
+# Agent 需要完成复杂任务
+task = "分析竞品并发送邮件给市场部"
+
+
+# Agent 通过 Skills Over MCP 查询
+available_skills = await mcp_client.query_skills(
+    capabilities=["send_email", "web_scraping", "data_analysis"]
+)
+# 返回：
+# - email_server: {send_email: skill_id_1}
+# - scraping_server: {web_scraping: skill_id_2}
+# - analysis_server: {data_analysis: skill_id_3}
+
+
+# Agent 组合 Skills
+result = await agent.execute_composite_task([
+    skill_id_2,  # 先抓取竞品数据
+    skill_id_3,  # 再分析
+    skill_id_1   # 最后发邮件
+])
+```
+
+**Skills Over MCP Working Group：**
+
+
+
+官方成立专门工作组：
+```
+工作组目标：
+1. 定义 Skill 标准 Schema（如何描述一个 Skill）
+2. 定义 Skill 发现协议（Agent 如何找到需要的 Skill）
+3. 定义 Skill 组合语义（多个 Skill 如何组合执行）
+4. 与 Server Card 集成
+```
+
+
+**Skills Over MCP vs 传统工具调用：**
+
+
+| 维度 | 传统 MCP 工具调用 | Skills Over MCP |
+|------|------------------|----------------|
+| **发现问题** | 人工配置，Agent 不知道有哪些工具 | 运行时自动发现 |
+| **组合方式** | 人工编排，Agent 串行调用 | Agent 自动规划 Skill 组合 |
+| **耦合度** | Agent 紧耦合具体 Server | Agent 只关心能力，不关心 Server |
+| **适用场景** | 固定工具集场景 | 动态任务、复杂多步骤场景 |
+
+
+**面试话术：**
+
+
+> "Skills Over MCP 是 MCP 的'上一层抽象'。传统 MCP 是静态的——Server 有哪些工具就那些；但真实场景中 Agent 需要动态发现和组合能力。Skills Over MCP 解决的是'谁能帮我做 X'的问题，而不是'这个 Server 有哪些工具'。工作原理：Agent 把任务分解成 Skill 需求，通过 Server Card 查询哪些 Server 有对应能力，自动组合执行。官方有专门的 Working Group 在推动标准化，未来 Agent 可以像搭积木一样动态组合 Skills。"
+</details>
+
+
+**⭐ 面试加分项：**
+- 了解 Skills Over MCP Working Group 的进展
+- 能区分 Skill 和传统 MCP Tool 的定位差异
+- 理解 Skills Over MCP 与 Server Card 的层次关系
+
+</details>
+
+
+---
 ## 八、2026年MCP面试新趋势：高频陷阱题与反套路指南
 
 ### Q27: 什么情况下不应该用MCP？MCP的边界在哪里？
