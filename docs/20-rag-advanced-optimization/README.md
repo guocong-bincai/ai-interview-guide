@@ -1,7 +1,7 @@
 # 🚀 RAG 高级优化面试题（GraphRAG / HyDE / Semantic Chunking）
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-04-03
+> **更新：** 2026-04-23
 > **考点：** GraphRAG、HyDE、Semantic Chunking、Context Cliff、混合检索、Rerank、LLMLingua
 
 ## 📋 目录
@@ -1732,6 +1732,217 @@ scores = reranker.predict([(query, doc) for doc in documents])
 
 </details>
 
+## 十六、自愈 RAG：RAG 系统的自我检测与恢复（Q16）
+
+### Q16: 什么是自愈 RAG？生产环境如何实现 RAG 的自我检测与自动恢复？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**问题背景：传统 RAG 的脆弱性**
+
+传统 RAG 是"一次性"的：检索 → 生成 → 返回。如果检索质量差，答案基本不可用。生产环境的三大典型失败场景：
+
+| 失败场景 | 原因 | 影响 |
+|----------|------|------|
+| **检索为空** | Query 与知识库语义不匹配 | LLM 产生幻觉 |
+| **检索偏离** | 检索到部分相关内容但不准确 | 答案偏差 |
+| **上下文不足** | 检索到的内容不够回答问题 | 答案不完整 |
+
+**自愈 RAG = 让 RAG 系统自动检测失败并自动恢复**，而不是简单返回"无法回答"。
+
+**自愈 RAG 的三层架构：**
+
+```
+┌─────────────────────────────────────────────┐
+│          自愈 RAG 三层架构                    │
+├─────────────────────────────────────────────┤
+│  Layer 1: 失败检测（Failure Detection）        │
+│  - 检索相关性 < 阈值？                        │
+│  - LLM 置信度 < 阈值？                        │
+│  - 用户反馈负向？                             │
+│         ↓ 检测到失败                         │
+│  Layer 2: 恢复策略（Recovery Strategy）       │
+│  - 轻度失败：Query 改写 → 重新检索             │
+│  - 中度失败：混合检索（向量+关键词）→ Rerank  │
+│  - 重度失败：多跳推理 → 拆解子问题             │
+│         ↓ 恢复成功                           │
+│  Layer 3: 验证（Verification）               │
+│  - 恢复后再次评估检索相关性                   │
+│  - 验证答案与问题匹配度                       │
+│  - 通过 → 返回答案；失败 → 降级回复            │
+└─────────────────────────────────────────────┘
+```
+
+**失败检测的具体实现：**
+
+```python
+class SelfHealingRAG:
+    def __init__(self):
+        self.retrieval_threshold = 0.65  # 检索相关性阈值
+        self.confidence_threshold = 0.70  # LLM 置信度阈值
+        self.max_retries = 3             # 最大恢复尝试次数
+    
+    def detect_failure(self, query: str, retrieval_results: list, answer: str) -> dict:
+        """检测 RAG 是否失败"""
+        failure_signals = []
+        
+        # 信号1: 检索为空或质量低
+        if not retrieval_results or retrieval_results[0]["score"] < self.retrieval_threshold:
+            failure_signals.append("检索质量低")
+        
+        # 信号2: LLM 置信度低（如果模型支持）
+        if hasattr(llm, "get_confidence"):
+            confidence = llm.get_confidence(answer)
+            if confidence < self.confidence_threshold:
+                failure_signals.append(f"LLM置信度低: {confidence:.2f}")
+        
+        # 信号3: 答案长度异常（过短或过长）
+        if len(answer) < 50 or len(answer) > 5000:
+            failure_signals.append("答案长度异常")
+        
+        # 信号4: 包含"不确定""不知道"等不确定词汇
+        uncertain_phrases = ["不确定", "不知道", "无法确定", "没有找到", "context中未提及"]
+        if any(phrase in answer for phrase in uncertain_phrases):
+            failure_signals.append("答案包含不确定表达")
+        
+        return {
+            "is_failure": len(failure_signals) > 0,
+            "signals": failure_signals,
+            "severity": self._assess_severity(failure_signals)
+        }
+    
+    def _assess_severity(self, signals: list) -> str:
+        if "检索质量低" in signals and "LLM置信度低" in signals:
+            return "critical"   # 重度：需要多跳推理
+        elif "检索质量低" in signals or "LLM置信度低" in signals:
+            return "moderate"   # 中度：混合检索 + Rerank
+        else:
+            return "mild"       # 轻度：Query 改写即可
+```
+
+**分级的恢复策略：**
+
+```python
+    def recover(self, query: str, failure: dict, retrieval_results: list) -> str:
+        """根据失败级别执行对应的恢复策略"""
+        severity = failure["severity"]
+        retry_count = 0
+        
+        while retry_count < self.max_retries:
+            if severity == "mild":
+                # 轻度：Query 改写 + 重新检索
+                rewritten_query = self.query_rewriting(query)
+                new_results = self.vector_db.search(rewritten_query, top_k=10)
+                if self._check_retrieval_quality(new_results):
+                    return self._generate_with_results(rewritten_query, new_results)
+            
+            elif severity == "moderate":
+                # 中度：混合检索（向量 + 关键词） + Rerank
+                hybrid_results = self.hybrid_retrieval(query)
+                reranked = self.reranker.rerank(query, hybrid_results, top_n=5)
+                if self._check_retrieval_quality(reranked):
+                    return self._generate_with_results(query, reranked)
+            
+            elif severity == "critical":
+                # 重度：多跳推理，拆解为子问题
+                sub_queries = self.decompose_query(query)
+                sub_results = [self.vector_db.search(q, top_k=5) for q in sub_queries]
+                combined_context = self._merge_contexts(sub_results)
+                if self._check_context_sufficiency(combined_context):
+                    return self._generate_with_context(query, combined_context)
+            
+            retry_count += 1
+            severity = self._escalate_severity(severity)  # 升级策略
+        
+        # 所有恢复策略失败 → 降级回复
+        return self._fallback_response(query)
+    
+    def query_rewriting(self, query: str) -> str:
+        """Query 改写：同义词替换 + 语法规范化"""
+        prompt = f"""将以下用户 Query 改写为更适合检索的形式：
+Query: {query}
+要求：
+1. 提取核心实体和关键概念
+2. 使用标准术语替换口语化表达
+3. 补充可能的同义词
+改写后："""
+        return llm.call(prompt).strip()
+    
+    def hybrid_retrieval(self, query: str) -> list:
+        """混合检索：向量检索 + BM25 关键词检索 + RRF 融合"""
+        vector_results = self.vector_db.search(query, top_k=20)
+        keyword_results = self.bm25.search(query, top_k=20)
+        
+        # RRF（Reciprocal Rank Fusion）融合
+        fused = self.rrf_fusion([
+            (vector_results, 0.6),  # 向量检索权重
+            (keyword_results, 0.4)  # 关键词检索权重
+        ], k=60)
+        return fused
+    
+    def decompose_query(self, query: str) -> list:
+        """Query 分解：将复杂问题拆解为多个简单子问题"""
+        prompt = f"""将以下复杂问题拆解为多个可单独检索的子问题：
+Query: {query}
+要求：
+1. 每个子问题应能通过一次检索回答
+2. 子问题之间逻辑连贯
+3. 标注回答顺序
+子问题："""
+        sub_questions = llm.call(prompt)
+        return [q.strip() for q in sub_questions.split("\n") if q.strip()]
+```
+
+**验证层：确保恢复后的质量：**
+
+```python
+    def verify(self, query: str, answer: str, context: list) -> bool:
+        """验证恢复后的答案质量"""
+        # 1. 上下文相关性验证
+        relevance_score = self.evaluator.compute_relevance(query, context)
+        if relevance_score < 0.6:
+            return False
+        
+        # 2. 答案与问题匹配度验证
+        match_prompt = f"""判断以下答案是否充分回答了问题：
+问题：{query}
+答案：{answer}
+答案是否充分回答了问题？（是/否）"""
+        is_sufficient = llm.call(match_prompt).strip() == "是"
+        
+        # 3. 幻觉检测
+        if self.hallucination_detector.is_hallucinated(answer, context):
+            return False
+        
+        return is_sufficient and relevance_score >= 0.6
+```
+
+**自愈 RAG 与传统 RAG 对比：**
+
+| 维度 | 传统 RAG | 自愈 RAG |
+|------|----------|----------|
+| **检索失败** | 返回低质量答案或幻觉 | 自动重试 + 策略升级 |
+| **答案置信度低** | 直接返回 | 触发验证 + 补充检索 |
+| **用户反馈负向** | 人工修复 | 自动调整检索策略 |
+| **复杂多跳问题** | 一次性检索，效果差 | 拆解为子问题，多跳检索 |
+| **运维成本** | 高（需人工干预） | 低（自动恢复） |
+
+**生产监控指标：**
+
+| 指标 | 说明 | 告警阈值 |
+|------|------|----------|
+| **自愈触发率** | 多少比例的请求触发了自愈 | > 30% 说明基础检索质量差 |
+| **自愈成功率** | 触发自愈后成功恢复的比例 | < 80% 说明自愈策略需优化 |
+| **平均恢复次数** | 每个失败请求平均重试几次 | > 2 次说明一级策略效果差 |
+| **最终答案质量** | 自愈后答案的 RAGAS 评分 | 与无自愈基线对比 |
+
+**面试话术：**
+
+> "自愈 RAG 是 2026 年生产环境的核心需求。传统 RAG 的问题是'一次性'——检索失败就完蛋了。我的做法是三层架构：先检测失败信号（检索相关性、LLM 置信度、答案长度），然后分级恢复——轻度失败用 Query 改写，中度失败用混合检索+重排，重度失败拆解为子问题多跳推理。最后加验证层，确保恢复后的质量。这种架构让 RAG 系统的'无人值守能力'大幅提升，我在面试时会强调这个系统思维——不是解决一次问题，而是让系统能自己发现和修复问题。"
+
+</details>
+
 ---
 
-*版本: v2.11 | 更新: 2026-04-15 | by 二狗子 🐕*
+*版本: v2.12 | 更新: 2026-04-23 | by 二狗子 🐕*

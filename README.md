@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.79)：新增 Q13-Q14 向量索引模块（Rerank两阶段检索/ColBERT/HNSW生产调参实战）**
+> **⚠️ 本次更新(v3.80)：新增 Q17 AI Agent模块（BFCL函数调用评估基准）+ Q16 RAG高级优化模块（自愈RAG三层架构）**
 
-**🎯 360+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 362+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.79 | **最后更新:** 2026-04-22"""
+**版本:** v3.80 | **最后更新:** 2026-04-23"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -882,3 +882,14 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔌 MCP协议（新增Q25-Q26）](docs/14-mcp-skill-systems/) | Q25 MCP Registry（Server分发/版本管理/签名验证/私有Registry）；Q26 Skills Over MCP（动态能力发现/Skill组合/Agent自动规划） | 🔥🔥🔥🔥 | +2 |
 
 *版本: v3.79 | 更新: 2026-04-22 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.80 - 2026-04-23）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🤖 AI Agent基础（新增Q17）](docs/05-ai-agent-basics/) | Q17 BFCL伯克利函数调用评估基准（200+ API/6大维度/生产监控实践）；Function Calling质量系统性提升路径 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔥 RAG高级优化（新增Q16）](docs/20-rag-advanced-optimization/) | Q16 自愈RAG三层架构（失败检测/分级恢复策略/验证层）；生产级自我检测与自动恢复实战代码 | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.80 | 更新: 2026-04-23 | by 二狗子 🐕*

@@ -1,7 +1,7 @@
 # 🤖 AI Agent 面试题
 
 > **难度：** ⭐⭐⭐
-> **更新：** 2026-04-16
+> **更新：** 2026-04-23
 > **考点：** 智能体设计模式、ReAct、Function Calling、多 Agent 协作
 
 ## 📋 目录
@@ -3141,6 +3141,102 @@ AAR 会"作弊"：
 **面试话术：**
 
 > "Anthropic 的 AAR 实验（2026年4月）告诉我三件事：第一，有客观指标就能自动化，评估体系设计比提示词更重要；第二，AI 能在对齐研究上超越人类，但前提是给它正确的环境和反馈机制；第三，reward hacking 是真实风险，我做 AI 产品时会设计'反作弊'机制，比如随机化评估样本、增加人工审核层。这对 2026 年 AI 应用岗位的启示是：'会调模型'的人很多，'懂评估和安全性'的人很少。"
+
+</details>
+
+### Q17: BFCL 是什么？如何系统性评估 Function Calling 质量？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：Function Calling 的评估难题**
+
+Function Calling（函数调用）是 Agent 的核心能力，但业界一直没有标准化评估方法。多数团队的做法是"跑几个测试 case，感觉差不多就行"——这种方法有两个致命问题：
+
+1. **Case 覆盖不全**：真实场景可能有上百种边界情况（空参数、类型错误、嵌套调用），人工构造的 case 难免遗漏
+2. **无法横向对比**：不同模型、不同版本的 Function Calling 质量，没有统一基准就无法客观评估
+
+**BFCL（Berkeley Function Calling Leaderboard）** 解决了这个问题。
+
+**BFCL 是什么？**
+
+BFCL 是伯克利大学发布的函数调用权威评测基准，测试 LLM 对 200+ 真实 API 的函数调用能力。核心数据：
+
+| 指标 | 说明 |
+|------|------|
+| **测试 API 数量** | 200+ 真实 API（涵盖天气、搜索、日历、代码等） |
+| **测试问题数** | 1,000+ 道题 |
+| **评测维度** | 单函数调用、多函数调用、并行调用、并行多函数调用 |
+| **最新榜单** | GPT-4.5/Claude 3.7/Gemini 2.5 等主流模型均有评测 |
+
+**BFCL 六大评测维度：**
+
+| 维度 | 说明 | 难度 |
+|------|------|------|
+| **Simple（单函数调用）** | 给一个问题，调用一个函数 | ⭐ |
+| **Parallel（并行调用）** | 一个问题触发多个独立函数并行执行 | ⭐⭐ |
+| **Multi-call（多函数调用）** | 第一个函数的结果决定下一个调用什么（链式） | ⭐⭐⭐ |
+| **Parallel Multi-call（并行多函数）** | 多个函数 + 链式依赖，最复杂场景 | ⭐⭐⭐⭐ |
+| **Relevance（相关性判断）** | LLM 判断"是否需要调用函数"，而不是强制调用 | ⭐⭐⭐ |
+| **Edge Cases（边界情况）** | 空参数、类型错误、缺失字段、不适用问题 | ⭐⭐⭐⭐ |
+
+**BFCL vs 简单 Pass@K 测试：**
+
+| | BFCL | 简单 Pass@K |
+|---|---|---|
+| **API 规模** | 200+ 真实 API | 通常 5-10 个 |
+| **问题多样性** | 1,000+ 道，覆盖边界情况 | 人工构造，覆盖有限 |
+| **评估维度** | 6 个维度全面评估 | 只测通过率 |
+| **横向对比** | 有公开榜单 | 无 |
+| **适用场景** | 模型选型 + 质量监控 | 快速验证 |
+
+**如何用 BFCL 提升生产级 Function Calling 质量？**
+
+```python
+# Step 1: 用 BFCL 基准评估当前模型
+# 下载 BFCL 数据集，执行评估
+from bfcl import evaluate_model
+
+results = evaluate_model(
+    model="gpt-4o",
+    apis=bfcl_api_list,  # 200+ 真实 API
+    tasks=bfcl_task_list
+)
+
+# 输出各维度得分
+print(results["parallel_multi_call"])  # 75.3%
+print(results["edge_cases"])            # 62.1%
+
+# Step 2: 识别薄弱维度，针对性优化
+if results["edge_cases"] < 70:
+    # 生成边界 case 训练数据，专门微调
+    generate_edge_case_sft_data(apis, low_score_dimension="edge_cases")
+
+# Step 3: 生产环境持续监控
+@app.route("/function-call-monitor")
+def monitor():
+    # 每周随机采样 100 道真实请求，用 BFCL 标准评估
+    sample_requests = sample_recent_requests(n=100)
+    scores = evaluate_function_calling_quality(sample_requests)
+    
+    if scores["accuracy"] < 0.85:
+        send_alert("Function Calling 质量下降，需要检查")
+    
+    return jsonify(scores)
+```
+
+**提升 Function Calling 质量的四大工程实践：**
+
+| 实践 | 说明 | 效果 |
+|------|------|------|
+| **1. Function Schema 优化** | 描述清晰、参数类型明确、必填/可选区分 | 调用准确率 +15% |
+| **2. 错误重试 + 参数校验** | 解析失败时用 LLM 纠错，或要求用户确认 | 最终成功率 +20% |
+| **3. Relevance 判断** | 先让 LLM 判断"是否需要调用"，避免无意义调用 | API 成本 -30% |
+| **4. 并行 + 串行智能路由** | 独立函数并行，依赖函数串行 | 延迟 -40% |
+
+**面试话术：**
+
+> "Function Calling 评估我用过 BFCL，它的核心价值是'系统性'——不是跑几个 case 感觉好就行，而是用 200+ API、1,000+ 道题、6 个维度全面评估。我在项目中会根据 BFCL 的维度得分针对性优化：如果'边界情况'得分低，就生成专项训练数据；如果'相关性判断'差，就在 Prompt 里加'先判断是否需要调用'的步骤。这个方法论比'多调调 Prompt'科学多了，面试官问'你怎么评估 Function Calling 质量'时，我能说出具体维度和改进路径。"
 
 </details>
 
