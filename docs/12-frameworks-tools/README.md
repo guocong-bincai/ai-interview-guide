@@ -1,7 +1,7 @@
 # 🛠️ AI 框架与运维面试题
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-04-09
+> **更新：** 2026-04-23
 > **考点：** LangChain、向量数据库、测试评估、部署运维、Dify/Coze/n8n/OpenClaw
 
 ## 📋 目录
@@ -1555,6 +1555,138 @@ curl -X POST http://localhost/api/v1/chat-messages \
 | **Function Calling** | 并行调用缩短3倍延迟，重试+超时+熔断保障可靠性 |
 | **Streaming流式** | SSE协议，TTFT从5s→300ms，Nginx关闭缓冲 |
 | **Dify/Coze/n8n/OpenClaw** | 个人助理→OpenClaw，企业AI→Dify，低代码Bot→Coze，自动化→n8n |
+
+## 12. Prompt Caching 是什么？2026 年 API 成本优化的重大突破？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**问题背景：API 成本的主要矛盾**
+
+LLM API 调用的成本主要由两部分组成：**输入 Token（Prompt）** + **输出 Token（回答）**。对于长 Prompt 场景（如系统指令、RAG 上下文、企业知识库），同样的前缀内容每次请求都要付费——这是巨大的浪费。
+
+2026 年，OpenAI 和 Anthropic 先后推出了 **Prompt Caching（上下文缓存）** 功能，彻底解决这个问题。
+
+**Prompt Caching 的核心原理：**
+
+```
+传统调用（每次付费）:
+┌─────────────────────────────────────┐
+│ System Prompt: 你是一个法律顾问...   │  ← 每次请求都付费
+│ Context: [法律文档 5000 tokens]     │  ← 每次请求都付费
+│ User Query: 合同违约怎么处理？       │  ← 按次付费
+└─────────────────────────────────────┘
+
+Prompt Caching（首次付费 + 缓存折扣）:
+┌─────────────────────────────────────┐
+│ System Prompt: [CACHED - 75%折扣]    │  ← 首次付费，后续 75% 优惠
+│ Context: [CACHED - 75%折扣]          │  ← 首次付费，后续 75% 优惠
+│ User Query: 合同违约怎么处理？       │  ← 按次付费（不变）
+└─────────────────────────────────────┘
+```
+
+**各大厂商实现对比：**
+
+| 厂商 | 功能名 | 折扣 | 生效位置 | 最大缓存量 |
+|------|--------|------|----------|------------|
+| **OpenAI** | Prompt Caching | 75% | 前缀 tokens（系统指令+上下文） | 128K tokens |
+| **Anthropic** | Context Caching | 75% | 专用缓存 tokens | 200K tokens |
+| **Google Gemini** | Context Cache | 60% | 前缀 tokens | 32K tokens |
+| **Cohere** | Cached Queries | 70% | Prompt 前缀 | 100K tokens |
+
+**代码示例：OpenAI Prompt Caching**
+
+```python
+# OpenAI API - 使用 Prompt Caching
+response = client.chat.completions.create(
+    model="gpt-4o-2025-07-10",
+    messages=[
+        {
+            "role": "system",
+            "content": "你是一个法律顾问机器人...",  # 会被缓存
+        },
+        {
+            "role": "user",
+            "content": f"请阅读以下法律文档并回答问题。\n\n{legal_document}",  # 会被缓存
+        },
+        {
+            "role": "user",
+            "content": user_query,  # 不会被缓存（动态部分）
+        }
+    ],
+    extra_body={
+        "prompt_cache": True  # 启用 Prompt Caching
+    }
+)
+
+# Anthropic API - Context Caching
+response = client.messages.create(
+    model="claude-opus-4-5-20251120",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "你是一个法律顾问机器人...",
+            "cache_control": {"type": "ephemeral"}  # 标记为缓存
+        },
+        {
+            "type": "text",
+            "text": legal_document,
+            "cache_control": {"type": "ephemeral"}  # 缓存上下文
+        }
+    ],
+    messages=[{"role": "user", "content": user_query}]
+)
+```
+
+**Prompt Caching vs 语义缓存的核心区别：**
+
+| 维度 | Prompt Caching（API 层面） | 语义缓存（应用层面） |
+|------|---------------------------|---------------------|
+| **原理** | API 内部缓存 Prompt 前缀 | 基于语义相似度判断命中 |
+| **折扣** | 75%（API 定价折扣） | 100%（完全不调用 LLM） |
+| **准确度** | 100%（完全相同的内容） | ~95%（语义相似） |
+| **适用场景** | 长系统指令 + RAG 上下文 | 重复或相似问题 |
+| **实现难度** | API 层面，开启即可 | 需额外架构（Redis + Embedding） |
+| **配合使用** | ✅ 可与语义缓存叠加 | ✅ 可与 Prompt Caching 叠加 |
+
+**两者叠加的成本优化效果：**
+
+```
+单次请求成本分解（假设 Prompt 8000 tokens，回答 500 tokens）：
+
+场景1: 无优化
+  输入成本: 8000 × $0.03/1M = $0.24
+  输出成本: 500 × $0.06/1M = $0.03
+  总成本: $0.27/次
+
+场景2: Prompt Caching（75% 折扣）
+  缓存部分: 7500 × $0.03 × 0.25 = $0.056
+  动态部分: 500 × $0.03/1M = $0.000015
+  输出成本: 500 × $0.06/1M = $0.03
+  总成本: $0.086/次（-68%）
+
+场景3: Prompt Caching + 语义缓存（命中率 40%）
+  40% 请求: 语义缓存命中 = $0
+  60% 请求: $0.086
+  总成本: 0.4 × $0 + 0.6 × $0.086 = $0.052/次（-81%）
+```
+
+**生产环境使用 Prompt Caching 的注意事项：**
+
+| 注意事项 | 说明 |
+|----------|------|
+| **缓存粒度** | 只缓存 Prompt 的前缀，中间和结尾不缓存 |
+| **最小长度** | 一般需要 > 1024 tokens 才划算（否则节省不明显） |
+| **缓存有效期** | OpenAI: 约 10 分钟；Anthropic: 手动管理 |
+| **适用场景** | 长系统 Prompt（> 500 tokens）+ RAG 上下文（> 2000 tokens） |
+| **不适用** | 短 Prompt（< 500 tokens）、每次内容都不同 |
+
+**面试话术：**
+
+> "Prompt Caching 是 2026 年 API 成本优化的最大突破，原理很简单：长 Prompt 的前缀（比如系统指令+RAG 上下文）每次请求都重复，用 API 内部缓存把这部分 token 成本打 75 折。我在项目中用它配合语义缓存——语义缓存处理完全相同的问题（命中率约 40%），Prompt Caching 处理长上下文的重复前缀（额外节省 50%+）。两者叠加，单次请求成本从 $0.27 降到 $0.05，效果量化后给面试官看，很加分。"
+
+</details>
 
 ## 📊 更新记录
 

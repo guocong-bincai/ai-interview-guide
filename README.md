@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.80)：新增 Q17 AI Agent模块（BFCL函数调用评估基准）+ Q16 RAG高级优化模块（自愈RAG三层架构）**
+> **⚠️ 本次更新(v3.81)：新增 Q12 Prompt Caching（API层面75%成本折扣/各大厂商对比/生产实战）**
 
-**🎯 362+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 363+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.80 | **最后更新:** 2026-04-23"""
+**版本:** v3.81 | **最后更新:** 2026-04-23"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -893,3 +893,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🔥 RAG高级优化（新增Q16）](docs/20-rag-advanced-optimization/) | Q16 自愈RAG三层架构（失败检测/分级恢复策略/验证层）；生产级自我检测与自动恢复实战代码 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.80 | 更新: 2026-04-23 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.81 - 2026-04-23）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔧 框架与工具（新增Q12）](docs/12-frameworks-tools/) | Q12 Prompt Caching（API层面75%折扣/四大厂商对比/OpenAI+Anthropic+Gemini+Cohere/生产注意事项/两者叠加节省81%成本） | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.81 | 更新: 2026-04-23 | by 二狗子 🐕*
