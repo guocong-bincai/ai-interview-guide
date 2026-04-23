@@ -716,6 +716,148 @@ evolver.evolve(genome, taskResults)
 
 </details>
 
+## 十四、Extended Thinking / Reasoning Token Budget（Q14）
+
+### Q14: 什么是 Extended Thinking（扩展思考）？Thinking Token Budget 如何控制 AI 的"思考量"？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：2026 年 AI 的"思考"成为可配置资源**
+
+2026 年之前，LLM 的推理过程对开发者是"黑箱"——你无法控制模型思考多久、消耗多少算力。2026 年，Claude Sonnet 4、Gemini 2.5/2.6 等主流模型相继引入 **Extended Thinking**（扩展思考）能力，让开发者可以像配置 `max_tokens` 一样配置模型的"思考预算"。
+
+**核心概念：Thinking Token Budget**
+
+Thinking Token Budget = 允许模型消耗的最大推理 tokens 数量。模型会将部分预算用于"内部思考"（不输出给用户），然后在剩余预算内生成最终答案。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Extended Thinking 工作原理                    │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  用户问题："如何设计一个高并发系统？"                        │
+│                                                          │
+│  ├── Thinking Phase（内部推理，不可见）                    │
+│  │   模型消耗 Thinking Tokens：                           │
+│  │   "这是一个架构设计问题...
+│  │    我需要考虑：1）负载均衡...
+│  │    2）缓存策略...
+│  │    3）数据库分片..."                                  │
+│  │   [Thinking Tokens: 2000 / Budget: 8000]              │
+│  │                                                       │
+│  └── Answer Phase（可见输出）                            │
+│      最终答案（基于内部推理）：                             │
+│      "高并发系统设计需要从以下几个层面考虑..."               │
+│      [Output Tokens: 500]                                │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+**为什么需要 Thinking Budget？**
+
+| 问题 | 传统方案 | Extended Thinking 方案 |
+|------|----------|----------------------|
+| **简单问题浪费算力** | 强制思考，浪费 tokens | Budget=0，简单回答 |
+| **复杂问题思考不足** | 思考不充分，答案浅 | Budget=8K，深度推理 |
+| **成本不可控** | 每次调用 cost 未知 | 预算即成本上限 |
+| **质量不稳定** | 同一问题不同结果 | 思考量可复现 |
+
+**主流厂商实现对比：**
+
+| 厂商 | 功能名 | Budget 范围 | 计费方式 |
+|------|--------|-------------|----------|
+| **Anthropic** | Extended Thinking | 1K - 32K tokens | Thinking tokens 按正常价格计费 |
+| **Google** | Thinking Budget（Gemini 2.5+） | 0 - 32K tokens | 与 output tokens 合并计费 |
+| **OpenAI** | o3/o4 系列 | 动态，API 参数控制 | 按 tokens 总消耗计费 |
+| **DeepSeek** | 深度推理（R1） | 预置，不可外部控制 | 开源免费 |
+
+**代码示例：Claude Extended Thinking**
+
+```python
+# Anthropic Claude API - Extended Thinking
+response = client.messages.create(
+    model="claude-opus-4-20251120",
+    max_tokens=4096,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 8000  # 允许最多 8000 tokens 内部推理
+    },
+    messages=[{"role": "user", "content": "分析比特币价格走势并预测下季度趋势"}]
+)
+
+# 查看思考过程（部分模型支持返回）
+print("Thinking:", response.usage.thinking_tokens)
+print("Output:", response.usage.output_tokens)
+
+# Google Gemini API - Thinking Budget
+response = model.generate_content(
+    contents=[{"parts": [{"text": "解释量子计算对加密货币的影响"}]}],
+    generation_config={
+        "thinking_options": {
+            "thinking_steps": 10  # 显式步骤数（Gemini 2.5 风格）
+        }
+    }
+)
+```
+
+**生产环境使用 Extended Thinking 的四大策略：**
+
+| 策略 | 适用场景 | Budget 建议 |
+|------|----------|-------------|
+| **0思考（Budget=0）** | 事实查询、简单问答、翻译 | 关闭 thinking |
+| **轻思考（Budget=1-2K）** | 一般技术问题、日常对话 | 快速响应 |
+| **中等思考（Budget=4-8K）** | 代码生成、架构设计、复杂分析 | 质量平衡 |
+| **深度思考（Budget=16-32K）** | 数学证明、研究综述、多跳推理 | 最高质量 |
+
+**Auto-Budget：智能分配 Thinking 预算**
+
+```python
+def smart_thinking_budget(query: str) -> int:
+    """根据问题复杂度自动分配 Thinking Budget"""
+    # 简单问题 → 零思考
+    simple_patterns = ["是什么", "叫什么", "时间", "地点", "定义"]
+    if any(p in query for p in simple_patterns):
+        return 0
+    
+    # 复杂问题 → 深度思考
+    complex_patterns = ["分析", "设计", "比较", "预测", "评估", "证明", "推导"]
+    if any(p in query for p in complex_patterns):
+        return 8000
+    
+    # 中等复杂度
+    return 2000
+
+# 生产环境调用
+budget = smart_thinking_budget(user_query)
+response = client.messages.create(
+    model="claude-opus-4-20251120",
+    thinking={"type": "enabled", "budget_tokens": budget},
+    messages=[{"role": "user", "content": user_query}]
+)
+
+# 成本监控
+thinking_cost = response.usage.thinking_tokens * 3.75  # $3.75 / 1M tokens
+output_cost = response.usage.output_tokens * 15          # $15 / 1M tokens
+print(f"本次调用成本: ${(thinking_cost + output_cost) / 1e6:.4f}")
+```
+
+**Extended Thinking vs CoT（Chain of Thought）**
+
+| 维度 | CoT（Prompt 注入） | Extended Thinking（原生支持） |
+|------|---------------------|-------------------------------|
+| **实现方式** | Prompt 里要求"Let's think step by step" | API 原生参数 `budget_tokens` |
+| **思考可见性** | 思考过程输出给用户（干扰） | 内部思考，用户无感知 |
+| **成本控制** | 不可控，输出全部计费 | 精确控制，思考 tokens 可监控 |
+| **模型支持** | 任何模型（Prompt 技巧） | 仅支持 Extended Thinking 的模型 |
+| **质量保证** | 不稳定，依赖模型服从性 | 可复现，质量稳定 |
+
+**面试话术：**
+
+> "Extended Thinking 是 2026 年 AI API 的重大进化——把模型的'思考过程'从黑箱变成可配置资源。我在项目中实现了'智能预算分配'：简单问题（定义、事实）预算=0，成本接近为零；复杂问题（架构设计、多跳推理）预算=8K，保证质量；数学证明类开到 32K。这样单次调用成本从平均 $0.08 降到 $0.03，同时答案质量反而更稳定。面试时能说出'thinking budget 是成本和质量的帕累托最优解'，说明你对 2026 年 AI 工程化有实战理解。"
+
+</details>
+
 ---
 
-*版本: v3.0 | 更新: 2026-04-20 | by 二狗子 🐕*
+*版本: v3.1 | 更新: 2026-04-23 | by 二狗子 🐕*
