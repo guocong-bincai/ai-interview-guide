@@ -1688,10 +1688,99 @@ response = client.messages.create(
 
 </details>
 
+### Q12: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**DSPy = Declarative Self-Improving Programs with Language Models**
+
+DSPy 是斯坦福大学于 2023 年发布的开源框架，2026 年成为生产级 LLM 应用的标准工具。它的核心思想是：**不再手工编写 Prompt，而是用程序声明 LLM 任务的目标，让 DSPy 自动找到最优的 Prompt 和 Chain 组合**。
+
+**传统方式 vs DSPy 方式：**
+
+```
+传统方式（手工调 Prompt）：
+用户问题 → "你是一个助手，请回答问题" + "简洁一点" → 调参 → 调参 → 固定
+                                        ↑ 靠经验，耗时数天
+
+DSPy 方式（程序化优化）：
+用户问题 → DSPy Compiler → 自动找到最优 Prompt → 最佳 Chain
+                          ↑ 自动优化，数小时
+```
+
+**DSPy 核心概念：**
+
+```python
+import dspy
+
+# 1. 定义任务（声明式）
+class MedicalRAG(dspy.Module):
+    def __init__(self):
+        self.retrieve = dspy.Retrieve(k=3)
+        self.generate_answer = dspy.ChainOfThought(MedicalRAGSignature)
+    
+    def forward(self, question):
+        context = self.retrieve(question)
+        return self.generate_answer(context=context, question=question)
+
+# 2. 定义目标（不是 Prompt！）
+MedicalRAGSignature = dspy.Signature(
+    "context, question -> answer",
+    "你是医学问答助手，用 context 中的信息回答 question。"
+)
+
+# 3. 编译优化（自动找最优 Prompt）
+optimizer = dspy.BootstrapFewShot(metric=medical_rag_quality_metric)
+compiled_rag = optimizer.compile(MedicalRAG(), trainset=medical_trainset)
+# 自动生成了最优的 Few-shot 示例 + Prompt 措辞
+
+# 4. 使用
+result = compiled_rag(question="糖尿病的饮食建议是什么？")
+```
+
+**DSPy 的编译器如何工作：**
+
+```
+Step 1: Bootstrap（引导）
+  → 用少量示例让 LLM 生成候选 Prompt
+  → 评估每个 Prompt 的质量
+
+Step 2: 优化（Optimization）
+  → 改变 Prompt 措辞
+  → 改变 Few-shot 示例选择
+  → 改变 Chain 顺序
+  → 用 Bayesian 搜索找最优组合
+
+Step 3: 输出
+  → 最终的最优 Prompt + Chain 配置
+```
+
+**DSPy vs 传统 Prompt 工程的对比：**
+
+| 维度 | 传统 Prompt 工程 | DSPy |
+|------|----------------|------|
+| **调优方式** | 手工试验，依赖经验 | 程序化搜索，自动优化 |
+| **可重复性** | 低（难以复现） | 高（配置即代码） |
+| **适配模型** | 一个 Prompt 专用于某模型 | 编译器可为不同模型优化 |
+| **成本** | 人工时间成本高 | 初始优化成本高，长期收益大 |
+| **适用场景** | 简单任务、快速验证 | 复杂任务、生产级应用 |
+
+**为什么是 2026 年重要范式转变：**
+
+> "过去两年 Prompt 工程是'艺术'——靠经验、靠感觉、靠玄学。DSPy 把这件事变成了'工程'——可以测量、可以优化、可以版本控制。2026 年 GPT-5、Claude 4、DeepSeek R2 陆续发布，模型能力不断刷新，但手工写的 Prompt 没法自动迁移到新模型。DSPy 的编译器可以——同一个任务定义，换个模型重新编译就行。这对 AI 应用开发者是巨大的效率提升。"
+
+**面试话术：**
+
+> "DSPy 解决的是'Prompt 工程不可复用'的根本问题。我的经验是：先用传统方式快速验证（1-2 天），确认任务可行后用 DSPy 编译优化（半天到 1 天），最终 Prompt 质量比手工调的高 20-30%。更重要的是，模型升级时不需要重新调 Prompt——重新编译就行。我用 DSPy 做 RAG 优化，编译后的系统在 GPT-4o 和 Claude 3.5 上都能达到 >90% 的质量基准，省去了大量手工适配工作。"
+
+</details>
+
 ## 📊 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-24 | 新增 Q12 DSPy（声明式 LLM 编程范式） |
 | 2026-04-09 | 新增 Q11 Dify/Coze/n8n/OpenClaw 四平台对比 |
 | 2026-03-02 | 新增 10 道框架与运维面试题 |
 

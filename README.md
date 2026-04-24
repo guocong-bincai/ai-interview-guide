@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.82)：新增 Q14 AI应用高级专题模块（Extended Thinking/Thinking Token Budget智能预算分配）**
+> **⚠️ 本次更新(v3.83)：新增 Q11-Q12 Agent规划与反思（Voyager/AutoGen v3）+ Q12框架工具（DSPy）**
 
-**🎯 364+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 368+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.82 | **最后更新:** 2026-04-23"""
+**版本:** v3.83 | **最后更新:** 2026-04-24"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -27,7 +27,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 18个模块从易到难，325+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 24个模块从易到难，341+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -37,7 +37,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 337+ 道 |
+| 📝 **总题数** | 341+ 道 |
 | 📂 **核心模块** | 20 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -230,7 +230,7 @@
 </details>
 
 <details>
-<summary><b>📅 1月系统学习</b>（全部137+题）</summary>
+<summary><b>📅 1月系统学习</b>（全部140+题）</summary>
 
 **Week 1:** Level 1 基础必备 (22题)
 **Week 2:** Level 2 应用开发 (25题)
@@ -906,10 +906,21 @@ Made with ❤️ for the AI Community
 
 ---
 
-## 📚 数据更新（v3.82 - 2026-04-23）
+## 📚 数据更新（v3.83 - 2026-04-24）
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 🆕 | [🚀 AI应用高级专题（新增Q14）](docs/15-advanced-topics/) | Q14 Extended Thinking/Thinking Token Budget（四大厂商对比/Claude+Gemini+OpenAI+DeepSeek/智能预算分配策略/思考成本控制实战） | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.82 | 更新: 2026-04-23 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.83 - 2026-04-24）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🧠 Agent规划与反思（新增Q11-Q12）](docs/22-agent-planning-reflection/) | Q11 Voyager终身学习Agent（技能库/Iterative Prompt优化/vs Reflexion区别/企业实践）；Q12 AutoGen v3 vs CrewAI对比（指挥官模式/动态协商/适用场景决策树） | 🔥🔥🔥🔥🔥 | +2 |
+| 🆕 | [🛠️ 框架与工具（新增Q12）](docs/12-frameworks-tools/) | Q12 DSPy声明式LLM编程（斯坦福/Compiler自动优化Prompt/ vs 传统Prompt工程/2026范式转变/生产实践） | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.83 | 更新: 2026-04-24 | by 二狗子 🐕*
