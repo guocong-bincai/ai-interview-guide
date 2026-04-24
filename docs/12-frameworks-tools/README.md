@@ -1776,10 +1776,172 @@ Step 3: 输出
 
 </details>
 
+
+### Q13: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Assistant API vs Messages API 的核心区别：**
+
+| 维度 | Messages API（直接调用） | Assistant API（状态管理） |
+|------|------------------------|--------------------------|
+| **状态管理** | 开发者自己维护对话历史 | OpenAI 自动管理 Thread |
+| **工具支持** | 手动实现 Function Calling | 原生支持 File Search/Code Interpreter |
+| **适用场景** | 简单对话、一次性调用 | 复杂多轮、带工具的 Agent |
+| **复杂度** | 低 | 中 |
+| **成本** | 低（只付模型调用费） | 略高（Assistant 对象有维护成本） |
+
+**Assistant API 四大核心概念：**
+
+```python
+from openai import OpenAI
+client = OpenAI()
+
+# 1. 创建 Assistant（类似定义一个 Agent 配置）
+assistant = client.beta.assistants.create(
+    name="法律顾问",
+    instructions="你是一个专业法律顾问，...",
+    model="gpt-4o",
+    tools=[
+        {"type": "file_search"},      # 文件检索工具
+        {"type": "code_interpreter"}    # 代码执行工具
+    ],
+    tool_resources={
+        "file_search": {
+            "vector_store_ids": ["vs_legal_docs"]}  # 关联知识库
+    }
+)
+
+# 2. 创建 Thread（每个用户会话一个 Thread）
+thread = client.beta.threads.create(
+    messages=[{"role": "user", "content": "这份合同有什么风险？"}]
+)
+
+# 3. 创建 Run（让 Assistant 处理这个 Thread）
+run = client.beta.threads.runs.create(
+    thread_id=thread.id,
+    assistant_id=assistant.id
+)
+
+# 4. 轮询 Run 状态直到完成
+import time
+while run.status in ["queued", "in_progress"]:
+    run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+    time.sleep(0.5)
+
+# 5. 获取 Assistant 的回复
+messages = client.beta.threads.messages.list(thread_id=thread.id)
+```
+
+**File Search（知识检索）的用法：**
+
+```python
+# 上传文档到 Vector Store
+vector_store = client.beta.vector_stores.create(name="法律文档库")
+
+# 上传文件
+file_paths = ["合同1.pdf", "合同2.pdf", "判例.docx"]
+file_streams = [open(fp, "rb") for fp in file_paths]
+client.beta.vector_stores.file_batches.upload_and_poll(
+    vector_store_id=vector_store.id,
+    files=file_streams
+)
+
+# Assistant 关联 Vector Store
+assistant = client.beta.assistants.create(
+    ...,  # 基础配置
+    tools=[{"type": "file_search"}],
+    tool_resources={
+        "file_search": {
+            "vector_store_ids": [vector_store.id]}
+    }
+)
+# 运行时，Assistant 自动判断是否需要检索知识库
+```
+
+**Code Interpreter（代码执行）的用法：**
+
+```python
+# 1. 开启 Code Interpreter
+assistant = client.beta.assistants.create(
+    name="数据分析师",
+    instructions="你是一个数据分析专家，可以用 Python 分析数据。",
+    model="gpt-4o",
+    tools=[{"type": "code_interpreter"}]
+)
+
+# 2. 上传数据文件给 Code Interpreter
+data_file = client.files.create(
+    file=open("sales_data.csv", "rb"),
+    purpose="assistants"
+)
+
+# 3. 在 Thread 中使用
+thread = client.beta.threads.create(
+    messages=[{
+        "role": "user",
+        "content": "分析这份销售数据，预测下季度收入"
+    }],
+    tool_resources={
+        "code_interpreter": {
+            "file_ids": [data_file.id]}
+    }
+)
+
+# 4. Run 执行时会自动：
+#    - 生成 Python 代码
+#    - 在沙箱中执行
+#    - 返回结果（文本/图表）
+#    - 生成的临时文件可在下一轮继续使用
+```
+
+**Thread + Run 的状态机：**
+
+```
+Run 状态流转：
+
+queued → in_progress → requires_action → completed
+                          ↓                   ↓
+                    failed/expired    requires_action（需工具调用）
+                          ↓                   ↓
+                       queued            in_progress（工具返回后）
+                          ↓                   ↓
+                    in_progress → completed（再次）
+
+关键点：
+- requires_action = 需要调用工具（Function Calling/File Search/Code Interpreter）
+- 工具返回后，创建新的 Run 继续
+- 每次 Run 都是一次完整的"思考-执行"循环
+```
+
+**Messages API vs Assistant API 选型决策树：**
+
+```
+是否需要状态管理？
+├── 否 → Messages API（简单、便宜）
+└── 是 →
+    ├── 是否需要工具（File Search/Code Interpreter）？
+    │   ├── 否 → Assistant API（只管 Thread）
+    │   └── 是 → Assistant API（原生工具支持）
+    │
+    └── 是否需要多 Agent 协作？
+        ├── 否 → Assistant API
+        └── 是 → 自己用 Messages API + LangChain/LangGraph
+```
+
+**面试话术：**
+
+> "Assistant API 是 OpenAI 的'一站式 Agent 构建方案'，核心价值是把'状态管理'和'工具调用'从应用层下沉到 API 层。我用 Assistant API 做企业知识库问答：把合同库绑到 File Search，财务数据绑到 Code Interpreter，一个 Assistant 对象搞定检索+计算+回答。但要注意——Assistant API 的工具调用是'声明式'的，复杂的多 Agent 协作场景还是得用 LangGraph 自己搭。我的经验是：简单多轮对话+工具用 Assistant API 省事，复杂编排用 Messages API+LangGraph 更灵活。"
+
+</details>
+
+
 ## 📊 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-25 | 新增 Q13 OpenAI Assistant API（Thread/Run/File Search/Code Interpreter） |
 | 2026-04-24 | 新增 Q12 DSPy（声明式 LLM 编程范式） |
 | 2026-04-09 | 新增 Q11 Dify/Coze/n8n/OpenClaw 四平台对比 |
 | 2026-03-02 | 新增 10 道框架与运维面试题 |

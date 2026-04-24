@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.83)：新增 Q11-Q12 Agent规划与反思（Voyager/AutoGen v3）+ Q12框架工具（DSPy）**
+> **⚠️ 本次更新(v3.84)：新增 Q14推理优化（Prefix Caching/RadixAttention）+ Q13框架工具（OpenAI Assistant API）**
 
-**🎯 368+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 371+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.83 | **最后更新:** 2026-04-24"""
+**版本:** v3.84 | **最后更新:** 2026-04-25"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -37,7 +37,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 341+ 道 |
+| 📝 **总题数** | 344+ 道 |
 | 📂 **核心模块** | 20 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -913,6 +913,17 @@ Made with ❤️ for the AI Community
 | 🆕 | [🚀 AI应用高级专题（新增Q14）](docs/15-advanced-topics/) | Q14 Extended Thinking/Thinking Token Budget（四大厂商对比/Claude+Gemini+OpenAI+DeepSeek/智能预算分配策略/思考成本控制实战） | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.82 | 更新: 2026-04-23 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.84 - 2026-04-25）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [⚡ 推理优化（新增Q14）](docs/08-inference-optimization/) | Q14 Prefix Caching / RadixAttention（共享前缀复用/长上下文必备/SGLang vs vLLM前缀缓存对比/生产实践） | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🛠️ 框架与工具（新增Q13）](docs/12-frameworks-tools/) | Q13 OpenAI Assistant API（Thread/Run状态机/File Search知识检索/Code Interpreter沙箱执行/选型决策树） | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.84 | 更新: 2026-04-25 | by 二狗子 🐕*
 
 ---
 
