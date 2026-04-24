@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.84)：新增 Q14推理优化（Prefix Caching/RadixAttention）+ Q13框架工具（OpenAI Assistant API）**
+> **⚠️ 本次更新(v3.85)：新增 Q11-Q12生产部署（LLM限流熔断/API Gateway/A-B测试）**
 
-**🎯 371+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 373+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.84 | **最后更新:** 2026-04-25"""
+**版本:** v3.85 | **最后更新:** 2026-04-25"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -37,7 +37,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 344+ 道 |
+| 📝 **总题数** | 346+ 道 |
 | 📂 **核心模块** | 20 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -926,6 +926,15 @@ Made with ❤️ for the AI Community
 *版本: v3.84 | 更新: 2026-04-25 | by 二狗子 🐕*
 
 ---
+## 📚 数据更新（v3.85 - 2026-04-25）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🏛️ 工程架构与部署（新增Q11-Q12）](docs/10-production-deployment/) | Q11 LLM限流熔断/令牌桶背压机制/生产级TPM配置；Q12 LLM API Gateway/多模型路由/A-B测试框架 | 🔥🔥🔥🔥🔥 | +2 |
+
+*版本: v3.85 | 更新: 2026-04-25 | by 二狗子 🐕*
+
+
 
 ## 📚 数据更新（v3.83 - 2026-04-24）
 

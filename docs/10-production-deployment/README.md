@@ -416,6 +416,262 @@ response = llm.generate(compressed['compressed_prompt'])
 
 </details>
 
+### Q11: 如何对 LLM API 做限流和熔断？Token 速率控制和背压机制怎么做？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 LLM API 需要限流？**
+
+LLM API 限流有三个特殊性：按 Token 计费（超限直接烧钱）、调用延迟高（3-30秒阻塞会级联放大）、上游 API 有 RPM/TPM 限制（超限直接 429）。例如 1000 QPS × 平均 1000 tokens/请求 = 1M TPM，而 GPT-4o TPM 限制仅 450K，不限流直接爆。
+
+**限流算法对比：**
+
+| 算法 | 原理 | 优点 | 缺点 | 适用场景 |
+|------|------|------|------|----------|
+| **固定窗口** | 每分钟固定配额 | 简单 | 边界双倍配额 | 粗粒度控制 |
+| **滑动窗口** | 时间窗口平滑 | 比固定窗口公平 | 稍复杂 | 通用限流 |
+| **令牌桶** | 桶内令牌决定能否通过 | 允许突发 | 实现稍复杂 | 突发流量 |
+| **漏桶** | 恒定速率消费 | 平滑输出 | 突发受限 | 保护下游 |
+| **自适应限流** | 根据 429/成功率动态调整 | 智能 | 最复杂 | 保护多租户 |
+
+**令牌桶实现（Python）：**
+
+```python
+import time
+import threading
+
+class TokenBucketRateLimiter:
+    def __init__(self, rate: int, capacity: int):
+        self.rate = rate
+        self.capacity = capacity
+        self.tokens = capacity
+        self.last_refill = time.time()
+        self.lock = threading.Lock()
+    
+    def _refill(self):
+        now = time.time()
+        elapsed = now - self.last_refill
+        new_tokens = elapsed * self.rate
+        self.tokens = min(self.capacity, self.tokens + new_tokens)
+        self.last_refill = now
+    
+    def acquire(self, tokens: int = 1, blocking: bool = True, timeout: float = None) -> bool:
+        start = time.time()
+        with self.lock:
+            while True:
+                self._refill()
+                if self.tokens >= tokens:
+                    self.tokens -= tokens
+                    return True
+                if not blocking:
+                    return False
+                wait_time = (tokens - self.tokens) / self.rate
+                if timeout and (time.time() - start) >= wait_time:
+                    return False
+                time.sleep(min(wait_time, 0.1))
+```
+
+**Token 速率控制器（LLM API 专用）：**
+
+```python
+import asyncio
+import time
+from collections import deque
+
+class TokenRateLimiter:
+    def __init__(self, tpm_limit: int, window_seconds: int = 60):
+        self.tpm_limit = tpm_limit
+        self.window = window_seconds
+        self.tokens_used = deque()
+        self.lock = asyncio.Lock()
+    
+    async def acquire(self, tokens: int, timeout: float = 60) -> bool:
+        start = time.time()
+        while True:
+            async with self.lock:
+                now = time.time()
+                while self.tokens_used and now - self.tokens_used[0][0] > self.window:
+                    self.tokens_used.popleft()
+                current_usage = sum(t for _, t in self.tokens_used)
+                if current_usage + tokens <= self.tpm_limit:
+                    self.tokens_used.append((now, tokens))
+                    return True
+            if timeout and time.time() - start >= timeout:
+                return False
+            await asyncio.sleep(0.1)
+```
+
+**背压机制（Backpressure）：**
+
+```python
+class LLMOverloadedException(Exception):
+    pass
+
+class LLMCallWithBackpressure:
+    def __init__(self, rate_limiter: TokenRateLimiter, max_queue_size: int = 100):
+        self.rate_limiter = rate_limiter
+        self.queue = asyncio.Queue(maxsize=max_queue_size)
+        self.results = {}
+    
+    async def submit(self, request_id: str, prompt: str) -> str:
+        try:
+            self.queue.put_nowait((time.time(), request_id, prompt))
+        except asyncio.QueueFull:
+            raise LLMOverloadedException(
+                f"Queue full, current load={self.queue.qsize()}, max={self.queue.maxsize}"
+            )
+        return request_id
+    
+    async def process(self):
+        while True:
+            ts, request_id, prompt = await self.queue.get()
+            wait_time = time.time() - ts
+            if wait_time > 30:
+                self.results[request_id] = {"status": "timeout", "result": None}
+                continue
+            tokens = estimate_tokens(prompt)
+            if await self.rate_limiter.acquire(tokens, timeout=60):
+                self.results[request_id] = {"status": "done", "result": llm.generate(prompt)}
+            else:
+                self.results[request_id] = {"status": "rate_limited", "result": None}
+```
+
+**生产级限流配置：**
+
+```yaml
+rate_limits:
+  gpt-4o:
+    tpm: 450000
+    rpm: 5000
+    effective_limit: 400000  # 安全水位 90%
+  claude-3-5-sonnet:
+    tpm: 1000000
+    effective_limit: 800000
+
+backpressure:
+  queue_size: 200
+  timeout_seconds: 30
+  degrade_to_model: "gpt-3.5-turbo"
+
+circuit_breaker:
+  error_threshold: 0.5
+  recovery_timeout: 60
+```
+
+**面试话术：**
+
+> "LLM 限流的核心是'Token 速率控制'而非'请求速率控制'——因为按 Token 计费，请求大小的差异会导致实际消耗差 10 倍。我的实现用令牌桶控制 TPM，配额用 OpenAI 的 90% 作为安全水位。背压机制是当请求堆积超过阈值时直接拒绝，而不是让用户等待——等待会导致超时窗口更长，用户体验更差。生产环境的教训是：429 一定要立即触发限流，不要重试 10 次才认输，那会瞬间打爆上游。"
+
+</details>
+
+### Q12: 如何设计 LLM API Gateway？多模型路由和 A/B 测试怎么做？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**LLM Gateway 的核心职责：**
+
+LLM Gateway 是 AI 应用的统一入口，负责限流、路由、监控、缓存四件事。它位于应用层和各模型 Provider 之间，屏蔽底层复杂度。
+
+**多模型路由的实现：**
+
+```python
+class LLMRouter:
+    def __init__(self):
+        self.routes = {
+            "gpt-4o": {"provider": "openai", "cost_per_1k": 0.005, "latency_p50": 1.2},
+            "claude-3-5-sonnet": {"provider": "anthropic", "cost_per_1k": 0.003, "latency_p50": 1.5},
+            "deepseek-chat": {"provider": "deepseek", "cost_per_1k": 0.00014, "latency_p50": 2.0},
+        }
+    
+    def route(self, request: LLMRequest, context: RoutingContext) -> str:
+        if request.task_type == "qa" and request.complexity == "low":
+            return "deepseek-chat"
+        if request.complexity == "high" or request.needs_reasoning:
+            return "gpt-4o"
+        if request.context_length > 128000:
+            return "claude-3-5-sonnet"
+        if context.user_tier == "free" and request.complexity == "medium":
+            return "deepseek-chat"
+        return "claude-3-5-sonnet"
+```
+
+**A/B 测试框架：**
+
+```python
+from collections import defaultdict
+
+class LLMABExperiment:
+    def __init__(self, experiment_id: str):
+        self.experiment_id = experiment_id
+        self.variants = {
+            "control": {"model": "gpt-4o", "weight": 0.5},
+            "treatment": {"model": "claude-3-5-sonnet", "weight": 0.5},
+        }
+        self.metrics = defaultdict(lambda: {"requests": 0, "latencies": [], "errors": 0})
+    
+    def get_variant(self, user_id: str) -> str:
+        bucket = hash(user_id) % 100
+        cumulative = 0
+        for variant, config in self.variants.items():
+            cumulative += config["weight"] * 100
+            if bucket < cumulative:
+                return variant
+        return "control"
+    
+    def record(self, user_id: str, variant: str, latency: float, success: bool, quality_score: float = None):
+        m = self.metrics[variant]
+        m["requests"] += 1
+        m["latencies"].append(latency)
+        if not success:
+            m["errors"] += 1
+        if quality_score is not None:
+            if "quality_scores" not in m:
+                m["quality_scores"] = []
+            m["quality_scores"].append(quality_score)
+```
+
+**LLM Gateway 完整架构：**
+
+```python
+class LLMGateway:
+    def __init__(self):
+        self.rate_limiter = TokenRateLimiter(tpm_limit=400000)
+        self.router = LLMRouter()
+        self.cache = SemanticCache()
+    
+    async def handle(self, request: LLMRequest) -> LLMResponse:
+        tokens = estimate_tokens(request.prompt)
+        if not await self.rate_limiter.acquire(tokens):
+            raise RateLimitException("Too many requests")
+        
+        cached = self.cache.get(request.prompt)
+        if cached:
+            return cached
+        
+        model = self.router.route(request, self.get_context(request))
+        response = await self.call_model(model, request)
+        self.cache.set(request.prompt, response, ttl=3600)
+        return response
+```
+
+**与 Nginx/Kong 等 API Gateway 的区别：**
+
+| 维度 | 传统 API Gateway | LLM Gateway |
+|------|----------------|-------------|
+| **限流粒度** | 按请求数（RPM） | 按 Token 数（TPM） |
+| **模型路由** | 不支持 | 原生支持多模型 |
+| **语义缓存** | 不支持 | 基于 Embedding 相似度 |
+| **成本分析** | 无 | 按用户/模型/请求粒度 |
+| **模型降级** | 不支持 | 自动 fallback 到小模型 |
+
+**面试话术：**
+
+> "LLM Gateway 的核心价值是'统一入口+智能路由'。我的设计：简单 QA 走 DeepSeek（成本 1/50），复杂推理走 GPT-4o，长上下文走 Claude。语义缓存命中 30% 请求，A/B 测试持续优化模型选择。生产环境平均单次请求成本从 $0.04 降到 $0.012。面试时能画出完整的 Gateway 架构图并讲清楚各层职责，说明你有工程落地经验。"
+
+</details>
+
 ### Q13: MLOps完整流程是什么?如何实现CI/CD?
 
 <details>
