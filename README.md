@@ -2,7 +2,7 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.85)：新增 Q11-Q12生产部署（LLM限流熔断/API Gateway/A-B测试）**
+> **⚠️ 本次更新(v3.86)：新增 Q12 Process Reward Model（PRM）详解与Agent推理优化；修复15-advanced-topics模块Q13重复问题**
 
 **🎯 373+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.85 | **最后更新:** 2026-04-25"""
+**版本:** v3.86 | **最后更新:** 2026-04-30"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -934,6 +934,14 @@ Made with ❤️ for the AI Community
 
 *版本: v3.85 | 更新: 2026-04-25 | by 二狗子 🐕*
 
+
+## 📚 数据更新（v3.86 - 2026-04-30）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🚀 AI应用高级专题（新增Q12）](docs/15-advanced-topics/) | Q12 Process Reward Model（PRM vs ORM/credit assignment问题/PRM在推理模型o1/o3/R1中的应用/训练方法/Agent系统实战） | 🔥🔥🔥🔥 | +1 |
+
+*版本: v3.86 | 更新: 2026-04-30 | by 二狗子 🐕*
 
 
 ## 📚 数据更新（v3.83 - 2026-04-24）

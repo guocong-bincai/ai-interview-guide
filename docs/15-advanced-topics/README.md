@@ -552,6 +552,7 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-04-30 | 新增Q12 Process Reward Model（PRM）详解；修复Q13重复问题 |
 | 2026-04-06 | 新增Q8企业级AI四层黄金架构；更新Module13新增Q12-Q13 A2A协议与四层架构 |
 | 2026-03-03 | 新增 AI 应用开发高级专题面试题 10 道 |
 
@@ -613,11 +614,104 @@ LangChain 工程师分享的生产实践：
 
 </details>
 
-### Q13: Evolver是什么？GEP（Genome Evolution Protocol）如何让AI Agent实现自我进化？
+### Q12: 什么是 Process Reward Model（PRM）？为什么 "过程奖励" 对 Agent 推理比 "结果奖励" 更重要？
 
 <details>
-<parameter name="summary">💡 答案要点
-### Q13: Evolver 是什么？GEP（Genome Evolution Protocol）如何让 AI Agent 实现自我进化？
+<summary>💡 答案要点</summary>
+
+**Outcome Reward Model vs Process Reward Model：**
+
+传统的结果奖励模型（ORM）只判断最终答案对不对，而过程奖励模型（PRM）会给推理的每一步打分。
+
+| | ORM（结果奖励） | PRM（过程奖励） |
+|---|---|---|
+| **评估时机** | 只在最后判断答案 | 每一步推理都给分 |
+| **错误定位** | ❌ 不知道哪步出错 | ✅ 精确定位错误步骤 |
+| **适用场景** | 简单问答、选择题 | Agent多步推理、代码生成 |
+| **训练成本** | 低（只需最终标签） | 高（需要步骤级标注） |
+| **效果** | 推理过程不可控 | 推理路径更可靠 |
+
+**为什么 Agent 场景必须用 PRM？**
+
+Agent 任务（如代码生成、工具调用、多跳推理）的核心问题是 **"中间步骤错了，但最后答案可能蒙对"**。ORM 无法区分：
+- 正确答案 + 错误推理过程 = 危险（下次遇到类似问题会再错）
+- 错误答案 + 错误推理过程 = 正常（知道要改进）
+
+PRM 的核心价值：**让模型"知道自己在哪里错了"**，而不仅仅是"最终答案错了"。
+
+**PRM 在推理模型中的典型应用（OpenAI o1/o3、DeepSeek R1）：**
+
+```
+用户问题：如何用 Go 实现一个并发爬虫？
+
+推理链（PRM 评分）：
+Step 1: 分析需求（0.9分）✅ → 理解正确
+Step 2: 设计 Worker Pool（0.7分）⚠️ → 思路对但通道大小未指定
+Step 3: 写爬取逻辑（0.6分）⚠️ → 缺少错误处理
+Step 4: 实现并发控制（0.3分）❌ → 这里有死锁风险
+Step 5: 测试验证（0.8分）✅ → 测试覆盖合理
+
+→ PRM 引导模型在 Step 4 重点改进，而不是跳过错误继续生成
+```
+
+**PRM 的三大训练方法：**
+
+| 方法 | 如何获取过程标签 | 成本 |
+|------|----------------|------|
+| **人工标注** | 人工给每步打分 | 极高（不可扩展） |
+| **LLM 自评** | 用强模型（如 GPT-4）给推理链打分 | 中等 |
+| **规则提取** | 从已有 CoT 数据中提取步骤边界 | 低 |
+| **PRM 从 ORM 蒸馏** | 用 ORM 信号训练 PRM | 中等 |
+
+**生产级 PRM 实战：**
+
+```python
+# 简化版 PRM 评分实现
+class ProcessRewardModel:
+    def score_step(self, context: str, step: str) -> float:
+        """给单个推理步骤打分"""
+        prompt = f"""
+        给以下推理步骤的质量打分（0-1）：
+        上下文：{context}
+        当前步骤：{step}
+        评分标准：
+        - 1.0：完美，当前步清晰且为下一步奠定基础
+        - 0.7-0.9：良好，逻辑正确但可更清晰
+        - 0.4-0.6：一般，有逻辑但不完整
+        - 0.1-0.3：较差，有错误或偏离目标
+        - 0.0：完全错误
+        """
+        return self.llm.score(prompt)
+    
+    def score_trajectory(self, steps: list[str]) -> float:
+        """给整条推理链打分"""
+        total = 0.0
+        for i, step in enumerate(steps):
+            context = " -> ".join(steps[:i])
+            step_score = self.score_step(context, step)
+            # 越后面的步骤权重越高（错误越靠近终点评分越高）
+            total += step_score * (1 + i * 0.1)
+        return total / len(steps)
+```
+
+**PRM 在 Agent 系统中的实际价值：**
+
+1. **提前终止错误推理** - PRM 发现当前路径置信度低，触发重试
+2. **引导搜索策略** - Beam Search 中用 PRM 选优而非只信任最终答案
+3. **自我纠错信号** - PRM 分数突变时触发反思（类似 Reflexion）
+4. **训练数据生成** - 高 PRM 轨迹作为 SFT 正例，低 PRM 轨迹作为负例
+
+**面试话术：**
+> "PRM 和 ORM 的核心区别是'过程控制'vs'结果控制'。ORM 只能告诉你'你错了'，PRM 能告诉你'你在哪一步错了'。对于 Agent 场景，PRM 至关重要——因为 Agent 的每一步推理都可能影响后续决策。我之前做 RAG Agent 时遇到过一个问题：检索步骤出了问题，但最后答案'碰巧'对了，ORM 给高分，但 Agent 学到了错误模式。用 PRM 后，能精确定位是检索召回有问题还是生成有幻觉。2026 年主流推理模型（o1/o3/R1）都用 PRM 做过程监督，这是 Agent 能力提升的关键技术之一。"
+
+**延伸阅读：**
+- OpenAI o1 技术报告：https://openai.com/index/learning-to-reason-with-limited-compute/
+- DeepSeek-R1 论文：https://github.com/deepseek-ai/DeepSeek-R1
+- PRM 综述：https://arxiv.org/abs/2403.16950
+
+</details>
+
+### Q13: Evolver是什么？GEP（Genome Evolution Protocol）如何让AI Agent实现自我进化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -860,4 +954,4 @@ print(f"本次调用成本: ${(thinking_cost + output_cost) / 1e6:.4f}")
 
 ---
 
-*版本: v3.1 | 更新: 2026-04-23 | by 二狗子 🐕*
+*版本: v3.2 | 更新: 2026-04-30 | by 二狗子 🐕*
