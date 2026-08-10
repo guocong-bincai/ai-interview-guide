@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.132)：01-基础概念 优化4题：Q4改LLM与传统ML区别、Q12改概率模型与输出不确定性、Q13补幻觉检测与忠实度评估、Q17改选型方法论(质量×速度×成本)
+本次更新(v3.133)：02-Prompt工程 去重622行(Self-Consistency/ToT/JSON三组重复)+新增Q9 Prompt Injection攻击与防御
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.132 | **最后更新:** 2026-08-10"""
+**版本:** v3.133 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -1165,6 +1165,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.133 - 2026-08-10）
+
+| 序号 | 模块 | 更新内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🔄 | [✍️ Prompt工程（去重+新增）](docs/02-prompt-engineering/) | 删除3组完全重复内容共622行(Self-Consistency/ToT/JSON结构化输出)；编号整理为连续Q1-Q12；新增Q9 Prompt Injection攻击与防御(直接/间接注入/越狱+四层防御体系+2026间接注入趋势) | 🔥🔥🔥🔥🔥 | 去重+新增1 |
+
+*版本: v3.133 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
