@@ -267,6 +267,110 @@
    - 适合离线任务
 
 </details>
+### Q9: RAG 系统的语义缓存（Semantic Cache）如何实现？有哪些关键问题？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**语义缓存 = 用语义相似度判断是否命中缓存**
+
+**问题背景：**
+- 传统缓存：精确匹配（相同问题 → 相同答案）
+- 语义缓存：语义相似 → 相同答案
+
+```
+用户问题 A："如何优化 Python 代码性能？"
+用户问题 B："Python 性能优化方法有哪些？"
+→ 语义相似 → 命中缓存
+
+用户问题 C："如何优化 Python 代码性能？"
+用户问题 C 再次问："如何优化 Python 代码性能？"
+→ 完全相同 → 精确命中
+```
+
+**核心挑战：**
+
+| 挑战 | 说明 | 解决方案 |
+|------|------|----------|
+| **相似度阈值** | 设太高 → 命中率低；设太低 → 答案不相关 | 线上 A/B 测试调参 |
+| **向量检索开销** | 每次请求都要做向量检索 | 粗排 + 精排 |
+| **缓存失效** | 知识库更新后，缓存可能过期 | TTL + 版本号 |
+| **多租户** | 不同用户看到不同答案 | 用户级缓存隔离 |
+
+**实现架构：**
+```
+用户问题
+    ↓
+┌─────────────┐
+│ Query 向量化 │ → embedding
+└─────────────┘
+    ↓
+┌─────────────┐
+│ 缓存命中判断 │ → 向量数据库检索 top-k
+└─────────────┘
+    ↓
+命中？ → 是 → 返回缓存答案
+    ↓ 否
+┌─────────────┐
+│ 正常 RAG 流程 │ → 执行检索 + 生成
+└─────────────┘
+    ↓
+┌─────────────┐
+│ 写入缓存    │ → 新问题 + 答案 → 向量存入
+└─────────────┘
+```
+
+**实现示例：**
+```python
+import numpy as np
+
+class SemanticCache:
+    def __init__(self, threshold=0.85, ttl=3600):
+        self.cache = []  # [(embedding, question, answer, timestamp)]
+        self.threshold = threshold
+        self.ttl = ttl
+
+    def get(self, question, embedding):
+        # 1. 向量检索
+        scores = [cosine(e1, embedding) for e1, _, _, _ in self.cache]
+
+        # 2. 找最佳匹配
+        if not scores:
+            return None
+
+        best_idx = np.argmax(scores)
+        best_score = scores[best_idx]
+
+        # 3. 检查阈值和 TTL
+        if best_score >= self.threshold:
+            _, _, answer, timestamp = self.cache[best_idx]
+            if time.time() - timestamp < self.ttl:
+                return answer
+
+        return None
+
+    def set(self, question, embedding, answer):
+        # 检查缓存大小，超限时淘汰最旧的
+        if len(self.cache) > 10000:
+            self.cache.pop(0)
+        self.cache.append((embedding, question, answer, time.time()))
+```
+
+**性能对比：**
+
+| 方案 | 命中率 | 延迟 | 成本 |
+|------|--------|------|------|
+| 无缓存 | 0% | 500ms | ¥0.01/次 |
+| 精确缓存 | 10-20% | 10ms | ¥0.002/次 |
+| **语义缓存** | **30-50%** | **50ms** | **¥0.005/次** |
+
+**面试话术：**
+> "语义缓存是 RAG 成本优化的杀手级功能。我实测命中率 30-50%，配合向量数据库（如 Qdrant）的 ANN 索引，缓存检索只要 50ms，比直接调用 LLM 快 10 倍。关键是相似度阈值要调好，我一般设 0.85——太高容易漏命中，太低答案不相关。"
+
+</details>
+
+---
+
 
 ## 四、高分实战案例
 
@@ -290,7 +394,7 @@
 
 **结果：** 财务指标提取准确率从 65% 提升到 94%
 
-### Q11: 什么是Query改写?如何提升检索效果?
+### Q10: 什么是Query改写?如何提升检索效果?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -410,7 +514,7 @@ results = retriever.get_relevant_documents(rewritten)
 
 ---
 
-### Q12: 什么是上下文压缩?如何减少无效Token?
+### Q11: 什么是上下文压缩?如何减少无效Token?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -522,7 +626,7 @@ chunk_embeddings = split_embedding(full_embedding, chunk_boundaries)
 
 ---
 
-## 13. Embedding模型如何选择?
+### Q12: 如何选择 Embedding 模型？有哪些关键维度？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -754,7 +858,7 @@ embedding = custom_model.encode("医学专业术语")
 
 ---
 
-## 14. GraphRAG是什么？与普通向量RAG的核心区别？何时选择？
+### Q13: GraphRAG 是什么？与普通向量 RAG 的核心区别？何时选择？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -956,7 +1060,7 @@ answer = graphrag_answer("支付宝的创始人和阿里巴巴CTO是什么关系
 
 ---
 
-## 15. Agentic RAG是什么？与普通RAG的区别？如何实现多跳推理？
+### Q14: Agentic RAG 是什么？与普通 RAG 的区别？如何实现多跳推理？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1295,120 +1399,7 @@ RAGAS Faithfulness 均值：> 0.85
 
 </details>
 
-### Q9: RAG 系统的语义缓存（Semantic Cache）如何实现？有哪些关键问题？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**语义缓存 = 用语义相似度判断是否命中缓存**
-
-**问题背景：**
-- 传统缓存：精确匹配（相同问题 → 相同答案）
-- 语义缓存：语义相似 → 相同答案
-
-```
-用户问题 A："如何优化 Python 代码性能？"
-用户问题 B："Python 性能优化方法有哪些？"
-→ 语义相似 → 命中缓存
-
-用户问题 C："如何优化 Python 代码性能？"
-用户问题 C 再次问："如何优化 Python 代码性能？"
-→ 完全相同 → 精确命中
-```
-
-**核心挑战：**
-
-| 挑战 | 说明 | 解决方案 |
-|------|------|----------|
-| **相似度阈值** | 设太高 → 命中率低；设太低 → 答案不相关 | 线上 A/B 测试调参 |
-| **向量检索开销** | 每次请求都要做向量检索 | 粗排 + 精排 |
-| **缓存失效** | 知识库更新后，缓存可能过期 | TTL + 版本号 |
-| **多租户** | 不同用户看到不同答案 | 用户级缓存隔离 |
-
-**实现架构：**
-```
-用户问题
-    ↓
-┌─────────────┐
-│ Query 向量化 │ → embedding
-└─────────────┘
-    ↓
-┌─────────────┐
-│ 缓存命中判断 │ → 向量数据库检索 top-k
-└─────────────┘
-    ↓
-命中？ → 是 → 返回缓存答案
-    ↓ 否
-┌─────────────┐
-│ 正常 RAG 流程 │ → 执行检索 + 生成
-└─────────────┘
-    ↓
-┌─────────────┐
-│ 写入缓存    │ → 新问题 + 答案 → 向量存入
-└─────────────┘
-```
-
-**实现示例：**
-```python
-import numpy as np
-
-class SemanticCache:
-    def __init__(self, threshold=0.85, ttl=3600):
-        self.cache = []  # [(embedding, question, answer, timestamp)]
-        self.threshold = threshold
-        self.ttl = ttl
-
-    def get(self, question, embedding):
-        # 1. 向量检索
-        scores = [cosine(e1, embedding) for e1, _, _, _ in self.cache]
-
-        # 2. 找最佳匹配
-        if not scores:
-            return None
-
-        best_idx = np.argmax(scores)
-        best_score = scores[best_idx]
-
-        # 3. 检查阈值和 TTL
-        if best_score >= self.threshold:
-            _, _, answer, timestamp = self.cache[best_idx]
-            if time.time() - timestamp < self.ttl:
-                return answer
-
-        return None
-
-    def set(self, question, embedding, answer):
-        # 检查缓存大小，超限时淘汰最旧的
-        if len(self.cache) > 10000:
-            self.cache.pop(0)
-        self.cache.append((embedding, question, answer, time.time()))
-```
-
-**性能对比：**
-
-| 方案 | 命中率 | 延迟 | 成本 |
-|------|--------|------|------|
-| 无缓存 | 0% | 500ms | ¥0.01/次 |
-| 精确缓存 | 10-20% | 10ms | ¥0.002/次 |
-| **语义缓存** | **30-50%** | **50ms** | **¥0.005/次** |
-
-**面试话术：**
-> "语义缓存是 RAG 成本优化的杀手级功能。我实测命中率 30-50%，配合向量数据库（如 Qdrant）的 ANN 索引，缓存检索只要 50ms，比直接调用 LLM 快 10 倍。关键是相似度阈值要调好，我一般设 0.85——太高容易漏命中，太低答案不相关。"
-
-</details>
-
----
-
-**上一模块：** [Prompt 工程](../02-prompt-engineering/)
-**下一模块：** [Transformer 架构](../04-transformer-architecture/)
-
----
-
-[返回目录 →](../../README.md)
-
-## 16. RAG 生产级可观测性与监控（Q13）
-
-### Q13: 如何建立 RAG 系统的生产级可观测性体系？有哪些关键监控指标和告警策略？
+### Q15: 如何建立 RAG 系统的生产级可观测性体系？有哪些关键监控指标和告警策略？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1533,7 +1524,7 @@ groups:
 
 ---
 
-*版本: v1.13 | 更新: 2026-05-09 | by 二狗子 🐕*
+*版本: v3.134 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
@@ -1541,7 +1532,7 @@ groups:
 
 ---
 
-### Q13: 什么是多模态 RAG？如何实现图文混合检索？
+### Q16: 什么是多模态 RAG？如何实现图文混合检索？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1690,7 +1681,7 @@ def encode_text(text: str) -> np.ndarray:
 
 ---
 
-### Q14: Parent-Document Retrieval 和 Sentence Window Retrieval 是什么？
+### Q17: Parent-Document Retrieval 和 Sentence Window Retrieval 是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1786,7 +1777,7 @@ query_engine = index.as_query_engine(
 
 ---
 
-### Q15: 如何做 RAG 知识库的动态知识更新？有哪些策略？
+### Q18: 如何做 RAG 知识库的动态知识更新？有哪些策略？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1973,4 +1964,4 @@ class AtomicKnowledgeUpdate:
 
 ---
 
-*版本: v2.0 | 更新: 2026-07-02 | 补充多模态RAG、Parent-Document Retrieval、动态知识更新*
+*版本: v3.134 | 更新: 2026-08-10 | 补充多模态RAG、Parent-Document Retrieval、动态知识更新*

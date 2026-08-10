@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.133)：02-Prompt工程 去重622行(Self-Consistency/ToT/JSON三组重复)+新增Q9 Prompt Injection攻击与防御
+本次更新(v3.134)：03-RAG系统 编号整理Q1-Q18连续(修复Q13重复/缺失/版本标记混乱)+语义缓存移至正确位置
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.133 | **最后更新:** 2026-08-10"""
+**版本:** v3.134 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -1165,6 +1165,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.134 - 2026-08-10）
+
+| 序号 | 模块 | 更新内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🔄 | [📚 RAG系统（编号整理）](docs/03-rag-system/) | 编号整理为连续Q1-Q18：修复两个Q13冲突(可观测性/多模态)、缺失Q10、语义缓存位置错乱(移至Q8后)、13/14/15/16大标题统一为Q格式、文件内版本标记统一(v1.13/v2.0→v3.134) | 🔥🔥🔥🔥🔥 | 整理18题 |
+
+*版本: v3.134 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
