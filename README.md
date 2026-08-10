@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.140)：17-AI编程工具新增Q50 企业级AI编程规范化(Rules/Skills/Subagents/Hooks四类配置+分层校验layer-check+计划审核工作流)
+本次更新(v3.141)：16-简历面试新增Q14 AI Agent后端岗JD拆解(4大能力模块+3阶段转型路线+量化表达模板)
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.140 | **最后更新:** 2026-08-10"""
+**版本:** v3.141 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -1165,6 +1165,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.141 - 2026-08-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [📄 简历面试技巧（新增Q14）](docs/16-resume-interview-tips/) | Q14 AI Agent后端岗JD拆解：4大能力模块(基础盘/核心竞争力/进阶项/压舱石)+3阶段转型路线(后端基础→AI工程化→项目落地)+量化表达模板(53%→93%句式) | 🔥🔥🔥🔥🔥 | +1 |
+
+*版本: v3.141 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
