@@ -4503,4 +4503,63 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
+### Q33: SKILL.md 是一次性全塞进 context 的吗？Progressive Disclosure 三级加载机制是什么？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**面试坑点（高频追问链）：**
+
+> 面试官问："你写的 Skill，SKILL.md 是一次性全部读进 context 的吗？装 30 个 Skill 会不会开局就塞满上下文？"
+>
+> ❌ 错误答案："对啊，装上就加载进去了"
+> ✅ 正确答案：**不是全量加载，是 Progressive Disclosure（渐进式披露），三级按需加载**
+
+**三级加载机制（核心答案）：**
+
+| 级别 | 内容 | 加载时机 | Token 成本 |
+|------|------|----------|-----------|
+| **1. Metadata** | SKILL.md 顶部的 YAML（name + description） | 启动时常驻上下文 | 每个约 100 token，30 个才 3000 token，可忽略 |
+| **2. 正文** | SKILL.md 主体指令 | 用户请求命中 description 语义匹配时才加载 | 建议 5000 词以内 |
+| **3. 资源文件** | references/、scripts/ 目录 | 由模型主动用工具（Read/Bash）读取，不自动加载 | 体积几乎无上限 |
+
+**为什么这么设计（面试加分）：**
+
+```
+metadata 常驻、廉价（100 token/个）
+正文按需加载、一次只进一两个
+资源主动读取、不读不进上下文
+→ 每级只在恰当的时机花恰当的 token
+→ 装很多 Skill 也不会爆 context
+```
+
+**description 怎么写才能准确触发（高频追问）：**
+
+```
+公式三要素：做什么 + 何时使用 + 触发短语
+
+❌ 太泛: description: Helps with documents.
+❌ 只说做什么: Creates sophisticated multi-page documentation systems.
+✅ 三要素全: Analyzes Figma design files and generates developer handoff docs.
+   Use when the user uploads a .fig file or asks for "design specs",
+   "component documentation", or "design-to-code handoff".
+```
+
+**调试技巧（加分）：**
+
+> 直接问模型"你什么时候会用这个 Skill？"——它复述的触发场景和你的预期不一致，就说明 description 没写到位。
+
+**资源文件是"读取"不是"注入"（第三问）：**
+
+- SKILL.md 正文加载后，引用的文件**不在上下文里**，只有任务推进到需要时才用工具读取
+- 好处 1：资源体积无上限（几百行 API 文档躺着不占 token）
+- 好处 2：确定性逻辑写成脚本**执行**而不是自然语言描述（"代码是确定性的，语言解释不是"）
+
+**面试话术：**
+> "SKILL.md 不是全量加载的，Anthropic 用 Progressive Disclosure 三级机制：metadata 常驻（每个约 100 token），正文按 description 语义匹配按需加载，资源文件由模型主动用工具读取。我实测装 20 多个 Skill，常驻的只有那点 metadata。description 必须包含'做什么+何时使用+触发短语'三要素，我一开始写得太泛导致误触发，加了触发短语和负面条件才收敛。"
+
+</details>
+
+---
+
 *版本: v3.0 | 更新: 2026-07-02 | 补充全网最新高频面试题*

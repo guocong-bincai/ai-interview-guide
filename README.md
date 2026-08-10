@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.143)：07-模型训练Q3增强RAG vs Fine-tuning工程四维度对比(知识更新/可解释性/复杂度/成本)+带小抄vs补课比喻
+本次更新(v3.144)：05新增Q33 SKILL.md渐进式披露三级加载机制(metadata常驻/正文按需/资源主动读取+description三要素)
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.143 | **最后更新:** 2026-08-10"""
+**版本:** v3.144 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -1165,6 +1165,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.144 - 2026-08-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🤖 AI Agent基础（新增Q33）](docs/05-ai-agent-basics/) | Q33 SKILL.md渐进式披露三级加载：Metadata常驻(100token/个)/正文按需加载(description语义匹配)/资源文件主动读取；description三要素(做什么+何时用+触发短语)；装30个Skill不爆context | 🔥🔥🔥🔥🔥 | +1 |
+
+*版本: v3.144 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
