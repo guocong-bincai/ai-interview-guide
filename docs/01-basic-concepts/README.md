@@ -1699,6 +1699,475 @@ INT4: 每个权重 0.5 字节 → 7B 模型 ≈ 3.5GB（再减半）
 
 ---
 
+---
+
+## 39. Transformer 中的 Attention 机制是什么？为什么它是 LLM 的核心？（必考）
+
+**Attention = 让模型在处理每个 Token 时，动态关注输入中所有其他 Token 的相关程度。**
+
+### Self-Attention 核心公式（面试手撕级）
+
+```
+Attention(Q, K, V) = softmax(Q · K^T / √d_k) · V
+```
+
+- **Q（Query）**：当前要处理的 Token 在"查询什么信息"
+- **K（Key）**：序列中每个 Token 的"被查询内容"
+- **V（Value）**：匹配后实际取到的"价值信息"
+- **√d_k**：缩放因子，防止点积过大导致 Softmax 梯度消失
+
+### 直观理解
+
+```
+句子: "苹果发布了新款手机，它的销量很好"
+                    ↑
+处理"它"时:
+  - 与"苹果"的注意力权重高 → "它"指"苹果"
+  - 与"销量"的注意力权重中等 → 上下文关联
+  - 与"新款"的注意力权重较低
+```
+
+### Multi-Head Attention 为什么更好？
+
+| 维度 | Single-Head Attention | Multi-Head Attention |
+|------|----------------------|---------------------|
+| **原理** | 一组 Q/K/V 全局关注 | 多组 Q/K/V 并行，各自关注不同方面 |
+| **捕捉能力** | 只能学到一种依赖模式 | 语法、语义、长距离依赖等可同时捕捉 |
+| **计算复杂度** | O(n²·d) | O(n²·d·h)，但可并行 |
+
+```python
+# PyTorch 伪代码
+num_heads = 8
+head_dim = d_model // num_heads
+
+# 线性变换得到 Q,K,V
+Q = linear_Q(x)  # [batch, seq_len, d_model]
+K = linear_K(x)
+V = linear_V(x)
+
+# 分割成多头
+Q = Q.view(batch, seq_len, num_heads, head_dim).transpose(1, 2)  # [batch, heads, seq, dim]
+K = K.view(batch, seq_len, num_heads, head_dim).transpose(1, 2)
+V = V.view(batch, seq_len, num_heads, head_dim).transpose(1, 2)
+
+# 对每个头做 Scaled Dot-Product Attention
+attn_output = scaled_dot_product_attention(Q, K, V, mask)
+
+# 拼接所有头的输出
+attn_output = attn_output.transpose(1, 2).contiguous().view(batch, seq_len, d_model)
+output = linear_out(attn_output)  # 最终投影
+```
+
+### 面试高频追问
+
+- **为什么要缩放 √d_k？** 当 d_k 较大时，点积值分布方差变大，Softmax 会趋于 one-hot（梯度消失）。除以 √d_k 让方差保持在 ~1。
+- **Single-Head 和 Multi-Head 哪个强？** Multi-Head 几乎总是更强——相当于让模型"多角度观察同一件事"。除非极端资源受限场景。
+- **Attention 时间复杂度？** O(n² · d)。n 是序列长度，d 是隐藏维。这也是为什么需要 Flash Attention（见进阶题）。
+
+**面试话术：**
+> "Attention 的核心思想是'让每个词都能看到并关注其他所有词'。公式上就是 Q·K^T 算相似度，Softmax 归一化，再加权求和 V。Multi-Head 相当于多个专家各看一个角度，最后拼接起来。它是 Transformer 取代 RNN 的关键——RNN 只能串行序列化地看前面，Attention 可以一次性全局关注，既快又准。"
+
+---
+
+## 40. 为什么 Transformer 需要 Position Encoding？RoPE 和绝对位置编码有什么区别？（高频）
+
+**Position Encoding = 给每个位置的 Token 加上位置信息，因为 Attention 本身不具备感知顺序的能力。**
+
+### 为什么需要位置编码？
+
+```
+Transformer 的 Self-Attention 是对称操作:
+  Attention(Q, K, V) 只看 token 之间的相似性，不看它们的先后顺序
+
+"猫追狗" 和 "狗追猫" 用 Self-Attention 处理得到的向量几乎一样！
+→ 所以需要额外注入位置信息来区分顺序
+```
+
+### 三种主流位置编码对比
+
+| 编码方式 | 代表模型 | 原理 | 优点 | 缺点 |
+|---------|---------|------|------|------|
+| **绝对位置编码** | BERT, GPT-2 | 训练时学一个位置查找表 | 实现简单 | 无法外推到训练时长度的新位置 |
+| **RoPE** | LLaMA, Qwen, DeepSeek | 通过旋转矩阵嵌入位置信息 | 天然支持外推、数学优雅 | 实现稍复杂 |
+| **ALiBi** | T5, Bloom | 在 Attention 分数上加线性偏置 | 推理时无需知道最大长度 | 效果略逊于 RoPE |
+
+### RoPE（Rotary Position Embedding）详解（面试重点）
+
+```
+核心思想：把两个向量的点积转化为角度差函数
+  q·k = |q||k|cos(θ_q - θ_k + φ_pos)
+```
+
+**具体做法（2D 平面旋转）：**
+```
+给定位置 pos 和维度索引 m，频率 ω_m = 10000^(-2m/d):
+
+[ q₀ ]  ← cos(pos·ω_m)  -sin(pos·ω_m) ][ q₀ ]
+[ q₁ ]    sin(pos·ω_m)   cos(pos·ω_m) ][ q₁ ]
+
+即：q 和 k 分别旋转到自己的位置角度，然后点积自动包含位置差信息
+```
+
+**RoPE 的三个关键优势：**
+1. **绝对位置→相对位置转化**：`q(pos_i)·k(pos_j)` 只依赖于 `pos_j - pos_i`（相对位置），更符合语言规律
+2. **长度外推能力强**：理论上可以推理到比训练更长序列（虽然实践中有退化）
+3. **不需要重新训练**：已有的预训练模型只需加 RoPE 即可支持更长上下文
+
+### 面试加分点
+
+- **YaRN（Yet another RoPE extension）**：2025-2026 年的改进方案，通过在 RoPE 基础上加入缩放因子，让模型能处理比训练长数倍的上下文（如训练 8K、推理 128K）
+- **工程建议**：部署开源模型时如果要做长上下文推理，优先选 RoPE 系列模型（LLaMA/Qwen/DeepSeek）
+
+**面试话术：**
+> "Self-Attention 本质是对称操作，无法区分'猫追狗'和'狗追猫'的顺序差异，所以必须加位置编码。RoPE 是目前最主流的方案——它通过旋转矩阵把位置信息嵌入到 Q/K 向量中，好处是点积自动变成相对位置依赖，还支持长度外推。现在主流的 LLaMA、Qwen、DeepSeek 都用 RoPE。如果需要比训练更长的上下文，可以用 YaRN 这类扩展方法。"
+
+---
+
+## 41. LLM 预训练用什么损失函数？Cross-Entropy Loss 和 Perplexity 有什么关系？（常见追问）
+
+**LLM 预训练使用 Cross-Entropy Loss（交叉熵损失），也叫 Next-Token Prediction Loss。**
+
+### 为什么用 Cross-Entropy？
+
+```
+预测目标：P(y_t | x_1, ..., y_{t-1})
+即：给定上文，预测下一个真实 Token 的概率
+
+Cross-Entropy Loss = -log(P(正确Token))
+
+损失越小 → 模型对正确 Token 的概率越高 → 预测越准确
+```
+
+### 公式推导
+
+```
+假设词表大小 V = 50,000
+模型输出 logits: [0.5, 2.3, -1.1, ..., 0.8]  （每个词一个分数）
+
+经过 Softmax 变概率: [0.003, 0.72, 0.001, ..., 0.005]
+
+如果正确答案是第 2 个 Token:
+  Loss = -log(0.72) ≈ 0.33
+
+如果模型错得很离谱，正确答案只有 0.01 的概率:
+  Loss = -log(0.01) ≈ 4.6  （大得多！）
+```
+
+### Cross-Entropy Loss vs Perplexity
+
+| 指标 | 定义 | 含义 | 关系 |
+|------|------|------|------|
+| **Cross-Entropy Loss** | -log(P(正确Token)) | 越低越好（最小为 0） | 基础指标 |
+| **Perplexity** | exp(Cross-Entropy Loss) | 表示模型每次猜测时有多少候选词（越低越好） | PPL = e^Loss |
+
+**通俗解释 Perplexity：**
+```
+Perplexity = 2^2 = 4 意味着：平均而言，模型每次预测时有 4 个候选词"同样可能"
+PPL=4 说明预测比较有信心（猜对了其中一个）
+
+Perplexity = 2^10 = 1024 意味着：平均有 1024 个候选词
+PPL=1024 说明模型完全不确定
+
+LLM 典型范围：GPT-3 base perplexity ~20，GPT-4o < 5
+```
+
+### 工程视角：监控训练的关键信号
+
+| 现象 | 原因 | 对策 |
+|------|------|------|
+| Loss 持续下降 | 正常学习过程 | ✅ 继续训练 |
+| Loss 降到一定值不再降 | 接近数据噪声下限 | ⚠️ 检查是否欠拟合或数据质量差 |
+| Loss 突然上升 | Learning rate 过大、梯度爆炸 | ❌ 降低 lr、加梯度裁剪 |
+| Train Loss 低但 Val Loss 高 | **过拟合** | 加 Dropout、增大数据、早停 |
+
+**面试话术：**
+> "LLM 预训练用的是标准交叉熵损失：负对数似然。本质上就是在测'模型对正确 Token 给了多高的概率'。Perplexity 是交叉熵的指数形式，可以理解为'模型每次做选择时有多少个同样可能的选项'——PPL 越低越确定。训练中我主要看两条曲线：Train Loss 和 Validation Loss，如果后者开始回升那就是过拟合了。"
+
+---
+
+## 42. LayerNorm 和 RMSNorm 有什么区别？为什么现在的 LLM 大多用 RMSNorm？（高频）
+
+**LayerNorm = 对每个样本的每个位置，沿特征维度做标准化；RMSNorm 是其简化版，去掉了均值中心化，只保留归一化。**
+
+### 两者的计算公式对比
+
+```
+LayerNorm(x):
+  μ = mean(x, dim=-1)          # 计算均值
+  σ² = var(x, dim=-1)          # 计算方差
+  x̂ = (x - μ) / √(σ² + ε)     # 标准化
+  output = γ * x̂ + β           # 可学习的缩放+平移
+
+RMSNorm(x):
+  r = RMS(x) = √(mean(x²) + ε) # 均方根（不含均值中心）
+  x̂ = x / r                    # 归一化
+  output = γ * x̂               # 只有缩放（没有β偏置）
+```
+
+### 关键区别
+
+| 维度 | LayerNorm | RMSNorm |
+|------|-----------|--------|
+| **均值中心化** | ✅ 减去均值 | ❌ 不减 |
+| **参数数量** | 2个/层（γ + β） | 1个/层（仅 γ） |
+| **计算量** | 稍大（多一次均值计算） | 更小 |
+| **效果** | 几乎相同 | 基本等价甚至略好 |
+| **使用现状** | GPT-2, BERT | LLaMA, Qwen, DeepSeek, Claude |
+
+### 为什么 RMSNorm 更流行？
+
+1. **计算更快**：省掉均值计算，推理时 Faster
+2. **参数更少**：少一半参数（没有 β），减少过拟合风险
+3. **数值稳定性足够**：对大多数架构，去均值带来的收益极小
+4. **实验验证**：LLaMA 论文实证发现两者效果几乎一致，RMSNorm 略胜
+
+```python
+# RMSNorm 简洁实现
+import torch.nn as nn
+
+class RMSNorm(nn.Module):
+    def __init__(self, dim, eps=1e-6):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def forward(self, x):
+        # x: [batch, seq, hidden]
+        rms = torch.rsqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
+        return self.weight * x * rms  # γ * (x / RMS(x))
+```
+
+### 面试加分点
+
+- 有些模型采用 **混合方案**：Attention 层用 RMSNorm，FFN 层用 LayerNorm（如部分 Qwen 变体）
+- **SwiGLU 激活函数**常与 RMSNorm 一起出现，组成现代 Transformer Block 的标准配置：`x -> RMSNorm -> SwiGLU(FFN) -> Residual`
+
+**面试话术：**
+> "LayerNorm 和 RMSNorm 的核心区别是：LayerNorm 做了均值中心化+方差归一化，RMSNorm 只做 RMS 归一化。实践证明两者效果几乎一样，但 RMSNorm 少算了一步均值、少一半参数，所以现在的主流模型（LLaMA/Qwen/DeepSeek）都切到了 RMSNorm。我在本地跑 llama.cpp 的时候也能感受到微妙的速度提升。"
+
+---
+
+## 43. Decoder-only 模型中的因果掩码（Causal Mask）是怎么工作的？为什么必须有它？（高频）
+
+**Causal Mask = 在 Self-Attention 中屏蔽未来的 Token，确保模型只能看到当前位置及之前的词。**
+
+### 为什么需要因果掩码？
+
+```
+自回归生成的要求：预测第 t 个 Token 时，只能用前 t-1 个 Token 的信息
+
+如果不加掩码：
+  预测 Token[3] 时，Attention 能看到 Token[0],1,2,3,4,5... → 作弊了！
+
+加上因果掩码后：
+  预测 Token[3] 时，只能看到 Token[0],1,2 → 严格左到右生成 ✅
+```
+
+### 掩码矩阵示例
+
+```
+序列: [BOS, 我, 爱, AI, EOS]
+      ↓
+Attention 掩码矩阵（下三角矩阵）:
+
+          我    爱    AI
+BOS       1     0     0     0   ← BOS 只能看到自己
+我         1     1     0     0   ← 我能看到 BOS + 我
+爱         1     1     1     0   ← 我爱能看到 BOS + 我 + 爱
+AI         1     1     1     1   ← AI 能看到前面所有
+EOS        0     0     0     0   ← EOS 不参与预测
+```
+
+### 实现细节
+
+```python
+import math
+import torch
+
+def causal_mask(seq_len):
+    mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)
+    mask = mask.masked_fill(mask.bool(), float('-inf'))  # 未来位置设为负无穷
+    return mask  # Softmax 后这些位置的概率 → 0
+
+def forward_with_causal_mask(q, k, v, causal_mask_mat):
+    scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(d_k)
+    scores = scores + causal_mask_mat  # 未来位置变为 -inf
+    weights = torch.softmax(scores, dim=-1)
+    output = torch.matmul(weights, v)
+    return output
+```
+
+### 因果掩码 vs 双向掩码
+
+| 类型 | 能否看未来 | 代表模型 | 适用任务 |
+|------|-----------|---------|---------|
+| **Causal Mask**（单向） | ❌ 不能 | GPT 系列, LLaMA, Qwen | 文本生成（自回归） |
+| **Bidirectional Mask** | ✅ 能 | BERT | 文本理解（分类、抽取） |
+| **MLM Mask**（随机掩码） | 部分 | BERT/T5 | 填充任务 |
+
+### 面试高频追问
+
+- **Flash Attention 如何处理因果掩码？** Flash Attention 在分块（block-wise）计算时，对于包含未来 Token 的 block 直接设负无穷，保证精确因果约束且 IO 最优
+- **Decoder-only 一定是因果的吗？** 是的——这是它与 Encoder-only（双向注意力）的根本区别
+
+**面试话术：**
+> "因果掩码是自回归生成的核心保障：预测每个 Token 时只能看到前面的词，看不到后面的。实现上是给未来位置加一个负无穷的大数，Softmax 后那些位置的概率就是 0。这是 Decoder-only 模型的标志性设计，也是为什么 GPT 能一行行续写文本而不会提前看到自己要输出的内容。"
+
+---
+
+## 44. 预训练数据去重（Deduplication）有什么重要性？MinHash 和 SimHash 怎么做的？（进阶高频）
+
+**数据去重 = 移除训练数据集中重复或高度相似的文档，避免模型过度拟合重复内容。**
+
+### 为什么去重很重要？
+
+```
+现实情况：互联网爬取的网页中有大量重复内容
+- Wikipedia 多语言镜像互相翻译 → 高度相似
+- 新闻网站的转载链 → 同一篇新闻多次出现
+- Reddit/StackOverflow → 同一个问题多次提出
+
+不去重的后果：
+  - 某个热点话题的 1000 条重复帖子让模型过度偏向这个话题
+  - 模型记住的是「这篇文章出现过 1000 次」而非「这个知识点」
+  - 训练效率低下：大量 Token 浪费在了重复数据上
+```
+
+### 常见的去重策略对比
+
+| 方法 | 原理 | 速度 | 检测精度 | 适用规模 |
+|------|------|------|---------|---------|
+| **Exact Dedup**（精确去重） | MD5/SHA hash 完全相同的文档 | 最快 | 100% 精确 | 任何规模 |
+| **SimHash**（局部敏感哈希） | 文档指纹比对，汉明距离 ≤ 3 判为相似 | 快 | 较高 | 百万~千万级 |
+| **MinHash + LSH**（最佳实践⭐） | MinHash 估计 Jaccard 相似 + LSH 桶分组 | 中等 | 最高 | 十亿级（工业标配） |
+| **Semantic Dedup** | 用 Embedding 相似度聚类 | 慢 | 最高 | 小规模精排 |
+
+### MinHash + LSH 流程（面试重点）
+
+```
+Step 1: MinHash — 将每篇文档转为固定长度的签名向量
+  - 将文档拆成 shingle（连续 n-gram，如 5-gram）
+  - 用多组哈希函数计算每组的 min hash 值
+  - 得到一个签名向量（如 128 个整数）
+  
+  关键性质：两个文档签名的 Hamming 距离 ≈ Jaccard 相似度
+  两个文档的签名向量相等概率 = 它们的 Jaccard 相似度
+
+Step 2: LSH（Locality-Sensitive Hashing）— 高效近似最近邻搜索
+  - 将签名向量分成 b 行 r 列（b 组 band，每组 r 个 signature）
+  - 对每个 band 计算 hash，同 band 内 hash 相同则进入同一桶
+  - 同一桶内的文档对视为候选重复对
+  
+  参数权衡：
+  - r 越大 → 误报越少但漏报越多
+  - b 越大 → 漏报越少但计算量越大
+  
+  行业经验：r=8~20, b=15~40，根据数据规模和硬件调整
+```
+
+### 实际应用案例
+
+```python
+# Gopher (Google 2022) 的数据去重策略
+# 对 3T tokens 进行 MinHash dedup
+# - 精确去重：消除完全重复
+# - 语义去重：消除翻译镜像和高度相似页面
+# - 结果：原始数据量减少了约 20%
+
+# The Pile (EleutherAI) 的去重策略  
+# 使用了 MinHash + LSH 对每个数据集内部去重
+# 跨数据集间也进行了粗略去重
+```
+
+### 工程最佳实践
+
+1. **先精确再去近**：先做 exact dedup 剔除完全重复，再做 MinHash 找相似
+2. **按域去重**：Wikipedia 之间互相比，新闻站之间互相比，不跨域比对
+3. **保留高质版本**：相似文档对保留质量更高/更新的一个（比如带日期戳的）
+4. **定期迭代**：随着新数据入库，增量更新去重索引
+
+**面试话术：**
+> "去重看起来是个 boring 的工程活，但它直接影响模型质量和训练效率。工业界标配是 MinHash+LSH：先把每篇文档压缩成一个短签名向量，然后用 LSH 高效找出相似文档对。Google 的 Gopher 就是这么做到 3T tokens 的去重，直接减少了 20% 的训练数据。我们在企业知识库微调时也会用类似的思路做数据清洗，不然模型会过度拟合我们自己的 FAQ 重复条目。"
+
+---
+
+## 45. 什么是 Catastrophic Forgetting（灾难性遗忘）？微调时怎么缓解？（实战必考）
+
+**Catastrophic Forgetting = 模型在对新数据进行微调时，大幅遗忘原来已经学到的通用知识。**
+
+### 为什么会发生？
+
+```
+预训练阶段：模型在海量通用语料上学到了广泛的语言能力和常识
+         ↓
+微调阶段：只用几千条特定领域数据训练
+         ↓
+模型为适应新数据，大幅调整权重 → 通用语言能力退化
+         ↓
+表现：微调后的模型回答通用问题时变得笨拙，甚至不如基座模型
+```
+
+### 典型症状
+
+| 维度 | 微调前 | 微调后（灾难性遗忘） |
+|------|--------|---------------------|
+| **通用问答** | 流畅自然 | 回答生硬、语法错误增多 |
+| **英语能力** | 优秀 | 退化明显 |
+| **逻辑推理** | 稳定 | 大幅下降 |
+| **领域能力** | 一般 | **大幅提升** |
+
+### 缓解方案（从低成本到高成本排序）
+
+#### 方案1：Elastic Weight Consolidation（EWC）⭐
+
+```
+核心思想：标记出预训练时对通用知识重要的参数，微调时限制这些参数的变化幅度
+
+步骤：
+1. 用预训练数据（或少量通用数据）跑一轮，记录每个参数的 Fisher Information Matrix
+2. Fisher 值大的参数 = 重要参数，微调时用正则项限制其变化
+
+loss_total = task_loss + lambda × Σ F_i × (theta_i - theta_pretrain_i)^2
+                          ↑ 重要参数惩罚更大
+```
+
+#### 方案2：混合数据训练（最常见⭐⭐⭐）
+
+```
+微调时混入一定比例的预训练通用数据：
+
+- 90% 领域数据 + 10% 通用预训练数据
+- 或使用 FLAN/shuf-flan 等高质量指令数据作为通用锚点
+- 效果立竿见影，零成本
+
+业界经验：5-20% 的通用数据混入通常就能有效防遗忘
+```
+
+#### 方案3：LoRA + 低学习率
+
+```
+LoRA 冻结大部分预训练权重，只训练低秩适配矩阵
+→ 参数量不变，但权重整体漂移幅度远小于全量微调
+→ 天然缓解灾难性遗忘
+```
+
+#### 方案4：Continual Pre-training（持续预训练）
+
+```
+先用更大规模的通用语料对模型做第二轮预训练
+→ 恢复通用能力
+→ 然后再做领域微调
+```
+
+### 面试加分点
+
+- **如何检测遗忘？** 微调后用 MMLU（通用知识）、HumanEval（编程）、GSM8K（数学）等基准测试，对比基座模型分数
+- **2026 趋势**：很多团队直接用 LoRA + 少量通用数据，已经很少遇到严重遗忘问题了
+
+**面试话术：**
+> "灾难性遗忘的本质是模型为了适应新数据而覆盖了旧权重。我的应对三板斧：1）微调时混入 5-10% 的通用预训练数据；2）尽量用 LoRA 而不是全量微调，冻结大部分权重天然防遗忘；3）调完后立刻用 MMLU 或 GSM8K 跑一下，确认通用能力没有崩。一般这样组合用，遗忘程度能控制在可接受范围内。"
+
+---
 ## 📝 速记卡片
 
 ### LLM基础概念
@@ -1735,6 +2204,13 @@ INT4: 每个权重 0.5 字节 → 7B 模型 ≈ 3.5GB（再减半）
 | **量化** | FP16→INT8/INT4减半再减半;生产用AWQ,CPU用GGUF |
 | **LLM数学差** | 数字tokenize不一致+误差累积;精确计算走工具/代码 |
 | **LLM选型** | 质量×速度×成本三维权衡;模型路由+缓存降本60-90% |
+| **Attention** | Q·K^T/√d_k 算相似度,softmax加权V;Multi-Head多角度观察 |
+| **Position Encoding** | Self-Attention无法感知顺序,必须加位置编码;RoPE最主流 |
+| **Cross-Entropy** | LLM预训练损失=-log(P正确Token);PPL=e^Loss |
+| **RMSNorm vs LayerNorm** | RMSNorm去均值中心化,少一半参数,效果等价;LLaMA/Qwen用 |
+| **Causal Mask** | Decoder-only预测时只看前面,未来位置设为-inf;自回归核心保障 |
+| **数据去重** | MinHash+LSH工业标配,Gopher减少20%训练数据;防过拟合重复内容 |
+| **灾难性遗忘** | 微调时覆盖旧权重;混入通用数据+LoRA缓解;5-10%通用数据 |
 
 ### 分词算法
 

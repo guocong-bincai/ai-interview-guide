@@ -3,9 +3,9 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.148)：17新增Q51 AI编程Token成本优化七招(精准提示词/compact/claudeignore/MCP按需/模型分层/子代理)
+本次更新(v3.149)：01基础概念模块新增7题(Attention/RoPE/Cross-Entropy/LayerNorm-RMSNorm/Causal Mask/数据去重/灾难性遗忘)
 
-**🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 403+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.148 | **最后更新:** 2026-08-10"""
+**版本:** v3.149 | **最后更新:** 2026-08-11"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -56,7 +56,7 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Token、Embedding、KV Cache、Scaling Law、三阶段训练 | 🔥🔥🔥🔥🔥 | 33 |
+| 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Attention机制/RoPE位置编码/Cross-Entropy损失/LayerNorm-RMSNorm/因果掩码/数据去重/灾难性遗忘等45题 | 🔥🔥🔥🔥🔥 | 45 |
 | 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、ToT、结构化输出、Temperature调参实战 | 🔥🔥🔥🔥🔥 | 13 |
 
 **学习重点:** LLM工作原理、基本调参、提示词工程
@@ -1168,13 +1168,13 @@ Made with ❤️ for the AI Community
 
 ---
 
-## 📚 数据更新（v3.148 - 2026-08-10）
+## 📚 数据更新（v3.149 - 2026-08-10）
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 🆕 | [🔧 AI编程工具（新增Q51）](docs/17-ai-coding-tools/) | Q51 AI编程Token成本优化七招：精准提示词(省70-80%)、/compact与/clear(上下文滚雪球1300倍)、CLAUDE.md瘦身+Skills迁移、.claudeignore防噪声、MCP按需开关(6个占19200token)、模型分层(Haiku/Sonnet/Opus)、子代理拆解 | 🔥🔥🔥🔥🔥 | +1 |
 
-*版本: v3.148 | 更新: 2026-08-10 | by 二狗子 🐕*
+*版本: v3.149 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
@@ -1345,6 +1345,8 @@ Made with ❤️ for the AI Community
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 🆕 | [🧠 LLM基础概念（新增Q34-38）](docs/01-basic-concepts/) | Q34 MoE混合专家(路由器+Top-K激活,DeepSeek-V3 671B激活37B,负载均衡)、Q35 LLM API无状态性(记忆=应用层拼历史,可水平扩展)、Q36 Prompt Caching(前缀KV复用,静态在前动态在后,输入成本降40-65%)、Q37 量化基础(INT8/INT4/AWQ/GPTQ/GGUF选型)、Q38 LLM数学差四大原因与缓解(工具计算/CoT) | 🔥🔥🔥🔥🔥 | +5 |
+| 🆕 | [🧠 LLM基础概念（新增Q34-38）](docs/01-basic-concepts/) | Q34 MoE混合专家(路由器+Top-K激活,DeepSeek-V3 671B激活37B,负载均衡)、Q35 LLM API无状态性(记忆=应用层拼历史,可水平扩展)、Q36 Prompt Caching(前缀KV复用,静态在前动态在后,输入成本降40-65%)、Q37 量化基础(INT8/INT4/AWQ/GPTQ/GGUF选型)、Q38 LLM数学差四大原因与缓解(工具计算/CoT) | 🔥🔥🔥🔥🔥 | +5 || 🔄 | [🧠 LLM基础概念（新增Q39-45）](docs/01-basic-concepts/) | Q39 Attention机制(Self-Attention公式+Multi-Head)+Q40 位置编码(RoPE绝对vs相对+YaRN外推)+Q41 Cross-Entropy损失与Perplexity+Q42 LayerNorm vs RMSNorm+Q43 Causal Mask(因果掩码自回归生成)+Q44 预训练数据去重(MinHash+LSH工业标配)+Q45 灾难性遗忘(混入通用数据+LoRA缓解) | 🔥🔥🔥🔥🔥 | +7 |
+
+
 
 *版本: v3.131 | 更新: 2026-08-10 | by 二狗子 🐕*
