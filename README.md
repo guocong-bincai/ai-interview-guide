@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.146)：05新增Q34 确定性vs概率性编程思维转变(评估代替调试/三件套/工程化五要素/渐进式复杂度)
+本次更新(v3.147)：05的Q5增强ReAct vs Plan-Execute混合策略+01补充Token预算分配方案(60%摘要触发/分层保留)
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.146 | **最后更新:** 2026-08-10"""
+**版本:** v3.147 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -1165,6 +1165,17 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.147 - 2026-08-10）
+
+| 序号 | 模块 | 更新内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🔄 | [🤖 AI Agent基础（Q5增强）](docs/05-ai-agent-basics/) | ReAct vs Plan-Execute补充：不同粒度策略(一步一想vs先全局规划)、混合方案(Plan全局+ReAct局部)、被逼二选一怎么站队 | 🔥🔥🔥🔥🔥 | 增强1 |
+| 🔄 | [🧠 LLM基础概念（补充预算方案）](docs/01-basic-concepts/) | 长文本处理补充Token预算分配组合方案：实时计算/分层保留优先级/60%摘要触发/向量兜底，近保真远保要超远按需 | 🔥🔥🔥🔥 | 补充1 |
+
+*版本: v3.147 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
