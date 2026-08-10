@@ -3,9 +3,9 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.129)：新增 Q20-25 LLM基础六连问(01-基础概念)：Logits生成流程/解码策略对比/T=0非确定/重复惩罚/EOS停止符/Decoder-only架构
+本次更新(v3.130)：新增 Q26-33 LLM基础八连问(01-基础概念)：Embedding/上下文学习ICL/三阶段训练/Scaling Law/KV Cache基础/RLHF vs DPO/显存估算/Chat Template
 
-**🎯 388+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.129 | **最后更新:** 2026-08-10"""
+**版本:** v3.130 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -38,8 +38,8 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 349+ 道 |
-| 📂 **核心模块** | 20 个 |
+| 📝 **总题数** | 396+ 道 |
+| 📂 **核心模块** | 24 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
 | 🎓 **适用人群** | 初级 ~ 高级工程师 |
@@ -56,7 +56,7 @@
 
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Token、Temperature、Context Window、长文本处理 | 🔥🔥🔥🔥🔥 | 15 |
+| 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Token、Embedding、KV Cache、Scaling Law、三阶段训练 | 🔥🔥🔥🔥🔥 | 33 |
 | 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、ToT、结构化输出、Temperature调参实战 | 🔥🔥🔥🔥🔥 | 13 |
 
 **学习重点:** LLM工作原理、基本调参、提示词工程
@@ -395,11 +395,11 @@ ai-interview-guide/
 
 ### 🟡 现有模块待扩充
 
-#### 📌 01-basic-concepts（+2 题）⭐ 低优先级
+#### 📌 01-basic-concepts（+2 题）✅ 已实现（v3.130）
 | # | 待补充题目 |
 |---|-----------|
-| Q17 | KV Cache 是什么？在推理优化中的核心作用？（基础概念层面） | ⭐⭐ 可选补充 |
-| Q18 | 什么是 RLHF？和 DPO 的区别是什么？（入门级对比） | ⭐⭐ 可选补充 |
+| Q17 | KV Cache 是什么？在推理优化中的核心作用？（基础概念层面） | ✅ 已实现（Q30）|
+| Q18 | 什么是 RLHF？和 DPO 的区别是什么？（入门级对比） | ✅ 已实现（Q31）|
 
 #### 📌 02-prompt-engineering（+3 题）✅ 已实现
 | # | 待补充题目 |
@@ -554,7 +554,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-08-10 | **📝 版本:** v3.129 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-08-10 | **📝 版本:** v3.130 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -1155,3 +1155,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🛡️ AI安全与评估（新增Q24/Q25）](docs/09-ai-safety-evaluation/) | Q24 EU AI Act 高风险条款2026-08-02全面生效（罚款1500万欧/营业额3%、GPAI义务、出海合规清单）；Q25 模型蒸馏攻击（对抗性蒸馏、三种形态、API层防御代码） | 🔥🔥🔥🔥🔥 | +2 |
 
 *版本: v3.129 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.130 - 2026-08-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
+
+*版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
