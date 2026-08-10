@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.135)：全仓库大扫除 33处重复编号重排+12个模块编号连续化+4个模块details配对修复+过时模型引用批量更新
+本次更新(v3.136)：新增Q29-31 Agent架构深度题(源自王中阳公众号面经)：核心公式决策引擎/信息视野/执行通道、Harness工程(模型定上限Harness定下限)、范式演进五阶段+工作流vs自主选型
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.135 | **最后更新:** 2026-08-10"""
+**版本:** v3.136 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -1165,6 +1165,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.136 - 2026-08-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🤖 AI Agent基础（新增Q29-31）](docs/05-ai-agent-basics/) | Q29 Agent核心架构公式(决策引擎/信息视野/执行通道+与对话机器人本质区别)；Q30 Harness工程(四大职责:上下文管理/工具调度/约束验证/可观测性+模型定上限Harness定下限)；Q31 Agent范式演进五阶段(提示→上下文→Harness→循环→Graph)+工作流vs自主Agent选型+落地四原则 | 🔥🔥🔥🔥🔥 | +3 |
+
+*版本: v3.136 | 更新: 2026-08-10 | by 二狗子 🐕*
 
 ---
 
