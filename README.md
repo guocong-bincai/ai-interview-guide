@@ -3,9 +3,9 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.127)：新增 Q17-Q19 2026年模型格局/推理模型/Thinking Budget(01-基础)、Q16 推理模型Prompt技巧(02-Prompt)
+本次更新(v3.128)：新增 Q22 GPT-5.6 Sol Ultra多智能体编排(13-多Agent)、Q24 EU AI Act高风险条款生效(09-安全)、Q25 模型蒸馏攻击(09-安全)
 
-**🎯 385+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 388+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.127 | **最后更新:** 2026-06-03"""
+**版本:** v3.128 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -28,7 +28,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 24个模块从易到难，341+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 24个模块从易到难，344+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -38,7 +38,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 346+ 道 |
+| 📝 **总题数** | 349+ 道 |
 | 📂 **核心模块** | 20 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -554,7 +554,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-06-03 | **📝 版本:** v3.127 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-08-10 | **📝 版本:** v3.128 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -1144,3 +1144,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🚀 AI应用高级专题（新增Q15）](docs/15-advanced-topics/) | Q15 AI Agent平台五大阵营对比(AutoGen/CrewAI/LangGraph/Coze/Dify)、深度代码示例、企业选型决策树（2026企业版） | 🔥🔥🔥 | +1 |
 
 *版本: v3.125 | 更新: 2026-05-20 | by 二狗子 🐕*
+
+
+## 📚 数据更新（v3.128 - 2026-08-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🤖 多智能体协作（新增Q22）](docs/13-multi-agent-systems/) | Q22 OpenAI GPT-5.6 Sol Ultra 模式（2026年7月）：运行时动态多Agent编排、max vs ultra 推理档位、独立上下文+独立推理预算、Terminal-Bench 88.8→91.9、与Claude Managed Agents对比、成本控制 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🛡️ AI安全与评估（新增Q24/Q25）](docs/09-ai-safety-evaluation/) | Q24 EU AI Act 高风险条款2026-08-02全面生效（罚款1500万欧/营业额3%、GPAI义务、出海合规清单）；Q25 模型蒸馏攻击（对抗性蒸馏、三种形态、API层防御代码） | 🔥🔥🔥🔥🔥 | +2 |
+
+*版本: v3.128 | 更新: 2026-08-10 | by 二狗子 🐕*
