@@ -171,7 +171,7 @@ cache = RedisSemanticCache(
 > 2. 增加chunk_overlap: 200 token重叠
 > 3. Parent-Child索引: 检索时返回父chunk
 >
-> **效果:** 召回率68%→79%,提升16%"
+> **效果:** 召回率68%→79%,提升11%"
 
 **Q: "如果让你重新设计,会怎么改进?"**
 > "3个改进方向:
