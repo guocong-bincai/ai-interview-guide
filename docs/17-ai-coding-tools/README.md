@@ -4497,4 +4497,78 @@ ultrareview：
 </details>
 
 ---
+
+### Q50: 企业级 AI 编程如何规范化？Rules/Skills/Subagents/Hooks 四类配置怎么用？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景（面试高频）：**
+
+> 面试官问"你怎么做 AI 编程"，只答"我用 Cursor/Trae/Claude Code"是明显不够的——要能讲出**如何把团队规范固化成 AI 可执行的约束**。
+
+**为什么需要规范（痛点）：**
+
+| 痛点 | 表现 |
+|------|------|
+| **分层混乱** | AI 生成代码跨层调用（Handler 直接操作数据库） |
+| **质量不可控** | 缺测试、注释不规范、错误处理缺失 |
+| **计划执行脱节** | AI 直接写代码，没计划评审，方向错发现太晚 |
+| **上下文污染** | 检索/分析任务挤占主对话窗口，降低注意力 |
+| **规范不统一** | 不同开发者用 AI 产出代码风格不一致 |
+
+**四类配置（核心答案）：**
+
+| 配置 | 目录 | 作用 | 触发方式 |
+|------|------|------|----------|
+| **Rules（规则）** | `.trae/rules/` | 编码规范、分层约束 | 每次对话自动注入 context（always-applied） |
+| **Skills（技能）** | `.trae/skills/` | 标准化流程（生成计划、分层校验） | 开发者手动调 `/命令` |
+| **Subagents（子代理）** | `.trae/agents/` | 独立上下文的质量门禁（计划审核、测试合规） | Agent 自动匹配调用 |
+| **Hooks（钩子）** | `.trae/hooks.json` | 提交前规范提醒 | 发送消息时自动触发 |
+
+**核心原则：让 AI 在正确的时机自动执行正确的流程，而不是依赖人每次提醒。**
+
+**分层依赖校验（layer-check，面试加分）：**
+
+```
+核心 DDD 分层：handler → service → repository / milvus
+
+硬门禁（BLOCK）：
+  handler 禁止依赖 repository/model/milvus（用 DTO 隔离）
+  service 禁止依赖 handler/response/milvus（不感知 HTTP）
+  repository 禁止反向依赖 service/handler
+  milvus 禁止依赖 handler/service/repository
+
+校验逻辑：读取 layer_rules.json → 提取 diff 的 import → 映射层级 → 检查依赖方向
+判定：allowed → 通过 / forbidden_cross → BLOCK 必须修复 / 其他 → needs-review
+```
+
+**完整工作流（面试可讲）：**
+
+```
+1. 开发者口述需求
+2. /gen-plan 技能生成标准化开发计划（分层落点/接口契约/测试要求/验收清单）
+3. plan-review 子代理自动审核（技术可行性/风险识别/测试补全）
+4. 人工评审确认
+5. AI 按 rules 规则编写代码（自动生效）
+6. /layer-check 校验分层（BLOCK 违规必须修复）
+7. test-compliance 子代理检测（编译/测试/合规/自动修复）
+8. 全部通过提交 MR
+```
+
+**设计原则（加分点）：**
+
+1. **先约束核心层，基础设施宽松**：DDD 核心分层用硬门禁，边缘层 needs-review 软提醒，不过度约束
+2. **文档与配置一致**：rules/*.md 描述的约束必须与 layer_rules.json 的校验规则一致
+3. **子代理独立上下文**：检索/分析任务不污染主对话，让 AI 专注核心任务
+4. **技术债显式标注**：新代码不延续违规模式，存量问题标注逐步改造
+
+**跨工具兼容：** Trae 用 `.trae/`，Claude Code 用 `.claude/`（CLAUDE.md + commands + agents），Cursor 用 `.cursor/rules`——原理相通，都是"规则文件 + 命令/技能 + 子代理 + 钩子"四件套。
+
+**面试话术：**
+> "企业级 AI 编程不是'会用工具'，而是'把团队规范固化成 AI 可执行的约束'。我做的方案是四类配置：Rules 每次对话自动注入分层约束，Skills 提供标准化流程（gen-plan 生成计划、layer-check 校验分层），Subagents 用独立上下文做质量门禁（plan-review 审核计划、test-compliance 检查测试），Hooks 提交前提醒。核心是让 AI 在正确时机自动执行正确流程。分层校验用硬门禁：handler 禁止碰 DB、service 不感知 HTTP，违反直接 BLOCK。这套规范让 AI 产出代码从'能跑'变成'符合团队标准'。"
+
+</details>
+
+---
 *版本: v2.31 | 更新: 2026-05-12 | by 二狗子 🐕*
