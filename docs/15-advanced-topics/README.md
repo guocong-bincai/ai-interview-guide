@@ -368,7 +368,7 @@ class CodingAgent:
 
 ## 四、AI 应用调试与问题排查
 
-### Q8: AI 应用出现问题，如何系统性地排查？
+### Q18: AI 应用出现问题，如何系统性地排查？
 
 <details>
 <summary>💡 答案要点</summary>

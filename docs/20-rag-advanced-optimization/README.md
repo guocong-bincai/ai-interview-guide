@@ -1072,7 +1072,7 @@ class AgenticRetriever:
 
 ---
 
-### Q15: 如何做生产环境的RAG监控？有哪些关键指标？
+### Q19: 如何做生产环境的RAG监控？有哪些关键指标？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1144,7 +1144,7 @@ class RAGDriftMonitor:
 
 ## 十一、Chunk冲突检测与解决：多检索结果矛盾时Agent如何决策（Q11）
 
-### Q11: RAG检索出的多个Chunk互相冲突时，Agent如何解决矛盾？
+### Q20: RAG检索出的多个Chunk互相冲突时，Agent如何解决矛盾？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1260,7 +1260,7 @@ class ConflictAwareRAG:
 
 ## 十二、企业知识库权限隔离：Agent会不会把高管工资查出来给普通员工？（Q12）
 
-### Q12: 如何在RAG系统中实现知识库的权限隔离，防止信息泄露？
+### Q21: 如何在RAG系统中实现知识库的权限隔离，防止信息泄露？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1418,7 +1418,7 @@ def log_retrieval(user_id, query, retrieved_chunks, response):
 
 ## 十三、2026年 RAG 新范式：从传统 RAG 到记忆型 AI 系统（Q13）
 
-### Q13: 2026年 RAG 有哪些新范式？为什么传统 RAG 正在失效？企业如何判断 RAG 项目方向？
+### Q22: 2026年 RAG 有哪些新范式？为什么传统 RAG 正在失效？企业如何判断 RAG 项目方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1590,7 +1590,7 @@ RAG 的定位变化：
 
 ## 十四、2026年3月arXiv RAG前沿论文精选：五大创新方向（Q14）
 
-### Q14: 2026年RAG有哪些前沿研究方向？LIT-RAGBench、GAM-RAG、Robust RAG等最新成果代表了什么趋势？
+### Q23: 2026年RAG有哪些前沿研究方向？LIT-RAGBench、GAM-RAG、Robust RAG等最新成果代表了什么趋势？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1748,7 +1748,7 @@ GNN-RAG/TRACE/PathRAG：
 
 ## 十五、Sentence Transformers v5.4：多模态 Embedding 与跨模态 RAG 新标准（Q15）
 
-### Q15: Sentence Transformers v5.4 的多模态 Embedding 能力是什么？对 RAG 系统有什么影响？
+### Q24: Sentence Transformers v5.4 的多模态 Embedding 能力是什么？对 RAG 系统有什么影响？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2349,7 +2349,7 @@ RRF融合后（综合两者优势）：
 
 ---
 
-### Q18: Agentic RAG 的自适应路由、幻觉检测、自纠正闭环怎么实现？
+### Q25: Agentic RAG 的自适应路由、幻觉检测、自纠正闭环怎么实现？
 
 <details>
 <summary>💡 答案要点</summary>

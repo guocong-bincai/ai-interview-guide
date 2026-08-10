@@ -39,7 +39,7 @@
 # 技术栈选择
 向量数据库: Qdrant (开源,支持混合检索)
 Embedding模型: bge-large-zh-v1.5 (中文效果好)
-LLM: GPT-3.5-turbo (成本平衡)
+LLM: DeepSeek-V4-Flash (成本平衡)
 框架: LangChain
 
 # 核心流程
@@ -458,7 +458,7 @@ tools = [
 from langchain.agents import create_react_agent
 
 agent = create_react_agent(
-    llm=ChatOpenAI(model="gpt-4"),
+    llm=ChatOpenAI(model="qwen3.5-plus"),
     tools=tools,
     prompt=f"""
     你是智能客服Agent。
@@ -677,7 +677,7 @@ class ConversationManager:
         if len(self.history) > 3:
             old_turn = self.history.pop(0)
 
-            # 用GPT-3.5-turbo摘要(便宜)
+            # 用DeepSeek-V4-Flash摘要(便宜)
             turn_summary = gpt35_turbo.summarize(
                 f"用户: {old_turn['user']}\n助手: {old_turn['assistant']}"
             )
@@ -713,8 +713,8 @@ class ModelRouter:
         # 分类器: 判断问题复杂度
         self.classifier = fasttext.load_model("complexity_classifier.bin")
 
-        self.cheap_model = "gpt-3.5-turbo"  # $0.5/1M tokens
-        self.expensive_model = "gpt-4"       # $30/1M tokens
+        self.cheap_model = "deepseek-v4-flash"  # $0.5/1M tokens
+        self.expensive_model = "qwen3.5-plus"       # $30/1M tokens
 
     def route(self, query):
         # 分类: simple / medium / complex
@@ -726,10 +726,10 @@ class ModelRouter:
             return self.cheap_model
 
         elif complexity == "medium":
-            # 30%中等,先试GPT-3.5
+            # 30%中等,先试DeepSeek V4-Flash
             response = gpt35.generate(query)
 
-            # 如果GPT-3.5不确定,升级到GPT-4
+            # 如果DeepSeek V4-Flash不确定,升级到GPT-4
             if self.is_uncertain(response):
                 return self.expensive_model
             else:
@@ -756,8 +756,8 @@ model = router.route(user_query)
 response = llm_pool[model].generate(query)
 
 # 效果数据:
-# - 60%请求用GPT-3.5 (省$0.5 vs $30)
-# - 30%请求先GPT-3.5,20%升级到GPT-4
+# - 60%请求用DeepSeek V4-Flash (省$0.5 vs $30)
+# - 30%请求先DeepSeek V4-Flash,20%升级到GPT-4
 # - 10%请求直接GPT-4
 #
 # 平均成本 = 0.6*$0.5 + 0.3*(0.8*$0.5 + 0.2*$30) + 0.1*$30
@@ -893,7 +893,7 @@ class SmartCache:
 >
 > 关键insight:
 > 1. 35%缓存命中率带来最大收益
-> 2. 60%简单问题用GPT-3.5完全够用
+> 2. 60%简单问题用DeepSeek V4-Flash完全够用
 > 3. 上下文压缩73%,准确率只降2%"
 
 **面试追问应对:**
@@ -913,7 +913,7 @@ class SmartCache:
 > 3. **训练**: FastText 3分钟训练完,准确率89%
 > 4. **持续学习**: 每周用新数据增量训练
 >
-> 如果分类错误,GPT-3.5会有'不确定'标志,自动升级到GPT-4,兜底策略保证质量。"
+> 如果分类错误,DeepSeek V4-Flash会有'不确定'标志,自动升级到GPT-4,兜底策略保证质量。"
 
 **Q: "Token压缩会不会丢失关键信息?"**
 > "我们做了评估:
@@ -1246,9 +1246,9 @@ class ColdStartUserSegmentation:
     def ab_test_variants(self, segment):
         """每个分群内AB测试不同模型配置"""
         variants = {
-            "A": {"model": "gpt-3.5-turbo", "prompt_template": "template_v1"},
-            "B": {"model": "gpt-4", "prompt_template": "template_v1"},
-            "C": {"model": "gpt-3.5-turbo", "prompt_template": "template_v2"}
+            "A": {"model": "deepseek-v4-flash", "prompt_template": "template_v1"},
+            "B": {"model": "qwen3.5-plus", "prompt_template": "template_v1"},
+            "C": {"model": "deepseek-v4-flash", "prompt_template": "template_v2"}
         }
 
         # 随机分配
@@ -1287,7 +1287,7 @@ def handle_new_user(user):
 
 # 2周后分析AB测试结果
 # Business分群: Variant B (GPT-4 + template_v1) 满意度最高 4.5/5
-# Creative分群: Variant C (GPT-3.5 + template_v2) 性价比最高
+# Creative分群: Variant C (DeepSeek V4-Flash + template_v2) 性价比最高
 # Tech分群: Variant A 效果相当,选最便宜的
 ```
 

@@ -566,7 +566,7 @@ v = W_v @ z
 
 ## 九、2026年推理引擎最新格局：SGLang vs vLLM vs LMDeploy（2026年4月新增）
 
-### Q11: SGLang和LMDeploy在2026年有哪些新突破？如何选择？
+### Q16: SGLang和LMDeploy在2026年有哪些新突破？如何选择？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -623,7 +623,7 @@ def select_inference_engine(workload, hardware):
 
 ## 十、2026年四大推理框架版本横评（vLLM 0.5 / TGI 2.0 / TensorRT-LLM 1.8 / DeepSpeed-MII 0.9）
 
-### Q18: vLLM 0.5、TGI 2.0、TensorRT-LLM 1.8、DeepSpeed-MII 0.9 四大框架2026年核心更新是什么？
+### Q17: vLLM 0.5、TGI 2.0、TensorRT-LLM 1.8、DeepSpeed-MII 0.9 四大框架2026年核心更新是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -681,7 +681,7 @@ def select_inference_engine(workload, hardware):
 
 </details>
 
-### Q19: 2026年H100统一基准测试数据如何？四大框架如何选型？
+### Q18: 2026年H100统一基准测试数据如何？四大框架如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -770,7 +770,7 @@ def select_inference_engine_2026(workload, hardware):
 
 ## 六、新兴推理框架补充（Ollama / XInference / TGI / llama.cpp）
 
-### Q16: Ollama 和 vLLM 有什么区别？各自适用场景是什么？
+### Q19: Ollama 和 vLLM 有什么区别？各自适用场景是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -815,7 +815,7 @@ curl http://localhost:11434/api/generate -d '{
 
 </details>
 
-### Q17: XInference 和 vLLM 有什么区别？什么场景选 XInference？
+### Q20: XInference 和 vLLM 有什么区别？什么场景选 XInference？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -870,7 +870,7 @@ answer = llm.generate("用户问题", context=reranked)
 
 </details>
 
-### Q18: HuggingFace TGI 和 vLLM 有什么关系？各自优劣是什么？
+### Q21: HuggingFace TGI 和 vLLM 有什么关系？各自优劣是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -931,7 +931,7 @@ docker run -d --gpus all \
 
 </details>
 
-### Q19: llama.cpp 是什么？它有哪些独特优势？
+### Q22: llama.cpp 是什么？它有哪些独特优势？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -975,7 +975,7 @@ docker run -d --gpus all \
 
 </details>
 
-### Q20: 如何根据场景选择推理框架？完整的选型决策树是什么？
+### Q23: 如何根据场景选择推理框架？完整的选型决策树是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1035,7 +1035,7 @@ docker run -d --gpus all \
 
 ## 十一、2026年七框架终极对比：oMLX/MLC LLM/LMDeploy新成员与硬件选型（Q21）
 
-### Q21: 除了vLLM/SGLang/TensorRT-LLM，2026年还有哪些推理框架值得关注？oMLX/MLC LLM/LMDeploy各适合什么场景？如何按硬件选框架？
+### Q24: 除了vLLM/SGLang/TensorRT-LLM，2026年还有哪些推理框架值得关注？oMLX/MLC LLM/LMDeploy各适合什么场景？如何按硬件选框架？
 
 <details>
 <summary>💡 答案要点</summary>

@@ -710,7 +710,7 @@ class AIProgrammingAgent:
 
 ---
 
-### Q17: GitHub Copilot Workspace是什么？2026年有哪些新变化？
+### Q14: GitHub Copilot Workspace是什么？2026年有哪些新变化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -775,7 +775,7 @@ vs 单Agent：单Agent处理所有步骤
 
 ---
 
-### Q18: Cursor 3 "Glass"有哪些重磅更新？和Claude Code有何区别？
+### Q15: Cursor 3 "Glass"有哪些重磅更新？和Claude Code有何区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -844,7 +844,7 @@ Self-Hosted（数据不出域）：
 
 </details>
 
-### Q19: Claude Code Week 14（2026年3月30日-4月3日）有哪些新功能？
+### Q16: Claude Code Week 14（2026年3月30日-4月3日）有哪些新功能？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -904,7 +904,7 @@ claude-code --computer-use
 
 </details>
 
-### Q20: Cursor的"Self-Hosted Cloud Agents"是什么？和传统Cursor Agent有什么区别？
+### Q17: Cursor的"Self-Hosted Cloud Agents"是什么？和传统Cursor Agent有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -983,7 +983,7 @@ Self-Hosted模式（安全可控）：
 
 ## 六、2026 年新兴 AI 编程工具（Q8-Q9）
 
-### Q8: 2026 年有哪些新兴 AI 编程工具？Windsurf/Trae/通义灵码/CoPaw 各有什么特点？
+### Q18: 2026 年有哪些新兴 AI 编程工具？Windsurf/Trae/通义灵码/CoPaw 各有什么特点？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1055,7 +1055,7 @@ Self-Hosted模式（安全可控）：
 
 </details>
 
-### Q9: Cursor Rules 是什么？如何用 Cursor Rules 做企业级配置？
+### Q19: Cursor Rules 是什么？如何用 Cursor Rules 做企业级配置？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1144,7 +1144,7 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
 
 ## 七、2026年AI编程工具评测基准与选型决策（Q10）
 
-### Q10: 2026年主流AI编程工具的SWE-bench评测结果如何？如何根据场景选型？
+### Q20: 2026年主流AI编程工具的SWE-bench评测结果如何？如何根据场景选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1221,7 +1221,7 @@ Claude Code 完成 → 切回 Cursor（审核+迭代）
 
 ## 八、Claude Code 2026年最新功能详解（Q11）
 
-### Q11: Claude Code 2026年有哪些重磅新功能？Agent Teams、Scheduled Tasks、Auto Mode 是什么？
+### Q21: Claude Code 2026年有哪些重磅新功能？Agent Teams、Scheduled Tasks、Auto Mode 是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1384,7 +1384,7 @@ on_before_commit:
 
 ## 九、Claude Code vs Cursor 性能基准实测：Token效率、上下文窗口、代码质量（Q12）
 
-### Q12: Claude Code 和 Cursor 的真实性能基准是什么？Token 消耗差距从何而来？
+### Q22: Claude Code 和 Cursor 的真实性能基准是什么？Token 消耗差距从何而来？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1459,7 +1459,7 @@ Cursor：
 
 ## 十、SWE-bench Multimodal 与 Terminal-Bench：2026年AI编程评测新基准（Q21）
 
-### Q21: 什么是 SWE-bench Multimodal 和 Terminal-Bench？2026年最新评测数据如何？
+### Q23: 什么是 SWE-bench Multimodal 和 Terminal-Bench？2026年最新评测数据如何？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1609,7 +1609,7 @@ SWE-Rebench: ~55% 真正能跑通
 
 </details>
 
-### Q22: 什么是 Gemini CLI 和 2026 年新兴 CLI 工具？和 Claude Code 有什么区别？
+### Q24: 什么是 Gemini CLI 和 2026 年新兴 CLI 工具？和 Claude Code 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1688,7 +1688,7 @@ Gemini CLI = Google开源的终端AI编程工具（2025年中发布）
 
 ## 十一、Claude Code 与 Cursor 双工具策略：2026开发者选择框架（Q23）
 
-### Q23: Claude Code 与 Cursor 如何组合使用？开发者画像选型决策树是什么？
+### Q25: Claude Code 与 Cursor 如何组合使用？开发者画像选型决策树是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1828,7 +1828,7 @@ echo "# 编码规范\n- 错误用 errors.Wrap\n- 禁用全局变量" >> CLAUDE.m
 
 ## 十二、五大AI编程工具全景对比：2026年开发者选型指南（Q24）
 
-### Q24: 2026年有哪些主流AI编程工具？Trae、Windsurf、GitHub Copilot Agent Mode 各有什么特点？如何根据场景选择？
+### Q26: 2026年有哪些主流AI编程工具？Trae、Windsurf、GitHub Copilot Agent Mode 各有什么特点？如何根据场景选择？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2029,7 +2029,7 @@ echo "# 编码规范\n- 错误用 errors.Wrap\n- 禁用全局变量" >> CLAUDE.m
 
 ## 十三、2026年AI编程助手三强格局定型：JetBrains调查数据详解与选型新框架（Q25）
 
-### Q25: 2026年AI编程助手市场格局为何说是"三强定型"？JetBrains万人调查揭示了哪些关键数据？Composer 2和Copilot Agent Mode GA意味着什么？
+### Q27: 2026年AI编程助手市场格局为何说是"三强定型"？JetBrains万人调查揭示了哪些关键数据？Composer 2和Copilot Agent Mode GA意味着什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2217,7 +2217,7 @@ Supermaven Babelfish 代码补全：
 
 ## 十四、Windsurf Cascade深入机制 vs Copilot Spaces/BugBot：四大工具定位与选型（Q26）
 
-### Q26: Windsurf Cascade的跨会话记忆是如何实现的？Claude Code CLAUDE.md有什么不同？Copilot Spaces和BugBot是什么？四大工具详细定价和选型有什么新变化？
+### Q28: Windsurf Cascade的跨会话记忆是如何实现的？Claude Code CLAUDE.md有什么不同？Copilot Spaces和BugBot是什么？四大工具详细定价和选型有什么新变化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2430,7 +2430,7 @@ API Key方式：
 
 ## 十五、Cline与Amazon Q Developer：2026年开源极客与企业AWS专用工具（Q27）
 
-### Q27: Cline是什么？为什么它是开源极客的首选？Amazon Q Developer适合哪些场景？2026年AI编程五大趋势是什么？
+### Q29: Cline是什么？为什么它是开源极客的首选？Amazon Q Developer适合哪些场景？2026年AI编程五大趋势是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2577,7 +2577,7 @@ Amazon Q     AWS专用            Free/$19    有限        VS Code/JetBrains AW
 
 ## 十六、Claude Code v2.1.89-91（2026年4月）：MCP 500K永续化/插件二进制/Headless Defer（Q28）
 
-### Q28: Claude Code在2026年4月有哪些重要更新？v2.1.89-91版本新增了哪些生产级功能？
+### Q30: Claude Code在2026年4月有哪些重要更新？v2.1.89-91版本新增了哪些生产级功能？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2734,7 +2734,7 @@ AWS Bedrock = AWS的托管大模型服务
 
 ## 十七、Claude Code v2.1.92与Top 10 MCP Servers for AI编程（Q29）
 
-### Q29: Claude Code v2.1.92有哪些更新？2026年最值得关注的MCP服务器有哪些？
+### Q31: Claude Code v2.1.92有哪些更新？2026年最值得关注的MCP服务器有哪些？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2832,7 +2832,7 @@ Top 10 MCP Servers（killer-skills.com推荐）：
 
 ## 十八、Anthropic Managed Agents vs OpenAI Agents SDK v0.13.6：2026年4月新发布（Q30-Q31）
 
-### Q30: Anthropic Managed Agents是什么？和Claude Code有什么区别？为什么它是企业级AI编程的重大突破？
+### Q32: Anthropic Managed Agents是什么？和Claude Code有什么区别？为什么它是企业级AI编程的重大突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2895,10 +2895,11 @@ Managed Agents Agent Teams：
 **面试话术：**
 
 > "Managed Agents的本质是'把Claude Code变成云服务'。Claude Code需要自己搭环境、自己管状态、自己处理错误；Managed Agents让企业直接用Anthropic的基础设施，按session-hour付费。最大的亮点是Agent Teams——多个Claude实例可以像真实团队一样协作，而不是像以前那样串行调用。这对需要多角色协作的企业场景（如Notion的文档处理、Rakuten的客服）价值巨大。定价$0.08/session-hour，对比自建Claude Code集群的成本，很有竞争力。"
+</details>
 
 ---
 
-### Q31: OpenAI Agents SDK v0.13.6有哪些更新？为什么它是2026年最值得关注的多框架SDK？
+### Q33: OpenAI Agents SDK v0.13.6有哪些更新？为什么它是2026年最值得关注的多框架SDK？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2921,6 +2922,7 @@ Managed Agents Agent Teams：
 **核心架构：**
 
 ```python
+</details>
 # Agents SDK v0.13.6 的多Provider支持
 from agents import Agent, set_default_model
 
@@ -2970,7 +2972,7 @@ agent3 = Agent(instructions="处理多语言输入")
 
 *版本: v2.16 | 更新: 2026-04-13 | by 二狗子 🐕*
 
-### Q32: 为什么所有主流AI编程基准测试都被"攻破"了？2026年Berkeley论文揭示了什么？
+### Q34: 为什么所有主流AI编程基准测试都被"攻破"了？2026年Berkeley论文揭示了什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3075,7 +3077,7 @@ def validate(self, page, chat_messages):
 
 *版本: v2.17 | 更新: 2026-04-13 | by 二狗子 🐕*
 
-### Q33: Archon是什么？2026年为什么"AI编程工作流引擎"成为新热点？claude-mem跨会话记忆有哪些最新实践？
+### Q35: Archon是什么？2026年为什么"AI编程工作流引擎"成为新热点？claude-mem跨会话记忆有哪些最新实践？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3199,7 +3201,7 @@ curl -fsSL https://install.cmem.ai/openclaw.sh | bash
 
 *版本: v2.18 | 更新: 2026-04-14 | by 二狗子 🐕*
 
-### Q34: Claude Mythos是什么？为什么Anthropic选择不公开发布？Project Glasswing是什么？2026年AI安全有哪些重大变化？
+### Q36: Claude Mythos是什么？为什么Anthropic选择不公开发布？Project Glasswing是什么？2026年AI安全有哪些重大变化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3314,7 +3316,7 @@ Mythos（受限访问）
 
 ---
 
-### Q13: MiniMax M2.7是什么？它和M2.5有什么关系？Self-Evolving Agent Model是什么意思？
+### Q37: MiniMax M2.7是什么？它和M2.5有什么关系？Self-Evolving Agent Model是什么意思？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3371,7 +3373,7 @@ MiniMax 开源的交互式 Web GUI demo，展示 Agent 在浏览器中的实时�
 
 ---
 
-### Q14: OpenAI Codex 2026年4月推出了哪些企业级更新？和Claude Code/Cursor相比有什么差异？
+### Q38: OpenAI Codex 2026年4月推出了哪些企业级更新？和Claude Code/Cursor相比有什么差异？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3416,10 +3418,11 @@ OpenAI 的 macOS 应用签名流程使用了被污染的 Axios v1.14.1（朝鲜�
 **延伸阅读：**
 - OpenAI 安全事件公告：https://openai.com/index/axios-developer-tool-compromise/
 - Codex 定价更新：https://openai.com/index/codex-flexible-pricing-for-teams/
+</details>
 
 ## 十九、Pinecone Plugin for Claude Code：AI编程工具的向量数据库集成（Q35）
 
-### Q35: Pinecone Plugin for Claude Code 是什么？为什么它是2026年AI应用开发的工作流革命？
+### Q39: Pinecone Plugin for Claude Code 是什么？为什么它是2026年AI应用开发的工作流革命？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3490,7 +3493,7 @@ claude plugin install pinecone
 
 ## 十一、Claude Code Routines：Hacker News 2026年4月热门话题（Q36）
 
-### Q36: Claude Code Routines 是什么？为什么它是 2026 年 AI 编程自动化的重大升级？
+### Q40: Claude Code Routines 是什么？为什么它是 2026 年 AI 编程自动化的重大升级？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3580,7 +3583,7 @@ Anthropic 托管执行
 
 ## 十二、HoloTab：HCompany 2026年4月浏览器 Agent 扩展（Q37）
 
-### Q37: HoloTab 是什么？为什么它是浏览器自动化 Agent 的新突破？
+### Q41: HoloTab 是什么？为什么它是浏览器自动化 Agent 的新突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3664,7 +3667,7 @@ Holo3 Model（理解意图 + 规划动作）
 
 ---
 
-### Q34: GenericAgent是什么？为什么"自进化技能树"是2026年AI Agent架构的新方向？
+### Q42: GenericAgent是什么？为什么"自进化技能树"是2026年AI Agent架构的新方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3736,11 +3739,7 @@ GenericAgent 是一个**自进化自主 Agent 框架**，核心理念是"不要�
 
 *版本: v2.22 | 更新: 2026-04-16 | by 二狗子 🐕*
 
-### Q35: OpenAI Agents SDK v0.14.0新增了Sandbox Agent是什么？和传统Agent有什么区别？有哪些新特性？
-
-<details>
-<parameter name="summary">💡 答案要点
-### Q35: OpenAI Agents SDK v0.14.0 新增了 Sandbox Agent 是什么？和传统 Agent 有什么区别？
+### Q43: OpenAI Agents SDK v0.14.0 新增了 Sandbox Agent 是什么？和传统 Agent 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3837,7 +3836,7 @@ print(result.final_output)
 
 *版本: v2.23 | 更新: 2026-04-20 | by 二狗子 🐕*
 
-### Q38: AI 能否帮你写 SIMD 汇编代码？2026年 Claude/Grok 在性能优化上的实测对比
+### Q44: AI 能否帮你写 SIMD 汇编代码？2026年 Claude/Grok 在性能优化上的实测对比
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3910,7 +3909,7 @@ Daniel Lemire（知名性能工程师）在博客中记录了一场"AI 写汇编
 
 ---
 
-### Q39: SWE-bench 2026年5月最新榜单有哪些重大变化？为什么"模型性能"和"Agent scaffold质量"同等重要？
+### Q45: SWE-bench 2026年5月最新榜单有哪些重大变化？为什么"模型性能"和"Agent scaffold质量"同等重要？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4005,7 +4004,7 @@ Scaffold = Agent 的"操作系统"
 
 ---
 
-### Q40: 什么是"AI编程工作流引擎"？2026年为什么 Cursor Rules、Claude Code Routines、Copilot Workspace 成为新热点？
+### Q46: 什么是"AI编程工作流引擎"？2026年为什么 Cursor Rules、Claude Code Routines、Copilot Workspace 成为新热点？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4036,6 +4035,7 @@ description: 企业级TypeScript开发规范
 applies:
   - filePattern: "*.ts"
   - minLines: 50
+</details>
 ---
 
 # 规则：必须显式类型
@@ -4118,7 +4118,7 @@ Workspace 生成执行计划：
 ```
 
 
-### Q41: Cursor May 2026有哪些重大更新？为什么Cursor SDK是企业级AI编程的新里程碑？
+### Q47: Cursor May 2026有哪些重大更新？为什么Cursor SDK是企业级AI编程的新里程碑？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4256,7 +4256,7 @@ rules:
 
 ---
 
-### Q42: Claude Code Cloud Auto-Fix是什么？为什么"PR that fixes itself"是2026年AI编程的重大突破？
+### Q48: Claude Code Cloud Auto-Fix是什么？为什么"PR that fixes itself"是2026年AI编程的重大突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4390,7 +4390,7 @@ https://github.com/marketplace/actions/pr-autofix-with-claude-code
 
 
 
-### Q43: Claude Code `ultrareview`是什么？为什么"云端bug-hunting fleet"是2026年AI代码审查的革命性突破？
+### Q49: Claude Code `ultrareview`是什么？为什么"云端bug-hunting fleet"是2026年AI代码审查的革命性突破？
 
 <details>
 <summary>💡 答案要点</summary>

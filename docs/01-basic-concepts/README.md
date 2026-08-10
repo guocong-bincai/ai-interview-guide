@@ -63,7 +63,7 @@ Temperature=0.2, Top-P=0.95
 | 模型 | 上下文限制 |
 |------|------------|
 | GPT-4o | 128K |
-| GPT-3.5 | 16K |
+| DeepSeek V4-Flash | 16K |
 | Claude | 200K |
 | 开源模型 | 4K-32K |
 
@@ -690,7 +690,7 @@ print(summary)  # 最终浓缩版
 
 | 模型 | Context Window | 价格(1M tokens) | 适用 |
 |------|----------------|-----------------|------|
-| GPT-3.5 | 16K | $1.5 | 短对话 |
+| DeepSeek V4-Flash | 16K | $1.5 | 短对话 |
 | GPT-4 | 8K | $30 | 通用 |
 | GPT-4-32K | 32K | $60 | 长文档 |
 | GPT-4-128K | 128K | $120 | 超长 |
@@ -703,7 +703,7 @@ def choose_model(text_length):
     tokens = count_tokens(text)
 
     if tokens < 4000:
-        return "gpt-3.5-turbo"  # 便宜
+        return "deepseek-v4-flash"  # 便宜
     elif tokens < 30000:
         return "claude-2"       # 性价比高
     elif tokens < 120000:

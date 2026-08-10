@@ -1831,7 +1831,6 @@ Agent安全：
 - 能对比 OWASP Top 10 LLM 2025 vs OWASP Agent Top 10 2026 的演进
 - 有实际安全加固经验（如：在项目中加入 MCP 鉴权、审计日志）
 
-</details>
 
 ### Q17: SEP-1686 Tasks 原语是什么？为什么它是2026年MCP最重要的企业级更新？
 
@@ -2168,7 +2167,6 @@ class SSRFProtection:
 - 了解 OWASP SSRF Prevention Cheat Sheet
 - 知道 NIST SSDF（Secure Software Development Framework）如何覆盖这些风险
 
-</details>
 
 ### Q19: MCP 2026年有哪些企业级 Readiness 问题需要解决？Audit Trails、Enterprise Auth、Gateway Patterns 最新进展？
 
@@ -2359,7 +2357,6 @@ XAA 正在解决"一个配置，多个 AI 应用共用"的问题：
 - 知道 XAA（Cross-App Access）项目的目标
 - 能区分 MCP Audit 和传统 API Audit 的本质区别（上下文链路的串联）
 
-</details>
 
 ### Q20: MCP Sampling 原语是什么？为什么它让 Server 实现 Agentic 行为成为可能？
 
@@ -2514,7 +2511,6 @@ Why:
 - 理解 Tool-enabled Sampling 和普通 Sampling 的区别
 - 知道 Sampling 与传统 function calling 的设计哲学差异
 
-</details>
 
 ### Q21: MCP Client 有哪几种类型？Internal vs External Client 的区别？Sampling 如何实现回调？
 
@@ -2631,7 +2627,6 @@ Server A/B/C → 通过 Client 代为调用 LLM
 - 知道企业 MCP Gateway 如何作为 External Client 统一管理 LLM 访问
 - 能区分 MCP Client 和传统 API Gateway 的本质区别（MCP 是双向协议，不只是路由）
 
-</details>
 
 ### Q22: MCP 授权流程（Authorization Flow）是怎么工作的？PRM、OAuth 2.1、DPoP 如何协同？
 
@@ -2753,7 +2748,6 @@ headers = {
 - 能画出完整 MCP 授权流程的时序图
 - 理解 Dynamic Client Registration（DCR）和预注册的适用场景
 
-</details>
 
 ### Q23: MCP Server Card 是什么？如何让 AI 应用自动发现和评估 Server 能力？
 
@@ -2881,7 +2875,6 @@ MCP 官方有专门的 **Server Card Working Group**，正在定义标准格式�
 - 能区分 Server Card 和 OpenAPI Spec 的定位差异
 - 理解 Server Card 对 AI Agent 安全的重要性
 
-</details>
 
 ### Q24: MCP Triggers 和 Events 是什么？为什么它们让 AI Agent 从"被动响应"变成"主动感知"？
 
@@ -2997,7 +2990,6 @@ class OrderProcessingAgent:
 - 能区分 Triggers/Events 和传统消息队列（如 Kafka）的定位
 - 理解事件驱动 Agent 和轮询 Agent 的本质差异
 
-</details>
 
 ### Q25: MCP Registry 是什么？如何发布和分发企业级 MCP Server？
 
@@ -3111,7 +3103,6 @@ npx @smithery/cli@latest install @github      # GitHub MCP Servernpx @smithery/c
 - 知道 Registry Aggregators（如 Smithery）的聚合价值
 - 能区分公开 Registry 和私有 Registry 的适用场景
 
-</details>
 
 ### Q26: MCP Skills Over MCP 是什么？为什么它让 AI Agent 能动态组合多工具能力？
 
@@ -3232,7 +3223,6 @@ result = await agent.execute_composite_task([
 - 能区分 Skill 和传统 MCP Tool 的定位差异
 - 理解 Skills Over MCP 与 Server Card 的层次关系
 
-</details>
 
 
 ---
@@ -3649,7 +3639,7 @@ AUDIT_RETENTION_DAYS=90
 
 ## 九、CoSAI Agentic Identity 与 2026 AI Agent 安全新框架（Q19）
 
-### Q19: 什么是 CoSAI Agentic Identity Framework？2026年5月发布的"签名Agent清单+持续授权"解决了什么问题？
+### Q31: 什么是 CoSAI Agentic Identity Framework？2026年5月发布的"签名Agent清单+持续授权"解决了什么问题？
 
 <details>
 <summary>💡 答案要点</summary>

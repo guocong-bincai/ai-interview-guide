@@ -252,7 +252,7 @@ def check_budget_alert():
 | 策略 | 节省比例 | 实现方式 |
 |------|----------|----------|
 | **语义缓存** | 30-50% | Embedding 相似度 > 0.95 直接返回缓存 |
-| **模型路由** | 30-40% | 简单任务用 GPT-3.5，复杂用 GPT-4 |
+| **模型路由** | 30-40% | 简单任务用 DeepSeek V4-Flash，复杂用 GPT-4 |
 | **上下文压缩** | 40-90% | LLMLingua / Recomp 压缩历史 |
 | **Token 配额** | 动态 | 按用户 tier 设置每日上限 |
 
@@ -291,7 +291,7 @@ class SemanticCache:
 
 **面试话术：**
 
-> "成本控制是 2026 年面试高频追问。我的思路是三层控制：1）语义缓存，同一问题第二次问直接返回缓存，命中率达 40%；2）模型路由，简单查询路由到 GPT-3.5，复杂推理才用 GPT-4，节省 30%；3）上下文压缩，对话超过 20 轮自动触发 LLMLingua 压缩历史。三个叠加，单任务成本从 $0.12 降到 $0.04，效果量化后给面试官看。"
+> "成本控制是 2026 年面试高频追问。我的思路是三层控制：1）语义缓存，同一问题第二次问直接返回缓存，命中率达 40%；2）模型路由，简单查询路由到 DeepSeek V4-Flash，复杂推理才用 GPT-4，节省 30%；3）上下文压缩，对话超过 20 轮自动触发 LLMLingua 压缩历史。三个叠加，单任务成本从 $0.12 降到 $0.04，效果量化后给面试官看。"
 
 ---
 
@@ -343,7 +343,7 @@ class AgentAnomalyDetector:
         return 1.0 - (supported / len(facts)) if facts else 0.0
 
 # 生产集成示例
-@track_cost(model="gpt-4", ...)
+@track_cost(model="qwen3.5-plus", ...)
 async def agent_run(query: str):
     detector = AgentAnomalyDetector()
     messages = []
@@ -1402,7 +1402,7 @@ Token成本 = Σ(输入Token数 × 单价) + Σ(输出Token数 × 单价)
 │  └── Token消耗速率异常（突增 > 3x）→ 立即告警             │
 ├─────────────────────────────────────────────────────────┤
 │  Layer 3: 成本优化（主动降本）                            │
-│  ├── 模型降级：GPT-4 → GPT-3.5（简单任务）               │
+│  ├── 模型降级：GPT-4 → DeepSeek V4-Flash（简单任务）               │
 │  ├── 缓存命中：相同问题直接返回（省 100%）                │
 │  ├── 步数限制：> 10步强制结束（防死循环）                  │
 │  └── Prompt压缩：LLMLingua 减少 30% token                │
@@ -1480,7 +1480,7 @@ class AgentBudgetController:
     def calculate_cost(self, input_tok: int, output_tok: int, model: str) -> float:
         pricing = {
             "gpt-4o": (0.005, 0.015),
-            "gpt-3.5-turbo": (0.0005, 0.0015),
+            "deepseek-v4-flash": (0.0005, 0.0015),
             "claude-3-opus": (0.015, 0.075)
         }
         in_price, out_price = pricing.get(model, (0.0, 0.0))
@@ -1521,7 +1521,7 @@ class AgentBudgetController:
 </details>
 
 
-### Q12: SLA 违约复盘模板：从告警到根因分析的完整流程
+### Q16: SLA 违约复盘模板：从告警到根因分析的完整流程
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1672,7 +1672,7 @@ ORDER BY num_segments DESC;
 
 </details>
 
-### Q13: Agent 日志结构化设计：如何让日志可搜索、可分析？
+### Q17: Agent 日志结构化设计：如何让日志可搜索、可分析？
 
 <details>
 <summary>💡 答案要点</summary>

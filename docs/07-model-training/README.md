@@ -334,7 +334,7 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 ```
 
 **面试话术：**
-> "RLHF 是让 AI 学会'什么是好答案'。SFT 是打基础，RM 是建立评价标准，PPO 是不断优化。GPT-3.5/4、Claude 都用了 RLHF。"
+> "RLHF 是让 AI 学会'什么是好答案'。SFT 是打基础，RM 是建立评价标准，PPO 是不断优化。DeepSeek V4-Flash/4、Claude 都用了 RLHF。"
 
 </details>
 

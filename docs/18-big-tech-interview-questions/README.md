@@ -346,7 +346,7 @@ class RAGSystem:
     def __init__(self):
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.vectordb = Qdrant(...)
-        self.llm = ChatOpenAI(model="gpt-4o-mini")
+        self.llm = ChatOpenAI(model="qwen3.5-flash")
         self.reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
     def build_knowledge_base(self, documents):
@@ -2018,7 +2018,7 @@ class TencentVectorSearch:
 ```
 腾讯AI业务现状：
 - 内部模型：混元（Hunyuan）、wepro、 hunyuan-function
-- 外部模型：GPT-4、Claude、GPT-3.5（部分场景）
+- 外部模型：GPT-4、Claude、DeepSeek V4-Flash（部分场景）
 - 场景差异：简单问答用小模型，复杂推理用大模型
 
 问题：多模型如何统一管理？成本如何控制？
@@ -2295,7 +2295,7 @@ doubao_gateway:
   fallback_chain:
     - doubao-pro
     - doubao-lite
-    - gpt-3.5-turbo  # 外部兜底
+    - deepseek-v4-flash  # 外部兜底
 ```
 
 **生产问题排查：**

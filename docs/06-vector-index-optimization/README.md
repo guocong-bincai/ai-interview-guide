@@ -1490,7 +1490,7 @@ result = client.query.get("Article", ["title", "content"]) \
 
 ## 十、2026年 Late Interaction 检索：ColBERTv2、ColPali、ColQwen（Q10）
 
-### Q10: 什么是 Late Interaction 检索？为什么它是2026年向量检索的重要方向？ColBERTv2、ColPali、ColQwen 各自特点是什么？
+### Q20: 什么是 Late Interaction 检索？为什么它是2026年向量检索的重要方向？ColBERTv2、ColPali、ColQwen 各自特点是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1632,7 +1632,7 @@ def hybrid_retrieval(query, collection, top_k=100):
 
 ---
 
-### Q15: 什么是 DiskANN？它如何实现冷热分层存储？
+### Q21: 什么是 DiskANN？它如何实现冷热分层存储？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1689,7 +1689,7 @@ collection.create_index(field_name="embedding", index_params=index_params)
 
 ---
 
-### Q16: 什么是二进制量化（Binary Quantization）？它和 PQ 有什么区别？
+### Q22: 什么是二进制量化（Binary Quantization）？它和 PQ 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>

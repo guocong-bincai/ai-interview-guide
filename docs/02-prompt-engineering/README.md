@@ -131,7 +131,7 @@
 
 ## 📝 进阶Prompt技巧
 
-### Q5: 什么是Self-Consistency?如何提升推理准确率?
+### Q4: 什么是Self-Consistency?如何提升推理准确率?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -216,7 +216,7 @@ def self_consistency(question, n=5):
 
 ---
 
-### Q6: 什么是Tree of Thoughts(ToT)?与CoT的区别?
+### Q5: 什么是Tree of Thoughts(ToT)?与CoT的区别?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -332,7 +332,7 @@ class TreeOfThoughts:
 
 ---
 
-### Q7: 什么是Auto-CoT?如何减少人工示例?
+### Q6: 什么是Auto-CoT?如何减少人工示例?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -426,7 +426,7 @@ def solve_new_question(new_q):
 
 ---
 
-### Q8: 如何防止Prompt Leakage(提示词泄露)?
+### Q7: 如何防止Prompt Leakage(提示词泄露)?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -525,7 +525,7 @@ prompt = """
 
 ---
 
-### Q9: 什么是 Prompt Injection（提示词注入）？和 Prompt Leakage 有什么区别？
+### Q8: 什么是 Prompt Injection（提示词注入）？和 Prompt Leakage 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -605,7 +605,7 @@ if detect(dangerous_patterns, user_input):
 
 ---
 
-### Q10: Structured Outputs / JSON Mode 是什么？和 Function Calling 有什么区别？
+### Q9: Structured Outputs / JSON Mode 是什么？和 Function Calling 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -694,7 +694,7 @@ response = client.chat.completions.create(
 
 </details>
 
-### Q11: ReAct Prompting 的局限是什么？工程实践中如何规避？
+### Q10: ReAct Prompting 的局限是什么？工程实践中如何规避？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -802,7 +802,7 @@ class PlanAndSolve:
 
 </details>
 
-### Q12: 如何写 System Prompt 让 Agent 更稳定？必须包含哪些要素？
+### Q11: 如何写 System Prompt 让 Agent 更稳定？必须包含哪些要素？
 
 <details>
 <summary>💡 答案要点</summary>

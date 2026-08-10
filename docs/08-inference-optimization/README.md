@@ -961,7 +961,7 @@ class ContinuousBatcher:
 | 大模型 | 小模型 | 速度差异 |
 |--------|--------|----------|
 | Llama 2 70B | Llama 2 7B | 10x |
-| GPT-4 | GPT-3.5 | 5x |
+| GPT-4 | DeepSeek V4-Flash | 5x |
 | CodeLlama 34B | CodeLlama 7B | 5x |
 
 **优缺点：**

@@ -409,11 +409,11 @@ class ModelRouter:
         intent = self.classifier.predict(question)
 
         if intent == "simple":
-            return "gpt-4o-mini"
+            return "qwen3.5-flash"
         elif intent == "medium":
             return "claude-3-sonnet"
         else:
-            return "gpt-4"
+            return "qwen3.5-plus"
 
     def generate(self, question):
         model = self.route(question)
@@ -977,7 +977,7 @@ verified = self_verification(question, answer)
 def multi_model_consensus(question):
     """多个模型投票,一致才信任"""
 
-    models = ["gpt-4", "claude-3", "gemini-pro"]
+    models = ["qwen3.5-plus", "claude-3", "gemini-pro"]
     answers = []
 
     for model in models:
@@ -1343,8 +1343,8 @@ class PromptInjectionMonitor:
 ```python
 class SecureAISystem:
     def __init__(self):
-        self.filter_llm = "gpt-3.5-turbo"  # 轻量级,检测注入
-        self.main_llm = "gpt-4"            # 主模型
+        self.filter_llm = "deepseek-v4-flash"  # 轻量级,检测注入
+        self.main_llm = "qwen3.5-plus"            # 主模型
 
     def process(self, user_input):
         # Step 1: 用filter_llm检测注入
@@ -1852,7 +1852,7 @@ def evaluate_dialogue(conversation):
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-04-06
 
-### Q7: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
+### Q12: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1980,7 +1980,7 @@ results = eval_llm.evaluate(
 
 </details>
 
-### Q8: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
+### Q13: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2171,7 +2171,7 @@ alerts:
 
 ## 五、Agent Harness Engineering：AI Agent评估框架与安全测试（Q12）
 
-### Q12: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
+### Q14: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2375,7 +2375,7 @@ Agent Harness：评估"自主行为"
 
 ## 七、神经符号融合：2026年幻觉控制新范式
 
-### Q13: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
+### Q15: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2625,7 +2625,7 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 
 ## 六、Google Research 行为对齐评估：Behavioral Dispositions Framework（Q10）
 
-### Q10: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
+### Q18: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2674,7 +2674,7 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 
 </details>
 
-### Q18: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
+### Q19: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2761,7 +2761,7 @@ Wirken 安全思路（正确）：
 
 ## 二十、2026年 Prompt Injection 七类攻击模式 + RAG 投毒防御（Q19）
 
-### Q19: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
+### Q20: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2972,7 +2972,7 @@ AI 读取图片 → 解析像素中的隐写信息 → 执行指令
 
 ## 二十一、2026年 Agent 评估平台对比：Braintrust vs DeepEval vs Weave vs Langfuse vs Arize（Q20）
 
-### Q20: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
+### Q21: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3291,7 +3291,7 @@ def test_rag_faithfulness():
 - Patronus AI: https://www.patronus.ai
 - RAG Evaluation 2026 Guide: https://datavlab.ai/post/rag-evaluation-methods-metrics-2026-guide
 
-### Q23: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
+### Q22: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3581,7 +3581,6 @@ class DistillationGuard:
 **延伸阅读：**
 - 东不压桥研究院：模型蒸馏、对抗性蒸馏与蒸馏攻击（2026-08）：https://www.secrss.com/articles/77742
 
-</details>
 
 ---
 *版本: v3.128 | 更新: 2026-08-10 | by 二狗子 🐕*

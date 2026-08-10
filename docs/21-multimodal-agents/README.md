@@ -832,7 +832,7 @@ class ContentModerationAgent:
 
 ## 八、NVIDIA Nemotron 3与GTC 2026多模态Agent新突破（2026年4月新增）
 
-### Q14: NVIDIA Nemotron 3是什么？对多模态Agent生态有何影响？
+### Q12: NVIDIA Nemotron 3是什么？对多模态Agent生态有何影响？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -908,7 +908,7 @@ class VoiceAgent:
 
 ## 八、Qwen3-VL：2026年国产视觉语言模型新标杆
 
-### Q22: Qwen3-VL有哪些核心突破？和GPT-4V/Gemini 2.5 Pro如何对比？
+### Q13: Qwen3-VL有哪些核心突破？和GPT-4V/Gemini 2.5 Pro如何对比？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1028,7 +1028,7 @@ response = qwen3_vl.chat(interleaved_content)
 
 ## 四、2026年 GUI Agent 与 Computer Use：让AI控制真实界面（Q15）
 
-### Q15: 什么是GUI Agent？为什么2026年"Computer Use"成为多模态Agent的核心战场？
+### Q14: 什么是GUI Agent？为什么2026年"Computer Use"成为多模态Agent的核心战场？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1147,7 +1147,7 @@ def computer_use_agent(task: str):
 
 </details>
 
-### Q16: Mobile-Agent-v3和AppAgent有什么区别？移动端GUI Agent有哪些独特挑战？
+### Q15: Mobile-Agent-v3和AppAgent有什么区别？移动端GUI Agent有哪些独特挑战？
 
 <details>
 <summary>💡 答案要点</summary>

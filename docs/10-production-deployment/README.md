@@ -365,11 +365,11 @@ class ModelRouter:
         intent = self.classifier.predict(question)
 
         if intent == "simple":
-            return "gpt-4o-mini"
+            return "qwen3.5-flash"
         elif intent == "medium":
             return "claude-3-sonnet"
         else:
-            return "gpt-4"
+            return "qwen3.5-plus"
 ```
 
 **面试话术：**
@@ -552,7 +552,7 @@ rate_limits:
 backpressure:
   queue_size: 200
   timeout_seconds: 30
-  degrade_to_model: "gpt-3.5-turbo"
+  degrade_to_model: "deepseek-v4-flash"
 
 circuit_breaker:
   error_threshold: 0.5
@@ -1103,7 +1103,7 @@ class QualityMonitor:
 class CostTracker:
     # 价格表(每1K tokens)
     PRICES = {
-        "gpt-4": {"input": 0.03, "output": 0.06},
+        "qwen3.5-plus": {"input": 0.03, "output": 0.06},
         "gpt-3.5": {"input": 0.0015, "output": 0.002}
     }
 
@@ -1366,7 +1366,7 @@ def route_model(task: str, user_tier: str) -> str:
     if "代码" in task or "code" in task.lower():
         return "claude-opus-4.5"  # 代码用 Claude
     elif len(task) < 100 and user_tier == "free":
-        return "gpt-4o-mini"  # 简单任务用便宜模型
+        return "qwen3.5-flash"  # 简单任务用便宜模型
     elif "中文" in task or contains_chinese(task):
         return "qwen3-72b"  # 中文用 Qwen
     else:
@@ -1387,7 +1387,7 @@ def route_model(task: str) -> str:
     任务：{task}
 
     选项：
-    A. 简单任务（问答、翻译）→ 用 gpt-4o-mini（$0.15/1M tokens）
+    A. 简单任务（问答、翻译）→ 用 qwen3.5-flash（$0.15/1M tokens）
     B. 中等任务（文案生成、摘要）→ 用 gpt-4o（$2.5/1M tokens）
     C. 复杂任务（代码生成、长文写作）→ 用 claude-opus-4.5（$15/1M tokens）
 
@@ -1476,7 +1476,7 @@ def route_model(task: str) -> str:
 
 ---
 
-### Q15: Go 如何用 Worker Pool 模式处理高并发 LLM 请求？有哪些踩坑点？
+### Q18: Go 如何用 Worker Pool 模式处理高并发 LLM 请求？有哪些踩坑点？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1579,7 +1579,7 @@ func (p *LLMWorkerPool) Submit(ctx context.Context, prompt string) <-chan string
 
 ---
 
-### Q16: LLMOps 和 MLOps 有什么区别？LLM 应用上线后需要运维哪些东西？
+### Q19: LLMOps 和 MLOps 有什么区别？LLM 应用上线后需要运维哪些东西？
 
 <details>
 <summary>💡 答案要点</summary>

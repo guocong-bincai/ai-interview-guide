@@ -1609,7 +1609,7 @@ embeddings = clip_model.get_text_features(texts)  # 批量快10倍
 
 ## 六、Gemma 4：Google DeepMind 2026年4月重磅发布
 
-### Q16: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
+### Q9: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1997,7 +1997,7 @@ class ImageQualityEvaluator:
 
 ## 七、Vision-Language Agent 评估：MMLU-Pro、MathVista、ChartQA、DocVQA（Q17）
 
-### Q17: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
+### Q10: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2196,7 +2196,7 @@ def evaluate_docvqa(documents, questions):
 
 ## 五、2026年全模态模型新突破：Qwen3.5-Omni 与 NVIDIA Nemotron 3 Nano Omni（Q18）
 
-### Q18: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
+### Q11: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2302,7 +2302,7 @@ def evaluate_docvqa(documents, questions):
 
 </details>
 
-### Q19: NVIDIA Nemotron 3 Nano Omni 是什么？为什么"端侧全模态"是2026年的重要方向？
+### Q12: NVIDIA Nemotron 3 Nano Omni 是什么？为什么"端侧全模态"是2026年的重要方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2367,7 +2367,7 @@ scenarios = {
 
 </details>
 
-### Q20: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
+### Q13: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
 
 <details>
 <summary>💡 答案要点</summary>

@@ -315,7 +315,7 @@ import autogen
 
 # 1. 配置LLM
 llm_config = {
-    "model": "gpt-4",
+    "model": "qwen3.5-plus",
     "api_key": "sk-xxx",
     "temperature": 0.7
 }
@@ -803,7 +803,7 @@ content_crew = Crew(
     agents=[manager, researcher, writer, editor],
     tasks=[...],
     process=Process.hierarchical,  # 层级模式
-    manager_llm="gpt-4"  # Manager使用的LLM
+    manager_llm="qwen3.5-plus"  # Manager使用的LLM
 )
 
 # 执行流程:
@@ -1050,14 +1050,14 @@ class EnterpriseAgentOrchestrator:
 AGENT_TIERS = {
     "tier1": {
         "name": "基础问答",
-        "model": "gpt-3.5-turbo",  # 便宜快速
+        "model": "deepseek-v4-flash",  # 便宜快速
         "examples": ["查天气", "简单FAQ"],
         "cost_per_1k": 0.002,
         "latency_p99": "500ms"
     },
     "tier2": {
         "name": "复杂推理",
-        "model": "gpt-4o-mini",   # 中等成本
+        "model": "qwen3.5-flash",   # 中等成本
         "examples": ["数据分析", "代码调试"],
         "cost_per_1k": 0.01,
         "latency_p99": "2s"
@@ -1611,7 +1611,7 @@ Step 4: 搭建A2A体系（多Agent规模化协同）
 
 ---
 
-### Q12: 如何用A2A协议实现企业级多Agent编排？Agent发现和任务委托流程是什么？
+### Q9: 如何用A2A协议实现企业级多Agent编排？Agent发现和任务委托流程是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1788,7 +1788,7 @@ class A2AGateway:
 
 ## 十四、A2A + MCP 混合架构：2026年多智能体生产部署策略（Q14）
 
-### Q14: 如何设计 A2A + MCP 混合架构？企业级多智能体生产部署有哪些核心检查项？
+### Q10: 如何设计 A2A + MCP 混合架构？企业级多智能体生产部署有哪些核心检查项？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2010,7 +2010,7 @@ Agent Card 发布在 `/.well-known/agent.json`，供其他 Agent 发现和对接
 
 ## 十四、多Agent三大架构模式：Commander/P2P/Hybrid与五种协议对比（Q14）
 
-### Q14: 多Agent系统有哪些主流架构模式？Commander、P2P、Hybrid三种模式各适合什么场景？CrewAI/AutoGen/LangGraph/MCP/A2A如何选择？
+### Q11: 多Agent系统有哪些主流架构模式？Commander、P2P、Hybrid三种模式各适合什么场景？CrewAI/AutoGen/LangGraph/MCP/A2A如何选择？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2207,7 +2207,7 @@ CLI工具编排（tmux/ssh场景）？
 
 ## 十五、ArXiv 2026年4月AI Agent前沿：五大研究热点与生产启示（Q16）
 
-### Q16: 2026年4月ArXiv有哪些值得关注的AI Agent研究？HippoCamp/OmniMem/HERA/BloClaw/NARCBench各自代表了什么方向？
+### Q12: 2026年4月ArXiv有哪些值得关注的AI Agent研究？HippoCamp/OmniMem/HERA/BloClaw/NARCBench各自代表了什么方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2354,7 +2354,7 @@ NARCBench        多智能体系统需要安全审计，
 
 ## 十六、Google Research 双Agent框架：PaperVizAgent + ScholarPeer（Q17）
 
-### Q17: PaperVizAgent 的五Agent架构是什么？为什么"Critic循环"是生成高质量学术图表的关键？
+### Q13: PaperVizAgent 的五Agent架构是什么？为什么"Critic循环"是生成高质量学术图表的关键？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2421,7 +2421,7 @@ AI 可以帮研究者写文字，但生成顶会/期刊需要的复杂方法图�
 
 ## 十八、Agent Skills vs Tools 区别 + 2026 年 Skills 架构实战（Q18）
 
-### Q18: 什么是 Agent Skills？为什么 2026 年"Skills"成为独立概念？和 Tools 有什么区别？Dify Nacos A2A 插件解决什么问题？
+### Q14: 什么是 Agent Skills？为什么 2026 年"Skills"成为独立概念？和 Tools 有什么区别？Dify Nacos A2A 插件解决什么问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2604,7 +2604,7 @@ result = agent.run("客户张先生反映最近订单发货延迟")
 
 *版本: v2.9 | 更新: 2026-05-09 | by 二狗子 🐕*
 
-### Q19: A2A 和 MCP 协议边界在哪里？什么场景必须 A2A+MCP 混合，不能只用某一个？
+### Q15: A2A 和 MCP 协议边界在哪里？什么场景必须 A2A+MCP 混合，不能只用某一个？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2699,7 +2699,7 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 
 ## 八、多Agent职责划分与层级任务分解（Q20）
 
-### Q20: 多 Agent 系统中职责划分（Role Assignment）和层级任务分解（Hierarchical Decomposition）是什么？为什么 2026 年企业级 Agent 系统必须用"层级"而不是"扁平"架构？HTTP 协议如何影响多 Agent 通信设计？
+### Q16: 多 Agent 系统中职责划分（Role Assignment）和层级任务分解（Hierarchical Decomposition）是什么？为什么 2026 年企业级 Agent 系统必须用"层级"而不是"扁平"架构？HTTP 协议如何影响多 Agent 通信设计？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2866,7 +2866,7 @@ L1 Manager Agent：
 
 </details>
 
-### Q21: Kimi K2.6 的 Agent Swarm 架构是什么？为什么"300个并行子Agent"是2026年多Agent系统的重大突破？
+### Q17: Kimi K2.6 的 Agent Swarm 架构是什么？为什么"300个并行子Agent"是2026年多Agent系统的重大突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3055,7 +3055,6 @@ Ultra 模式：
 - OpenAI GPT-5.6 官方预览（2026-06）：https://openai.com
 - GPT-5.6 Ultra 架构解析：https://apidog.com/blog/gpt-5-6-ultra-mode
 
-</details>
 
 ---
 

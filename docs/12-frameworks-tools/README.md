@@ -2575,7 +2575,7 @@ result = agent.run_sync("分析季度销售数据")
 
 ---
 
-### Q14: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
+### Q17: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
 
 <details>
 <summary>💡 答案要点</summary>

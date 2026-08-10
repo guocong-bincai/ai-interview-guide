@@ -370,7 +370,7 @@ def should_continue(state: AgentState):
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model="gpt-4")
+llm = ChatOpenAI(model="qwen3.5-plus")
 
 # 定义状态
 class WritingState(TypedDict):
@@ -493,7 +493,7 @@ tools = [
 ### 阶段2: LLM决策
 ```python
 response = openai.ChatCompletion.create(
-    model="gpt-4",
+    model="qwen3.5-plus",
     messages=[
         {"role": "user", "content": "北京今天天气怎么样?"}
     ],
@@ -556,7 +556,7 @@ messages.append({
 
 # LLM基于工具结果生成最终答案
 final_response = openai.ChatCompletion.create(
-    model="gpt-4",
+    model="qwen3.5-plus",
     messages=messages
 )
 ```
@@ -651,7 +651,7 @@ class AgentWithTools:
         for i in range(max_iterations):
             # LLM决策
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="qwen3.5-plus",
                 messages=self.messages,
                 tools=self.tools
             )
@@ -2513,7 +2513,7 @@ class AgentContainerPool:
 
 ## 五、进阶 Agent 机制（补充 Q10-Q12）
 
-### Q10: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
+### Q28: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
