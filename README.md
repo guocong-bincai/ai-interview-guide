@@ -3,7 +3,7 @@
 # 🚀 AI 应用开发工程师面试宝典
 
 > **⚠️ 
-本次更新(v3.130)：新增 Q26-33 LLM基础八连问(01-基础概念)：Embedding/上下文学习ICL/三阶段训练/Scaling Law/KV Cache基础/RLHF vs DPO/显存估算/Chat Template
+本次更新(v3.131)：01-基础概念 新增 Q34-38 LLM基础五连问：MoE混合专家/API无状态性/Prompt Caching降本/量化基础/LLM数学差
 
 **🎯 396+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
@@ -14,7 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.130 | **最后更新:** 2026-08-10"""
+**版本:** v3.131 | **最后更新:** 2026-08-10"""
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -395,7 +395,7 @@ ai-interview-guide/
 
 ### 🟡 现有模块待扩充
 
-#### 📌 01-basic-concepts（+2 题）✅ 已实现（v3.130）
+#### 📌 01-basic-concepts（+2 题）✅ 已实现（v3.131）
 | # | 待补充题目 |
 |---|-----------|
 | Q17 | KV Cache 是什么？在推理优化中的核心作用？（基础概念层面） | ✅ 已实现（Q30）|
@@ -554,7 +554,7 @@ ai-interview-guide/
 
 ---
 
-**📅 最后更新:** 2026-08-10 | **📝 版本:** v3.130 | **👨‍💻 维护者:** 二狗子 🐕
+**📅 最后更新:** 2026-08-10 | **📝 版本:** v3.131 | **👨‍💻 维护者:** 二狗子 🐕
 
 Made with ❤️ for the AI Community
 
@@ -1165,3 +1165,13 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.131 - 2026-08-10）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🧠 LLM基础概念（新增Q34-38）](docs/01-basic-concepts/) | Q34 MoE混合专家(路由器+Top-K激活,DeepSeek-V3 671B激活37B,负载均衡)、Q35 LLM API无状态性(记忆=应用层拼历史,可水平扩展)、Q36 Prompt Caching(前缀KV复用,静态在前动态在后,输入成本降40-65%)、Q37 量化基础(INT8/INT4/AWQ/GPTQ/GGUF选型)、Q38 LLM数学差四大原因与缓解(工具计算/CoT) | 🔥🔥🔥🔥🔥 | +5 |
+
+*版本: v3.131 | 更新: 2026-08-10 | by 二狗子 🐕*
