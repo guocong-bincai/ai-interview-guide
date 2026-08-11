@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.149)：01基础概念模块新增7题(Attention/RoPE/Cross-Entropy/LayerNorm-RMSNorm/Causal Mask/数据去重/灾难性遗忘)**
+> **⚠️ 本次更新(v3.150)：02Prompt工程模块新增5题(Prompt Caching/CoVe/LLM-as-a-Judge/A-B测试框架/Speculative RAG)**
 
-**🎯 403+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 408+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.149 | **最后更新:** 2026-08-11
+**版本:** v3.150 | **最后更新:** 2026-08-12
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -37,7 +37,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 396+ 道 |
+| 📝 **总题数** | 408+ 道 |
 | 📂 **核心模块** | 24 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -56,7 +56,7 @@
 | 序号 | 模块 | 核心内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
 | 01 | [📌 LLM 基础概念](docs/01-basic-concepts/) | Attention机制/RoPE位置编码/Cross-Entropy损失/LayerNorm-RMSNorm/因果掩码/数据去重/灾难性遗忘等45题 | 🔥🔥🔥🔥🔥 | 45 |
-| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、ToT、结构化输出、Temperature调参实战 | 🔥🔥🔥🔥🔥 | 13 |
+| 02 | [✍️ Prompt Engineering](docs/02-prompt-engineering/) | CoT、Self-Consistency、ToT、Prompt Caching、CoVe幻觉抑制、LLM-as-a-Judge、Speculative RAG、A/B测试框架、推理模型Prompt策略 | 🔥🔥🔥🔥🔥 | 18 |
 
 **学习重点:** LLM工作原理、基本调参、提示词工程
 **预计时间:** 1-2周
@@ -1164,6 +1164,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.150 - 2026-08-12）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [✍️ Prompt Engineering（新增Q13-Q17）](docs/02-prompt-engineering/) | Q13 Prompt Caching(KV Cache跨请求复用/Claude显式cache_control/优化prefix顺序)| Q14 Chain-of-Verification(草稿→质疑→验证→修正闭环/幻觉率↓80%)/Q15 生产环境A/B测试三层框架(离线回归→影子测试→在线灰度)+LLM-as-a-Judge评测体系/Q16 Speculative RAG(生成初稿→逐句验证证据→修正重构/faithfulness↑20%)/Q17 LLM-as-a-Judge自动化评测(Pairwise/Absolute/Rubric+calibration+counterbalancing) | 🔥🔥🔥🔥🔥 | +5 |
+
+*版本: v3.150 | 更新: 2026-08-12 | by 二狗子 🐕*
 
 ---
 

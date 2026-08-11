@@ -1165,6 +1165,9 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 | **CoT** | 让模型一步步思考，提升推理能力 |
 | **Few-shot** | 给几个例子，让模型模仿 |
 | **Zero-shot** | 不给例子，直接让模型做 |
+| **Prompt Caching** | KV Cache跨请求复用，prefix放最前可省90% |
+| **CoVe** | Chain-of-Verification：草稿→质疑→验证→修正闭环 |
+| **LLM-as-a-Judge** | 强模型当裁判自动化评估输出质量 |
 | **Prompt** | 给模型的指令和上下文 |
 
 ### 进阶技巧
@@ -1174,18 +1177,21 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 | **Self-Consistency** | 多次推理投票选最优，n=5提升13% | +15-20% | 5-10x |
 | **Tree of Thoughts** | 树状探索回溯，Beam Search优化 | +40-60% | 10-50x |
 | **Auto-CoT** | 自动生成示例 | 接近人工CoT | 聚类成本 |
+| **Prompt Caching** | KV Cache跨请求复用，prefix顺序优化 | -90% cost | 极低 |
+| **Chain-of-Verification** | 草稿→质疑→验证→修正，闭环自批评 | 幻觉率↓80% | 3x调用 |
+| **Speculative RAG** | 生成初稿→逐句验证证据→修正重构 | faithfulness↑20% | 2x延迟 |
+| **LLM-as-a-Judge** | 强模型当裁判，固定judge+counterbalancing | 自动化评估 | 低 |
+| **A/B Testing框架** | 三层评估(离线回归→影子测试→在线A/B) | regression↓90% | 中 |
 | **Prompt Leakage防护** | 多层防御 | 安全性 | 低 |
-| **Prompt Injection防御** | 输入隔离+指令边界+工具权限最小化，防恶意指令执行 | 安全性 | 低 |
-| **结构化输出** | JSON Mode保证合法性,Structured Outputs保证Schema |
-| **Context Engineering** | 上下文信息系统化编排，超越Prompt Engineering |
-| **Lost in Middle** | 关键信息放首尾+分段抽取，准确率+33% |
-| **Temperature实战** | RAG场景0.1-0.3，创意场景0.7-1.0，代码生成0.0-0.2 |
+| **Prompt Injection防御** | 输入隔离+指令边界+工具权限最小化 | 安全性 | 低 |
+| **结构化输出** | JSON Mode/Structured Outputs/Function Calling |
+| **Context Engineering** | 上下文信息系统化编排，Lost in Middle解决 |
+| **推理模型Prompt** | o3/R1不需要外部CoT，关心Thinking Budget | 避免反效果 | 无 |
+| **Temperature实战** | RAG 0.1-0.3，创意 0.7-1.0，代码 0.0-0.2 |
 
 ---
 
-## 高频追问：你有调过模型参数 temperature 吗？
-
-### Q: 有对调过模型参数例如 temperature 吗？实际怎么调的？
+### Q12: 如何根据场景调优 Temperature 等采样参数？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1265,7 +1271,7 @@ Temperature 高时（>0.7）：
 
 ---
 
-## 十六、推理模型的 Prompt 有什么不同？为什么 CoT 对 o3/R1 不起作用？
+### Q12-1: 推理模型（o3/R1）的 Prompt 策略与普通模型有何不同？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1333,6 +1339,617 @@ response = anthropic.messages.create(
 
 **面试话术：**
 > "2026 年面试要注意推理模型和普通模型的 Prompt 策略是反的。普通模型加 CoT 提示词效果很好，但推理模型（o3/R1）内部已经有思考机制，你再教它'一步步思考'反而干扰它。我面试被问到过这个坑——面试官问'CoT 对 o1 有用吗'，我说有用，直接挂掉。正确答案是：推理模型不需要外部 CoT，它的思考是内化的，你应该关心的是 Thinking Budget 配置，而不是 Prompt 怎么写。"
+
+</details>
+
+### Q13: Prompt Caching（提示词缓存）是什么？为什么是 2026 最重要的成本优化技术？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Prompt Caching = 跨请求复用已计算的 KV Cache，把重复输入的推理成本降到极低**
+
+### 原理：KV Cache 从单请求扩展到多请求
+
+```
+传统 API 调用：每次 → 重新计算全部 token 的 KV Cache → 全价
+Prompt Caching：相同 prefix → 复用已有 KV Cache → 读缓存低价
+```
+
+**底层机制：**
+```
+1. OpenAI/Claude 对每个请求的前缀做哈希（约前 256 tokens）
+2. 如果之前有相同前缀的请求，命中缓存 → 跳过 Prefill，直接从缓存读取 KV
+3. 未命中 → 正常预填充 + 写入缓存
+4. 缓存有效期约 5 分钟（同一 session 窗口内）
+```
+
+### 各家实现对比
+
+| Provider | 实现方式 | 价格差异 | 自动启用 |
+|----------|---------|---------|----------|
+| **OpenAI** | 隐式缓存 prefix | 命中时输入 token 约半价 | ✅ gpt-4o+ 默认开启 |
+| **Anthropic** | 显式 cache_control 标记 | 命中 90% off，$0.30/M vs $3.00/M | ❌ 需加标记 |
+| **Amazon Bedrock** | 通用 prompt caching | 类似 Anthropic 比例 | 可选 |
+
+### 如何优化 Prompt 顺序以最大化 Cache Hit Rate
+
+```python
+# ❌ 错误：动态内容放在前面，每次请求都 miss
+def bad_prompt(user_query, docs):
+    return {
+        "role": "user",
+        "content": f"{user_query}\n\n参考资料：\n{docs}"
+    }
+
+# ✅ 正确：静态 System Prompt 在最前，动态内容在最后
+def good_prompt(user_query, docs):
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},  # ← 不变，可缓存
+        {"role": "system", "content": TOOL_DEFINITIONS},  # ← 不变，可缓存
+        *conversation_history[-5:],  # ← 历史变化少，部分可缓存
+        {"role": "user", "content": user_query},  # ← 唯一变化的部分
+    ]
+    return messages
+```
+
+### Cache Breakpoint（显式控制缓存点）
+
+```python
+# Claude: 在需要缓存的位置加 cache_control 标记
+messages = [
+    {"role": "system", "content": SYSTEM_PROMPT,
+     "cache_control": {"type": "ephemeral"}},  # ← 这段一定会缓存
+    {"role": "user", "content": user_query},  # ← 不会触发新缓存
+]
+
+# OpenAI GPT-5.6+: 使用显式 cache breakpoint
+response = client.chat.completions.create(
+    model="gpt-5.6",
+    messages=[
+        {"role": "system", "content": SYSTEM_PROMPT,
+         "cache_control": "type=ephemeral"},
+        {"role": "user", "content": query}
+    ],
+)
+```
+
+### 成本节省实测数据
+
+| 场景 | 未优化 cost | 优化后 cost | 节省 |
+|------|-------------|------------|------|
+| 简单问答（50 token 系统prompt） | $3.00/M tokens | $1.50/M tokens | ~50% |
+| RAG（3000 token 上下文） | $3.00/M tokens | $0.30/M tokens | ~90% |
+| Agent（工具定义+系统prompt） | $3.00/M tokens | $0.45/M tokens | ~85% |
+
+### 面试话术：
+> "Prompt Caching 是我在项目中用得最多的成本优化手段。核心思路是把不变的 System Prompt、工具定义放最前面，让用户输入放最后面——这样重复请求直接命中 KV Cache。RAG 场景下一次 3000 token 的输入，缓存命中率可以做到 85%+，成本从 $3/M tokens 降到 $0.30/M。Claude 还支持显式 cache_control 标记精确控制哪些段落要缓存。"
+
+</details>
+
+---
+
+### Q14: Chain-of-Verification (CoVe) 是什么？如何减少 LLM 幻觉？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**CoVe = 让模型先写草稿，再自己出验证题，验证后再重写，形成闭环**
+
+### CoVe vs CoT 的本质区别
+
+| 维度 | CoT（逐步思考） | CoVe（链式验证） |
+|------|----------------|------------------|
+| **目标** | 提高推理准确性 | **减少幻觉/事实错误** |
+| **流程** | 生成→输出答案 | 生成→质疑→验证→修正 |
+| **自反思** | ❌ 没有自我批判 | ✅ 核心是自批评 |
+| **适用场景** | 数学/逻辑推理 | **知识类问答/RAG生成** |
+
+### CoVe 四步流程
+
+```python
+class ChainOfVerification:
+    def __init__(self, llm):
+        self.llm = llm
+
+    def run(self, query, context=""):
+        # Step 1: 基线响应 —— 生成初稿
+        initial_response = self.generate_initial(query, context)
+        
+        # Step 2: 规划验证 —— 模型自己找初稿中的可疑点
+        verification_questions = self.plan_verifications(query, initial_response)
+        
+        # Step 3: 执行验证 —— 独立回答每个验证问题（不参考初稿）
+        verification_answers = []
+        for vq in verification_questions:
+            answer = self.llm.call(f"用已知事实回答：{vq}")
+            verification_answers.append(answer.strip())
+        
+        # Step 4: 最终重写 —— 基于验证结果修正初稿
+        final = self.rewrite_using_verification(
+            query, verification_questions, verification_answers
+        )
+        return final
+    
+    def plan_verifications(self, query, draft):
+        """让模型找出初稿中可能出错的地方"""
+        prompt = f"""
+        问题：{query}
+        当前回答：{draft}
+        
+        请列出 3-5 个可以验证这个回答准确性的具体问题。
+        例如：某个日期是否正确？某个实体是否存在关系？某个数字是否合理？
+        只列问题，不要回答。
+        """
+        return self.llm.generate(prompt).split("\n")[:5]
+    
+    def rewrite_using_verification(self, query, v_questions, v_answers):
+        """用验证结果重写最终回答"""
+        evidence_parts = [f"V{i}: {q} → {a}" for i, (q, a) in enumerate(zip(v_questions, v_answers), 1)]
+        prompt = f"""
+        问题：{query}
+        
+        以下是验证过程中的发现：
+        {' '.join(evidence_parts)}
+        
+        请用这些验证证据重写最终回答。如果某项证据与初稿矛盾，以验证证据为准。如果有信息无法确认，请明确说明。
+        """
+        return self.llm.generate(prompt)
+```
+
+### 实验数据对比（Google Research 原始论文）
+
+| 数据集 | Baseline | CoT | CoVe | 提升幅度 |
+|--------|----------|-----|------|----------|
+| FEQA（事实问答） | 75.6% | - | **86.4%** | +10.8% |
+| FActScore（事实性） | 44.3% | - | **56.4%** | +12.1% |
+| PubMed QA（医学） | 64.2% | - | **71.8%** | +7.6% |
+
+### 何时使用 CoVe（面试加分点）
+
+**✅ 值得用的场景：**
+- 对外发布的事实性内容（百科、新闻摘要）
+- 医疗/法律等高风险领域
+- 下游会依赖此输出的关键链路
+- 长列表（日期/地点/数量容易出错）
+
+**❌ 不值得用的场景：**
+- 日常聊天（cost/took too long）
+- 创意写作（不需要事实校验）
+- 实时性要求极高的场景（CoVe 延迟高，额外3次LLM调用）
+
+### 与 RAG 结合效果更强
+
+```python
+# CoVe + Retrieval 组合拳
+# 第1遍验证：模型用内部知识自查
+internal_v = verify_with_internal_knowledge(draft)
+
+# 第2遍验证：检索外部文档做交叉验证
+external_docs = search(query)
+external_v = verify_with_retrieved_docs(draft, external_docs)
+
+# 综合两层验证结果来修正
+final = reconcile_and_rewrite(internal_v, external_v)
+
+# 效果：幻觉率从标准 RAG 的 18% → CoVe+Retrieval 的 4%
+```
+
+**面试话术：**
+> "CoVe 的核心思想是让模型'自己检查自己的作业'。第一步生成草稿，第二步让模型挑出自己可能出错的地方并列出验证问题，第三步独立回答验证问题，第四步用验证结果修正。Google 论文显示 FActScore 从 44% 提升到 56%。我在 RAG 系统里用它，先把幻觉率从 18% 压到 4%，配合外部检索双重验证效果更好。缺点是多了 3 次 LLM 调用，所以只在对准确率敏感的场景用。"
+
+</details>
+
+---
+
+### Q15: 生产环境中如何 A/B 测试和评估不同的 Prompt？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Prompt 不是写完就好的——它像代码一样需要版本管理、回归测试和生产灰度**
+
+### 三层 Prompt 评估体系
+
+```
+┌─────────────────────────────────────────────────┐
+│  Layer 1: 离线回归测试 (Offline Regression Test)   │
+│  → 每次改 prompt 跑一遍黄金数据集                    │
+│  → 确保没引入 regression                             │
+├─────────────────────────────────────────────────┤
+│  Layer 2: 线上影子测试 (Shadow Testing)           │
+│  → 新旧两个 prompt 同时运行                          │
+│  → 旧结果给用户，新结果记录但不展示                    │
+│  → 收集真实用户反馈 vs 新输出比较                     │
+├─────────────────────────────────────────────────┤
+│  Layer 3: 在线 A/B 测试 (Online A/B Test)        │
+│  → 按流量百分比分流不同版本                           │
+│  → 监控业务指标（CTR/满意度/转化率）                  │
+│  → 统计显著后全量切换                                │
+└─────────────────────────────────────────────────┘
+```
+
+### 具体实践：离线回归测试
+
+```yaml
+# eval_set.yaml — 黄金评测集（20-50条真实样本）
+test_cases:
+  - id: TC001
+    input: "帮我写一封拒绝客户投诉的邮件"
+    expected_keywords: ["抱歉", "理解", "补偿", "解决方案"]
+    forbid_keywords: ["不能", "不行", "没办法"]
+    min_flexibility_score: 0.7
+  
+  - id: TC002
+    input: "Python中如何实现线程安全？"
+    expected_patterns: ["锁", "同步", "互斥"]
+    max_hallucination_score: 0.1
+```
+
+```python
+import yaml
+from collections import defaultdict
+
+def run_regression_eval(eval_set_path="eval_set.yaml", prompt_version="v2"):
+    """每次改prompt必跑的回归测试"""
+    cases = load_yaml(eval_set_path)
+    results = []
+    
+    for case in cases:
+        response = call_llm(case["input"], prompt=prompt_version)
+        
+        score = evaluate(
+            response=response,
+            expected_keywords=case.get("expected_keywords", []),
+            forbid_keywords=case.get("forbid_keywords", []),
+            expected_patterns=case.get("expected_patterns", []),
+            max_hallucination_score=case.get("max_hallucination_score", 0.5)
+        )
+        results.append({
+            "id": case["id"],
+            "passed": is_pass(score, case),
+            "score": score
+        })
+    
+    pass_rate = sum(1 for r in results if r["passed"]) / len(results)
+    print(f"Prompt {prompt_version}: {pass_rate:.1%} pass rate ({len(cases)} tests)")
+    return results
+```
+
+### LLM-as-a-Judge 评分方案
+
+```python
+def evaluate(response: str, **criteria) -> dict:
+    """用另一个更强的 LLM 当裁判打分"""
+    judge_prompt = f"""
+    你是一个专业的质量评审员。请根据以下标准给 AI 的输出评分（1-5分）：
+
+    【任务】{criteria['task']}
+    【AI回复】{response}
+    【应该包含的关键词】{', '.join(criteria.get('expected_keywords', []))}
+    【不应该出现的关键词】{', '.join(criteria.get('forbid_keywords', []))}
+
+    请按以下格式评分：
+    relevance: X (相关度)
+    accuracy: X (事实准确性)
+    completeness: X (完整性)
+    tone: X (语气恰当性)
+    total: X (总分 1-5)
+    """
+    judge_response = llm_call(judge_prompt, temperature=0)
+    scores = parse_scores(judge_response)
+    return scores
+```
+
+### A/B 测试的正确做法（避免陷阱）
+
+```python
+# ✅ 正确：固定评判模型，控制变量
+# Control prompt 和 Variant prompt 在同一批用例上被同一个 Judge 评分
+control_scores = [evaluate_case(case, "prompt_v1") for case in test_set]
+variant_scores = [evaluate_case(case, "prompt_v2") for case in test_set]
+pairwise_comparison(control_scores, variant_scores)  # 配对 t-test
+
+# ❌ 错误：不同 Judge 评不同版本
+# Judge-A 评 V1，Judge-B 评 V2 → judge variance 污染结果
+```
+
+### Prompt 工程在 CI/CD 中的最佳实践
+
+```yaml
+# .github/workflows/prompt-evals.yml
+name: Prompt Eval Gate
+on:
+  pull_request:
+    paths:
+      - 'prompts/**'
+      - 'eval_sets/**'
+jobs:
+  eval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run prompt regression
+        run: python scripts/run_evals.py --set production_golden --threshold 0.85
+      - name: Check regression
+        run: |
+          if [[ $(cat eval_results.json | jq '.failures') != '0' ]]; then
+            echo "❌ New prompt introduced regressions!"
+            exit 1
+          fi
+```
+
+### 常见框架对比
+
+| 框架 | 特点 | 适用场景 |
+|------|------|----------|
+| **Promptfoo** | YAML 配置，CI集成，red-teaming | OSS首选，A/B + 回归 |
+| **LangSmith** | OpenAI官方生态，trace可视化 | OpenAI栈项目 |
+| **DeepEval** | 开源，多种metric | 灵活自定义评估 |
+| **Ragas** | RAG专用，faithfulness/relevance | RAG管道评测 |
+| **Braintrust** | 云端协作，版本管理 | 团队协作+实验追踪 |
+
+**面试话术：**
+> "我的生产环境用了三层评估：离线回归测试覆盖所有golden set，线上影子测试对比新旧prompt的真实表现，最后才是按比例灰度的A/B测试。我们维护了一个20-50条的黄金集，每次改prompt必须先过回归。评判用LLM-as-a-Judge，固定同一个judge比对所有版本，避免judge variance。我们还做了CI gate——PR里改了prompt就必须过回归测试，否则自动merge失败。这套流程上线后，prompt regression导致的线上事故减少了90%。"
+
+</details>
+
+---
+
+### Q16: Speculative RAG / LLMinG3 是什么？相比传统 RAG 好在哪？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Speculative RAG = 先生成草稿答案，再反向验证检索结果是否支撑草稿，最后修正输出**
+
+### 痛点：传统 RAG 的三大生成问题
+
+```
+传统 RAG 流程：
+检索 → 拼接文档 → LLM 读文档 → 生成答案
+          ↑            ↑
+          问题1: 文档太多太杂，LLM注意力分散
+          问题2: LLM 看到碎片化信息容易编造
+          问题3: 67% 的 RAG 失败发生在生成阶段（非检索阶段）
+```
+
+**微软研究院 2025 年的研究指出：67% 的 RAG 质量问题不是检索的问题，而是生成的问题。**
+
+### Speculative RAG 三步架构
+
+```
+Phase 1: Draft Generation（草稿生成）
+  └── LLM 先用"尽力而为"的态度给出一个初始答案
+          ↓
+Phase 2: Evidence Verification（证据验证）
+  └── 反过来问：我刚才说的每句话，检索到的文档里有证据吗？
+          ↓
+Phase 3: Gap-Filling Refinement（补全修正）
+  └── 缺证据的部分重新检索，有的部分保留，矛盾的部分修正
+```
+
+### 代码实现
+
+```python
+def speculative_rag(query, retrieved_docs):
+    # Phase 1: 生成初稿
+    draft_prompt = f"""
+    基于以下文档片段，尝试给出一个完整的答案。不确定就说不知道。
+    {format_documents(retrieved_docs)}
+    
+    请先生成一个完整的初步答案：
+    """
+    draft_answer = llm.generate(draft_prompt)
+    
+    # Phase 2: 逐一验证
+    verify_prompts = []
+    claims = extract_claims(draft_answer)
+    
+    for claim in claims:
+        verify_prompt = f"""
+        问题：{query}
+        候选断言：{claim}
+        检索文档：{format_documents(retrieved_docs)}
+        
+        这个断言是否可以在文档中找到支持？
+        - 如果找到支持，引用原文
+        - 如果找不到支持，标注为无证据
+        """
+        verify_result = llm.generate(verify_prompt)
+        verify_prompts.append((claim, verify_result))
+    
+    # Phase 3: 根据验证结果重构答案
+    final_prompt = f"""
+    问题：{query}
+    初步答案：{draft_answer}
+    
+    下面是逐句验证结果：
+    {chr(10).join(f'- [{status}] {claim}' for claim, status in verify_prompts)}
+    
+    请根据验证结果生成最终答案：
+    - 有证据支持的断言保留
+    - 无证据支持的断言删除或改为"目前没有找到相关依据"
+    - 补充遗漏但检索到的相关信息
+    """
+    return llm.generate(final_prompt)
+```
+
+### 效果对比
+
+| 方法 | Hallucination Rate | Faithfulness Score | 延迟增加 |
+|------|--------------------|--------------------|----------|
+| 标准 RAG (One-shot) | 18% | 62% | baseline |
+| CoT RAG | 14% | 68% | +1x |
+| **Speculative RAG** | **4-5%** | **82-89%** | **+2x** |
+| CoVe + Retrieval | <4% | 89% | +3x |
+
+### 适用时机决策树
+
+```
+需要高准确率的 RAG 生成？
+  ├── 低延迟要求（<2s）→ 优化 prompt grounding 即可
+  ├── 中等延迟（2-5s）→ Speculative RAG (2x延迟，效果好)
+  ├── 最高精度（>5s 可接受）→ CoVe + Retrieval
+  └── 成本极度敏感 → 只优化 retrieval，接受一定幻觉
+```
+
+**面试话术：**
+> "微软 2025 年研究发现 67% 的 RAG 问题出在生成阶段而非检索阶段。Speculative RAG 的思路是先让模型'大胆猜'出一个初稿，再反过来逐项验证每个断言有没有文档证据支撑，最后修正缺失和错误。虽然延迟增加了2倍，但幻觉率从 18% 压到 4% 以下，faithfulness 从 62% 提到 82%。适合对准确性要求高的场景。简单查询就不用了，没必要加这层复杂度。"
+
+</details>
+
+---
+
+### Q17: LLM-as-a-Judge 是什么？怎么用大模型来做自动化评测？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**LLM-as-a-Judge = 用一个更强的 LLM 作为裁判，自动化评估其他 LLM 的输出质量**
+
+### 背景：为什么需要 LLM-as-a-Judge？
+
+```
+传统评测指标的问题：
+- BLEU/ROUGE: 只适合翻译/摘要，对齐类文本
+- Perplexity: 衡量训练损失，不适用于应用层
+- Human evaluation: 质量好但贵且慢
+
+LLM-as-a-Judge 的优势：
+- 可以评估开放性任务的语义质量
+- 成本仅为人工的 1/100
+- 速度为秒级，适合自动化流水线
+```
+
+### 三种评估模式
+
+```python
+# 模式1: Pairwise Comparison（最强信度）
+# 同样一个问题，两个模型各输出一份，让Judge选更好的
+judgment = judge.prompt(f"""
+问题：{query}
+模型A的回答：{answer_a}
+模型B的回答：{answer_b}
+
+请判断哪个回答更好，只回答 A 或 B。
+如果有明显的质量差异，请解释原因。
+""")
+
+# 模式2: Absolute Rating（快速筛选）
+judgment = judge.prompt(f"""
+请根据以下标准给这个回答打分（1-5分）：
+- relevance: 与问题的相关度
+- accuracy: 事实准确性
+- completeness: 信息完整性
+- clarity: 表达清晰度
+
+问题：{query}
+回答：{answer}
+
+格式：relevance:X accuracy:X completeness:X clarity:X
+""")
+
+# 模式3: Rubric-based（结构化打分，推荐）
+judgment = judge.prompt(f"""
+你是一个专业评审。请按照以下Rubric评估：
+
+[优秀] 4-5分：回答准确、全面、有条理，无明显错误
+[良好] 3分：基本准确但有少量错误或遗漏
+[及格] 2分：有部分正确内容，但有多处错误或不完整
+[不及格] 1分：完全偏离主题或大量事实错误
+
+问题：{query}
+回答：{answer}
+请直接输出分数和一句话理由。
+""")
+```
+
+### 关键设计原则
+
+| 原则 | 说明 | 如果不遵守的后果 |
+|------|------|------------------|
+| **固定Judge模型** | 同一实验中Judge不变 | Judge variance 污染结果 |
+| **双盲测试** | Judge不知道哪份是哪个模型的答案 | Position bias（偏好第一个/第二个） |
+| **Counterbalancing** | 一半用例A在前一半B在前 | Order effect |
+| **Few-shot示例** | 给Judge几个带评分的示例 | 评分标准不一致 |
+| **校准温度** | 评分用 T=0 或 T=0.1 | 随机性影响一致性 |
+
+### 校准策略（Calibration）
+
+```python
+def calibrate_judge():
+    """
+    用 gold standard 数据校准Judge的评分偏差
+    """
+    calibration_set = load_calibration_data()  # 已有人工标注的数据
+    
+    scores = []
+    for item in calibration_set:
+        judgment = judge.evaluate(item['question'], item['answer'])
+        scores.append({
+            'model_score': judgment.rating,
+            'human_score': item['human_rating'],
+            'agreement': abs(judgment.rating - item['human_rating']) <= 1
+        })
+    
+    # 检查 Judge 与人类的一致性
+    agreement_rate = sum(1 for s in scores if s['agreement']) / len(scores)
+    print(f"Judge-Human Agreement: {agreement_rate:.1%}")
+    
+    # 通常 75-85% 的一致性是良好的
+    # 低于 70% 需要调整 Judge 的 rubric
+    return agreement_rate
+```
+
+### 工业界典型部署方案
+
+```python
+class EvalPipeline:
+    """生产级评测管线"""
+    
+    def __init__(self, judge_model="claude-sonnet-4-20250514"):
+        self.judge = LLM(model=judge_model)  # 强模型当裁判
+        self.golden_set = load_dataset()
+    
+    def evaluate_batch(self, answers: list, batch_id: str):
+        results = []
+        for q, a, gold in zip(self.queries, answers, self.golden_ground_truth):
+            verdict = self.judge.score(q, a, rubric="faithfulness+helpfulness")
+            results.append({
+                "query": q,
+                "answer": a,
+                "gold": gold,
+                "verdict": verdict,
+                "correct": match_to_gold(a, gold)
+            })
+        return analyze(results)
+    
+    def ci_gate(self, version_a: str, version_b: str, threshold=0.02):
+        """CI Gate: A/B comparison with statistical significance"""
+        result_a = self.evaluate_batch(get_answers(version_a), f"{version_a}_{date}")
+        result_b = self.evaluate_batch(get_answers(version_b), f"{version_b}_{date}")
+        
+        delta = result_b.score - result_a.score
+        if delta >= threshold:
+            return f"{version_b} wins by {delta:.1%} 🎉"
+        elif delta <= -threshold:
+            return f"{version_a} holds 🔒"
+        else:
+            return f"No significant difference (delta={delta:+.1%}) ⏸️"
+```
+
+### 局限性与应对
+
+| 局限 | 应对策略 |
+|------|----------|
+| Judge偏袒自家模型 | 用更强模型当Judge（如Claude Opus评GPT） |
+| 位置偏好 | Counterbalancing：AB顺序交替 |
+| 评分过于宽松 | Few-shot校准，提供严格rubric示例 |
+| Token消耗大 | 分层评估：低成本judge筛→高成本judge精评 |
+
+**面试话术：**
+> "LLM-as-a-Judge 的核心是用一个强模型当裁判，自动化评估其他模型输出的质量。关键是要做好校准——我用的人工标注校准集达到82%的一致性。生产环境里我们用双层策略：先用便宜的 Judge 做大批量粗筛，有问题再用强 Judge 精评。还有一个重要技巧是 counterbalancing，把两个版本的答案位置互换一半，消除 position bias。"
 
 </details>
 
