@@ -437,6 +437,9 @@ LLM API 限流有三个特殊性：按 Token 计费（超限直接烧钱）、�
 
 **令牌桶实现（Python）：**
 
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
+
 ```python
 import time
 import threading
@@ -472,6 +475,8 @@ class TokenBucketRateLimiter:
                 time.sleep(min(wait_time, 0.1))
 ```
 
+</details>
+
 **Token 速率控制器（LLM API 专用）：**
 
 ```python
@@ -503,6 +508,9 @@ class TokenRateLimiter:
 ```
 
 **背压机制（Backpressure）：**
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 class LLMOverloadedException(Exception):
@@ -536,6 +544,8 @@ class LLMCallWithBackpressure:
             else:
                 self.results[request_id] = {"status": "rate_limited", "result": None}
 ```
+
+</details>
 
 **生产级限流配置：**
 
@@ -599,6 +609,9 @@ class LLMRouter:
 
 **A/B 测试框架：**
 
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 from collections import defaultdict
 
@@ -631,6 +644,8 @@ class LLMABExperiment:
                 m["quality_scores"] = []
             m["quality_scores"].append(quality_score)
 ```
+
+</details>
 
 **LLM Gateway 完整架构：**
 
@@ -703,6 +718,9 @@ class LLMGateway:
 ### LLM CI/CD Pipeline实现
 
 **完整流程:**
+<details>
+<summary>展开 Yaml 代码示例（141 行）</summary>
+
 ```yaml
 # .github/workflows/llm-deploy.yml
 name: LLM CI/CD Pipeline
@@ -847,7 +865,12 @@ jobs:
             -n production
 ```
 
+</details>
+
 **关键测试案例:**
+<details>
+<summary>展开 Python 代码示例（41 行）</summary>
+
 ```python
 # tests/test_prompts.py
 import pytest
@@ -892,9 +915,14 @@ def test_rag_end_to_end():
     assert response.latency < 2.0  # 2秒内响应
 ```
 
+</details>
+
 ### 模型版本管理
 
 **MLflow Registry:**
+<details>
+<summary>展开 Python 代码示例（41 行）</summary>
+
 ```python
 import mlflow
 
@@ -939,7 +967,12 @@ client.transition_model_version_stage(
 )
 ```
 
+</details>
+
 ### A/B测试框架
+
+<details>
+<summary>展开 Python 代码示例（50 行）</summary>
 
 ```python
 from typing import Dict
@@ -993,6 +1026,8 @@ class LLMRouter:
         # 发送到监控系统
         prometheus_client.push(metrics)
 ```
+
+</details>
 
 **面试话术:**
 > "LLM的MLOps核心是Prompt版本化+自动化测试+灰度发布。我们用GitHub Actions做CI/CD: Prompt改动→自动跑RAGAS评估→指标达标→部署到Staging→冒烟测试通过→蓝绿部署到生产。全程自动化,从提交到上线30分钟。"
@@ -1063,6 +1098,9 @@ groups:
 ```
 
 **2. 质量监控**
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
+
 ```python
 from ragas import evaluate
 from ragas.metrics import faithfulness, answer_relevancy
@@ -1097,6 +1135,8 @@ class QualityMonitor:
         if result.faithfulness < 0.7:
             send_alert("低质量回答", query, response)
 ```
+
+</details>
 
 **3. 成本监控**
 ```python
@@ -1139,6 +1179,9 @@ class CostTracker:
 **检测方法:**
 
 **1. 统计检测(KS Test)**
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 from scipy.stats import ks_2samp
 import numpy as np
@@ -1177,6 +1220,8 @@ has_drift, ratio = detector.detect_drift(current_emb)
 if has_drift:
     alert(f"检测到输入漂移: {ratio:.1%}维度变化")
 ```
+
+</details>
 
 **2. 语义相似度监控**
 ```python
@@ -1222,6 +1267,9 @@ if drift_share > 0.5:
 ```
 
 **完整监控Dashboard (Grafana):**
+<details>
+<summary>展开 SQL 代码示例（31 行）</summary>
+
 ```sql
 -- Panel 1: QPS趋势
 SELECT
@@ -1255,6 +1303,8 @@ SELECT
 FROM quality_metrics
 WHERE time > now() - 7d
 ```
+
+</details>
 
 **面试话术:**
 > "LLM监控分4层: 1)性能监控P99延迟/TTFT 2)质量监控RAGAS采样评估 3)成本监控token消耗预算告警 4)数据漂移用KS检验+Evidently。我们每天自动生成漂移报告,漂移>30%触发模型重训。"
@@ -1493,6 +1543,9 @@ def route_model(task: str) -> str:
 
 **Worker Pool 核心实现（Go）：**
 
+<details>
+<summary>展开 Go 代码示例（53 行）</summary>
+
 ```go
 type LLMWorkerPool struct {
     taskCh  chan Task       // 任务队列（有缓冲 channel）
@@ -1548,6 +1601,8 @@ func (p *LLMWorkerPool) Submit(ctx context.Context, prompt string) <-chan string
     return resultCh
 }
 ```
+
+</details>
 
 **生产级参数配置：**
 

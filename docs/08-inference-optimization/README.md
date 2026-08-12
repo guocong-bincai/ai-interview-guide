@@ -1145,6 +1145,9 @@ for i, draft_token in enumerate(draft_tokens):
 
 ### 完整实现
 
+<details>
+<summary>展开 Python 代码示例（71 行）</summary>
+
 ```python
 class SpeculativeDecoding:
     def __init__(self, draft_model, target_model, gamma=5):
@@ -1219,6 +1222,8 @@ result = sd.generate("今天天气")
 #      ...
 ```
 
+</details>
+
 ### 关键参数优化
 
 **γ (gamma) - 猜测长度**
@@ -1284,6 +1289,9 @@ speculative_time = (N_tokens / (gamma * accept_rate)) * T_large + N_tokens * T_s
 **问题: 需要两个模型,部署麻烦**
 
 **Medusa方案: 一个模型+多个预测头**
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 class MedusaModel(nn.Module):
     def __init__(self, base_model, num_heads=4):
@@ -1316,6 +1324,8 @@ main, medusa = model(prompt)
 # 主预测 + 4个medusa预测 = 5个候选token
 # 然后统一验证
 ```
+
+</details>
 
 **优势:**
 - ✅ 单模型部署
@@ -1394,6 +1404,9 @@ GPU利用率: 约90% ✅
 ```
 
 ### 实现细节
+
+<details>
+<summary>展开 Python 代码示例（90 行）</summary>
 
 ```python
 class ContinuousBatchingEngine:
@@ -1488,6 +1501,8 @@ for user_request in incoming_requests():
 engine.run()
 ```
 
+</details>
+
 ### 关键技术: PagedAttention
 
 **问题: KV Cache的动态内存管理**
@@ -1501,6 +1516,9 @@ kv_cache = torch.zeros(batch_size, num_layers, max_len, hidden_size)
 ```
 
 **PagedAttention方案: 分页管理**
+<details>
+<summary>展开 Python 代码示例（42 行）</summary>
+
 ```python
 class PagedKVCacheManager:
     def __init__(self, block_size=16):
@@ -1545,6 +1563,8 @@ class PagedKVCacheManager:
 # ✅ 碎片化少
 # ✅ 支持任意长度生成
 ```
+
+</details>
 
 ### 性能对比
 

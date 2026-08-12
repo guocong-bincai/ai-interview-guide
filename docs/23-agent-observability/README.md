@@ -51,6 +51,9 @@
 
 **生产级代码示例：**
 
+<details>
+<summary>展开 Python 代码示例（49 行）</summary>
+
 ```python
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
@@ -103,6 +106,8 @@ class ObservableAgent:
             return self.summarize(results)
 ```
 
+</details>
+
 **面试话术：**
 
 > "Agent 可观测性核心是 trace_id 串联。我设计时用 OpenTelemetry 的 span 嵌套结构：最外层是 agent_run，内层分 planning 和各个 step，每个 step 里记录 tool_call。每个 span 都打上 user_id、model、token_count 属性。出问题后用 trace_id 在 LangSmith 或 Jaeger 里一键拉出完整链路，哪个 step 耗时最长、哪个工具失败了，一目了然。"
@@ -112,6 +117,9 @@ class ObservableAgent:
 ### Q2: 如何用 LangSmith 做 Agent 调试？有哪些高级用法？
 
 **LangSmith 核心功能：**
+
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
 
 ```python
 # LangSmith 配置
@@ -147,6 +155,8 @@ client.create_feedback(
     comment="工具参数基本正确，1次轻微偏差"
 )
 ```
+
+</details>
 
 **LangSmith 高级用法 - Prompt 版本管理：**
 
@@ -190,6 +200,9 @@ def compare_prompt_versions(prompt_v1: str, prompt_v2: str, test_set: list):
 ### Q3: 如何监控 Agent 的 Token 消耗和成本？有哪些优化策略？
 
 **成本监控架构：**
+
+<details>
+<summary>展开 Python 代码示例（53 行）</summary>
 
 ```python
 import prometheus_client as prom
@@ -247,6 +260,8 @@ def check_budget_alert():
         send_alert(f"月度预算已达 80%，剩余 ${monthly_limit - monthly_spent:.2f}")
 ```
 
+</details>
+
 **成本优化策略：**
 
 | 策略 | 节省比例 | 实现方式 |
@@ -255,6 +270,9 @@ def check_budget_alert():
 | **模型路由** | 30-40% | 简单任务用 DeepSeek V4-Flash，复杂用 GPT-4 |
 | **上下文压缩** | 40-90% | LLMLingua / Recomp 压缩历史 |
 | **Token 配额** | 动态 | 按用户 tier 设置每日上限 |
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 # 语义缓存实现
@@ -289,6 +307,8 @@ class SemanticCache:
         return self.cache_hits / total if total > 0 else 0.0
 ```
 
+</details>
+
 **面试话术：**
 
 > "成本控制是 2026 年面试高频追问。我的思路是三层控制：1）语义缓存，同一问题第二次问直接返回缓存，命中率达 40%；2）模型路由，简单查询路由到 DeepSeek V4-Flash，复杂推理才用 GPT-4，节省 30%；3）上下文压缩，对话超过 20 轮自动触发 LLMLingua 压缩历史。三个叠加，单任务成本从 $0.12 降到 $0.04，效果量化后给面试官看。"
@@ -298,6 +318,9 @@ class SemanticCache:
 ### Q4: 如何检测 Agent 的行为异常？循环、幻觉、死循环如何发现？
 
 **异常检测架构：**
+
+<details>
+<summary>展开 Python 代码示例（71 行）</summary>
 
 ```python
 class AgentAnomalyDetector:
@@ -373,6 +396,8 @@ async def agent_run(query: str):
     return final_response(messages)
 ```
 
+</details>
+
 **面试话术：**
 
 > "Agent 异常检测我分三层：1）循环检测，用状态 hash 记录历史，3次相同状态触发熔断；2）上下文膨胀检测，超 80% 窗口自动压缩；3）幻觉风险检测，用 NLI 模型对每步输出做 Entailment 打分，超过 0.5 就告警。生产环境加上 Prometheus 告警规则：连续 5 个任务失败率 > 10% 自动发 PagerDuty。"
@@ -382,6 +407,9 @@ async def agent_run(query: str):
 ### Q5: 如何用 Arize Phoenix 做开源可观测性？和 LangSmith 有什么区别？
 
 **Arize Phoenix 核心用法：**
+
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
 
 ```python
 from phoenix.trace.tracer import Tracer
@@ -426,6 +454,8 @@ eval_df = run_evaluation(
 )
 ```
 
+</details>
+
 **LangSmith vs Arize Phoenix 对比：**
 
 | 维度 | LangSmith | Arize Phoenix |
@@ -446,6 +476,9 @@ eval_df = run_evaluation(
 ### Q6: 如何设计 Agent 的 SLA 和告警规则？有哪些关键阈值？
 
 **SLA 设计：**
+
+<details>
+<summary>展开 Yaml 代码示例（67 行）</summary>
 
 ```yaml
 # prometheus_alerts.yml
@@ -517,6 +550,8 @@ groups:
           summary: "检测到 Agent 循环，任务已自动熔断"
 ```
 
+</details>
+
 **SLO 设计文档：**
 
 | SLA 指标 | 目标值 | 告警阈值 | 测量方式 |
@@ -537,6 +572,9 @@ groups:
 ### Q7: 如何做 Agent 的 A/B 测试？有哪些评估指标？
 
 **Agent A/B 测试架构：**
+
+<details>
+<summary>展开 Python 代码示例（76 行）</summary>
 
 ```python
 from scipy.stats import chi2_contingency
@@ -616,6 +654,8 @@ analysis = ab_test.analyze()
 if analysis["statistical_significance"]["significant"]:
     rollout_to_production("variant_b")
 ```
+
+</details>
 
 **Agent A/B 测试评估指标：**
 
@@ -1029,6 +1069,9 @@ OpenTelemetry = 统一采集 + 跨服务追踪 + 上下文传播
 
 **最小接入实现：**
 
+<details>
+<summary>展开 Python 代码示例（65 行）</summary>
+
 ```python
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
@@ -1096,6 +1139,8 @@ def call_tool_with_trace(tool_name: str, tool_args: dict, parent_span):
         tool_span.set_attribute("tool.result_type", type(result).__name__)
         return result
 ```
+
+</details>
 
 **关键配置（docker-compose）：**
 
@@ -1169,6 +1214,9 @@ Agent Dashboard：任务完成率 / 步数分布 / Token 成本 / 工具调用�
 
 **核心 Panel 配置（PromQL）：**
 
+<details>
+<summary>展开 Yaml 代码示例（37 行）</summary>
+
 ```yaml
 # 1. 任务完成率 Panel
 - title: 任务完成率
@@ -1209,7 +1257,12 @@ Agent Dashboard：任务完成率 / 步数分布 / Token 成本 / 工具调用�
   legend: "{{tool_name}}: {{value}}%"
 ```
 
+</details>
+
 **告警规则（alerting_rules.yaml）：**
+
+<details>
+<summary>展开 Yaml 代码示例（36 行）</summary>
 
 ```yaml
 groups:
@@ -1250,6 +1303,8 @@ groups:
           description: "5分钟内发现 {{ $value }} 个超长轨迹(>10步)"
 ```
 
+</details>
+
 **面试话术：**
 > "我的Agent Dashboard按四象限设计：业务健康度（完成率/满意度）、成本分析（Token消耗/趋势）、Agent行为（步数分布/工具质量）、系统性能（延迟/吞吐）。告警规则我设置了三档：warning（完成率<95%）、critical（<85%）、cost alert（预计日成本超预算）。实际运营中发现步数分布最能预警问题——当P95步数突然从5升到8，说明检索质量下降了，需要查向量数据库。"
 
@@ -1279,6 +1334,9 @@ groups:
 | **数据库** | Task 表存储 trace_id | 持久化任务 | 需要事务支持 |
 
 **生产级实现（HTTP + 消息队列双模式）：**
+
+<details>
+<summary>展开 Python 代码示例（58 行）</summary>
 
 ```python
 from opentelemetry import propagate, trace
@@ -1340,6 +1398,8 @@ async def get_full_trace(task_id: str):
     
     return sorted(spans, key=lambda s: s.start_time)
 ```
+
+</details>
 
 **数据库 Schema 设计：**
 
@@ -1415,6 +1475,9 @@ Token成本 = Σ(输入Token数 × 单价) + Σ(输出Token数 × 单价)
 ```
 
 **实现代码：**
+
+<details>
+<summary>展开 Python 代码示例（75 行）</summary>
 
 ```python
 from datetime import datetime, timedelta
@@ -1494,6 +1557,8 @@ class AgentBudgetController:
         )
 ```
 
+</details>
+
 **成本归因 Dashboard：**
 
 ```yaml
@@ -1527,6 +1592,9 @@ class AgentBudgetController:
 <summary>💡 答案要点</summary>
 
 **SLA 违约场景分类：**
+
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
 
 ```python
 # SLA 违约类型与响应级别
@@ -1562,7 +1630,12 @@ SLA_BREACH_TYPES = {
 }
 ```
 
+</details>
+
 **复盘模板（五步法）：**
+
+<details>
+<summary>展开 Markdown 代码示例（30 行）</summary>
 
 ```markdown
 ## SLA 违约复盘报告
@@ -1596,6 +1669,8 @@ SLA_BREACH_TYPES = {
 
 **技术细节**:
 ```sql
+
+</details>
 -- 问题：segment 数量从 5 增长到 156
 SELECT segment_name, num_segments, memory_usage 
 FROM milvus.segments 
@@ -1692,6 +1767,9 @@ Agent 日志特殊要求：
 
 **结构化日志 Schema：**
 
+<details>
+<summary>展开 Python 代码示例（77 行）</summary>
+
 ```python
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -1772,7 +1850,12 @@ class AgentLogEntry:
         }
 ```
 
+</details>
+
 **日志采集架构：**
+
+<details>
+<summary>展开 Python 代码示例（49 行）</summary>
 
 ```python
 import logging
@@ -1826,7 +1909,12 @@ handler.setFormatter(AgentJSONFormatter())
 logger.addHandler(handler)
 ```
 
+</details>
+
 **日志查询示例（Elasticsearch）：**
+
+<details>
+<summary>展开 Python 代码示例（74 行）</summary>
 
 ```python
 # 查询某个 TraceID 的所有日志
@@ -1905,7 +1993,12 @@ QUERY_ERROR_RATE = """
 }
 ```
 
+</details>
+
 **日志告警规则：**
+
+<details>
+<summary>展开 Yaml 代码示例（34 行）</summary>
 
 ```yaml
 # Prometheus Alert 规则（基于日志 metrics）
@@ -1943,6 +2036,8 @@ groups:
         annotations:
           summary: "Agent {{ $labels.agent_name }} Token 消耗异常"
 ```
+
+</details>
 
 **面试话术：**
 > "我的 Agent 日志设计核心是'结构化 + 可追溯'。每个日志条目包含 trace_id、span_id、step_index、model、tool_name，每次 LLM 调用都记录 token 消耗和延迟。这样做的好处是：① 查问题快——输入 trace_id 就能看到整个请求链路；② 分析容易——用 Elasticsearch 按 agent_name、tool_name、success 聚合；③ 告警准——错误率/延迟超过阈值自动通知。生产环境我每天查日志 < 10 次，但每次都能 5 分钟内定位问题。"

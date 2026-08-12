@@ -321,6 +321,9 @@
 ```
 
 **实现示例：**
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
+
 ```python
 import numpy as np
 
@@ -355,6 +358,8 @@ class SemanticCache:
             self.cache.pop(0)
         self.cache.append((embedding, question, answer, time.time()))
 ```
+
+</details>
 
 **性能对比：**
 
@@ -791,6 +796,9 @@ print(f"GPU: {gpu_time:.2f}s, {len(texts)/gpu_time:.1f} texts/s")
 
 **场景:** 通用模型在你的领域(如医疗/法律)效果差
 
+<details>
+<summary>展开 Python 代码示例（34 行）</summary>
+
 ```python
 from sentence_transformers import SentenceTransformer, InputExample, losses
 from torch.utils.data import DataLoader
@@ -827,6 +835,8 @@ model.fit(
 custom_model = SentenceTransformer('./my-domain-embedding')
 embedding = custom_model.encode("医学专业术语")
 ```
+
+</details>
 
 **效果:** 领域适配性+10~20%
 
@@ -879,6 +889,9 @@ embedding = custom_model.encode("医学专业术语")
 ### GraphRAG实现流程
 
 **Step 1：知识图谱构建**
+
+<details>
+<summary>展开 Python 代码示例（60 行）</summary>
 
 ```python
 from neo4j import GraphDatabase
@@ -943,7 +956,12 @@ docs = [
 builder.build_graph(docs)
 ```
 
+</details>
+
 **Step 2：图检索查询**
+
+<details>
+<summary>展开 Python 代码示例（56 行）</summary>
 
 ```python
 class GraphRAGRetriever:
@@ -1003,6 +1021,8 @@ class GraphRAGRetriever:
 
         return reasoning_chain
 ```
+
+</details>
 
 **Step 3：结合LLM生成**
 
@@ -1081,6 +1101,9 @@ Agentic RAG（主动）：
 ```
 
 ### 核心能力
+
+<details>
+<summary>展开 Python 代码示例（100 行）</summary>
 
 ```python
 class AgenticRAG:
@@ -1185,7 +1208,12 @@ result = rag.run("比较GPT-4和Claude 3的价格，哪个更适合做长文档�
 # → 信息充分，生成综合对比回答
 ```
 
+</details>
+
 ### 多跳推理实现
+
+<details>
+<summary>展开 Python 代码示例（41 行）</summary>
 
 ```python
 class MultiHopRAG:
@@ -1230,6 +1258,8 @@ class MultiHopRAG:
 # Hop 3: 检索"优酷CEO教育背景" → ...
 # 逐步推理找到答案
 ```
+
+</details>
 
 **面试话术：**
 > "Agentic RAG让Agent主动决策检索策略，而不是固定执行一次检索。我实现了3种决策：1）信息充分直接回答；2）需要最新信息走实时搜索；3）复杂问题先分解再分别检索。核心是Agent每轮评估'信息是否足够回答问题'，不够就继续检索，最多3轮避免无限循环。实测复杂多跳问题准确率从普通RAG的52%提升到Agentic RAG的78%。"
@@ -1433,6 +1463,9 @@ answer = await llm.generate(query=user_query, context=compressed)
 → 回归测试 → 上线
 ```
 
+<details>
+<summary>展开 Python 代码示例（34 行）</summary>
+
 ```python
 class HallucinationGuard:
     """幻觉防护三层体系"""
@@ -1469,6 +1502,8 @@ class HallucinationGuard:
             return f"基于现有资料，{answer}（注：该回答置信度较低，建议人工核实）"
         return answer
 ```
+
+</details>
 
 **实际指标目标：**
 ```
@@ -1638,6 +1673,9 @@ groups:
 
 **方案一：图片 → 文本（OCR/Caption）→ 文本 RAG**
 
+<details>
+<summary>展开 Python 代码示例（56 行）</summary>
+
 ```python
 import base64
 from openai import OpenAI
@@ -1696,6 +1734,8 @@ class ImageToTextRAG:
         all_chunks = text_chunks + image_captions
         vector_store.add_documents(all_chunks)
 ```
+
+</details>
 
 **方案二：ColPali（原生多模态向量检索）**
 
@@ -1878,6 +1918,9 @@ RAG 知识库不更新的问题：
 
 ### 策略一：批处理更新（Batch Update）
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 import schedule
 from datetime import datetime
@@ -1921,7 +1964,12 @@ schedule.every().day.at("02:00").do(
 )
 ```
 
+</details>
+
 ### 策略二：实时更新（Real-time Update）
+
+<details>
+<summary>展开 Python 代码示例（45 行）</summary>
 
 ```python
 from kafka import KafkaConsumer
@@ -1971,7 +2019,12 @@ class RealTimeKnowledgeUpdater:
             )
 ```
 
+</details>
+
 ### 策略三：版本化知识库（适合需要回滚的场景）
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 class VersionedKnowledgeBase:
@@ -2005,6 +2058,8 @@ class VersionedKnowledgeBase:
         collection_name = self.versions[self.active_version]
         return self.vector_store.get_collection(collection_name).search(query, k)
 ```
+
+</details>
 
 **三种策略对比：**
 

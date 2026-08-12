@@ -334,6 +334,9 @@ pip install fastmcp
 
 **最小示例（20行代码）：**
 
+<details>
+<summary>展开 Python 代码示例（38 行）</summary>
+
 ```python
 # server.py
 from fastmcp import FastMCP
@@ -374,6 +377,8 @@ def get_user_profile(user_id: str) -> str:
 if __name__ == "__main__":
     mcp.run()
 ```
+
+</details>
 
 **工具定义详细参数：**
 
@@ -543,6 +548,9 @@ def get_secret_data(keyword: str) -> dict:
 
 **安全最佳实践：**
 
+<details>
+<summary>展开 Python 代码示例（45 行）</summary>
+
 ```python
 # 1. 输入验证（防止注入）
 @mcp.tool()
@@ -590,6 +598,8 @@ def expensive_operation(data: str) -> dict:
     # 每分钟最多调用10次
     return process(data)
 ```
+
+</details>
 
 **面试话术：**
 > "MCP Server安全三件套：1）认证用OAuth 2.1，企业标准最安全；2）输入验证防注入，严格校验参数类型和长度；3）限流防滥用，硬编码max_calls防止API被刷。stdio模式下本地进程不需要认证，数据不离开机器安全性最高。云端部署必须走OAuth 2.1，Token带Scope权限控制。"
@@ -909,6 +919,9 @@ MCP（标准化协议）：
 
 **OpenAI Tools API：**
 
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
+
 ```python
 # OpenAI的Function Calling（也叫Tools API）
 response = client.chat.completions.create(
@@ -946,6 +959,8 @@ response = client.chat.completions.create(
 # 3. 把结果拼回messages
 # 4. 再次调用API获取最终回复
 ```
+
+</details>
 
 **MCP：**
 
@@ -1063,6 +1078,9 @@ def delete_user(user_id: str) -> bool:
 
 **企业级MCP权限配置：**
 
+<details>
+<summary>展开 Json 代码示例（32 行）</summary>
+
 ```json
 // 企业MCP Server权限配置
 {
@@ -1098,7 +1116,12 @@ def delete_user(user_id: str) -> bool:
 }
 ```
 
+</details>
+
 **沙箱隔离（工具执行层）：**
+
+<details>
+<summary>展开 Python 代码示例（38 行）</summary>
 
 ```python
 import subprocess
@@ -1141,7 +1164,12 @@ def safe_bash(command: str, timeout: int = 30) -> dict:
         return {"error": f"Command timed out after {timeout}s"}
 ```
 
+</details>
+
 **审计日志：**
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 import logging
@@ -1175,6 +1203,8 @@ def audited_tool(user_id: str, action: str, **kwargs):
 
     return result
 ```
+
+</details>
 
 **面试话术：**
 > "MCP安全机制是四层防护：传输层（stdio本地/HTTPS云端）、协议层（Schema验证+输出限制）、应用层（OAuth Scope权限）、执行层（沙箱+超时）。企业最看重的是OAuth 2.1+Scope权限——不同AI应用/用户拿到的Token Scope不同，能读数据的不能写，能写的不能删。审计日志记录每次调用，做合规追溯。沙箱隔离确保危险工具（如bash执行）不会破坏系统。"
@@ -1224,6 +1254,9 @@ def audited_tool(user_id: str, action: str, **kwargs):
 ```
 
 **MCP Gateway实现：**
+
+<details>
+<summary>展开 Python 代码示例（53 行）</summary>
 
 ```python
 # mcp_gateway.py
@@ -1281,6 +1314,8 @@ async def route_tool_call(
     return response.json()
 ```
 
+</details>
+
 **私有MCP Server部署：**
 
 ```yaml
@@ -1312,6 +1347,9 @@ services:
 ```
 
 **企业MCP Registry（工具注册中心）：**
+
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
 
 ```python
 # MCP Registry API
@@ -1347,6 +1385,8 @@ async def publish_version(tool_id: str, version: ToolVersion):
     # 通知使用方
     return {"version": version.id, "status": "published"}
 ```
+
+</details>
 
 **MCP监控指标：**
 
@@ -3025,6 +3065,9 @@ MCP 生态有 5000+ 社区 Server，如何高效分发和发现？MCP Registry �
 **发布 Server 到 Registry 的流程：**
 
 
+<details>
+<summary>展开 Bash 代码示例（31 行）</summary>
+
 ```bash
 # 1. 开发 Server（以 Python/FastMCP 为例）
 # mcp_server.py
@@ -3058,6 +3101,8 @@ gx publish --registry https://registry.modelcontextprotocol.com
 # 5. 其他开发者安装
 npx @smithery/cli@latest install @company/enterprise-db
 ```
+
+</details>
 
 **企业级 Registry 部署：**
 

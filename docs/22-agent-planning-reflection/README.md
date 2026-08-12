@@ -835,6 +835,9 @@ Exploratory Learning（ExACT 新范式）：
 
 **ToT 核心原理：**
 
+<details>
+<summary>展开 Python 代码示例（95 行）</summary>
+
 ```python
 from typing import Callable
 import random
@@ -932,6 +935,8 @@ tot = TreeOfThoughts(model=llm, k=5, max_depth=3, prune_threshold=0.6)
 best = tot.solve(problem, evaluator=evaluate_story)
 print(f"\nBest story opening: {best['thought']}")
 ```
+
+</details>
 
 **ToT vs ReAct 核心区别：**
 

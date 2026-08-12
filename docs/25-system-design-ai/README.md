@@ -264,6 +264,9 @@ class SessionManager:
 | **独立数据库** | 每个租户独立 MySQL/Redis | 完全隔离 | 成本高、维护难 | 大客户、高安全需求 |
 | **Namespace 隔离** | 向量数据库用 namespace 隔离 | 实现简单、查询快 | 依赖底层支持 | Pinecone/Weaviate |
 
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
+
 ```python
 # 多租户向量检索实现
 class TenantAwareVectorStore:
@@ -297,6 +300,8 @@ class TenantAwareVectorStore:
         # 查看者只看公共文档
         return [d for d in results if d.is_public]
 ```
+
+</details>
 
 **权限模型设计（RBAC + ABAC）：**
 
@@ -452,6 +457,9 @@ LLM API 网关：
 
 **限流实现（令牌桶 + 多维度）：**
 
+<details>
+<summary>展开 Python 代码示例（58 行）</summary>
+
 ```python
 import time
 import redis
@@ -513,7 +521,12 @@ return 1
 """
 ```
 
+</details>
+
 **智能路由（成本 + 质量平衡）：**
+
+<details>
+<summary>展开 Python 代码示例（61 行）</summary>
 
 ```python
 class ModelRouter:
@@ -579,7 +592,12 @@ class ModelRouter:
         return any(p in request.prompt.lower() for p in code_patterns)
 ```
 
+</details>
+
 **计费系统（用量记录 + 扣费）：**
+
+<details>
+<summary>展开 Python 代码示例（52 行）</summary>
 
 ```python
 class BillingService:
@@ -635,6 +653,8 @@ class BillingService:
             "avg_cost_per_request": sum(r["total_cost"] for r in rows) / max(sum(r["request_count"] for r in rows), 1)
         }
 ```
+
+</details>
 
 **多租户计费方案：**
 
@@ -709,6 +729,9 @@ WebSocket / SSE → 客户端
 ```
 
 **实现方案 1：Redis 延迟队列（简单场景）：**
+
+<details>
+<summary>展开 Python 代码示例（85 行）</summary>
 
 ```python
 import redis
@@ -798,7 +821,12 @@ class AITaskQueue:
         return self.redis.get(f"{self.result_prefix}{task_id}")
 ```
 
+</details>
+
 **实现方案 2：Celery（生产级）：**
+
+<details>
+<summary>展开 Python 代码示例（44 行）</summary>
 
 ```python
 # tasks.py
@@ -847,7 +875,12 @@ def batch_generate_task(prompts: list[str], user_id: str) -> list[dict]:
     return results
 ```
 
+</details>
+
 **超时保证机制：**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 class TimeoutHandler:
@@ -888,6 +921,8 @@ class TimeoutHandler:
                 if int(timeout_count or 0) >= 3:
                     await self.notify_user(task_id, "Task failed after 3 retries")
 ```
+
+</details>
 
 **保证顺序的方案：**
 
@@ -943,6 +978,9 @@ AI 内容审核：
 ```
 
 **实时审核链路（< 200ms）：**
+
+<details>
+<summary>展开 Python 代码示例（92 行）</summary>
 
 ```python
 class RealTimeModeration:
@@ -1039,7 +1077,12 @@ class RealTimeModeration:
         return "PASS"
 ```
 
+</details>
+
 **离线审核链路（T+1 全量扫描）：**
+
+<details>
+<summary>展开 Python 代码示例（84 行）</summary>
 
 ```python
 class OfflineModeration:
@@ -1128,7 +1171,12 @@ class OfflineModeration:
         )
 ```
 
+</details>
+
 **人工审核队列（人机协作）：**
+
+<details>
+<summary>展开 Python 代码示例（54 行）</summary>
 
 ```python
 class HumanReviewQueue:
@@ -1186,6 +1234,8 @@ class HumanReviewQueue:
         
         return base
 ```
+
+</details>
 
 **面试话术：**
 

@@ -565,6 +565,9 @@ class JailbreakDetector:
 
 ### 多层防御架构
 
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
+
 ```python
 class SafetyPipeline:
     def __init__(self):
@@ -602,6 +605,8 @@ class SafetyPipeline:
 
         return response
 ```
+
+</details>
 
 **Red Team测试:**
 ```python
@@ -882,6 +887,9 @@ good_prompt = """
 
 **自动检测:**
 
+<details>
+<summary>展开 Python 代码示例（34 行）</summary>
+
 ```python
 def detect_hallucination(question, answer, context=None):
     """检测答案是否幻觉"""
@@ -919,9 +927,14 @@ def detect_hallucination(question, answer, context=None):
     return is_hallucination, indicators
 ```
 
+</details>
+
 ### 实战案例
 
 **问题: 客服Agent经常编造产品功能**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 # Before: 直接生成
@@ -962,6 +975,8 @@ def safe_customer_service(query):
 
 # 效果: 幻觉率从40%降到2%
 ```
+
+</details>
 
 **面试话术:**
 > "LLM幻觉本质是概率预测,不是事实查询。我用RAG+低温+CoT三管齐下:RAG提供证据降低幻觉80%,Temperature=0.2保守生成,CoT逐步推理减少逻辑错误。关键是接受'幻觉无法100%消除',目标是系统在不确定时说'我不知道',而不是瞎猜。生产环境加自我验证,置信度<70%转人工,最终幻觉率<5%。"
@@ -1195,6 +1210,9 @@ class PromptInjectionMonitor:
 
 ### 高级防御: 双LLM架构
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 class SecureAISystem:
     def __init__(self):
@@ -1237,6 +1255,8 @@ class SecureAISystem:
         result = self.filter_llm.generate(prompt, temperature=0)
         return "安全" in result
 ```
+
+</details>
 
 ### 真实案例: Bing Chat越狱
 
@@ -1303,6 +1323,9 @@ Bing Chat回答:
 
 **1. BLEU (机器翻译经典指标)**
 
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
+
 ```python
 from nltk.translate.bleu_score import sentence_bleu
 
@@ -1337,6 +1360,8 @@ print(calculate_bleu(reference, candidate3))  # 0.0
 # "我爱你" vs "你爱我" → BLEU很高,但意思相反
 ```
 
+</details>
+
 **2. ROUGE (摘要任务经典指标)**
 
 ```python
@@ -1368,6 +1393,9 @@ scores1 = calculate_rouge(reference, candidate1)
 ```
 
 **3. Perplexity (困惑度,衡量流畅性)**
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 import torch
@@ -1402,7 +1430,12 @@ ppl2 = calculate_perplexity(text2, model, tokenizer)  # 500 (高=差)
 # 解释: 困惑度越低,模型越"不困惑",文本越自然
 ```
 
+</details>
+
 **4. BERTScore (语义相似度)**
+
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
 
 ```python
 from bert_score import score
@@ -1439,7 +1472,12 @@ score2 = calculate_bertscore(reference, candidate2)
 # 缺点: 计算慢,需要GPU
 ```
 
+</details>
+
 **5. Exact Match (精确匹配,QA任务)**
+
+<details>
+<summary>展开 Python 代码示例（34 行）</summary>
 
 ```python
 def exact_match(prediction, ground_truth):
@@ -1478,9 +1516,14 @@ print(exact_match(prediction1, ground_truth))  # 0 (严格)
 print(exact_match("paris", ground_truth))      # 1 (标准化后匹配)
 ```
 
+</details>
+
 ### 人工评估
 
 **评估框架:**
+
+<details>
+<summary>展开 Python 代码示例（47 行）</summary>
 
 ```python
 def human_evaluation(responses, criteria):
@@ -1532,7 +1575,12 @@ def calculate_agreement(evaluators):
     return kappa
 ```
 
+</details>
+
 ### LLM-as-Judge (用LLM评估LLM)
+
+<details>
+<summary>展开 Python 代码示例（42 行）</summary>
 
 ```python
 def llm_as_judge(question, answer_a, answer_b):
@@ -1579,7 +1627,12 @@ result = llm_as_judge(question, answer_a, answer_b)
 # 缺点: GPT-4也有偏好,可能不客观
 ```
 
+</details>
+
 ### 综合评估框架
+
+<details>
+<summary>展开 Python 代码示例（52 行）</summary>
 
 ```python
 class LLMEvaluator:
@@ -1635,6 +1688,8 @@ result = evaluator.evaluate(
 
 print(result["Overall"])  # 0.92 (高分)
 ```
+
+</details>
 
 ### 特定任务评估
 
@@ -1866,6 +1921,9 @@ results = eval_llm.evaluate(
 
 **自动化评估流程：**
 
+<details>
+<summary>展开 Python 代码示例（56 行）</summary>
+
 ```python
 from ragas import evaluate
 from ragas.metrics import (
@@ -1924,6 +1982,8 @@ def ci_cd_gate():
     print(f"✅ 通过率 {pass_rate:.1%} >= 85%，允许上线")
     return True
 ```
+
+</details>
 
 **评估结果 → RAG 迭代优化：**
 

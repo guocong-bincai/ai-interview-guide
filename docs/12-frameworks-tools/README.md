@@ -461,6 +461,9 @@ Coze可视化配置:5分钟完成
 
 **配置示例:**
 
+<details>
+<summary>展开 Yaml 代码示例（38 行）</summary>
+
 ```yaml
 # Coze Workflow配置(伪代码)
 workflow:
@@ -501,6 +504,8 @@ workflow:
     - from: "knowledge_base"
       to: "llm_response"
 ```
+
+</details>
 
 ### Coze vs 传统开发
 
@@ -655,6 +660,9 @@ workflow:
 
 **方式1: Docker Compose (推荐)**
 
+<details>
+<summary>展开 Bash 代码示例（30 行）</summary>
+
 ```bash
 # 1. 克隆仓库
 git clone https://github.com/langgenius/dify.git
@@ -688,7 +696,12 @@ docker-compose ps
 # http://localhost:3000
 ```
 
+</details>
+
 **方式2: K8s部署 (生产环境)**
+
+<details>
+<summary>展开 Yaml 代码示例（38 行）</summary>
 
 ```yaml
 # dify-deployment.yaml
@@ -731,6 +744,8 @@ spec:
           periodSeconds: 10
 ```
 
+</details>
+
 ### 性能优化实战
 
 **优化1: 数据库连接池**
@@ -750,6 +765,9 @@ SQLALCHEMY_POOL_RECYCLE=3600     # 连接回收
 ```
 
 **优化2: Redis缓存策略**
+
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
 
 ```python
 # api/core/redis.py
@@ -790,7 +808,12 @@ else:
 # 效果: 缓存命中率30%,平均响应时间 -600ms
 ```
 
+</details>
+
 **优化3: 向量检索优化**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 # api/core/vector_store.py
@@ -831,6 +854,8 @@ results = milvus.search(
 
 # 效果: 检索时间 500ms → 50ms
 ```
+
+</details>
 
 **优化4: 异步任务队列**
 
@@ -894,6 +919,9 @@ def tiered_chat():
 
 ### 监控与告警
 
+<details>
+<summary>展开 Python 代码示例（33 行）</summary>
+
 ```python
 # api/core/monitoring.py
 import prometheus_client as prom
@@ -929,6 +957,8 @@ llm_request_total.labels(model="gpt-4", status="success").inc()
 # - 缓存命中率
 # - 错误率
 ```
+
+</details>
 
 ### 生产环境清单
 
@@ -976,6 +1006,9 @@ security:
 **Function Calling = LLM通过结构化JSON调用外部函数，是Agent工具使用的核心机制**
 
 ### 基础Function Calling
+
+<details>
+<summary>展开 Python 代码示例（92 行）</summary>
 
 ```python
 from openai import OpenAI
@@ -1072,7 +1105,12 @@ result = run_with_function_calling("北京明天天气怎样？同时帮我搜�
 print(result)
 ```
 
+</details>
+
 ### 并行工具调用（Parallel Tool Calls）
+
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
 
 ```python
 import concurrent.futures
@@ -1113,7 +1151,12 @@ def execute_tools_parallel(tool_calls: list) -> list:
 # 并行：max(天气1s, 新闻1s, 股价1s) = 1s  ← 快3倍
 ```
 
+</details>
+
 ### 错误重试机制
+
+<details>
+<summary>展开 Python 代码示例（64 行）</summary>
 
 ```python
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -1182,6 +1225,8 @@ executor = RobustToolExecutor()
 result = executor.execute_safe("get_weather", {"city": "北京"}, timeout=5)
 ```
 
+</details>
+
 **面试话术：**
 > "Function Calling是Agent工具使用的核心。基础实现是对话循环：LLM输出tool_calls → 执行函数 → 结果加入消息 → 继续对话。两个关键优化：1）并行执行：多个工具用ThreadPoolExecutor并发执行，从串行3s降到1s；2）三层容错：retry指数退避重试、timeout超时保护、circuit breaker熔断防止雪崩。生产上工具失败率从8%降到0.5%。"
 
@@ -1209,6 +1254,9 @@ TTFT（首Token时间）：5000ms → 300ms（-94%）
 ```
 
 ### 后端实现（FastAPI SSE）
+
+<details>
+<summary>展开 Python 代码示例（64 行）</summary>
 
 ```python
 from fastapi import FastAPI
@@ -1277,7 +1325,12 @@ async def chat_stream(request: ChatRequest):
     )
 ```
 
+</details>
+
 ### 前端实现（EventSource / fetch）
+
+<details>
+<summary>展开 Javascript 代码示例（54 行）</summary>
 
 ```javascript
 // 方式1：EventSource（简单，仅支持GET）
@@ -1336,7 +1389,12 @@ async function streamChat(message) {
 }
 ```
 
+</details>
+
 ### 中间件处理（LangChain流式）
+
+<details>
+<summary>展开 Python 代码示例（43 行）</summary>
 
 ```python
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -1383,6 +1441,8 @@ async def langchain_stream(request: ChatRequest):
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 ```
+
+</details>
 
 ### 生产注意事项
 
@@ -1596,6 +1656,9 @@ Prompt Caching（首次付费 + 缓存折扣）:
 
 **代码示例：OpenAI Prompt Caching**
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 # OpenAI API - 使用 Prompt Caching
 response = client.chat.completions.create(
@@ -1638,6 +1701,8 @@ response = client.messages.create(
     messages=[{"role": "user", "content": user_query}]
 )
 ```
+
+</details>
 
 **Prompt Caching vs 语义缓存的核心区别：**
 
@@ -1855,6 +1920,9 @@ LangGraph 单 Agent → CrewAI 最简单 or LangGraph 多 Agent
 
 **LangGraph 多 Agent 示例（2026年最新）：**
 
+<details>
+<summary>展开 Python 代码示例（56 行）</summary>
+
 ```python
 from langgraph.prebuilt import create_react_agent
 from langgraph.messages import HumanMessage
@@ -1914,6 +1982,8 @@ graph.add_conditional_edges("review", should_continue, {
 app = graph.compile()
 ```
 
+</details>
+
 **面试话术：**
 
 > "2026年框架选型，我的经验是：LangGraph 仍然是生产首选，因为它是云无关的，状态管理内置，生态最成熟（34.5M 月下载）。Semantic Kernel 适合已经在 Azure 生态的企业——用 Azure OpenAI、Teams Copilot、Microsoft 365 的企业。Microsoft 今年把 Semantic Kernel 和 AutoGen 统一成 Agent Framework，但迁移需要时间。如果让我选新项目，我优先 LangGraph；如果客户已经是 Microsoft 生态，我建议迁移到 Agent Framework。关键是说清楚选型理由，不是背框架名字。"
@@ -1938,6 +2008,9 @@ app = graph.compile()
 | **成本** | 低（只付模型调用费） | 略高（Assistant 对象有维护成本） |
 
 **Assistant API 四大核心概念：**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 from openai import OpenAI
@@ -1979,6 +2052,8 @@ while run.status in ["queued", "in_progress"]:
 messages = client.beta.threads.messages.list(thread_id=thread.id)
 ```
 
+</details>
+
 **File Search（知识检索）的用法：**
 
 ```python
@@ -2006,6 +2081,9 @@ assistant = client.beta.assistants.create(
 ```
 
 **Code Interpreter（代码执行）的用法：**
+
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
 
 ```python
 # 1. 开启 Code Interpreter
@@ -2040,6 +2118,8 @@ thread = client.beta.threads.create(
 #    - 返回结果（文本/图表）
 #    - 生成的临时文件可在下一轮继续使用
 ```
+
+</details>
 
 **Thread + Run 的状态机：**
 
@@ -2202,6 +2282,9 @@ for snapshot in snapshots:
 
 **Human-in-the-Loop 中断实现：**
 
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 from langgraph.checkpoint import MemorySaver
 
@@ -2241,7 +2324,12 @@ if result["needs_human_approval"]:
         result = workflow.update_state(config, {"status": "rejected"})
 ```
 
+</details>
+
 **LangSmith 生产监控：**
+
+<details>
+<summary>展开 Python 代码示例（33 行）</summary>
 
 ```python
 from langsmith import Client
@@ -2278,6 +2366,8 @@ results = client.evaluate(
 if results["answer_quality"] < 0.8:
     send_alert(f"Agent 质量下降: {results['answer_quality']}")
 ```
+
+</details>
 
 **LangGraph vs LangChain 选型决策树：**
 

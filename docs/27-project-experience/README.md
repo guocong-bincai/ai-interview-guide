@@ -293,6 +293,9 @@ def hybrid_retrieval(query, k=20):
 ```
 
 **(3) Query改写 (+5% Recall)**
+<details>
+<summary>展开 Python 代码示例（33 行）</summary>
+
 ```python
 # Before: 直接用用户原始问题
 query = "请假流程"  # 太简短,语义不明
@@ -328,6 +331,8 @@ final = deduplicate_and_rerank(all_results)
 
 # Recall: 0.87 → 0.92 (+5%)
 ```
+
+</details>
 
 **(4) Rerank精排 (+3% 保持top-5质量)**
 ```python
@@ -410,6 +415,9 @@ top5 = sorted(
 ```
 
 **2. 工具设计**
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 tools = [
     # 工具1: 订单查询
@@ -452,6 +460,8 @@ tools = [
     }
 ]
 ```
+
+</details>
 
 **3. ReAct实现**
 ```python
@@ -661,6 +671,9 @@ compressed = compressor.compress_prompt(
 ```
 
 **2. 会话历史管理**
+<details>
+<summary>展开 Python 代码示例（39 行）</summary>
+
 ```python
 class ConversationManager:
     def __init__(self, max_history=3):
@@ -703,9 +716,14 @@ class ConversationManager:
 # Token节省: 70%
 ```
 
+</details>
+
 ### 优化路径2: 模型路由 (-25%成本)
 
 **原理: 简单问题用便宜模型,复杂问题用贵模型**
+
+<details>
+<summary>展开 Python 代码示例（59 行）</summary>
 
 ```python
 class ModelRouter:
@@ -769,9 +787,14 @@ response = llm_pool[model].generate(query)
 # 成本降低: 25%
 ```
 
+</details>
+
 ### 优化路径3: 语义缓存 (-30%成本)
 
 **原理: 相似问题直接返回缓存,不调API**
+
+<details>
+<summary>展开 Python 代码示例（66 行）</summary>
 
 ```python
 from langchain.cache import RedisSemanticCache
@@ -842,7 +865,12 @@ def answer_question(query):
 # 延迟降低: 2.5s → 0.1s (缓存响应)
 ```
 
+</details>
+
 **缓存策略优化:**
+<details>
+<summary>展开 Python 代码示例（33 行）</summary>
+
 ```python
 # 问题: 不是所有问题都适合缓存
 # 例: "今天天气怎么样?" - 答案每天变化
@@ -878,6 +906,8 @@ class SmartCache:
         # 4. 默认: 缓存24小时
         return True, 86400
 ```
+
+</details>
 
 **R (Result):**
 > "经过3个月优化:
@@ -979,6 +1009,9 @@ print(f"收集到 {len(all_data)} 条写作数据")
 ```
 
 **合成数据补充**
+<details>
+<summary>展开 Python 代码示例（44 行）</summary>
+
 ```python
 # 用GPT-4生成领域特定的训练数据
 def generate_synthetic_data(seed_examples, num_samples=1000):
@@ -1026,6 +1059,8 @@ synthetic = generate_synthetic_data(all_data[:100], num_samples=5000)
 # 总训练数据 = 8万开源 + 5千合成 = 8.5万
 ```
 
+</details>
+
 **效果:**
 - 成本: $150 (GPT-4生成5K样本)
 - 时间: 2天
@@ -1034,6 +1069,9 @@ synthetic = generate_synthetic_data(all_data[:100], num_samples=5000)
 ### 策略2: 引导式数据收集
 
 **产品设计嵌入数据收集**
+<details>
+<summary>展开 Python 代码示例（72 行）</summary>
+
 ```python
 # 方法1: 首次使用引导
 def onboarding_flow(user):
@@ -1109,6 +1147,8 @@ def show_output_with_feedback(output):
         log_edit_data(original=output, edited=edited)
 ```
 
+</details>
+
 **数据飞轮启动**
 ```
 Week 1: 100个种子用户
@@ -1131,6 +1171,9 @@ Week 4: 数据飞轮加速旋转
 **问题: 8.5万数据全部人工标注成本太高**
 
 **解决: 主动学习,只标注最有价值的数据**
+
+<details>
+<summary>展开 Python 代码示例（75 行）</summary>
 
 ```python
 class ActiveLearningAnnotator:
@@ -1210,9 +1253,14 @@ optimized_model = al.run()
 # 相当于随机标注1500条的效果,节省33%标注成本
 ```
 
+</details>
+
 ### 策略4: 用户分群 + AB测试
 
 **解决冷启动时不知道用户需求的问题**
+
+<details>
+<summary>展开 Python 代码示例（74 行）</summary>
 
 ```python
 class ColdStartUserSegmentation:
@@ -1290,6 +1338,8 @@ def handle_new_user(user):
 # Creative分群: Variant C (DeepSeek V4-Flash + template_v2) 性价比最高
 # Tech分群: Variant A 效果相当,选最便宜的
 ```
+
+</details>
 
 **R (Result):**
 > "1个月MVP上线,3个月数据:
@@ -1519,6 +1569,9 @@ class ConversationMemory:
 
 **关键实现代码：**
 
+<details>
+<summary>展开 Python 代码示例（33 行）</summary>
+
 ```python
 from sentence_transformers import CLIPModel
 import torch
@@ -1554,6 +1607,8 @@ class MultimodalRAG:
         
         return sorted(zip(doc_images, similarities), key=lambda x: -x[1])[:top_k]
 ```
+
+</details>
 
 **面试话术：**
 > "多模态RAG的核心是跨模态对齐。我用CLIP做图片和文字的联合编码空间，用户的图片和文字问题都映射到同一个向量空间，直接做相似度匹配。文档端也用CLIP处理产品图片，建立图片向量库。检索时，用户的图+文query和文档图片做跨模态检索，精准找到相关图片。生成阶段用LLaVA读图回答。实测图文混合查询的准确率比纯文字检索提升了35%。"
@@ -1593,6 +1648,9 @@ class MultimodalRAG:
 ```
 
 **DSL 工作流配置示例：**
+
+<details>
+<summary>展开 Yaml 代码示例（44 行）</summary>
 
 ```yaml
 workflow:
@@ -1641,6 +1699,8 @@ workflow:
     stream: true
 ```
 
+</details>
+
 **面试话术：**
 > "企业级Agent平台的核心是'编排即服务'。我用DSL描述工作流，节点类型包括LLM、知识库、API、HTTP、代码执行等。工作流引擎解析DSL，按拓扑顺序执行节点，支持条件分支、并行、循环。编排层提供可视化画布，用户拖拖拽拽就能搭工作流，生成的DSL存到数据库，运行时引擎执行。平台还接入了MCP协议，工具生态可以无限扩展。"
 
@@ -1674,6 +1734,9 @@ workflow:
 | **Markdown** | 正则 + 语法解析 | 层级结构、代码块 |
 
 **生产级 PDF 解析 pipeline：**
+
+<details>
+<summary>展开 Python 代码示例（54 行）</summary>
 
 ```python
 from paddleocr import PaddleOCR
@@ -1732,6 +1795,8 @@ def parse_pdf_advanced(pdf_path: str) -> list[dict]:
     return results
 ```
 
+</details>
+
 **表格解析专项（合同、财务报表）：**
 
 ```python
@@ -1778,6 +1843,9 @@ def extract_tables_with_camelot(pdf_path: str) -> list[str]:
 
 **策略1：基于时间戳的增量更新（适合新闻、博客）**
 
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 class TimeBasedIndexer:
     """基于文档修改时间戳的增量索引"""
@@ -1818,7 +1886,12 @@ class TimeBasedIndexer:
         self._save_state(current_state)
 ```
 
+</details>
+
 **策略2：全文检索 + 向量检索双保险（适合版本敏感场景）**
+
+<details>
+<summary>展开 Python 代码示例（39 行）</summary>
 
 ```python
 class HybridIndexer:
@@ -1861,6 +1934,8 @@ class HybridIndexer:
         
         return vector_results
 ```
+
+</details>
 
 **策略3：事件驱动实时更新（适合高变更频率知识库）**
 

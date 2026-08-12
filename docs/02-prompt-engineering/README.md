@@ -839,6 +839,9 @@ class PlanAndSolve:
 
 **详细模板：**
 
+<details>
+<summary>展开 Python 代码示例（53 行）</summary>
+
 ```python
 SYSTEM_PROMPT = """
 你是一个企业级AI客服助手（角色定义）
@@ -894,6 +897,8 @@ SYSTEM_PROMPT = """
 回复：非常抱歉给您带来困扰，我会立即为您转接专业客服处理。请保持在线。（⚠️ 触发人工介入）
 """
 ```
+
+</details>
 
 **稳定性提升数据：**
 
@@ -991,6 +996,9 @@ class ContextCompressor:
 
 **策略2：选择性注入（Selective Injection）**
 
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 def build_context(user_query: str, conversation_history: list):
     """按相关性动态注入，不是全部塞入"""
@@ -1030,6 +1038,8 @@ def build_context(user_query: str, conversation_history: list):
 
     return context_parts
 ```
+
+</details>
 
 ### "Lost in the Middle"问题
 
@@ -1079,6 +1089,9 @@ context = "\n---\n".join(ordered_docs)
 
 **解决方案2：分段抽取（Chunked Extraction）**
 
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 def chunked_extraction(long_doc: str, query: str, chunk_size=2000):
     """
@@ -1117,6 +1130,8 @@ def chunked_extraction(long_doc: str, query: str, chunk_size=2000):
     """
     return llm.generate(final_prompt)
 ```
+
+</details>
 
 **解决方案3：查询重复（Query Repetition）**
 
@@ -1217,6 +1232,9 @@ T=2.0: [0.40, 0.35, 0.25]  ← 更平坦，更随机
 
 **实际项目调参案例（可以讲）：**
 
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
+
 ```python
 # 案例1：RAG 知识库问答
 # 问题：T=0.7 时模型会"补充"检索内容里没有的信息（幻觉）
@@ -1251,6 +1269,8 @@ for _ in range(5):
     answers.append(extract_answer(response))
 final = majority_vote(answers)
 ```
+
+</details>
 
 **其他参数联动调整：**
 ```
@@ -1445,6 +1465,9 @@ response = client.responses.create(
 
 ### CoVe 四步流程
 
+<details>
+<summary>展开 Python 代码示例（47 行）</summary>
+
 ```python
 class ChainOfVerification:
     def __init__(self, llm):
@@ -1494,6 +1517,8 @@ class ChainOfVerification:
         """
         return self.llm.generate(prompt)
 ```
+
+</details>
 
 ### 论文结论应该怎么引用
 
@@ -1763,6 +1788,9 @@ LLM-as-a-Judge 的优势：
 
 ### 三种评估模式
 
+<details>
+<summary>展开 Python 代码示例（38 行）</summary>
+
 ```python
 # 模式1: Pairwise Comparison（最强信度）
 # 同样一个问题，两个模型各输出一份，让Judge选更好的
@@ -1804,6 +1832,8 @@ judgment = judge.prompt(f"""
 """)
 ```
 
+</details>
+
 ### 关键设计原则
 
 | 原则 | 说明 | 如果不遵守的后果 |
@@ -1843,6 +1873,9 @@ def calibrate_judge():
 
 ### 工业界典型部署方案
 
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
+
 ```python
 class EvalPipeline:
     """生产级评测管线"""
@@ -1877,6 +1910,8 @@ class EvalPipeline:
         else:
             return f"No significant difference (delta={delta:+.1%}) ⏸️"
 ```
+
+</details>
 
 ### 局限性与应对
 

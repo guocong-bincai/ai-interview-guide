@@ -925,6 +925,9 @@ LLM-as-a-Judge的优势：
 
 **生产级 LLM-as-a-Judge 实现：**
 
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 class LLMasJudge:
     def __init__(self, model="gpt-4o"):
@@ -963,6 +966,8 @@ class LLMasJudge:
         winner = llm.call(prompt).strip()
         return winner
 ```
+
+</details>
 
 **LLM-as-a-Judge 的七大陷阱（面试重点）：**
 
@@ -1220,6 +1225,9 @@ def resolve_conflict(chunks):
 
 ### 实战代码：构建冲突感知的RAG
 
+<details>
+<summary>展开 Python 代码示例（32 行）</summary>
+
 ```python
 class ConflictAwareRAG:
     def __init__(self, vectorstore, authority_db):
@@ -1254,6 +1262,8 @@ class ConflictAwareRAG:
         prompt = f"判断以下两个片段是否矛盾：\nA: {chunk_a}\nB: {chunk_b}\n只回答'是'或'否'。"
         return "是" in llm.invoke(prompt)
 ```
+
+</details>
 
 ### 面试话术
 
@@ -1887,6 +1897,9 @@ scores = reranker.predict([(query, doc) for doc in documents])
 
 **失败检测的具体实现：**
 
+<details>
+<summary>展开 Python 代码示例（42 行）</summary>
+
 ```python
 class SelfHealingRAG:
     def __init__(self):
@@ -1932,7 +1945,12 @@ class SelfHealingRAG:
             return "mild"       # 轻度：Query 改写即可
 ```
 
+</details>
+
 **分级的恢复策略：**
+
+<details>
+<summary>展开 Python 代码示例（68 行）</summary>
 
 ```python
     def recover(self, query: str, failure: dict, retrieval_results: list) -> str:
@@ -2004,6 +2022,8 @@ Query: {query}
         sub_questions = llm.call(prompt)
         return [q.strip() for q in sub_questions.split("\n") if q.strip()]
 ```
+
+</details>
 
 **验证层：确保恢复后的质量：**
 
@@ -2252,6 +2272,9 @@ fused = rrf_fusion([dense_results, sparse_results])
 
 **生产级混合检索架构：**
 
+<details>
+<summary>展开 Python 代码示例（72 行）</summary>
+
 ```python
 from rank_bm25 import BM25Okapi
 import numpy as np
@@ -2326,6 +2349,8 @@ RRF融合后（综合两者优势）：
 - [2] 小米13...骁龙8Gen2... (Dense第三)
 """
 ```
+
+</details>
 
 **2026 年企业为什么必须用混合检索：**
 
@@ -2427,6 +2452,9 @@ if not eval_result["sufficient"]:
 
 **3. 幻觉检测 + 自纠正闭环**
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 def hallucination_check(answer: str, docs: list[str], llm) -> dict:
     """事实一致性校验"""
@@ -2469,6 +2497,8 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 
     return answer  # 超过重试次数，返回最后一次结果
 ```
+
+</details>
 
 **Agentic RAG 与单次 RAG 效果对比：**
 

@@ -555,6 +555,9 @@ while True:
 ```
 
 **优化: 分层管理**
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 class ConversationManager:
     def __init__(self, max_recent=3, summary_every=10):
@@ -595,6 +598,8 @@ manager.add_message("assistant", "你好,有什么可以帮你?")
 context = manager.get_context()  # 自动管理上下文
 ```
 
+</details>
+
 **效果:**
 - Token消耗: 稳定在4K以内
 - 信息保留: 最近3轮完整+历史摘要
@@ -603,6 +608,9 @@ context = manager.get_context()  # 自动管理上下文
 ### 方案2: RAG分块检索(推荐⭐)
 
 **完整流程:**
+<details>
+<summary>展开 Python 代码示例（49 行）</summary>
+
 ```python
 # 步骤1: 文档预处理
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -654,6 +662,8 @@ def answer_question(question):
 question = "文档中提到的主要结论是什么?"
 answer = answer_question(question)
 ```
+
+</details>
 
 **优势:**
 - ✅ 支持无限长文档

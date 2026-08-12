@@ -53,6 +53,9 @@ Agent A ←→ Agent B
 
 **场景: 分析销售数据并生成报告**
 
+<details>
+<summary>展开 Python 代码示例（83 行）</summary>
+
 ```python
 import autogen
 
@@ -138,6 +141,8 @@ ReportWriter: "根据分析结果,我撰写报告如下:..."
 UserProxy: "任务完成,报告已生成"
 """
 ```
+
+</details>
 
 ### AutoGen高级特性
 
@@ -231,6 +236,9 @@ DataAnalyst: "我需要查询数据库"
 
 ### AutoGen实战案例: 自动化代码Review
 
+<details>
+<summary>展开 Python 代码示例（44 行）</summary>
+
 ```python
 # 场景: 自动审查Pull Request
 
@@ -277,6 +285,8 @@ user_proxy.initiate_chat(
     message="""
     审查以下代码:
     ```python
+
+</details>
     def process_user_input(data):
         query = f"SELECT * FROM users WHERE name='{data}'"
         return db.execute(query)
@@ -391,6 +401,9 @@ Agent2(角色: 作家, 目标: 写出引人入胜的文章, 背景: 畅销书作
 
 **场景: 自动生成技术博客文章**
 
+<details>
+<summary>展开 Python 代码示例（99 行）</summary>
+
 ```python
 from crewai import Agent, Task, Crew, Process
 from langchain.tools import DuckDuckGoSearchRun
@@ -493,6 +506,8 @@ print(result)
 # 输出: 一篇完整的、经过三人协作的高质量技术博客
 ```
 
+</details>
+
 ### CrewAI执行流程
 
 ```
@@ -594,6 +609,9 @@ coder = Agent(
 
 ### CrewAI实战案例: 招聘流程自动化
 
+<details>
+<summary>展开 Python 代码示例（67 行）</summary>
+
 ```python
 # 场景: 自动筛选简历+生成面试题
 
@@ -664,6 +682,8 @@ result = hiring_crew.kickoff(inputs={
 })
 ```
 
+</details>
+
 **面试话术:**
 > "CrewAI的特色是角色驱动,每个Agent有明确的role/goal/backstory,更像真实团队。我用CrewAI做过内容创作:Researcher调研+Writer撰写+Editor审核,顺序执行。CrewAI优势是结构清晰,适合分工明确的任务;缺点是灵活性不如AutoGen。实战中我用Process.hierarchical实现层级管理,Manager分配任务,其他Agent执行。关键是写好backstory,让Agent有'个性',生成的内容更有针对性。"
 
@@ -722,6 +742,9 @@ result = hiring_crew.kickoff(inputs={
 ### 大规模Agent编排实战
 
 **场景：客服中心AI平台（日均10万+咨询）**
+
+<details>
+<summary>展开 Python 代码示例（60 行）</summary>
 
 ```python
 # 企业级Agent编排器
@@ -786,9 +809,14 @@ class EnterpriseAgentOrchestrator:
                 agent = await self.agent_registry.get_agent(agent.type)
 ```
 
+</details>
+
 ### Agent能力分级与智能路由
 
 **分级策略：**
+<details>
+<summary>展开 Python 代码示例（33 行）</summary>
+
 ```python
 AGENT_TIERS = {
     "tier1": {
@@ -824,6 +852,8 @@ def route_to_tier(query: str) -> str:
     else:
         return "tier3"
 ```
+
+</details>
 
 ### Agent系统的可观测性设计
 
@@ -1396,6 +1426,9 @@ Step 6: 结果返回
 
 **企业级A2A实现示例：**
 
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 # A2A Registry 实现
 class A2ARegistry:
@@ -1435,6 +1468,8 @@ class A2AGateway:
 
         return result
 ```
+
+</details>
 
 **多Agent协作场景示例：开发电商网站**
 
@@ -2199,6 +2234,9 @@ AI 可以帮研究者写文字，但生成顶会/期刊需要的复杂方法图�
 
 **Skills 的核心组成：**
 
+<details>
+<summary>展开 Yaml 代码示例（31 行）</summary>
+
 ```yaml
 # Skill 定义示例：撰写商务邮件
 skill:
@@ -2232,6 +2270,8 @@ skill:
     - step4: 按公司规范格式化
     - step5: 发送并记录到 CRM
 ```
+
+</details>
 
 **为什么 Skills 在 2026 年变得重要：**
 
@@ -2384,6 +2424,9 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 
 **什么时候必须 A2A + MCP 混合？**
 
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
+
 ```python
 """
 企业销售 Agent 场景（必须混合）：
@@ -2421,6 +2464,8 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 #       └──────────────────────────────────┘
 #              BI Tools / Email
 ```
+
+</details>
 
 **生产级 A2A + MCP 混合架构检查项：**
 
@@ -2488,6 +2533,9 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 
 **层级任务分解原理：**
 
+<details>
+<summary>展开 Python 代码示例（43 行）</summary>
+
 ```python
 class HierarchicalMultiAgent:
     """层级多 Agent 系统"""
@@ -2533,6 +2581,8 @@ class HierarchicalMultiAgent:
   - 适用场景：>5个 Agent、复杂任务
 """
 ```
+
+</details>
 
 **HTTP 协议对多 Agent 通信的影响（面试重点）：**
 

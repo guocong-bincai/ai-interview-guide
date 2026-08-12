@@ -717,6 +717,9 @@ BLIP-2（188M）> Flamingo（80B）
 **实现步骤：**
 
 **1. 离线索引（一次性）：**
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 import clip
 import torch
@@ -755,6 +758,8 @@ collection.insert([
 ])
 collection.create_index("image_vector", {"index_type": "IVF_FLAT", "metric_type": "IP"})
 ```
+
+</details>
 
 **2. 在线检索：**
 ```python
@@ -975,6 +980,9 @@ prompt = f"""
 **场景：** 用户上传商品图片，询问价格、尺寸等
 
 **实现：**
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 def ecommerce_qa(user_image, user_question):
     # 1. 图像检索：找相似商品
@@ -1007,6 +1015,8 @@ def ecommerce_qa(user_image, user_question):
     answer = gpt4v.generate(prompt, images=[user_image])
     return answer
 ```
+
+</details>
 
 **效果提升：**
 
@@ -1135,6 +1145,9 @@ class VisionProjector(nn.Module):
 
 ### 完整推理流程
 
+<details>
+<summary>展开 Python 代码示例（45 行）</summary>
+
 ```python
 class LLaVA:
     def __init__(self):
@@ -1182,6 +1195,8 @@ answer = llava.generate(
 print(answer)
 # "这是一只金毛犬,正在草地上奔跑。它看起来很快乐,毛色金黄,姿态优美。背景是绿色的草坪和蓝天。"
 ```
+
+</details>
 
 ### 关键技术细节
 
@@ -1334,6 +1349,9 @@ print(result[0]["generated_text"])
 
 **Step 1: 多模态知识库构建**
 
+<details>
+<summary>展开 Python 代码示例（115 行）</summary>
+
 ```python
 from langchain.vectorstores import Qdrant
 from langchain.embeddings import OpenAICLIPEmbeddings
@@ -1452,7 +1470,12 @@ results = kb.search(
 )
 ```
 
+</details>
+
 **Step 2: 多模态Rerank**
+
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
 
 ```python
 from transformers import BlipForImageTextRetrieval
@@ -1497,7 +1520,12 @@ class MultimodalReranker:
         return [item[0] for item in ranked[:top_k]]
 ```
 
+</details>
+
 **Step 3: 多模态生成**
+
+<details>
+<summary>展开 Python 代码示例（64 行）</summary>
 
 ```python
 from transformers import pipeline
@@ -1565,6 +1593,8 @@ answer = agent.answer(
 )
 print(answer)
 ```
+
+</details>
 
 ### 性能优化
 
@@ -1819,6 +1849,9 @@ class ImageGenerationAgent:
 
 **推荐：混合方案（工程实践）**
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 class ImageDiversityStrategy:
     # 预设规则：控制结构化变量（确定性）
@@ -1862,6 +1895,8 @@ class ImageDiversityStrategy:
         return json.loads(response)
 ```
 
+</details>
+
 **判断标准（是否需要 LLM 介入）：**
 ```
 简单多样性需求 → 预设规则（seed变换 + 参数组合）
@@ -1899,6 +1934,9 @@ class ImageDiversityStrategy:
 | **SSIM** | 结构相似度（参考图对比） | 亮度+对比度+结构 | skimage |
 
 **工程实现：自动化评估管道**
+
+<details>
+<summary>展开 Python 代码示例（51 行）</summary>
 
 ```python
 import torch
@@ -1953,6 +1991,8 @@ class ImageQualityEvaluator:
             "pass_rate": sum(1 for s in scores if s > 0.25) / len(scores)
         }
 ```
+
+</details>
 
 **实际评估体系（三层）：**
 ```
@@ -2105,6 +2145,9 @@ def evaluate_mathvista(model, testset):
 | **难点** | 多页文档、长表格、混合语言、手写体 |
 | **评估指标** | ANLS（Average Normalized Levenshtein Similarity）|
 
+<details>
+<summary>展开 Python 代码示例（34 行）</summary>
+
 ```python
 # DocVQA 生产级评估 Pipeline
 def evaluate_docvqa(documents, questions):
@@ -2141,6 +2184,8 @@ def evaluate_docvqa(documents, questions):
         "coverage": len(results) / len(documents)
     }
 ```
+
+</details>
 
 **2026年新方向：PC-Agent + VisualWebArena**
 

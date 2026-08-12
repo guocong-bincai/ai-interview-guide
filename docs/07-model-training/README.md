@@ -838,6 +838,9 @@ task_requirements = {
 
 **Step 3: 数据清洗**
 
+<details>
+<summary>展开 Python 代码示例（48 行）</summary>
+
 ```python
 def clean_training_data(raw_data):
     """数据清洗pipeline"""
@@ -889,7 +892,12 @@ print(f"清洗前: {len(raw_data)}, 清洗后: {len(cleaned)}")
 # 清洗前: 5000, 清洗后: 3200 (过滤掉36%)
 ```
 
+</details>
+
 **Step 4: 数据标注**
+
+<details>
+<summary>展开 Python 代码示例（64 行）</summary>
 
 ```python
 # 方法1: 人工标注(最准确但慢)
@@ -958,6 +966,8 @@ def active_learning_annotation(data, budget=1000):
 # 主动学习1000条: 准确率82% (+7%)
 ```
 
+</details>
+
 **Step 5: 数据格式化**
 
 ```python
@@ -989,6 +999,9 @@ with open("train.jsonl", "w") as f:
 ```
 
 **Step 6: 数据验证**
+
+<details>
+<summary>展开 Python 代码示例（44 行）</summary>
 
 ```python
 def validate_training_data(data):
@@ -1037,6 +1050,8 @@ if issues:
         print(f"- {issue}")
 ```
 
+</details>
+
 ### 数据增强技术
 
 **技术1: 同义词替换**
@@ -1083,6 +1098,9 @@ def back_translation(text, lang="en"):
 ```
 
 **技术3: LLM生成变体**
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 def llm_paraphrase(instruction, output, n=3):
     """用LLM生成n个语义相同的变体"""
@@ -1121,6 +1139,8 @@ variants = llm_paraphrase(
 # 2. "我要退货怎么办?" → "退货需在7日内..."
 # 3. "退款步骤?" → "请于7天内..."
 ```
+
+</details>
 
 ### 数据比例建议
 

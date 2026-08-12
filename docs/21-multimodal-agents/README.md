@@ -308,6 +308,9 @@ def detect_ui_changes(before_img, after_img, spec):
 
 **核心工具实现：**
 
+<details>
+<summary>展开 Python 代码示例（43 行）</summary>
+
 ```python
 from PIL import Image
 import base64, io
@@ -354,7 +357,12 @@ def detect_image_diff(img1: Image, img2: Image) -> float:
     return 1 - cosine_similarity(emb1, emb2)
 ```
 
+</details>
+
 **视觉Agent完整示例：Bug修复Agent**
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 class VisualBugFixAgent:
     def __init__(self):
@@ -394,6 +402,8 @@ class VisualBugFixAgent:
         self.tools["write_code"](fix.code)
         return fix.summary
 ```
+
+</details>
 
 **面试话术：**
 > "视觉Agent的工具设计关键是'把视觉感知转化为可执行动作'。我设计了一个截图测试Agent：捕获截图→GPT-4V分析错误→定位UI元素→执行修复。核心是让LLM理解视觉后调用工具操作，而不是只输出文字。"
@@ -478,6 +488,9 @@ Step 4: LLM推理
 ```
 
 **完整实现：**
+<details>
+<summary>展开 Python 代码示例（55 行）</summary>
+
 ```python
 class InvoiceProcessingAgent:
     def __init__(self):
@@ -535,6 +548,8 @@ class InvoiceProcessingAgent:
 
         return data
 ```
+
+</details>
 
 **发票Agent的常见挑战：**
 
@@ -653,6 +668,9 @@ def parse_multimodal_doc(pdf_path):
 
 **长视频处理策略：**
 
+<details>
+<summary>展开 Python 代码示例（39 行）</summary>
+
 ```python
 def process_long_video(video_path, max_frames=32):
     """处理长视频的核心：采样 + 摘要 + 时序建模"""
@@ -694,6 +712,8 @@ def process_long_video(video_path, max_frames=32):
 
     return full_summary
 ```
+
+</details>
 
 **视频Agent的典型应用：**
 
@@ -752,6 +772,9 @@ def process_long_video(video_path, max_frames=32):
 
 **核心设计模式：**
 
+<details>
+<summary>展开 Python 代码示例（44 行）</summary>
+
 ```python
 # 1. Agent工厂模式（根据输入类型路由到对应Agent）
 class MultimodalRouter:
@@ -798,6 +821,8 @@ class ContentModerationAgent:
 
         return final_decision
 ```
+
+</details>
 
 **企业级关键设计：**
 
@@ -1097,6 +1122,9 @@ OS-World是2026年最重要的GUI Agent评估基准，测试AI能否在真实操
 
 **代码示例：基于Anthropic Computer Use**
 
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
+
 ```python
 from anthropic import Anthropic
 from playwright.sync_api import sync_playwright
@@ -1134,6 +1162,8 @@ def computer_use_agent(task: str):
                 
             screenshot = page.screenshot()
 ```
+
+</details>
 
 **生产级GUI Agent的核心挑战：**
 

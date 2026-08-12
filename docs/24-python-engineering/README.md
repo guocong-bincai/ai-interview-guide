@@ -59,6 +59,9 @@ LLM API 调用 = I/O 密集型（网络等待远大于计算）。asyncio 让单
 
 **典型 AI 应用场景：**
 
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 import asyncio
 from openai import AsyncOpenAI
@@ -98,6 +101,8 @@ async def call_with_timeout(prompt: str, timeout=30):
     except asyncio.TimeoutError:
         return {"error": "timeout"}
 ```
+
+</details>
 
 **生产级异步封装：**
 
@@ -199,6 +204,9 @@ print(f"评分: {review.rating}, 适合家庭: {review.suitable_for_family}")
 
 **Pydantic v2 高级特性：**
 
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 from pydantic import BaseModel, Field, validator, model_validator
 from typing import Optional
@@ -231,6 +239,8 @@ config = AgentConfig(
 )
 print(config.model_dump_json())
 ```
+
+</details>
 
 **V2 vs V1 核心区别：**
 
@@ -274,6 +284,9 @@ LLM API 调用失败的两大原因：
 | **指数退避+抖动** | 1±0.5s, 2±1s... | 平衡 | 最优 |
 
 **生产级重试实现：**
+
+<details>
+<summary>展开 Python 代码示例（86 行）</summary>
 
 ```python
 import asyncio
@@ -364,7 +377,12 @@ class LLMClient:
         return response.choices[0].message.content
 ```
 
+</details>
+
 **带熔断器的重试（防止雪崩）：**
+
+<details>
+<summary>展开 Python 代码示例（49 行）</summary>
 
 ```python
 import time
@@ -418,6 +436,8 @@ async def safe_chat(prompt: str) -> str:
         raise
 ```
 
+</details>
+
 **面试话术：**
 
 > "LLM 重试不是'失败了重来'那么简单。核心是三件事：指数退避（避免打爆限流）、抖动（避免多实例同步重试）、熔断（避免雪崩）。我做生产级 LLM 客户端的标准封装：装饰器加 `@async_retry`，自动识别 429/500 错误，重试间隔从 1.5s 开始指数增长，最大等 60s，抖动 ±50%。同时加熔断器，连续失败 5 次就暂停 60s，防止所有请求都打到已经熔断的服务上。这个组合让我的 LLM 调用成功率从 97% 提升到 99.9%。"
@@ -445,6 +465,9 @@ async def safe_chat(prompt: str) -> str:
 > "AI 应用 99% 用 SSE，因为 AI 输出是单向流（Server → Client），不需要双向通信。"
 
 **FastAPI 流式 SSE 实现：**
+
+<details>
+<summary>展开 Python 代码示例（52 行）</summary>
 
 ```python
 from fastapi import FastAPI, Response
@@ -500,6 +523,8 @@ async def chat_stream(message: str):
         }
     )
 ```
+
+</details>
 
 **前端调用 SSE：**
 
@@ -618,6 +643,9 @@ async def websocket_chat(websocket: WebSocket):
 
 **多进程方案：**
 
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
+
 ```python
 import multiprocessing as mp
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -652,6 +680,8 @@ def batch_embed(texts: list[str], model_name: str = "BAAI/bge-large") -> list[li
 embeddings = batch_embed(["文本1", "文本2", "文本3", "文本4"])
 ```
 
+</details>
+
 **多进程 vs 多线程 vs asyncio 对比：**
 
 ```
@@ -664,6 +694,9 @@ Embedding 模型推理    ProcessPool      CPU 密集，GIL 阻塞
 ```
 
 **进程池复用（避免重复加载模型）：**
+
+<details>
+<summary>展开 Python 代码示例（47 行）</summary>
 
 ```python
 class EmbeddingWorkerPool:
@@ -715,6 +748,8 @@ with EmbeddingWorkerPool("BAAI/bge-large") as pool:
     embeddings = pool.batch_embed(["文本1", "文本2", "文本3", "文本4"])
 ```
 
+</details>
+
 **面试话术：**
 
 > "GIL 对 AI 应用的影响取决于你的任务是 I/O 密集还是 CPU 密集。LLM API 调用是 I/O 等待，asyncio 就够用，GIL 不影响；但 embedding 模型推理、tokenizer 后处理是 CPU 密集，多线程会被 GIL 卡住，必须用 ProcessPoolExecutor。我的经验：数据预处理和 embedding 用多进程，LLM 调用用 asyncio，GPU 推理单进程就够了——CPU 和 GPU 任务分开调度，不要混在一起。"
@@ -743,6 +778,9 @@ Mock LLM 响应 → 免费 + 稳定
 ```
 
 **pytest + Mock 实战：**
+
+<details>
+<summary>展开 Python 代码示例（86 行）</summary>
 
 ```python
 import pytest
@@ -832,6 +870,8 @@ class TestLLMServiceAsync:
             
             assert result == "异步响应"
 ```
+
+</details>
 
 **用 `respx` Mock HTTP 响应（更真实）：**
 
@@ -1002,6 +1042,9 @@ for stat in top_stats[:10]:
 
 **常见泄漏模式 + 修复：**
 
+<details>
+<summary>展开 Python 代码示例（49 行）</summary>
+
 ```python
 # 泄漏模式 1：全局列表不断追加
 class MemoryLeakyCache:
@@ -1054,7 +1097,12 @@ def fixed_streaming_json():
             process(item)
 ```
 
+</details>
+
 **AI 应用专项：大模型显存管理：**
+
+<details>
+<summary>展开 Python 代码示例（39 行）</summary>
 
 ```python
 # 场景：多模型部署，显存不够
@@ -1098,6 +1146,8 @@ def monitor_gpu_memory():
         time.sleep(30)
 ```
 
+</details>
+
 **面试话术：**
 
 > "AI 应用的 OOM 有四种常见原因：大模型加载（用 FP16/INT8 量化）、Batch 堆积（加 Semaphore 限流）、向量库太大（用内存映射或分片）、异步任务泄漏（用 async with 确保清理）。排查用 tracemalloc 对比快照，核心是'谁持有了对象不释放'。我做生产级 AI 服务有个习惯：加 psutil 实时监控内存，超过 80% 自动告警，超过 90% 自动触发 GC，不等到 OOM 才处理。"
@@ -1126,6 +1176,9 @@ results = await asyncio.gather(*[call_llm(p) for p in prompts])
 ```
 
 **生产级完整实现：**
+
+<details>
+<summary>展开 Python 代码示例（152 行）</summary>
 
 ```python
 import asyncio
@@ -1281,6 +1334,8 @@ async def main():
 
 # asyncio.run(main())
 ```
+
+</details>
 
 **关键设计点：**
 

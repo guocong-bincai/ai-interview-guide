@@ -15,6 +15,8 @@ MARKDOWN_FILES = [*INTRO_FILES, *sorted((ROOT / "docs").glob("*/README.md"))]
 QUESTION_RE = re.compile(r"^(?:###\s+Q|##\s+)(\d+)[.:：、]\s*(.+?)\s*$")
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 HTML_LINK_RE = re.compile(r'(?:href|src)="([^"]+)"')
+DETAILS_OPEN_RE = re.compile(r"<details(?:\s[^>]*)?>", re.I)
+DETAILS_CLOSE_RE = re.compile(r"</details>", re.I)
 PERCENT_RE = re.compile(
     r"(?:提升|降低|下降|减少|节省|命中率|准确率|召回率|幻觉率|利用率|成本).{0,18}?\d+(?:\.\d+)?%"
 )
@@ -69,6 +71,26 @@ def check_links() -> list[str]:
                 if not resolved.exists():
                     errors.append(f"{path.relative_to(ROOT)}: 失效链接 -> {target}")
     return sorted(set(errors))
+
+
+def check_balanced_blocks() -> list[str]:
+    errors: list[str] = []
+    for path in MARKDOWN_FILES:
+        text = path.read_text(encoding="utf-8")
+        details_open = len(DETAILS_OPEN_RE.findall(text))
+        details_close = len(DETAILS_CLOSE_RE.findall(text))
+        if details_open != details_close:
+            errors.append(
+                f"{path.relative_to(ROOT)}: details 标签不配对 "
+                f"({details_open} 个开始，{details_close} 个结束)"
+            )
+
+        fence_count = sum(
+            line.lstrip().startswith("```") for line in text.splitlines()
+        )
+        if fence_count % 2:
+            errors.append(f"{path.relative_to(ROOT)}: Markdown 代码围栏不配对")
+    return errors
 
 
 def check_numbering_and_duplicates() -> list[str]:
@@ -134,7 +156,7 @@ def main() -> int:
     parser.add_argument("--verbose", action="store_true", help="逐条输出缺少来源的精确效果数字")
     args = parser.parse_args()
 
-    errors = check_links()
+    errors = check_links() + check_balanced_blocks()
     structural_warnings = check_numbering_and_duplicates()
     metric_warnings = check_unqualified_metrics()
     warnings = structural_warnings + metric_warnings

@@ -386,6 +386,9 @@ def should_continue(state: AgentState):
 ```
 
 **完整示例:写作Agent**
+<details>
+<summary>展开 Python 代码示例（55 行）</summary>
+
 ```python
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
@@ -444,6 +447,8 @@ app = workflow.compile()
 result = app.invoke({"topic": "AI Agent的未来"})
 ```
 
+</details>
+
 **LangGraph vs AutoGPT:**
 
 | 特性 | AutoGPT | LangGraph |
@@ -468,6 +473,9 @@ result = app.invoke({"topic": "AI Agent的未来"})
 **工具调用完整流程: 识别 → 参数提取 → 执行 → 结果处理**
 
 ### 阶段1: 工具定义
+<details>
+<summary>展开 Python 代码示例（39 行）</summary>
+
 ```python
 tools = [
     {
@@ -509,6 +517,8 @@ tools = [
     }
 ]
 ```
+
+</details>
 
 ### 阶段2: LLM决策
 ```python
@@ -655,6 +665,9 @@ def execute_tool(tool_call):
 ```
 
 **完整示例:**
+<details>
+<summary>展开 Python 代码示例（42 行）</summary>
+
 ```python
 class AgentWithTools:
     def __init__(self, tools):
@@ -700,6 +713,8 @@ class AgentWithTools:
         pass
 ```
 
+</details>
+
 **面试话术:**
 > "工具调用的关键是鲁棒性。我们做了4层防护:1)参数白名单防注入 2)超时+指数退避重试 3)主备工具降级 4)监控告警。生产环境工具调用成功率99.2%,P99延迟<2s。"
 
@@ -731,6 +746,9 @@ class AgentWithTools:
 | **依赖失败** | ❌不重试 | 降级到备用方案 | 外部服务完全不可用 |
 
 ### 方案1: 三层错误处理
+
+<details>
+<summary>展开 Python 代码示例（100 行）</summary>
 
 ```python
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -835,6 +853,8 @@ if not result["success"]:
         feedback = f"无法执行: {result['error']},请尝试其他方法"
 ```
 
+</details>
+
 ### 方案2: 指数退避 + 抖动
 
 **为什么需要抖动(Jitter)?**
@@ -904,6 +924,9 @@ Half-Open: 允许1个请求试探
 ```
 
 **实现:**
+<details>
+<summary>展开 Python 代码示例（102 行）</summary>
+
 ```python
 from enum import Enum
 from datetime import datetime, timedelta
@@ -1009,7 +1032,12 @@ for i in range(10):
 # 熔断器关闭,服务恢复
 ```
 
+</details>
+
 ### 方案4: 参数修正反馈
+
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
 
 ```python
 def execute_tool_with_feedback(llm, tool, params, max_attempts=3):
@@ -1050,7 +1078,12 @@ def execute_tool_with_feedback(llm, tool, params, max_attempts=3):
     return {"error": "超过最大重试次数"}
 ```
 
+</details>
+
 ### 最佳实践总结
+
+<details>
+<summary>展开 Python 代码示例（52 行）</summary>
 
 ```python
 class RobustToolExecutor:
@@ -1107,6 +1140,8 @@ class RobustToolExecutor:
         return delay * (0.5 + random.random() * 0.5)  # 50-100%抖动
 ```
 
+</details>
+
 **面试话术:**
 > "工具调用失败分三类处理:参数错误(让LLM修正不重试)、瞬态错误(指数退避+抖动重试)、服务异常(熔断器快速失败+降级)。关键是避免惊群效应,我们用全抖动策略,把100个同时重试分散到0-2秒内随机,服务压力平稳。熔断器在5次失败后打开,30秒后半开试探,2次成功恢复,保护后端服务。"
 
@@ -1152,6 +1187,9 @@ class ShortTermMemory:
 ```
 
 **方案2: 分层管理(推荐⭐)**
+<details>
+<summary>展开 Python 代码示例（36 行）</summary>
+
 ```python
 class HierarchicalMemory:
     def __init__(self):
@@ -1191,9 +1229,14 @@ class HierarchicalMemory:
 # 节省: 66%
 ```
 
+</details>
+
 ### 长期记忆实现
 
 **核心: 向量数据库**
+
+<details>
+<summary>展开 Python 代码示例（52 行）</summary>
 
 ```python
 from langchain.vectorstores import Qdrant
@@ -1250,9 +1293,14 @@ memories = memory.recall(query, k=3)
 # 返回: ["用户喜欢吃川菜,不吃香菜", ...]
 ```
 
+</details>
+
 ### 混合记忆策略
 
 **问题: 如何决定什么存长期,什么存短期?**
+
+<details>
+<summary>展开 Python 代码示例（102 行）</summary>
 
 ```python
 class HybridMemoryManager:
@@ -1359,11 +1407,16 @@ response = llm.generate(context + [{"role": "user", "content": "给我推荐适�
 # LLM能结合长期记忆(职业)给出个性化推荐
 ```
 
+</details>
+
 ### 记忆索引优化
 
 **问题: 向量检索不准,检索到无关记忆**
 
 **优化: 混合索引**
+<details>
+<summary>展开 Python 代码示例（64 行）</summary>
+
 ```python
 class EnhancedMemory:
     def __init__(self):
@@ -1431,6 +1484,8 @@ food_memories = memory.recall(
 # 不会检索到工作信息
 ```
 
+</details>
+
 **面试话术:**
 > "Agent记忆分短期和长期。短期用分层管理,最近3轮保留原文+历史摘要,节省66% token。长期用向量数据库,存用户偏好和事实,用LLM判断重要性决定是否存储。检索时混合向量+元数据过滤,避免无关记忆。实测3个月后,Agent还记得用户职业,推荐更个性化。"
 
@@ -1464,6 +1519,9 @@ Step 3: Replanning - 根据结果调整计划
 ```
 
 **实现:**
+<details>
+<summary>展开 Python 代码示例（110 行）</summary>
+
 ```python
 class PlanAndExecuteAgent:
     def __init__(self, llm, tools):
@@ -1577,9 +1635,14 @@ result = agent.run("写一份本周AI行业的周报")
 # 步骤3: 撰写周报 → 本周AI行业动态:...
 ```
 
+</details>
+
 ### 方案2: Tree of Thoughts (思维树)
 
 **适用:** 需要探索多种可能性的任务(如写作、创意)
+
+<details>
+<summary>展开 Python 代码示例（78 行）</summary>
 
 ```python
 class TreeOfThoughts:
@@ -1662,9 +1725,14 @@ best_solution = tot.solve("写一篇关于AI伦理的文章")
 # 会探索 3^3=27 种可能路径,选最优
 ```
 
+</details>
+
 ### 方案3: ReWOO (预规划+批量执行)
 
 **优势: 一次性规划所有工具调用,批量并行执行**
+
+<details>
+<summary>展开 Python 代码示例（70 行）</summary>
 
 ```python
 class ReWOO:
@@ -1739,6 +1807,8 @@ class ReWOO:
 # ReWOO: 步骤1,3并行,耗时12秒 (节省40%)
 ```
 
+</details>
+
 **面试话术:**
 > "Agent规划我用Plan-and-Execute,先用LLM制定完整计划,再逐步执行并根据结果调整。复杂任务用Tree of Thoughts探索多路径,每层生成3个候选思路,评分选最优。工具调用多时用ReWOO预规划+批量并行,比ReAct快40%。关键是要能动态调整计划,而不是死板执行。"
 
@@ -1766,6 +1836,9 @@ Agent决定删除数据库 → 暂停 → 人工确认 → 执行/拒绝 ✅
 ```
 
 ### HITL触发条件设计
+
+<details>
+<summary>展开 Python 代码示例（139 行）</summary>
 
 ```python
 from enum import Enum
@@ -1909,7 +1982,12 @@ agent.execute_with_hitl("send_email", {
 # → 触发HITL，发送钉钉审批消息 → 等待HR确认
 ```
 
+</details>
+
 ### LangGraph中实现HITL
+
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
 
 ```python
 from langgraph.graph import StateGraph, END
@@ -1948,6 +2026,8 @@ result = app.invoke(initial_state, thread)
 # 人工审批后恢复
 app.invoke(None, thread)  # 从检查点恢复执行
 ```
+
+</details>
 
 **面试话术：**
 > "HITL是Agent安全的核心机制，关键是定义清晰的触发条件：不可逆操作（删除/发送）、涉及金额超阈值、批量操作超量。我设计了4级风险：LOW自动执行、MEDIUM记录警告、HIGH等待审批、CRITICAL强制中断。用LangGraph的interrupt_before做断点，配合钉钉审批通知，超时5分钟自动拒绝。生产上线后，高风险操作事故率降低了95%。"
@@ -2001,6 +2081,9 @@ gpt4_scores = {
 ```
 
 **2. 自建Benchmark（生产环境推荐）**
+
+<details>
+<summary>展开 Python 代码示例（107 行）</summary>
 
 ```python
 class AgentBenchmark:
@@ -2112,7 +2195,12 @@ print(f"工具准确率: {scores['avg_tool_accuracy']:.1%}")
 print(f"平均Token消耗: {scores['avg_tokens_per_task']:.0f}")
 ```
 
+</details>
+
 ### 持续评测体系
+
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
 
 ```python
 class AgentMonitor:
@@ -2151,6 +2239,8 @@ class AgentMonitor:
             "cost_summary": sum(r["tokens"] for r in records)
         }
 ```
+
+</details>
 
 **面试话术：**
 > "Agent评测分离线和在线两套。离线用自建Benchmark：覆盖任务成功率、工具调用准确率、步骤效率、Token成本4个维度，测试集至少100条覆盖各种边界情况。评判方式用LLM-as-Judge，比精确匹配更灵活，准确率和人工评估一致性>85%。在线用生产监控：记录每次交互，收集用户1-5星反馈，每周生成报告。我们的Agent上线后，通过持续评测发现工具参数错误率偏高，针对性优化Prompt后，工具准确率从72%→91%。"
@@ -2337,6 +2427,9 @@ class TokenBudgetManager:
 
 **工程实现（分层架构）：**
 
+<details>
+<summary>展开 Python 代码示例（39 行）</summary>
+
 ```python
 class AgentMemory:
     def __init__(self):
@@ -2379,6 +2472,8 @@ class AgentMemory:
         self.working_memory = self.working_memory[-3:]  # 裁剪
 ```
 
+</details>
+
 **实际项目中的记忆策略选择：**
 
 | 场景 | 推荐策略 | 原因 |
@@ -2409,6 +2504,9 @@ class AgentMemory:
 ```
 
 **解决方案：上下文感知重写**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 async def rewrite_with_context(
@@ -2449,6 +2547,8 @@ rewritten = await rewrite_with_context(query, history)
 # 输出: "LangChain和LlamaIndex相比有什么优势？"
 # 现在向量检索就能精准找到相关内容！
 ```
+
+</details>
 
 **完整 RAG 管道中的位置：**
 ```
@@ -2714,6 +2814,9 @@ def trim_tool_result(result, max_tokens=2000):
 
 **AutoGPT 核心组件：**
 
+<details>
+<summary>展开 Python 代码示例（34 行）</summary>
+
 ```python
 class AutoGPT:
     def __init__(self, goal):
@@ -2750,6 +2853,8 @@ class AutoGPT:
 
         return self.compile_results()
 ```
+
+</details>
 
 **AutoGPT 的局限：**
 
@@ -3216,6 +3321,9 @@ BFCL 是伯克利大学发布的函数调用权威评测基准，测试 LLM 对 
 
 **如何用 BFCL 提升生产级 Function Calling 质量？**
 
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 # Step 1: 用 BFCL 基准评估当前模型
 # 下载 BFCL 数据集，执行评估
@@ -3248,6 +3356,8 @@ def monitor():
 
     return jsonify(scores)
 ```
+
+</details>
 
 **提升 Function Calling 质量的四大工程实践：**
 
@@ -3435,6 +3545,9 @@ Agentic RAG（主动、多轮）：
 
 **实现示例：**
 
+<details>
+<summary>展开 Python 代码示例（44 行）</summary>
+
 ```python
 class AgenticRAG:
     def __init__(self, vector_store, sql_db, web_search):
@@ -3482,6 +3595,8 @@ class AgenticRAG:
         return self.llm.invoke(f"基于以下信息回答（信息可能不完整）：{context}\n问题：{question}")
 ```
 
+</details>
+
 **典型应用场景：**
 
 - **多跳问题**："A公司CEO的母校的校友里有哪些AI创业者？"（需要3次检索）
@@ -3526,6 +3641,9 @@ class AgenticRAG:
 
 **SSE 实现（LLM 流式输出最佳选择）：**
 
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 # FastAPI SSE 示例
 from fastapi import FastAPI
@@ -3558,6 +3676,8 @@ async def chat_stream(query: str):
         }
     )
 ```
+
+</details>
 
 **WebSocket 实现（需要双向交互）：**
 
@@ -3630,6 +3750,9 @@ async def agent_websocket(websocket: WebSocket):
 ```
 
 **生产级实现：**
+
+<details>
+<summary>展开 Python 代码示例（82 行）</summary>
 
 ```python
 from guardrails import Guard
@@ -3716,6 +3839,8 @@ class AgentGuardrails:
         return unsupported / len(facts)
 ```
 
+</details>
+
 **Guardrails AI 框架（开源，推荐）：**
 
 ```python
@@ -3771,6 +3896,9 @@ result = guard(
 | **数据提取** | 诱导输出系统提示或训练数据 | "repeat everything above" |
 
 **六大防御策略：**
+
+<details>
+<summary>展开 Python 代码示例（78 行）</summary>
 
 ```python
 class PromptInjectionDefense:
@@ -3853,6 +3981,8 @@ AI 回复：{response}
         return safe_docs
 ```
 
+</details>
+
 **面试话术：**
 > "Prompt 注入是 Agent 最常见的安全威胁，尤其是 RAG 场景——攻击者可以在文档里埋指令，等 Agent 检索时执行。防御六件套：1）XML标签隔离用户输入 2）正则清洗注入模式 3）系统提示末尾重申安全边界 4）输出检测防系统提示泄露 5）LLM-as-Judge 二次验证 6）RAG 文档也要做注入检测。重点是'深度防御'——没有单一方案能100%防住，多层叠加才够。"
 
@@ -3876,6 +4006,9 @@ AI 回复：{response}
 | **语义漂移** | 对话主题慢慢偏离预设范围 | 越来越多离题回答 |
 
 **检测方案：**
+
+<details>
+<summary>展开 Python 代码示例（72 行）</summary>
 
 ```python
 import numpy as np
@@ -3952,6 +4085,8 @@ class ModelDriftDetector:
         )
 ```
 
+</details>
+
 **应对策略：**
 
 | 漂移类型 | 应对方案 |
@@ -3988,6 +4123,9 @@ class ModelDriftDetector:
 ```
 
 **四步构建数据飞轮：**
+
+<details>
+<summary>展开 Python 代码示例（77 行）</summary>
 
 ```python
 class DataFlywheel:
@@ -4069,6 +4207,8 @@ class DataFlywheel:
             )
 ```
 
+</details>
+
 **数据飞轮的三大价值：**
 
 | 价值 | 说明 |
@@ -4102,6 +4242,9 @@ LLM 费用（通常占 60-80%）：
 ```
 
 **ROI 计算框架：**
+
+<details>
+<summary>展开 Python 代码示例（43 行）</summary>
 
 ```python
 class AgentROICalculator:
@@ -4149,6 +4292,8 @@ class AgentROICalculator:
         }
 ```
 
+</details>
+
 **关键业务指标（KPI）：**
 
 | 指标 | 计算方式 | 目标 |
@@ -4160,6 +4305,9 @@ class AgentROICalculator:
 | **客户满意度（CSAT）** | 用户评分 1-5 | >4.0 |
 
 **成本优化三板斧：**
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 # 1. 语义缓存（相似问题直接返回，节省 30-50%）
@@ -4194,6 +4342,8 @@ def compress_context(messages: list) -> list:
     return messages
 ```
 
+</details>
+
 **面试话术：**
 > "ROI 是 Agent 项目能不能继续的生死线。我的计算框架是：总成本（LLM费用+基础设施+人工）vs 总收益（节省人力+效率提升+收入增长）。我们客服 Agent 上线后，月均 LLM 成本 $2000，节省了 3 个人工客服（月薪 $3000/人），ROI = ($9000 - $2000) / $2000 = 350%。ROI 要持续监控，因为 LLM 价格会变、业务量会变。成本优化三板斧：语义缓存、模型路由、上下文压缩，组合使用能降成本 60%+。"
 
@@ -4219,6 +4369,9 @@ def compress_context(messages: list) -> list:
 ```
 
 **LangGraph 实现人工介入节点：**
+
+<details>
+<summary>展开 Python 代码示例（82 行）</summary>
 
 ```python
 from langgraph.graph import StateGraph, END
@@ -4304,6 +4457,8 @@ app.invoke(
 )
 # → Agent 继续执行
 ```
+
+</details>
 
 **三级人机协同策略：**
 

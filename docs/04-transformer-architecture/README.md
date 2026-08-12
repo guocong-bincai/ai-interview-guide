@@ -248,6 +248,9 @@ output = attention_weights @ V
 
 **完整示例（序列长度=3）：**
 
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
+
 ```python
 # 输入
 X = [[1.0, 0.5],  # token 1
@@ -281,6 +284,8 @@ output = attention_weights @ V
 #  [0.76, 0.87],  # token 2的输出
 #  [0.74, 0.82]]  # token 3的输出
 ```
+
+</details>
 
 **为什么要缩放（除以√d_k）？**
 
@@ -337,6 +342,9 @@ output = attention_weights @ V
 
 **架构：**
 
+<details>
+<summary>展开 Python 代码示例（46 行）</summary>
+
 ```python
 class MultiHeadAttention:
     def __init__(self, d_model=512, num_heads=8):
@@ -385,6 +393,8 @@ class MultiHeadAttention:
 
         return output
 ```
+
+</details>
 
 **可视化示例（8个头）：**
 
@@ -765,6 +775,9 @@ def get_lr(step, d_model, warmup_steps=4000):
 
 **2. Label Smoothing（标签平滑）：**
 
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 # 问题：Hard Label容易过拟合
 hard_label = [0, 0, 0, 1, 0]  # one-hot
@@ -797,6 +810,8 @@ class LabelSmoothingLoss(nn.Module):
 
 # 效果：提升泛化能力，BLEU +0.2
 ```
+
+</details>
 
 **3. Dropout 策略：**
 

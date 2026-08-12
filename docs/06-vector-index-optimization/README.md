@@ -414,6 +414,9 @@ RRF_score(doc) = Σ [1 / (k + rank_i(doc))]
 ```
 
 **详细计算示例:**
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 # 查询: "Python优化"
 
@@ -453,6 +456,8 @@ doc_G_rrf = 0 + 1/(60+4) = 0.0156
 # 4. doc_F (0.0161)
 # 5. doc_D (0.0156)
 ```
+
+</details>
 
 **完整代码实现:**
 ```python
@@ -672,6 +677,9 @@ doc1:    [Python] [async] [guide] [perf]  │
 
 **生产级两阶段检索实现：**
 
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
+
 ```python
 from sentence_transformers import CrossEncoder
 import numpy as np
@@ -705,6 +713,8 @@ class TwoStageRetriever:
 # + Rerank 后 Recall@20: 91%  ← +19%
 ```
 
+</details>
+
 **Cohere Rerank vs 开源方案对比：**
 
 | 方案 | 精度 | 延迟 | 成本 | 适用场景 |
@@ -733,6 +743,9 @@ class TwoStageRetriever:
 | **efSearch** | 查询时 | - | 精度要求高时设为top_k的2-5倍 |
 
 **M 参数详解（每个节点的连接数）：**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 # M 对性能的影响（100万条，1536维，Milvus实测）
@@ -774,6 +787,8 @@ index_params = {
 }
 ```
 
+</details>
+
 **efConstruction 参数详解（构建时的搜索广度）：**
 
 ```python
@@ -803,6 +818,9 @@ efConstruction=512+:
 ```
 
 **efSearch 参数详解（查询时的搜索广度）：**
+
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
 
 ```python
 # efSearch 决定查询时搜索的邻居数量
@@ -841,6 +859,8 @@ results = collection.search(
     top_k=10
 )
 ```
+
+</details>
 
 **生产调参实战指南：**
 
@@ -1062,6 +1082,9 @@ Qdrant 特色：支持多维向量过滤
 
 **实现方式对比：**
 
+<details>
+<summary>展开 Python 代码示例（35 行）</summary>
+
 ```python
 # Pinecone 混合搜索
 index.query(
@@ -1099,6 +1122,8 @@ results = client.search(
     top=10
 )
 ```
+
+</details>
 
 **为什么 Qdrant 混合搜索更强？**
 
@@ -1831,6 +1856,9 @@ results = vector_store.similarity_search(
 
 **迁移六步流程（零停机）：**
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 # Step 1: 数据盘点
 stats = source_db.describe_index_stats()
@@ -1874,6 +1902,8 @@ def route(query_vector, traffic_pct=0.1):
     return source.search(query_vector)      # 旧库
 ```
 
+</details>
+
 **常见迁移坑：**
 
 | 问题 | 解决方案 |
@@ -1908,6 +1938,9 @@ def route(query_vector, traffic_pct=0.1):
 | **元数据伪造** | 伪造成"官方文档"提高可信度 | 钓鱼攻击 |
 
 **防御四层体系：**
+
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
 
 ```python
 class ContextPoisoningDefense:
@@ -1951,6 +1984,8 @@ JSON输出：{{"is_safe": true/false, "risk_level": "low/medium/high"}}
                 safe_docs.append(doc)
         return safe_docs
 ```
+
+</details>
 
 **面试话术：**
 > "Context Poisoning 是 RAG 的供应链攻击——把恶意文档注入知识库，让 RAG 检索到错误内容生成错误答案。防御四层：来源白名单（写入时验证）→ LLM-as-Judge 内容审核 → 向量异常检测（偏离知识库整体分布的向量要警惕）→ 检索结果运行时过滤。对自动爬取的知识库尤其要注意间接投毒，建议爬取内容先进人工审核队列再入库。"

@@ -36,6 +36,9 @@
 
 **Self-Attention工作原理:**
 
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 def self_attention(Q, K, V):
     """
@@ -76,6 +79,8 @@ print(output.shape)  # (1, 5, 64)
 print(weights.shape)  # (1, 5, 5) - 注意力矩阵
 ```
 
+</details>
+
 **为什么比RNN好:**
 
 | 维度 | RNN | Self-Attention |
@@ -103,6 +108,9 @@ print(weights.shape)  # (1, 5, 5) - 注意力矩阵
 - 位置编码注入顺序信息
 
 **方式1: 正弦位置编码(原始Transformer)**
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 def sinusoidal_positional_encoding(seq_len, d_model):
@@ -136,6 +144,8 @@ plt.colorbar()
 plt.title("Sinusoidal Positional Encoding")
 plt.show()
 ```
+
+</details>
 
 **方式2: 可学习位置编码(BERT)**
 
@@ -200,6 +210,9 @@ def apply_rotary_pos_emb(q, k, cos, sin):
 
 **MHA (Multi-Head Attention) - 标准方法**
 
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
+
 ```python
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_model=512, num_heads=8):
@@ -240,7 +253,12 @@ class MultiHeadAttention(nn.Module):
 # 8个head,每个64维 → 1024 tokens需要 1*1024*8*64*2*2字节 = 2MB (FP16)
 ```
 
+</details>
+
 **MQA (Multi-Query Attention) - Google提出**
+
+<details>
+<summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
 class MultiQueryAttention(nn.Module):
@@ -275,7 +293,12 @@ class MultiQueryAttention(nn.Module):
 # 相比MHA减少8倍!
 ```
 
+</details>
+
 **GQA (Grouped-Query Attention) - LLaMA 2**
+
+<details>
+<summary>展开 Python 代码示例（37 行）</summary>
 
 ```python
 class GroupedQueryAttention(nn.Module):
@@ -317,6 +340,8 @@ class GroupedQueryAttention(nn.Module):
 # 是MHA的1/4,是MQA的2倍
 ```
 
+</details>
+
 **对比总结:**
 
 | 方法 | Q heads | K/V heads | KV Cache | 质量 | 速度 | 使用 |
@@ -340,6 +365,9 @@ class GroupedQueryAttention(nn.Module):
 **答案要点:**
 
 **RAG完整流程(7步):**
+
+<details>
+<summary>展开 Python 代码示例（106 行）</summary>
 
 ```python
 class RAGSystem:
@@ -450,6 +478,8 @@ print(result["answer"])
 print(f"引用了{len(result['sources'])}个文档")
 ```
 
+</details>
+
 **关键优化点:**
 
 1. **Chunking策略**
@@ -498,6 +528,9 @@ print(f"引用了{len(result['sources'])}个文档")
 
 **答案要点:**
 
+<details>
+<summary>展开 Python 代码示例（43 行）</summary>
+
 ```python
 from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent
 from langchain.prompts import StringPromptTemplate
@@ -543,6 +576,8 @@ class CodeReviewAgent:
 
         代码:
         ```python
+
+</details>
         {code}
         ```
 
@@ -729,6 +764,9 @@ def get_user(user_id):
 
 **答案要点:**
 
+<details>
+<summary>展开 Python 代码示例（149 行）</summary>
+
 ```python
 from dashscope import Generation
 import dashscope
@@ -881,6 +919,8 @@ for query in queries:
     print("-" * 50)
 ```
 
+</details>
+
 **面试话术:**
 > "我用通义千问设计了智能客服Agent。核心3步:1)意图识别(咨询/查询/投诉)2)情感分析(负面情绪提优先级)3)分类处理(咨询查知识库,订单调API,投诉转人工)。关键是Prompt设计要结构化输出JSON,方便后续处理。通义千问的中文理解能力强,意图识别准确率>95%。实测负面情绪客户30分钟响应,满意度提升20%。"
 
@@ -908,6 +948,9 @@ A2A:
 ```
 
 **A2A协议示例:**
+
+<details>
+<summary>展开 Python 代码示例（175 行）</summary>
 
 ```python
 from typing import Dict, List
@@ -1087,6 +1130,8 @@ print(result)
 # {"success": True, "order_id": "ORDTXN123456"}
 ```
 
+</details>
+
 **A2A vs 传统Multi-Agent:**
 
 | 维度 | 传统Multi-Agent | A2A |
@@ -1264,6 +1309,9 @@ print(result)
 
 **综合解决方案:**
 
+<details>
+<summary>展开 Python 代码示例（40 行）</summary>
+
 ```python
 class RobustLLMSystem:
     def __init__(self):
@@ -1306,6 +1354,8 @@ class RobustLLMSystem:
         answers = [self.llm.generate(question, temperature=0.7) for _ in range(n)]
         return most_common(answers)
 ```
+
+</details>
 
 **面试话术:**
 > "LLM主要6大问题:1)幻觉用RAG+引用溯源降80%,2)长尾知识用LoRA微调覆盖,3)数据新鲜度用实时搜索,4)复读机用repetition_penalty惩罚,5)计算成本用4bit量化+模型路由降60%,6)偏见用RLHF纠正。美团场景下我用综合方案:事实类走RAG,实时类走搜索,推理类用Self-Consistency,不同问题不同策略,准确率提升25%成本降50%。"
@@ -1492,6 +1542,9 @@ def count_repetitions(words):
 
 **综合实战方案:**
 
+<details>
+<summary>展开 Python 代码示例（61 行）</summary>
+
 ```python
 class AntiRepetitionGenerator:
     def __init__(self, model):
@@ -1555,6 +1608,8 @@ class AntiRepetitionGenerator:
 
         return False
 ```
+
+</details>
 
 **效果对比:**
 
@@ -2026,6 +2081,9 @@ class TencentVectorSearch:
 
 **成本管控四层架构：**
 
+<details>
+<summary>展开 Python 代码示例（61 行）</summary>
+
 ```python
 # 多模型成本管控完整方案
 class ModelCostController:
@@ -2089,6 +2147,8 @@ class ModelCostController:
         else:
             return "general"
 ```
+
+</details>
 
 **成本控制核心指标：**
 
@@ -2212,6 +2272,9 @@ def generate_cost_report():
 
 **生产级接入代码：**
 
+<details>
+<summary>展开 Python 代码示例（52 行）</summary>
+
 ```python
 from volcenginesdkarkruntime import Ark
 
@@ -2266,6 +2329,8 @@ class DoubaoClient:
         except:
             return {"error": "服务暂时不可用，请稍后再试"}
 ```
+
+</details>
 
 **生产部署关键配置：**
 
@@ -2332,6 +2397,9 @@ doubao_gateway:
 
 **多模态内容理解架构：**
 
+<details>
+<summary>展开 Python 代码示例（51 行）</summary>
+
 ```python
 class TikTokContentUnderstanding:
     def __init__(self):
@@ -2385,6 +2453,8 @@ class TikTokContentUnderstanding:
         async for result in pipeline.run():
             yield result  # 实时输出
 ```
+
+</details>
 
 **多语言处理策略：**
 
@@ -2466,6 +2536,9 @@ CONTENT_FEATURES = {
 
 **核心指标定义与采集：**
 
+<details>
+<summary>展开 Python 代码示例（31 行）</summary>
+
 ```python
 # 模型监控指标定义
 class ModelMetrics:
@@ -2500,7 +2573,12 @@ class ModelMetrics:
             self.response_quality.labels(model).set(quality_score)
 ```
 
+</details>
+
 **告警规则设计：**
+
+<details>
+<summary>展开 Yaml 代码示例（68 行）</summary>
 
 ```yaml
 # alertmanager-rules.yaml
@@ -2573,7 +2651,12 @@ groups:
           summary: "检测到Prompt注入攻击，10次/分钟"
 ```
 
+</details>
+
 **监控 Dashboard 设计：**
+
+<details>
+<summary>展开 Yaml 代码示例（54 行）</summary>
 
 ```yaml
 # Grafana LLM监控Dashboard
@@ -2631,6 +2714,8 @@ dashboard:
           title: "注入攻击 Top 5"
           expr: topk(5, sum(rate(llm_injection_attempt_total[5m])) by (ip))
 ```
+
+</details>
 
 **面试话术：**
 > "我的模型监控体系分四层：① 基础设施层（延迟/吞吐量/错误率）；② 模型质量层（幻觉率/准确率）；③ 业务层（任务完成率/用户满意度）；④ 安全层（敏感词/注入攻击）。告警规则按Severity分级：P1服务不可用立即通知，SRE 5分钟内响应；P2延迟过高15分钟响应；P3质量下降1小时响应。最重要的是成本告警——我设置预计日成本>80%阈值自动通知，防止月底账单爆表。"
