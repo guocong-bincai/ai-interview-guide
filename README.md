@@ -16,7 +16,8 @@
   <a href="#quick-start"><b>快速开始</b></a> ·
   <a href="#roadmap"><b>学习路线</b></a> ·
   <a href="#catalog"><b>题库导航</b></a> ·
-  <a href="CONTENT_QUALITY.md"><b>质量规范</b></a>
+  <a href="CONTENT_QUALITY.md"><b>质量规范</b></a> ·
+  <a href="#support"><b>支持项目</b></a>
 </p>
 
 <p align="center">
@@ -230,6 +231,42 @@ flowchart LR
 - **用真实数据替换示例**：延迟、吞吐、成本和准确率必须来自你的实验或项目记录。
 - **主动补充边界条件**：说明方案何时有效、何时失效，以及如何监控和回滚。
 - **检查时效性信息**：产品版本、论文数据和性能结论可能变化，优先核对官方文档与原论文。
+
+<a id="support" name="support"></a>
+
+## ☕ 支持项目
+
+这份面经会持续免费开放。整理、筛选、校对和维护内容需要投入不少时间；如果它帮你节省了备战时间，欢迎请作者喝一杯奶茶。每一份支持都会成为继续更新题库、核对资料和优化答案的动力。
+
+> [!NOTE]
+> 打赏完全自愿，不会解锁额外内容。不方便打赏也没关系，点一个 **Star**、分享项目或提交真实面试反馈，都是很大的支持。
+
+<details>
+<summary><b>🥤 请作者喝杯奶茶（微信 / 支付宝）</b></summary>
+<br>
+
+<table>
+  <tr>
+    <th align="center">微信支付</th>
+    <th align="center">支付宝</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="assets/sponsor/wechat-pay.jpg">
+        <img src="assets/sponsor/wechat-pay.jpg" width="300" alt="微信支付收款二维码">
+      </a>
+    </td>
+    <td align="center">
+      <a href="assets/sponsor/alipay.jpg">
+        <img src="assets/sponsor/alipay.jpg" width="300" alt="支付宝收款二维码">
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><sub>点击二维码可查看原图 · 感谢你的支持 ❤️</sub></p>
+
+</details>
 
 ## 🤝 内容质量与贡献
 
