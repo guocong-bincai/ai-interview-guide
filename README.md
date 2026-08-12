@@ -2,9 +2,9 @@
 
 # 🚀 AI 应用开发工程师面试宝典
 
-> **⚠️ 本次更新(v3.150)：02Prompt工程模块新增5题(Prompt Caching/CoVe/LLM-as-a-Judge/A-B测试框架/Speculative RAG)**
+> **⚠️ 本次更新(v3.151)：RAG高级优化模块新增10题生产环境实战(Q26-Q35：分层排查/跷跷板效应/灰度发布/成本归因/增量更新/工具兜底，源自王中阳公众号)**
 
-**🎯 408+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
+**🎯 418+ 道高频面试题 | 24 个核心模块 | 从基础到进阶系统化学习**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/guocong-bincai/ai-interview-guide?style=social)](https://github.com/guocong-bincai/ai-interview-guide)
@@ -13,7 +13,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/guocong-bincai/ai-interview-guide/pulls)
 
 **适用岗位:** AI应用工程师 · LLM工程师 · AI Agent开发 · RAG系统开发
-**版本:** v3.150 | **最后更新:** 2026-08-12
+**版本:** v3.151 | **最后更新:** 2026-08-12
 
 [📖 开始学习](#-学习路线) · [🔥 高频题库](#-核心面试题按难度分级) · [💡 实战案例](#-实战案例) · [🤝 贡献指南](#-贡献指南)
 
@@ -27,7 +27,7 @@
 
 ### 🌟 核心特色
 
-- **📚 系统化学习路径** - 24个模块从易到难，344+道题覆盖完整知识体系
+- **📚 系统化学习路径** - 24个模块从易到难，418+道题覆盖完整知识体系
 - **🎯 高频题优先** - 基于真实面试数据，按出现频率排序
 - **💡 实战导向** - 每道题配有生产级代码示例和性能优化方案
 - **🔥 紧跟前沿** - Transformer架构、多模态、推理优化等2026热点技术
@@ -37,7 +37,7 @@
 
 | 维度 | 数据 |
 |------|------|
-| 📝 **总题数** | 408+ 道 |
+| 📝 **总题数** | 418+ 道 |
 | 📂 **核心模块** | 24 个 |
 | 💻 **代码示例** | 90+ 个 |
 | 📈 **难度分布** | ⭐⭐ ~ ⭐⭐⭐⭐⭐ |
@@ -1164,6 +1164,16 @@ Made with ❤️ for the AI Community
 | 🆕 | [🧠 LLM基础概念（新增Q26-33）](docs/01-basic-concepts/) | Q26 Embedding基础(静态vs上下文嵌入)、Q27 上下文学习ICL(Zero/Few-shot+隐式梯度假说)、Q28 三阶段训练(预训练/SFT/对齐)、Q29 Scaling Law与Chinchilla法则(1:20配比)、Q30 KV Cache基础(复杂度O(n²)→O(n)+显存公式)、Q31 RLHF vs DPO入门对比(含GRPO)、Q32 7B显存估算(FP16 14GB/INT4 3.5GB/全参训练112GB/LoRA)、Q33 Chat Template(apply_chat_template) | 🔥🔥🔥🔥🔥 | +8 |
 
 *版本: v3.130 | 更新: 2026-08-10 | by 二狗子 🐕*
+
+---
+
+## 📚 数据更新（v3.151 - 2026-08-12）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🚀 RAG高级优化（新增Q26-Q35）](docs/20-rag-advanced-optimization/) | Q26 效果不好分层排查(范围确认→检索层→生成层→预防)+Q27 系统化评估与跷跷板效应(Recall@K/MRR/NDCG+按类型拆分指标+混合路由)+Q28 灰度发布(Shadow/Canary/一键回滚30s/质量门禁)+Q29 chunk大小与overlap(100-200/300-500字+10-20%overlap+Recall验证)+Q30 混合检索(向量盲区vs BM25盲区+RRF)+Q31 rerank(cross-encoder双塔对比/bge-reranker)+Q32 成本归因(请求级归因+缓存/路由/量化/裁剪)+Q33 增量vs全量更新+Q34 Agent工具调用兜底(schema/白名单/超时/HITL)+Q35 项目最大挑战开放题(可观测性闭环) | 🔥🔥🔥🔥🔥 | +10 |
+
+*版本: v3.151 | 更新: 2026-08-12 | 新增 RAG 生产环境实战 10 题（源自王中阳公众号） | by 二狗子 🐕*
 
 ---
 
