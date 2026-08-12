@@ -3,6 +3,16 @@
 > **难度：** ⭐⭐
 > **考点：** 提示词设计、CoT、Few-shot、参数调优
 
+## 📋 目录
+
+1. [必背概念（Q1-Q3）](#core-concepts)
+2. [Prompt 设计最佳实践](#prompt-best-practices)
+3. [进阶 Prompt 技巧（Q4-Q12）](#advanced-prompting)
+4. [生产调优与评测（Q13-Q18）](#production-evaluation)
+5. [速记卡片](#quick-reference)
+
+<a id="core-concepts"></a>
+
 ## 📋 必背概念
 
 ### Q1: Temperature、Top-P、Top-K 是什么？怎么调？
@@ -93,6 +103,8 @@
 
 </details>
 
+<a id="prompt-best-practices"></a>
+
 ## 📝 Prompt 设计最佳实践
 
 ### 好 Prompt 的 5 个要素
@@ -128,6 +140,8 @@
    ```
 
 ---
+
+<a id="advanced-prompting"></a>
 
 ## 📝 进阶Prompt技巧
 
@@ -1170,6 +1184,8 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 
 ---
 
+<a id="quick-reference"></a>
+
 ## 📝 速记卡片
 
 ### 基础概念
@@ -1205,6 +1221,8 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 | **Temperature实战** | RAG 0.1-0.3，创意 0.7-1.0，代码 0.0-0.2 |
 
 ---
+
+<a id="production-evaluation"></a>
 
 ### Q13: 如何根据场景调优 Temperature 等采样参数？
 

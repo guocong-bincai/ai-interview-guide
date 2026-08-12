@@ -4,7 +4,27 @@
 > **更新：** 2026-03-02
 > **考点：** 向量索引原理、性能对比、选型指南
 
+## 📋 目录
+
+1. [Q1 · 索引类型、原理与选型](#q1)
+2. [Q2 · 混合检索与 RRF](#q2)
+3. [Q3 · 两阶段检索与 Rerank](#q3)
+4. [Q4 · HNSW 生产调参](#q4)
+5. [Q5 · 向量数据库选型](#q5)
+6. [Q6 · 混合搜索设计](#q6)
+7. [Q7 · DiskANN 与 HNSW](#q7)
+8. [Q8 · 索引监控与调优](#q8)
+9. [Q9 · 托管与自托管选型](#q9)
+10. [Q10 · Late Interaction 检索](#q10)
+11. [Q11 · DiskANN 磁盘与内存设计](#q11)
+12. [Q12 · 二进制量化与 PQ](#q12)
+13. [Q13 · pgvector 与混合检索](#q13)
+14. [Q14 · 向量数据库平滑迁移](#q14)
+15. [Q15 · Context Poisoning 防御](#q15)
+
 ## 📋 核心面试题
+
+<a id="q1"></a>
 
 ### Q1: 向量数据库有哪些索引？分别有什么区别和原理？
 
@@ -339,6 +359,8 @@ LSH = 哈希 + 桶内搜索
 
 </details>
 
+<a id="q2"></a>
+
 ### Q2: 混合检索的融合策略有哪些？RRF 算法详解
 
 <details>
@@ -595,6 +617,8 @@ print(f"最优k={best_k}, Recall={best_recall}")
 | 2026-03-02 | 新增向量数据库索引详解专题 |
 
 
+<a id="q3"></a>
+
 ### Q3: 为什么需要两阶段检索（向量检索 + Rerank）？ColBERT Late Interaction 模型详解
 
 <details>
@@ -728,6 +752,8 @@ class TwoStageRetriever:
 > "两阶段检索是生产环境的标配。向量检索负责粗排——快速从1000万条里召回100条；Rerank负责精排——用Cross-Encoder对100条重新打分排序。ColBERT的核心是Late Interaction——每个query token独立找最相关的doc token累加，比传统avg embedding的早期交互精细得多。我在项目中用BAAI/reranker-v2-m3，Recall@20从72%提升到91%，延迟增加50ms完全可接受。"
 
 </details>
+
+<a id="q4"></a>
 
 ### Q4: HNSW 生产调参实战：M/ef/efConstruction 如何选择？有哪些性能陷阱？
 
@@ -946,6 +972,8 @@ PROD_CONFIG = {
 
 ## 三、向量数据库选型深度对比（Pinecone / Milvus / Qdrant / Weaviate）
 
+<a id="q5"></a>
+
 ### Q5: Pinecone、Milvus、Qdrant 三类向量数据库方案怎么选？
 
 <details>
@@ -1058,6 +1086,8 @@ Qdrant 特色：支持多维向量过滤
 
 </details>
 
+<a id="q6"></a>
+
 ### Q6: 什么是向量数据库的“混合搜索”？为什么重要？
 
 <details>
@@ -1149,6 +1179,8 @@ results = client.search(
 
 </details>
 
+<a id="q7"></a>
+
 ### Q7: 什么是 DiskANN？它解决了什么问题？和 HNSW 怎么选？
 
 <details>
@@ -1233,6 +1265,8 @@ collection.create_index(
 ---
 
 ## 十五、向量索引生产运维与监控（Q15）
+
+<a id="q8"></a>
 
 ### Q8: 如何监控与调优向量索引？HNSW/IVF 各有什么指标？
 
@@ -1330,6 +1364,8 @@ def check_vector_index_health(collection):
 ---
 
 ## 十六、向量数据库选型：Pinecone vs Milvus vs Qdrant vs Weaviate 2026年深度对比（Q16）
+
+<a id="q9"></a>
 
 ### Q9: 托管服务与自托管向量数据库如何选型？
 
@@ -1517,6 +1553,8 @@ result = client.query.get("Article", ["title", "content"]) \
 
 ## 十、2026年 Late Interaction 检索：ColBERTv2、ColPali、ColQwen（Q10）
 
+<a id="q10"></a>
+
 ### Q10: 什么是 Late Interaction 检索？ColBERTv2、ColPali、ColQwen 各自解决什么问题？
 
 <details>
@@ -1659,6 +1697,8 @@ def hybrid_retrieval(query, collection, top_k=100):
 
 ---
 
+<a id="q11"></a>
+
 ### Q11: DiskANN 如何利用磁盘与内存实现大规模 ANN 检索？
 
 <details>
@@ -1716,6 +1756,8 @@ collection.create_index(field_name="embedding", index_params=index_params)
 
 ---
 
+<a id="q12"></a>
+
 ### Q12: 什么是二进制量化（Binary Quantization）？它和 PQ 有什么区别？
 
 <details>
@@ -1769,6 +1811,8 @@ response = client.embeddings.create(
 </details>
 
 ---
+
+<a id="q13"></a>
 
 ### Q13: 何时选择 pgvector？如何做向量与业务条件混合检索？
 
@@ -1849,6 +1893,8 @@ results = vector_store.similarity_search(
 
 ---
 
+<a id="q14"></a>
+
 ### Q14: 向量数据库迁移如何避免停机和检索回退？
 
 <details>
@@ -1920,6 +1966,8 @@ def route(query_vector, traffic_pct=0.1):
 </details>
 
 ---
+
+<a id="q15"></a>
 
 ### Q15: 什么是 Context Poisoning（上下文污染）？RAG 知识库如何防御？
 

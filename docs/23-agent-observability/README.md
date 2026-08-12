@@ -6,6 +6,20 @@
 
 ---
 
+## 📋 目录
+
+1. [为什么 Agent 可观测性是必考题](#why-observability)
+2. [核心监控指标体系（Q1-Q7）](#metrics)
+3. [面试高频追问（Q8）](#follow-ups)
+4. [速记卡片](#quick-reference)
+5. [面试话术模板](#answer-template)
+6. [Voice Agent 评估（Q9）](#voice-evaluation)
+7. [可观测性平台与生产实践（Q10-Q17）](#platform-comparison)
+
+---
+
+<a id="why-observability"></a>
+
 ## 一、为什么 Agent 可观测性是 2026 年必考题？
 
 2026年，Agent 应用从"能跑通"升级到"能运维"。面试中 **15-20% 的问题围绕生产可观测性展开**，考察维度包括：
@@ -18,6 +32,8 @@
 > "光会搭 LangChain Demo 已经完全不够用了。面试官最想听的是：线上遇到过什么问题，怎么权衡解决的。" —— 2026 面经总结
 
 ---
+
+<a id="metrics"></a>
 
 ## 二、核心监控指标体系
 
@@ -673,6 +689,8 @@ if analysis["statistical_significance"]["significant"]:
 
 ---
 
+<a id="follow-ups"></a>
+
 ## 三、面试高频追问
 
 ### Q8: Agent 可观测性和传统微服务可观测性有什么区别？
@@ -719,6 +737,8 @@ tool_tree = build_tool_call_tree(run.tool_calls)
 
 ---
 
+<a id="quick-reference"></a>
+
 ## 四、速记卡片
 
 | 话题 | 核心要点 |
@@ -734,6 +754,8 @@ tool_tree = build_tool_call_tree(run.tool_calls)
 
 ---
 
+<a id="answer-template"></a>
+
 ## 五、面试话术模板
 
 ### 被问到"如何监控 Agent 质量"的标准回答：
@@ -745,6 +767,8 @@ tool_tree = build_tool_call_tree(run.tool_calls)
 > 工具链：LangSmith 做链路追踪 + Prometheus 做指标聚合 + Grafana 做可视化 + PagerDuty 做告警。这套体系让我负责的 Agent 服务 SLA 稳定在 99.2%。"
 
 ---
+
+<a id="voice-evaluation"></a>
 
 ## 六、Voice Agent 评估新框架：EVA（Q9）
 
@@ -814,6 +838,8 @@ ServiceNow 2026年3月发布的 EVA，首次同时评估任务完成 + 对话体
 *版本: v1.0 | 更新: 2026-04-14 | by 二狗子 🐕*
 
 ---
+
+<a id="platform-comparison"></a>
 
 ## 十、2026年新锐Agent可观测性平台：Opik vs Maxim AI vs Latitude（Q10）
 
@@ -2043,4 +2069,3 @@ groups:
 > "我的 Agent 日志设计核心是'结构化 + 可追溯'。每个日志条目包含 trace_id、span_id、step_index、model、tool_name，每次 LLM 调用都记录 token 消耗和延迟。这样做的好处是：① 查问题快——输入 trace_id 就能看到整个请求链路；② 分析容易——用 Elasticsearch 按 agent_name、tool_name、success 聚合；③ 告警准——错误率/延迟超过阈值自动通知。生产环境我每天查日志 < 10 次，但每次都能 5 分钟内定位问题。"
 
 </details>
-

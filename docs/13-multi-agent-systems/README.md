@@ -5,10 +5,13 @@
 
 ## 📋 目录
 
-1. [基础概念题](#一基础概念题)
-2. [设计模式题](#二设计模式题)
-3. [工程实践题](#三工程实践题)
-4. [高分回答模板](#四高分回答模板)
+1. [核心框架与企业架构（Q1-Q8）](#core-architecture)
+2. [A2A + MCP 混合架构（Q9）](#a2a-mcp)
+3. [协作模式与协议边界（Q10、Q13-Q14）](#collaboration-protocols)
+4. [研究评估与 Critic 架构（Q11-Q12）](#research-evaluation)
+5. [职责分解与运行时编排（Q15-Q17）](#runtime-orchestration)
+
+<a id="core-architecture"></a>
 
 ## 一、基础概念题
 
@@ -1564,6 +1567,8 @@ class A2AGateway:
 
 ---
 
+<a id="a2a-mcp"></a>
+
 ## 十四、A2A + MCP 混合架构：2026年多智能体生产部署策略（Q14）
 
 ### Q9: 如何设计 A2A + MCP 混合架构？
@@ -1786,6 +1791,8 @@ Agent Card 发布在 `/.well-known/agent.json`，供其他 Agent 发现和对接
 
 ---
 
+<a id="collaboration-protocols"></a>
+
 ## 十四、多Agent三大架构模式：Commander/P2P/Hybrid与五种协议对比（Q14）
 
 ### Q10: Commander、P2P、Hybrid 三种协作模式如何选择？
@@ -1982,6 +1989,8 @@ CLI工具编排（tmux/ssh场景）？
 *版本: v2.6 | 更新: 2026-04-10 | by 二狗子 🐕*
 
 ---
+
+<a id="research-evaluation"></a>
 
 ## 十五、ArXiv 2026年4月AI Agent前沿：五大研究热点与生产启示（Q16）
 
@@ -2484,6 +2493,8 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 </details>
 
 ---
+
+<a id="runtime-orchestration"></a>
 
 ## 八、多Agent职责划分与层级任务分解（Q20）
 

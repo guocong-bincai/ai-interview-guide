@@ -6,10 +6,10 @@
 
 ## 📋 目录
 
-1. [多模态 AI 应用](#一多模态 ai 应用)
-2. [自主 Agent 与 Agentic Workflow](#二自主 agent 与 agentic-workflow)
-3. [AI 产品思维与架构设计](#三 ai 产品思维与架构设计)
-4. [AI 应用调试与问题排查](#四 ai 应用调试与问题排查)
+1. [多模态 AI 应用](#一多模态-ai-应用)
+2. [自主 Agent 与 Agentic Workflow](#二自主-agent-与-agentic-workflow)
+3. [AI 产品思维与架构设计](#三ai-产品思维与架构设计)
+4. [AI 应用调试与问题排查](#四ai-应用调试与问题排查)
 5. [前沿技术趋势](#五前沿技术趋势)
 6. [速记卡片](#六速记卡片)
 

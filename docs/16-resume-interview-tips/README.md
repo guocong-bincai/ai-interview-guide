@@ -5,6 +5,21 @@
 
 ---
 
+## 📋 目录
+
+1. [简历撰写技巧](#resume-writing)
+2. [面试准备策略](#interview-strategy)
+3. [谈薪技巧](#salary)
+4. [职业规划](#career)
+5. [面试常见问题](#common-questions)
+6. [面试前 Checklist](#checklist)
+7. [参考资料](#references)
+8. [示例简历](#sample-resume)
+
+---
+
+<a id="resume-writing"></a>
+
 ## 📋 简历撰写技巧
 
 ### Q1: AI 应用工程师简历应该突出什么？
@@ -83,6 +98,8 @@
 </details>
 
 ---
+
+<a id="interview-strategy"></a>
 
 ## 🎯 面试准备策略
 
@@ -198,6 +215,8 @@
 
 ---
 
+<a id="salary"></a>
+
 ## 💰 谈薪技巧
 
 ### Q5: AI 应用工程师薪资水平？
@@ -230,6 +249,8 @@
 </details>
 
 ---
+
+<a id="career"></a>
 
 ## 🚀 职业规划
 
@@ -278,6 +299,8 @@ AI 工程师 → AI Team Lead → AI 技术经理 → CTO
 </details>
 
 ---
+
+<a id="common-questions"></a>
 
 ## 📝 面试常见问题
 
@@ -736,6 +759,8 @@ def rag_pipeline(query: str, top_k: int = 5):
 
 ---
 
+<a id="checklist"></a>
+
 ## 🎯 面试前 Checklist
 
 **技术准备：**
@@ -765,6 +790,8 @@ def rag_pipeline(query: str, top_k: int = 5):
 
 ---
 
+<a id="references"></a>
+
 ## 📚 参考资料
 
 - [AI 应用工程师学习路线](https://www.deeplearning.ai/)
@@ -773,6 +800,8 @@ def rag_pipeline(query: str, top_k: int = 5):
 - [Prompt 工程指南](https://www.promptingguide.ai/)
 
 ---
+
+<a id="sample-resume"></a>
 
 ## 📄 示例简历
 

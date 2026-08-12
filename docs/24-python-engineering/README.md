@@ -4,18 +4,18 @@
 
 ## 📋 目录
 
-### Q1: Python `asyncio` / `async-await` 在 AI 应用中的最佳实践？
-### Q2: Pydantic v2 在 LLM 结构化输出中的用法与原理？
-### Q3: 如何用 Python 实现健壮的 LLM 重试机制（含指数退避）？
-### Q4: FastAPI 如何实现流式 SSE 接口？和 WebSocket 有何区别？
-### Q5: Python GIL 对 AI 应用的影响？如何用多进程规避？
-### Q6: 如何用 pytest + Mock 测试一个 LLM 应用？
-### Q7: Python 内存管理与 AI 应用的 OOM 问题如何排查？
-### Q8: 如何用 `asyncio` + `httpx` 批量并发调用 LLM API？生产级的错误处理、重试、超时、并发控制怎么做？
-### Q9: asyncio 中如何正确处理超时、取消和背压？
-### Q10: 如何用 Protocol 和依赖注入让 LLM 客户端可测试、可替换？
-### Q11: AI 服务的配置、密钥和结构化日志应该怎么设计？
-### Q12: 如何定位 Python AI 服务的内存增长和事件循环阻塞？
+1. [Q1 · asyncio / async-await 最佳实践](#q1)
+2. [Q2 · Pydantic v2 与结构化输出](#q2)
+3. [Q3 · LLM 重试与指数退避](#q3)
+4. [Q4 · FastAPI SSE 与 WebSocket](#q4)
+5. [Q5 · GIL 与多进程](#q5)
+6. [Q6 · pytest + Mock 测试](#q6)
+7. [Q7 · 内存管理与 OOM 排查](#q7)
+8. [Q8 · 批量并发调用 LLM API](#q8)
+9. [Q9 · asyncio 超时、取消与背压](#q9)
+10. [Q10 · Protocol 与依赖注入](#q10)
+11. [Q11 · 配置、密钥与结构化日志](#q11)
+12. [Q12 · 内存增长与事件循环阻塞](#q12)
 
 ---
 
@@ -27,6 +27,8 @@
 | 2026-05-09 | 新增 Python 工程基础模块（Q1-Q7）|
 
 ---
+
+<a id="q1"></a>
 
 ### Q1: Python `asyncio` / `async-await` 在 AI 应用中的最佳实践？
 
@@ -145,6 +147,8 @@ class AsyncLLMClient:
 
 ---
 
+<a id="q2"></a>
+
 ### Q2: Pydantic v2 在 LLM 结构化输出中的用法与原理？
 
 <details>
@@ -258,6 +262,8 @@ print(config.model_dump_json())
 </details>
 
 ---
+
+<a id="q3"></a>
 
 ### Q3: 如何用 Python 实现健壮的 LLM 重试机制（含指数退避）？
 
@@ -446,6 +452,8 @@ async def safe_chat(prompt: str) -> str:
 
 ---
 
+<a id="q4"></a>
+
 ### Q4: FastAPI 如何实现流式 SSE 接口？和 WebSocket 有何区别？
 
 <details>
@@ -611,6 +619,8 @@ async def websocket_chat(websocket: WebSocket):
 
 ---
 
+<a id="q5"></a>
+
 ### Q5: Python GIL 对 AI 应用的影响？如何用多进程规避？
 
 <details>
@@ -757,6 +767,8 @@ with EmbeddingWorkerPool("BAAI/bge-large") as pool:
 </details>
 
 ---
+
+<a id="q6"></a>
 
 ### Q6: 如何用 pytest + Mock 测试一个 LLM 应用？
 
@@ -984,6 +996,8 @@ def test_llm_quality_regression():
 
 ---
 
+<a id="q7"></a>
+
 ### Q7: Python 内存管理与 AI 应用的 OOM 问题如何排查？
 
 <details>
@@ -1156,6 +1170,8 @@ def monitor_gpu_memory():
 
 ---
 
+
+<a id="q8"></a>
 
 ### Q8: 如何用 `asyncio` + `httpx` 批量并发调用 LLM API？生产级的错误处理、重试、超时、并发控制怎么做？
 
@@ -1358,6 +1374,8 @@ async def main():
 
 *版本: v1.0 | 更新: 2026-05-09 | by 二狗子 🐕*
 
+<a id="q9"></a>
+
 ### Q9: asyncio 中如何正确处理超时、取消和背压？
 
 <details>
@@ -1368,6 +1386,8 @@ async def main():
 捕获 `CancelledError` 时应完成必要清理后继续抛出；不要把取消当普通失败重试。整体 deadline 应在下游调用之间传递，避免每一层重新获得完整超时。使用 `TaskGroup` 或结构化并发可以减少孤儿任务。
 
 </details>
+
+<a id="q10"></a>
 
 ### Q10: 如何用 Protocol 和依赖注入让 LLM 客户端可测试、可替换？
 
@@ -1380,6 +1400,8 @@ async def main():
 
 </details>
 
+<a id="q11"></a>
+
 ### Q11: AI 服务的配置、密钥和结构化日志应该怎么设计？
 
 <details>
@@ -1390,6 +1412,8 @@ async def main():
 配置热更新需要版本、审计和回滚。日志字段要控制基数，避免把完整 query 当标签导致成本和隐私问题。
 
 </details>
+
+<a id="q12"></a>
 
 ### Q12: 如何定位 Python AI 服务的内存增长和事件循环阻塞？
 

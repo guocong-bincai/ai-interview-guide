@@ -1,5 +1,17 @@
 # 📌 LLM 基础概念
 
+## 📋 目录
+
+1. [基础概念（Q1-Q5）](#basics)
+2. [核心原理与评估（Q6-Q11）](#principles)
+3. [模型选型与推理（Q12-Q20）](#reasoning)
+4. [Embedding 与训练（Q21-Q29）](#training)
+5. [应用工程基础（Q30-Q40）](#application-engineering)
+
+---
+
+<a id="basics"></a>
+
 ## 1. Token 是什么？
 
 **Token** 是 LLM 处理文本的基本单位（不是字，也不是词）。
@@ -136,6 +148,8 @@ LLM 通常是以 Transformer 为基础、在大规模语料上进行自监督预
 </details>
 
 ---
+
+<a id="principles"></a>
 
 ## 6. 什么是涌现能力（Emergent Abilities）？“突然出现”一定是真的吗？
 
@@ -773,6 +787,8 @@ def multi_pass_qa(long_text, question):
 
 ---
 
+<a id="reasoning"></a>
+
 ## 12. 如何给 LLM 选型？质量/速度/成本怎么权衡？（方法论）
 
 <details>
@@ -1109,6 +1125,8 @@ for token in seen_tokens:
 > "主流 LLM 选择 Decoder-only，核心是预训练和推理目标统一：都是预测下一个 Token。相比 BERT 需要任务头、T5 需要任务模板，Decoder-only 架构简单、扩展性好、对齐技术成熟，在 Scaling Law 下表现最优，所以 ChatGPT 系模型都走这条路。"
 
 ---
+
+<a id="training"></a>
 
 ## 21. Embedding（嵌入向量）是什么？和 Token 有什么关系？
 
@@ -1544,6 +1562,8 @@ MoE 模型：
 > "MoE 的核心是'总参数大、激活参数少'——用路由器给每个 Token 挑 Top-2 专家，其余专家不计算。DeepSeek-V3 总参 671B 但单 Token 只激活 37B，效果接近稠密大模型、成本只有几分之一。但代价是显存和通信：专家全量驻留显存、跨卡通信是瓶颈，所以训练部署都比稠密模型更依赖集群设计。"
 
 ---
+
+<a id="application-engineering"></a>
 
 ## 30. 为什么说 LLM API 是无状态的？多轮对话的"记忆"到底存在哪？（应用开发第一性原理）
 

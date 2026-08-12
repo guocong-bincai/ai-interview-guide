@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import re
+import unicodedata
 from collections import defaultdict
 from pathlib import Path
+from urllib.parse import unquote
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +17,10 @@ MARKDOWN_FILES = [*INTRO_FILES, *sorted((ROOT / "docs").glob("*/README.md"))]
 QUESTION_RE = re.compile(r"^(?:###\s+Q|##\s+)(\d+)[.:：、]\s*(.+?)\s*$")
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 HTML_LINK_RE = re.compile(r'(?:href|src)="([^"]+)"')
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
+HTML_ANCHOR_RE = re.compile(r'<(?:a|h[1-6])\b[^>]*(?:id|name)="([^"]+)"', re.I)
+HTML_TAG_RE = re.compile(r"<[^>]+>")
+INLINE_LINK_RE = re.compile(r"!?\[([^]]*)\]\([^)]+\)")
 DETAILS_OPEN_RE = re.compile(r"<details(?:\s[^>]*)?>", re.I)
 DETAILS_CLOSE_RE = re.compile(r"</details>", re.I)
 PERCENT_RE = re.compile(
@@ -58,19 +64,97 @@ def prose_lines(path: Path):
             yield line_no, line
 
 
+def github_heading_slug(title: str) -> str:
+    """近似 GitHub Markdown 的标题锚点规则，支持中日韩文字。"""
+    title = INLINE_LINK_RE.sub(r"\1", title)
+    title = HTML_TAG_RE.sub("", title)
+    title = re.sub(r"[`*_~]", "", title).strip().lower()
+    kept = []
+    for char in title:
+        category = unicodedata.category(char)
+        if char.isspace() or char in "-_" or category[0] in {"L", "M", "N"}:
+            kept.append(char)
+    return re.sub(r"\s+", "-", "".join(kept))
+
+
+def anchors_for(path: Path) -> set[str]:
+    anchors: set[str] = set()
+    slug_counts: dict[str, int] = defaultdict(int)
+    for _, line in prose_lines(path):
+        for explicit in HTML_ANCHOR_RE.findall(line):
+            anchors.add(unquote(explicit).lower())
+
+        match = HEADING_RE.match(line)
+        if not match:
+            continue
+        base = github_heading_slug(match.group(2))
+        if not base:
+            continue
+        duplicate_index = slug_counts[base]
+        slug_counts[base] += 1
+        anchors.add(base if duplicate_index == 0 else f"{base}-{duplicate_index}")
+    return anchors
+
+
 def check_links() -> list[str]:
     errors: list[str] = []
+    anchor_cache: dict[Path, set[str]] = {}
     for path in MARKDOWN_FILES:
-        for _, line in prose_lines(path):
+        for line_no, line in prose_lines(path):
             targets = [*LINK_RE.findall(line), *HTML_LINK_RE.findall(line)]
             for target in targets:
-                clean = target.split("#", 1)[0].strip()
-                if not clean or clean.startswith(("http://", "https://", "mailto:")):
+                target = target.strip().strip("<>")
+                if target.startswith(("http://", "https://", "mailto:")):
                     continue
-                resolved = (path.parent / clean).resolve()
+
+                clean, separator, fragment = target.partition("#")
+                clean = clean.split("?", 1)[0].strip()
+                resolved = path if not clean else (path.parent / unquote(clean)).resolve()
+                if resolved.is_dir():
+                    resolved = resolved / "README.md"
                 if not resolved.exists():
-                    errors.append(f"{path.relative_to(ROOT)}: 失效链接 -> {target}")
+                    errors.append(
+                        f"{path.relative_to(ROOT)}:{line_no}: 失效链接 -> {target}"
+                    )
+                    continue
+
+                if not separator or not fragment or resolved.suffix.lower() != ".md":
+                    continue
+                expected = unquote(fragment).lower()
+                anchors = anchor_cache.setdefault(resolved, anchors_for(resolved))
+                if expected not in anchors:
+                    errors.append(
+                        f"{path.relative_to(ROOT)}:{line_no}: "
+                        f"失效页内锚点 -> {target}"
+                    )
     return sorted(set(errors))
+
+
+def check_module_tocs() -> list[str]:
+    """每个题库模块都应提供至少一个可点击的二级目录。"""
+    errors: list[str] = []
+    for path in sorted((ROOT / "docs").glob("*/README.md")):
+        lines = list(prose_lines(path))
+        toc_index = next(
+            (
+                index
+                for index, (_, line) in enumerate(lines)
+                if re.match(r"^##\s+.*目录\s*$", line)
+            ),
+            None,
+        )
+        if toc_index is None:
+            errors.append(f"{path.relative_to(ROOT)}: 缺少二级目录")
+            continue
+
+        toc_lines: list[str] = []
+        for _, line in lines[toc_index + 1 :]:
+            if line.startswith("## "):
+                break
+            toc_lines.append(line)
+        if not any(LINK_RE.search(line) for line in toc_lines):
+            errors.append(f"{path.relative_to(ROOT)}: 目录没有可点击链接")
+    return errors
 
 
 def check_balanced_blocks() -> list[str]:
@@ -156,7 +240,7 @@ def main() -> int:
     parser.add_argument("--verbose", action="store_true", help="逐条输出缺少来源的精确效果数字")
     args = parser.parse_args()
 
-    errors = check_links() + check_balanced_blocks()
+    errors = check_links() + check_module_tocs() + check_balanced_blocks()
     structural_warnings = check_numbering_and_duplicates()
     metric_warnings = check_unqualified_metrics()
     warnings = structural_warnings + metric_warnings
