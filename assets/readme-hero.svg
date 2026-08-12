@@ -1,0 +1,68 @@
+<svg width="1280" height="360" viewBox="0 0 1280 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="40" y1="20" x2="1240" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="0.52" stop-color="#111C33"/>
+      <stop offset="1" stop-color="#172554"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#818CF8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(1030 165) rotate(90) scale(185)">
+      <stop stop-color="#4F46E5" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#4F46E5" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="#94A3B8" stroke-opacity="0.07"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="360" rx="28" fill="url(#bg)"/>
+  <rect width="1280" height="360" rx="28" fill="url(#grid)"/>
+  <rect width="1280" height="360" rx="28" fill="url(#glow)"/>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <rect x="72" y="56" width="206" height="34" rx="17" fill="#172554" stroke="#38BDF8" stroke-opacity="0.45"/>
+    <circle cx="92" cy="73" r="5" fill="#67E8F9"/>
+    <text x="108" y="78" fill="#BAE6FD" font-size="14" font-weight="700" letter-spacing="1.6">AI INTERVIEW GUIDE</text>
+
+    <text x="72" y="158" fill="#F8FAFC" font-size="45" font-weight="760">AI 应用开发工程师</text>
+    <text x="72" y="214" fill="url(#accent)" font-size="45" font-weight="760">面试指南</text>
+    <text x="74" y="261" fill="#CBD5E1" font-size="19">从基础原理到生产系统 · 用工程取舍回答每一道题</text>
+
+    <g fill="#94A3B8" font-size="14" font-weight="600">
+      <text x="74" y="312">538 道题</text>
+      <circle cx="158" cy="307" r="2.5" fill="#475569"/>
+      <text x="173" y="312">26 个专题</text>
+      <circle cx="273" cy="307" r="2.5" fill="#475569"/>
+      <text x="288" y="312">LLM · RAG · Agent · 推理 · 系统设计</text>
+    </g>
+  </g>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+    <path d="M1008 86L1139 156L1099 275L929 275L889 156L1008 86Z" stroke="#818CF8" stroke-opacity="0.35" stroke-width="1.5" stroke-dasharray="6 8"/>
+    <path d="M1008 180L1008 108M1008 180L1130 166M1008 180L1080 270M1008 180L941 266M1008 180L900 166" stroke="#67E8F9" stroke-opacity="0.32" stroke-width="2"/>
+
+    <circle cx="1008" cy="180" r="64" fill="#172554" stroke="url(#accent)" stroke-width="2.5"/>
+    <circle cx="1008" cy="180" r="50" fill="#0F172A"/>
+    <text x="1008" y="190" text-anchor="middle" fill="#F8FAFC" font-size="31" font-weight="800">AI</text>
+
+    <g font-size="13" font-weight="750" text-anchor="middle">
+      <rect x="957" y="68" width="102" height="40" rx="20" fill="#0F172A" stroke="#38BDF8" stroke-opacity="0.75"/>
+      <text x="1008" y="93" fill="#BAE6FD">LLM</text>
+
+      <rect x="1082" y="146" width="98" height="40" rx="20" fill="#0F172A" stroke="#818CF8" stroke-opacity="0.75"/>
+      <text x="1131" y="171" fill="#C7D2FE">RAG</text>
+
+      <rect x="1030" y="252" width="102" height="40" rx="20" fill="#0F172A" stroke="#A78BFA" stroke-opacity="0.75"/>
+      <text x="1081" y="277" fill="#DDD6FE">AGENT</text>
+
+      <rect x="884" y="248" width="112" height="40" rx="20" fill="#0F172A" stroke="#34D399" stroke-opacity="0.7"/>
+      <text x="940" y="273" fill="#A7F3D0">SYSTEM</text>
+
+      <rect x="846" y="146" width="108" height="40" rx="20" fill="#0F172A" stroke="#FBBF24" stroke-opacity="0.7"/>
+      <text x="900" y="171" fill="#FDE68A">EVAL</text>
+    </g>
+  </g>
+</svg>
