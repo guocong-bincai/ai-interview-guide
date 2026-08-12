@@ -1,4 +1,4 @@
-# 💼 AI项目实战经验面试题
+# 💼 AI 项目经验与深挖面试题
 
 > **难度：** ⭐⭐⭐⭐⭐
 > **更新：** 2026-03-05
@@ -1407,8 +1407,7 @@ def handle_new_user(user):
 
 ---
 
-**上一模块:** [RAG系统](../03-rag-system/)
-**下一模块:** [Transformer架构](../04-transformer-architecture/)
+**上一模块:** [FDE 工程师](../26-forward-deployed-engineer/)
 
 ---
 

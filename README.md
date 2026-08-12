@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/readme-hero.svg" width="100%" alt="AI 应用开发工程师面试指南：LLM、RAG、Agent、推理与系统设计">
+  <img src="assets/readme-hero.svg" width="100%" alt="AI 工程师面试宝典：面向不同 AI 岗位的分类题库与成长路线">
 </p>
 
 <p align="center">
@@ -17,7 +17,7 @@
 </p>
 
 > [!TIP]
-> **第一次来？** 如果时间有限，从 [LLM 基础](docs/01-basic-concepts/) → [RAG 系统](docs/03-rag-system/) → [Agent 基础](docs/05-ai-agent-basics/) → [AI 系统设计](docs/25-system-design-ai/) 开始。不要逐字背答案，先练习说清结论、原理和工程取舍。
+> **先选岗位，再走路线。** 这不是只面向某一个职位的题库。AI 应用、RAG、Agent、训练推理、FDE、多模态和安全评测方向，都可以从下方选择各自的专题组合与成长路径。
 
 ## ✨ 这份指南有什么不同
 
@@ -25,7 +25,7 @@
   <tr>
     <td width="33%" valign="top">
       <h3>🎯 面向真实岗位</h3>
-      <p>覆盖 AI 应用、LLM、RAG、Agent、模型训练与推理岗位，不做脱离场景的概念堆砌。</p>
+      <p>覆盖 AI 应用、RAG、Agent、训练推理、FDE、多模态和安全评测等方向，不做脱离场景的概念堆砌。</p>
     </td>
     <td width="33%" valign="top">
       <h3>⚖️ 强调工程取舍</h3>
@@ -46,7 +46,7 @@
 
 - **第一次系统学习**：先看下方岗位路线，按顺序完成核心专题。
 - **面试前快速查漏**：直接进入 [面试题来源整理](docs/18-big-tech-interview-questions/)，再回到薄弱专题。
-- **准备项目深挖**：重点练习 [项目经验](docs/04-project-experience/) 与 [AI 系统设计](docs/25-system-design-ai/)。
+- **准备项目深挖**：重点练习 [项目经验](docs/27-project-experience/) 与 [AI 系统设计](docs/25-system-design-ai/)。
 - **准备 FDE 岗位**：进入 [FDE 专题](docs/26-forward-deployed-engineer/)，练习开放问题拆解、客户交付与生产 AI 系统。
 - **参与内容维护**：阅读 [内容质量规范](CONTENT_QUALITY.md)，运行 `python3 scripts/content_audit.py`。
 
@@ -58,7 +58,7 @@
 
 <a id="roadmap" name="roadmap"></a>
 
-## 🗺️ 岗位学习路线
+## 🗺️ 选择你的 AI 岗位路线
 
 ```mermaid
 flowchart LR
@@ -84,7 +84,7 @@ flowchart LR
 ```
 
 <details>
-<summary><b>AI 应用开发工程师</b> · 从模型能力走到可上线的业务系统</summary>
+<summary><b>AI 应用 / LLM 应用工程师</b> · 从模型能力走到可上线的业务系统</summary>
 <br>
 
 [LLM 基础](docs/01-basic-concepts/) → [Prompt Engineering](docs/02-prompt-engineering/) → [RAG 系统](docs/03-rag-system/) → [Agent 基础](docs/05-ai-agent-basics/) → [生产部署](docs/10-production-deployment/) → [AI 系统设计](docs/25-system-design-ai/)
@@ -119,7 +119,23 @@ flowchart LR
 <summary><b>Forward Deployed Engineer</b> · 从开放问题走到客户生产结果</summary>
 <br>
 
-[项目经验](docs/04-project-experience/) → [Python 工程](docs/24-python-engineering/) → [AI 系统设计](docs/25-system-design-ai/) → [生产部署](docs/10-production-deployment/) → [FDE 专题](docs/26-forward-deployed-engineer/)
+[项目经验](docs/27-project-experience/) → [Python 工程](docs/24-python-engineering/) → [AI 系统设计](docs/25-system-design-ai/) → [生产部署](docs/10-production-deployment/) → [FDE 专题](docs/26-forward-deployed-engineer/)
+
+</details>
+
+<details>
+<summary><b>多模态 AI 工程师</b> · 从多模态理解走到视觉工具与实时交互</summary>
+<br>
+
+[Transformer 架构](docs/04-transformer-architecture/) → [多模态 AI](docs/11-multimodal-ai/) → [多模态 Agent](docs/21-multimodal-agents/) → [推理优化](docs/08-inference-optimization/) → [生产部署](docs/10-production-deployment/)
+
+</details>
+
+<details>
+<summary><b>AI 安全与评测工程师</b> · 从评测方法走到风险控制与线上监测</summary>
+<br>
+
+[LLM 基础](docs/01-basic-concepts/) → [Prompt Engineering](docs/02-prompt-engineering/) → [安全与评估](docs/09-ai-safety-evaluation/) → [Agent 可观测性](docs/23-agent-observability/) → [生产部署](docs/10-production-deployment/)
 
 </details>
 
@@ -165,10 +181,9 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 132 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 6 个专题 / 119 道题</summary>
 <br>
 
-- [04 · 项目经验](docs/04-project-experience/) — 项目说明、指标、取舍和事故复盘
 - [09 · 安全与评估](docs/09-ai-safety-evaluation/) — 内容安全、Prompt 注入、隐私、红队和评测
 - [10 · 生产部署](docs/10-production-deployment/) — 网关、限流、流式输出、可靠性与发布
 - [12 · 框架与工具](docs/12-frameworks-tools/) — 框架抽象、选型、测试和迁移
@@ -190,16 +205,14 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>💼 面试准备</b> · 2 个专题 / 14 道结构化训练题</summary>
+<summary><b>💼 面试准备</b> · 3 个专题 / 27 道结构化训练题</summary>
 <br>
 
 - [16 · 简历与面试技巧](docs/16-resume-interview-tips/) — 简历、项目表达、行为面试与追问
 - [18 · 面试题来源整理](docs/18-big-tech-interview-questions/) — 按公司整理面试考点，使用时注意来源可信度
+- [27 · 项目经验](docs/27-project-experience/) — 项目说明、指标、技术取舍和事故复盘
 
 </details>
-
-> [!NOTE]
-> `04-project-experience` 与 `04-transformer-architecture` 存在历史编号重复。为避免破坏已有外部链接，当前保留目录名，以本页显示的模块名称为准。
 
 ## 🧭 高效使用这套题库
 

@@ -23,20 +23,20 @@
   <rect width="1280" height="360" rx="28" fill="url(#glow)"/>
 
   <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
-    <rect x="72" y="56" width="206" height="34" rx="17" fill="#172554" stroke="#38BDF8" stroke-opacity="0.45"/>
+    <rect x="72" y="56" width="232" height="34" rx="17" fill="#172554" stroke="#38BDF8" stroke-opacity="0.45"/>
     <circle cx="92" cy="73" r="5" fill="#67E8F9"/>
-    <text x="108" y="78" fill="#BAE6FD" font-size="14" font-weight="700" letter-spacing="1.6">AI INTERVIEW GUIDE</text>
+    <text x="108" y="78" fill="#BAE6FD" font-size="14" font-weight="700" letter-spacing="1.4">AI INTERVIEW HANDBOOK</text>
 
-    <text x="72" y="158" fill="#F8FAFC" font-size="45" font-weight="760">AI 应用开发工程师</text>
-    <text x="72" y="214" fill="url(#accent)" font-size="45" font-weight="760">面试指南</text>
-    <text x="74" y="261" fill="#CBD5E1" font-size="19">从基础原理到生产系统 · 用工程取舍回答每一道题</text>
+    <text x="72" y="158" fill="#F8FAFC" font-size="45" font-weight="760">AI 工程师面试宝典</text>
+    <text x="72" y="210" fill="url(#accent)" font-size="30" font-weight="740">多岗位 · 分方向 · 成长路径</text>
+    <text x="74" y="258" fill="#CBD5E1" font-size="18">应用开发 · RAG · Agent · 训练推理 · FDE · 系统设计</text>
 
     <g fill="#94A3B8" font-size="14" font-weight="600">
       <text x="74" y="312">568 道题</text>
       <circle cx="158" cy="307" r="2.5" fill="#475569"/>
       <text x="173" y="312">27 个专题</text>
       <circle cx="273" cy="307" r="2.5" fill="#475569"/>
-      <text x="288" y="312">LLM · RAG · Agent · 推理 · 系统设计</text>
+      <text x="288" y="312">7 条岗位路线</text>
     </g>
   </g>
 
@@ -49,8 +49,8 @@
     <text x="1008" y="190" text-anchor="middle" fill="#F8FAFC" font-size="31" font-weight="800">AI</text>
 
     <g font-size="13" font-weight="750" text-anchor="middle">
-      <rect x="957" y="68" width="102" height="40" rx="20" fill="#0F172A" stroke="#38BDF8" stroke-opacity="0.75"/>
-      <text x="1008" y="93" fill="#BAE6FD">LLM</text>
+      <rect x="953" y="68" width="110" height="40" rx="20" fill="#0F172A" stroke="#38BDF8" stroke-opacity="0.75"/>
+      <text x="1008" y="93" fill="#BAE6FD">AI 应用</text>
 
       <rect x="1082" y="146" width="98" height="40" rx="20" fill="#0F172A" stroke="#818CF8" stroke-opacity="0.75"/>
       <text x="1131" y="171" fill="#C7D2FE">RAG</text>
@@ -59,10 +59,10 @@
       <text x="1081" y="277" fill="#DDD6FE">AGENT</text>
 
       <rect x="884" y="248" width="112" height="40" rx="20" fill="#0F172A" stroke="#34D399" stroke-opacity="0.7"/>
-      <text x="940" y="273" fill="#A7F3D0">SYSTEM</text>
+      <text x="940" y="273" fill="#A7F3D0">训练推理</text>
 
       <rect x="846" y="146" width="108" height="40" rx="20" fill="#0F172A" stroke="#FBBF24" stroke-opacity="0.7"/>
-      <text x="900" y="171" fill="#FDE68A">EVAL</text>
+      <text x="900" y="171" fill="#FDE68A">FDE</text>
     </g>
   </g>
 </svg>
