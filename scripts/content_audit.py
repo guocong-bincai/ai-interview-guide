@@ -17,6 +17,9 @@ MARKDOWN_FILES = [*INTRO_FILES, *sorted((ROOT / "docs").glob("*/README.md"))]
 QUESTION_RE = re.compile(r"^(?:###\s+Q|##\s+)(\d+)[.:：、]\s*(.+?)\s*$")
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 HTML_LINK_RE = re.compile(r'(?:href|src)="([^"]+)"')
+HTML_IMG_TAG_RE = re.compile(r"<img\b[^>]*>", re.I)
+HTML_SRC_RE = re.compile(r'\bsrc="([^"]+)"', re.I)
+HTML_ALT_RE = re.compile(r'\balt="([^"]*)"', re.I)
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 HTML_ANCHOR_RE = re.compile(r'<(?:a|h[1-6])\b[^>]*(?:id|name)="([^"]+)"', re.I)
 HTML_TAG_RE = re.compile(r"<[^>]+>")
@@ -179,6 +182,37 @@ def check_module_tocs() -> list[str]:
     return errors
 
 
+def check_illustrations() -> list[str]:
+    errors: list[str] = []
+    max_size = 250 * 1024
+    for path in MARKDOWN_FILES:
+        for line_no, line in prose_lines(path):
+            for tag in HTML_IMG_TAG_RE.findall(line):
+                src_match = HTML_SRC_RE.search(tag)
+                if not src_match:
+                    continue
+                src = src_match.group(1).split("#", 1)[0]
+                if src.startswith(("http://", "https://")):
+                    continue
+                resolved = (path.parent / unquote(src)).resolve()
+                if "assets/illustrations" not in resolved.as_posix():
+                    continue
+                if resolved.suffix.lower() != ".webp":
+                    errors.append(
+                        f"{path.relative_to(ROOT)}:{line_no}: 插画应使用 WebP -> {src}"
+                    )
+                alt_match = HTML_ALT_RE.search(tag)
+                if not alt_match or not alt_match.group(1).strip():
+                    errors.append(
+                        f"{path.relative_to(ROOT)}:{line_no}: 插画缺少 alt 说明 -> {src}"
+                    )
+                if resolved.exists() and resolved.stat().st_size > max_size:
+                    errors.append(
+                        f"{path.relative_to(ROOT)}:{line_no}: 插画超过 250KB -> {src}"
+                    )
+    return errors
+
+
 def check_balanced_blocks() -> list[str]:
     errors: list[str] = []
     for path in MARKDOWN_FILES:
@@ -262,7 +296,12 @@ def main() -> int:
     parser.add_argument("--verbose", action="store_true", help="逐条输出缺少来源的精确效果数字")
     args = parser.parse_args()
 
-    errors = check_links() + check_module_tocs() + check_balanced_blocks()
+    errors = (
+        check_links()
+        + check_module_tocs()
+        + check_illustrations()
+        + check_balanced_blocks()
+    )
     structural_warnings = check_numbering_and_duplicates()
     metric_warnings = check_unqualified_metrics()
     warnings = structural_warnings + metric_warnings

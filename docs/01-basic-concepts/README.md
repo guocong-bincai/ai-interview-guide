@@ -14,6 +14,14 @@
 
 ## 1. Token 是什么？
 
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q01-token.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q01-token.webp" width="100%" alt="Token 动漫知识图：Token 不等于字或词，不同语言和模型的切分方式不同，计费、上下文和生成长度均按 Token 计量">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：Token 是模型眼里的积木；点击图片可查看原图。</sub></p>
+
 **Token** 是 LLM 处理文本的基本单位（不是字，也不是词）。
 
 | 语言 | 换算关系 |
