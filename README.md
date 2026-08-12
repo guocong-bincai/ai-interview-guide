@@ -33,7 +33,7 @@
     </td>
     <td width="33%" valign="top">
       <h3>🧪 可以持续校验</h3>
-      <p>538 道题按 26 个专题组织，并用自动审计检查链接、重复题和缺少条件的数据。</p>
+      <p>568 道题按 27 个专题组织，并用自动审计检查链接、重复题和缺少条件的数据。</p>
     </td>
   </tr>
 </table>
@@ -47,6 +47,7 @@
 - **第一次系统学习**：先看下方岗位路线，按顺序完成核心专题。
 - **面试前快速查漏**：直接进入 [面试题来源整理](docs/18-big-tech-interview-questions/)，再回到薄弱专题。
 - **准备项目深挖**：重点练习 [项目经验](docs/04-project-experience/) 与 [AI 系统设计](docs/25-system-design-ai/)。
+- **准备 FDE 岗位**：进入 [FDE 专题](docs/26-forward-deployed-engineer/)，练习开放问题拆解、客户交付与生产 AI 系统。
 - **参与内容维护**：阅读 [内容质量规范](CONTENT_QUALITY.md)，运行 `python3 scripts/content_audit.py`。
 
 每道题建议练成三个回答版本：
@@ -114,11 +115,19 @@ flowchart LR
 
 </details>
 
+<details>
+<summary><b>Forward Deployed Engineer</b> · 从开放问题走到客户生产结果</summary>
+<br>
+
+[项目经验](docs/04-project-experience/) → [Python 工程](docs/24-python-engineering/) → [AI 系统设计](docs/25-system-design-ai/) → [生产部署](docs/10-production-deployment/) → [FDE 专题](docs/26-forward-deployed-engineer/)
+
+</details>
+
 <a id="catalog" name="catalog"></a>
 
 ## 📚 题库导航
 
-共 **26 个专题、538 道题**。点击分类展开完整目录。
+共 **27 个专题、568 道题**。点击分类展开完整目录。
 
 <details open>
 <summary><b>🧠 基础与模型</b> · 6 个专题 / 136 道题</summary>
@@ -156,7 +165,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 6 个专题 / 102 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 132 道题</summary>
 <br>
 
 - [04 · 项目经验](docs/04-project-experience/) — 项目说明、指标、取舍和事故复盘
@@ -165,6 +174,7 @@ flowchart LR
 - [12 · 框架与工具](docs/12-frameworks-tools/) — 框架抽象、选型、测试和迁移
 - [24 · Python 工程](docs/24-python-engineering/) — 异步、类型、测试、重试和性能排查
 - [25 · AI 系统设计](docs/25-system-design-ai/) — 客服、知识库、网关、任务系统和审核系统
+- [26 · FDE 工程师](docs/26-forward-deployed-engineer/) — 问题拆解、客户交付、生产 AI 系统与现场工程
 
 </details>
 
