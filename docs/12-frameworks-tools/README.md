@@ -409,7 +409,7 @@ results = collection.search(
 
 </details>
 
-## 9. Coze平台如何搭建AI应用?与传统开发的区别?
+## 11. Coze平台如何搭建AI应用?与传统开发的区别?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -624,7 +624,7 @@ workflow:
 
 ---
 
-## 10. Dify本地部署与性能优化实战?
+## 12. Dify本地部署与性能优化实战?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -968,7 +968,7 @@ security:
 
 ---
 
-## 11. Function Calling如何实现工具并行调用和错误重试？
+## 13. Function Calling如何实现工具并行调用和错误重试？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1189,7 +1189,7 @@ result = executor.execute_safe("get_weather", {"city": "北京"}, timeout=5)
 
 ---
 
-## 12. 如何实现LLM流式输出（Streaming）？前后端完整方案？
+## 14. 如何实现LLM流式输出（Streaming）？前后端完整方案？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1424,7 +1424,7 @@ class StreamResumer:
 
 ---
 
-### Q11: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
+### Q15: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1556,7 +1556,7 @@ curl -X POST http://localhost/api/v1/chat-messages \
 | **Streaming流式** | SSE协议，TTFT从5s→300ms，Nginx关闭缓冲 |
 | **Dify/Coze/n8n/OpenClaw** | 个人助理→OpenClaw，企业AI→Dify，低代码Bot→Coze，自动化→n8n |
 
-## 12. Prompt Caching 是什么？2026 年 API 成本优化的重大突破？
+## 16. Prompt Caching 是什么？2026 年 API 成本优化的重大突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1688,7 +1688,7 @@ response = client.messages.create(
 
 </details>
 
-### Q12: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
+### Q17: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1777,7 +1777,7 @@ Step 3: 输出
 </details>
 
 
-### Q14: LangGraph vs Semantic Kernel 2026年深度对比：微软新一代 Agent Framework 来了，如何选择？
+### Q18: LangGraph vs Semantic Kernel 2026年深度对比：微软新一代 Agent Framework 来了，如何选择？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1922,7 +1922,7 @@ app = graph.compile()
 
 ---
 
-### Q13: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
+### Q19: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2105,7 +2105,7 @@ queued → in_progress → requires_action → completed
 
 ## 十五、LangGraph 生产监控 + Time-Travel 调试 + Checkpointing 架构（Q15）
 
-### Q15: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
+### Q20: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2325,7 +2325,7 @@ if results["answer_quality"] < 0.8:
 
 ## 十六、2026年 Agent 框架选型深度指南：LangGraph vs Claude Agent SDK vs CrewAI vs AutoGen（Q16）
 
-### Q16: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
+### Q21: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2575,7 +2575,7 @@ result = agent.run_sync("分析季度销售数据")
 
 ---
 
-### Q17: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
+### Q22: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
 
 <details>
 <summary>💡 答案要点</summary>

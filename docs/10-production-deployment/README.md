@@ -1476,7 +1476,7 @@ def route_model(task: str) -> str:
 
 ---
 
-### Q18: Go 如何用 Worker Pool 模式处理高并发 LLM 请求？有哪些踩坑点？
+### Q17: Go 如何用 Worker Pool 模式处理高并发 LLM 请求？有哪些踩坑点？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1579,7 +1579,7 @@ func (p *LLMWorkerPool) Submit(ctx context.Context, prompt string) <-chan string
 
 ---
 
-### Q19: LLMOps 和 MLOps 有什么区别？LLM 应用上线后需要运维哪些东西？
+### Q18: LLMOps 和 MLOps 有什么区别？LLM 应用上线后需要运维哪些东西？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1666,7 +1666,7 @@ Prompt 管理：Langfuse / PromptLayer
 
 ---
 
-### Q17: Prompt 管理在生产环境怎么做？版本控制、A/B 测试、灰度发布如何实现？
+### Q19: Prompt 管理在生产环境怎么做？版本控制、A/B 测试、灰度发布如何实现？
 
 <details>
 <summary>💡 答案要点</summary>

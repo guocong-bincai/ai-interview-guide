@@ -1178,7 +1178,7 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 | **Tree of Thoughts** | 树状探索回溯，Beam Search优化 | +40-60% | 10-50x |
 | **Auto-CoT** | 自动生成示例 | 接近人工CoT | 聚类成本 |
 | **Prompt Caching** | KV Cache跨请求复用，prefix顺序优化 | -90% cost | 极低 |
-| **Chain-of-Verification** | 草稿→质疑→验证→修正，闭环自批评 | 幻觉率↓80% | 3x调用 |
+| **Chain-of-Verification** | 草稿→规划验证问题→独立验证→重写 | 事实性收益需按任务评测 | 增加调用与延迟 |
 | **Speculative RAG** | 生成初稿→逐句验证证据→修正重构 | faithfulness↑20% | 2x延迟 |
 | **LLM-as-a-Judge** | 强模型当裁判，固定judge+counterbalancing | 自动化评估 | 低 |
 | **A/B Testing框架** | 三层评估(离线回归→影子测试→在线A/B) | regression↓90% | 中 |
@@ -1191,7 +1191,7 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 
 ---
 
-### Q12: 如何根据场景调优 Temperature 等采样参数？
+### Q13: 如何根据场景调优 Temperature 等采样参数？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1342,12 +1342,12 @@ response = anthropic.messages.create(
 
 </details>
 
-### Q13: Prompt Caching（提示词缓存）是什么？为什么是 2026 最重要的成本优化技术？
+### Q14: Prompt Caching（提示词缓存）是什么？如何判断它是否真的省钱？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**Prompt Caching = 跨请求复用已计算的 KV Cache，把重复输入的推理成本降到极低**
+**Prompt Caching = 对重复的 Prompt 前缀复用服务端缓存，减少重复预填充的计算和计费。**
 
 ### 原理：KV Cache 从单请求扩展到多请求
 
@@ -1358,19 +1358,19 @@ Prompt Caching：相同 prefix → 复用已有 KV Cache → 读缓存低价
 
 **底层机制：**
 ```
-1. OpenAI/Claude 对每个请求的前缀做哈希（约前 256 tokens）
-2. 如果之前有相同前缀的请求，命中缓存 → 跳过 Prefill，直接从缓存读取 KV
-3. 未命中 → 正常预填充 + 写入缓存
-4. 缓存有效期约 5 分钟（同一 session 窗口内）
+1. 服务端识别可复用的相同前缀；
+2. 命中时复用缓存，减少相同前缀的重复计算；
+3. 未命中时正常计算，并可能写入缓存；
+4. 最小可缓存长度、保留时间、写入费用和显式标记方式都由供应商及模型决定，不能写成统一常量。
 ```
 
 ### 各家实现对比
 
-| Provider | 实现方式 | 价格差异 | 自动启用 |
-|----------|---------|---------|----------|
-| **OpenAI** | 隐式缓存 prefix | 命中时输入 token 约半价 | ✅ gpt-4o+ 默认开启 |
-| **Anthropic** | 显式 cache_control 标记 | 命中 90% off，$0.30/M vs $3.00/M | ❌ 需加标记 |
-| **Amazon Bedrock** | 通用 prompt caching | 类似 Anthropic 比例 | 可选 |
+| Provider | 典型机制 | 使用前要核对 |
+|----------|---------|--------------|
+| **OpenAI** | 支持隐式缓存；部分模型支持显式缓存模式 | `prompt_cache_options`、写入/读取 token、TTL、模型支持范围 |
+| **Anthropic** | 在内容块上设置 `cache_control` | 最小长度、TTL、写入和命中价格 |
+| **Amazon Bedrock** | 能力取决于底层模型和 Bedrock 接口 | 支持模型、缓存点和区域限制 |
 
 ### 如何优化 Prompt 顺序以最大化 Cache Hit Rate
 
@@ -1403,33 +1403,31 @@ messages = [
     {"role": "user", "content": user_query},  # ← 不会触发新缓存
 ]
 
-# OpenAI GPT-5.6+: 使用显式 cache breakpoint
-response = client.chat.completions.create(
+# OpenAI：不要复用 Anthropic 的 cache_control 字段。
+# 支持显式缓存的模型使用 prompt_cache_options；
+# 具体 breakpoint/TTL 结构以当前 Responses API 文档为准。
+response = client.responses.create(
     model="gpt-5.6",
-    messages=[
-        {"role": "system", "content": SYSTEM_PROMPT,
-         "cache_control": "type=ephemeral"},
-        {"role": "user", "content": query}
-    ],
+    input=messages,
+    prompt_cache_options={"mode": "explicit"},
 )
 ```
 
-### 成本节省实测数据
+### 如何验证是否省钱
 
-| 场景 | 未优化 cost | 优化后 cost | 节省 |
-|------|-------------|------------|------|
-| 简单问答（50 token 系统prompt） | $3.00/M tokens | $1.50/M tokens | ~50% |
-| RAG（3000 token 上下文） | $3.00/M tokens | $0.30/M tokens | ~90% |
-| Agent（工具定义+系统prompt） | $3.00/M tokens | $0.45/M tokens | ~85% |
+至少对比四项：缓存写入 token、缓存读取 token、未缓存输入 token、端到端延迟。缓存写入可能比普通输入更贵；如果前缀短、变化频繁或复用次数低，显式缓存反而可能增加成本。
 
-### 面试话术：
-> "Prompt Caching 是我在项目中用得最多的成本优化手段。核心思路是把不变的 System Prompt、工具定义放最前面，让用户输入放最后面——这样重复请求直接命中 KV Cache。RAG 场景下一次 3000 token 的输入，缓存命中率可以做到 85%+，成本从 $3/M tokens 降到 $0.30/M。Claude 还支持显式 cache_control 标记精确控制哪些段落要缓存。"
+### 30 秒回答
+
+> “Prompt Caching 适合长且重复的稳定前缀，例如工具定义、固定规则和共享文档。优化时先把稳定内容放前面、动态内容放后面，再从 API usage 中统计写入与命中 token。不能只看命中率，还要把缓存写入费、TTL 内复用次数和延迟一起计算。各供应商字段不同，不能把 Anthropic 的 `cache_control` 直接套到 OpenAI。”
+
+**参考：** [OpenAI GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/latest-model)
 
 </details>
 
 ---
 
-### Q14: Chain-of-Verification (CoVe) 是什么？如何减少 LLM 幻觉？
+### Q15: Chain-of-Verification (CoVe) 是什么？如何减少 LLM 幻觉？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1497,13 +1495,11 @@ class ChainOfVerification:
         return self.llm.generate(prompt)
 ```
 
-### 实验数据对比（Google Research 原始论文）
+### 论文结论应该怎么引用
 
-| 数据集 | Baseline | CoT | CoVe | 提升幅度 |
-|--------|----------|-----|------|----------|
-| FEQA（事实问答） | 75.6% | - | **86.4%** | +10.8% |
-| FActScore（事实性） | 44.3% | - | **56.4%** | +12.1% |
-| PubMed QA（医学） | 64.2% | - | **71.8%** | +7.6% |
+CoVe 原论文由 Meta AI 等团队作者提出，在 Wikidata 列表问答、MultiSpanQA 和长文本生成等任务上报告了幻觉下降。不同任务使用的指标并不相同，不能把未经核对的数据拼成一张统一“准确率提升表”，也不能直接外推到自己的 RAG 系统。
+
+**原论文：** [Chain-of-Verification Reduces Hallucination in Large Language Models](https://arxiv.org/abs/2309.11495)
 
 ### 何时使用 CoVe（面试加分点）
 
@@ -1532,17 +1528,18 @@ external_v = verify_with_retrieved_docs(draft, external_docs)
 # 综合两层验证结果来修正
 final = reconcile_and_rewrite(internal_v, external_v)
 
-# 效果：幻觉率从标准 RAG 的 18% → CoVe+Retrieval 的 4%
+# 效果必须在自己的标注集上评估，不能预设固定下降比例
 ```
 
-**面试话术：**
-> "CoVe 的核心思想是让模型'自己检查自己的作业'。第一步生成草稿，第二步让模型挑出自己可能出错的地方并列出验证问题，第三步独立回答验证问题，第四步用验证结果修正。Google 论文显示 FActScore 从 44% 提升到 56%。我在 RAG 系统里用它，先把幻觉率从 18% 压到 4%，配合外部检索双重验证效果更好。缺点是多了 3 次 LLM 调用，所以只在对准确率敏感的场景用。"
+### 30 秒回答
+
+> “CoVe 先生成草稿，再规划验证问题；验证问题需要独立回答，避免被原草稿锚定，最后根据验证结果重写。它增加了调用次数和延迟，而且模型自证不等于外部事实核验。高风险场景应把验证问题交给检索、数据库或规则工具，并在自己的评测集上比较事实性、拒答率、延迟和成本。”
 
 </details>
 
 ---
 
-### Q15: 生产环境中如何 A/B 测试和评估不同的 Prompt？
+### Q16: 生产环境中如何 A/B 测试和评估不同的 Prompt？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1644,11 +1641,11 @@ def evaluate(response: str, **criteria) -> dict:
 ### A/B 测试的正确做法（避免陷阱）
 
 ```python
-# ✅ 正确：固定评判模型，控制变量
+# 固定评判模型和 rubric，控制变量；显著性检验方法取决于指标分布
 # Control prompt 和 Variant prompt 在同一批用例上被同一个 Judge 评分
 control_scores = [evaluate_case(case, "prompt_v1") for case in test_set]
 variant_scores = [evaluate_case(case, "prompt_v2") for case in test_set]
-pairwise_comparison(control_scores, variant_scores)  # 配对 t-test
+pairwise_comparison(control_scores, variant_scores)  # 可用 bootstrap / permutation test
 
 # ❌ 错误：不同 Judge 评不同版本
 # Judge-A 评 V1，Judge-B 评 V2 → judge variance 污染结果
@@ -1684,124 +1681,66 @@ jobs:
 | 框架 | 特点 | 适用场景 |
 |------|------|----------|
 | **Promptfoo** | YAML 配置，CI集成，red-teaming | OSS首选，A/B + 回归 |
-| **LangSmith** | OpenAI官方生态，trace可视化 | OpenAI栈项目 |
+| **LangSmith** | LangChain 团队提供，支持 trace 与在线/离线评测 | LangChain 或跨模型应用 |
 | **DeepEval** | 开源，多种metric | 灵活自定义评估 |
 | **Ragas** | RAG专用，faithfulness/relevance | RAG管道评测 |
 | **Braintrust** | 云端协作，版本管理 | 团队协作+实验追踪 |
 
-**面试话术：**
-> "我的生产环境用了三层评估：离线回归测试覆盖所有golden set，线上影子测试对比新旧prompt的真实表现，最后才是按比例灰度的A/B测试。我们维护了一个20-50条的黄金集，每次改prompt必须先过回归。评判用LLM-as-a-Judge，固定同一个judge比对所有版本，避免judge variance。我们还做了CI gate——PR里改了prompt就必须过回归测试，否则自动merge失败。这套流程上线后，prompt regression导致的线上事故减少了90%。"
+### 30 秒回答
+
+> “我会分三层评估 Prompt：先在按错误类型分层的离线集上做回归，再用影子流量检查真实输入，最后才做用户级稳定分桶的在线 A/B。指标同时看任务成功、业务结果、安全、延迟和成本。LLM Judge 要用人工样本校准、交换候选顺序并报告一致性；样本量和显著性方法由最小可检测效果决定，不预设固定的 20～50 条。”
 
 </details>
 
 ---
 
-### Q16: Speculative RAG / LLMinG3 是什么？相比传统 RAG 好在哪？
+### Q17: Speculative RAG 是什么？它为什么可能同时提高质量并降低延迟？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**Speculative RAG = 先生成草稿答案，再反向验证检索结果是否支撑草稿，最后修正输出**
+### 30 秒回答
 
-### 痛点：传统 RAG 的三大生成问题
+Speculative RAG 不是“先大胆猜，再逐句查证”。原论文的方法是：把检索文档分成多个子集，由较小的专用模型并行生成带依据的候选草稿，再由较大的通用模型一次性比较和验证这些草稿，输出最终答案。并行草稿减少了单次上下文长度，大模型只做一次聚合验证，因此有机会同时改善质量和延迟。
 
-```
-传统 RAG 流程：
-检索 → 拼接文档 → LLM 读文档 → 生成答案
-          ↑            ↑
-          问题1: 文档太多太杂，LLM注意力分散
-          问题2: LLM 看到碎片化信息容易编造
-          问题3: 67% 的 RAG 失败发生在生成阶段（非检索阶段）
-```
+### 核心流程
 
-**微软研究院 2025 年的研究指出：67% 的 RAG 质量问题不是检索的问题，而是生成的问题。**
-
-### Speculative RAG 三步架构
-
-```
-Phase 1: Draft Generation（草稿生成）
-  └── LLM 先用"尽力而为"的态度给出一个初始答案
-          ↓
-Phase 2: Evidence Verification（证据验证）
-  └── 反过来问：我刚才说的每句话，检索到的文档里有证据吗？
-          ↓
-Phase 3: Gap-Filling Refinement（补全修正）
-  └── 缺证据的部分重新检索，有的部分保留，矛盾的部分修正
+```text
+Query
+  ↓
+检索候选文档并划分为多个子集
+  ↓
+小型 specialist LM 并行生成多个 draft + rationale
+  ↓
+大型 generalist LM 比较证据、验证候选并选择/合成答案
 ```
 
-### 代码实现
+### 为什么可能有效
 
-```python
-def speculative_rag(query, retrieved_docs):
-    # Phase 1: 生成初稿
-    draft_prompt = f"""
-    基于以下文档片段，尝试给出一个完整的答案。不确定就说不知道。
-    {format_documents(retrieved_docs)}
-    
-    请先生成一个完整的初步答案：
-    """
-    draft_answer = llm.generate(draft_prompt)
-    
-    # Phase 2: 逐一验证
-    verify_prompts = []
-    claims = extract_claims(draft_answer)
-    
-    for claim in claims:
-        verify_prompt = f"""
-        问题：{query}
-        候选断言：{claim}
-        检索文档：{format_documents(retrieved_docs)}
-        
-        这个断言是否可以在文档中找到支持？
-        - 如果找到支持，引用原文
-        - 如果找不到支持，标注为无证据
-        """
-        verify_result = llm.generate(verify_prompt)
-        verify_prompts.append((claim, verify_result))
-    
-    # Phase 3: 根据验证结果重构答案
-    final_prompt = f"""
-    问题：{query}
-    初步答案：{draft_answer}
-    
-    下面是逐句验证结果：
-    {chr(10).join(f'- [{status}] {claim}' for claim, status in verify_prompts)}
-    
-    请根据验证结果生成最终答案：
-    - 有证据支持的断言保留
-    - 无证据支持的断言删除或改为"目前没有找到相关依据"
-    - 补充遗漏但检索到的相关信息
-    """
-    return llm.generate(final_prompt)
-```
+1. 每个草稿只阅读文档子集，降低长上下文中的注意力干扰；
+2. 不同子集产生多样候选，减少单一检索排序造成的偏差；
+3. 草稿阶段可并行，并把大模型调用压缩为一次验证；
+4. specialist/generalist 的模型组合允许在质量、延迟和成本之间调节。
 
-### 效果对比
+### 与其他方法的区别
 
-| 方法 | Hallucination Rate | Faithfulness Score | 延迟增加 |
-|------|--------------------|--------------------|----------|
-| 标准 RAG (One-shot) | 18% | 62% | baseline |
-| CoT RAG | 14% | 68% | +1x |
-| **Speculative RAG** | **4-5%** | **82-89%** | **+2x** |
-| CoVe + Retrieval | <4% | 89% | +3x |
+| 方法 | 核心动作 | 主要代价 |
+|---|---|---|
+| Claim verification | 对成品答案逐条检查证据 | 断言提取和多次验证调用 |
+| CoVe | 生成验证问题、独立回答、重写 | 多轮调用与自验证偏差 |
+| Speculative RAG | 小模型并行草稿，大模型统一验证 | 需要额外 specialist 模型和并行调度 |
 
-### 适用时机决策树
+### 工程验证
 
-```
-需要高准确率的 RAG 生成？
-  ├── 低延迟要求（<2s）→ 优化 prompt grounding 即可
-  ├── 中等延迟（2-5s）→ Speculative RAG (2x延迟，效果好)
-  ├── 最高精度（>5s 可接受）→ CoVe + Retrieval
-  └── 成本极度敏感 → 只优化 retrieval，接受一定幻觉
-```
+不要照搬论文数字。应在相同检索结果和生成预算下比较：任务准确率、faithfulness、TTFT、端到端延迟、总输入/输出 token、GPU/API 成本，以及并行失败时的降级行为。
 
-**面试话术：**
-> "微软 2025 年研究发现 67% 的 RAG 问题出在生成阶段而非检索阶段。Speculative RAG 的思路是先让模型'大胆猜'出一个初稿，再反过来逐项验证每个断言有没有文档证据支撑，最后修正缺失和错误。虽然延迟增加了2倍，但幻觉率从 18% 压到 4% 以下，faithfulness 从 62% 提到 82%。适合对准确性要求高的场景。简单查询就不用了，没必要加这层复杂度。"
+**原论文：** [Speculative RAG: Enhancing Retrieval Augmented Generation through Drafting](https://arxiv.org/abs/2407.08223)
 
 </details>
 
 ---
 
-### Q17: LLM-as-a-Judge 是什么？怎么用大模型来做自动化评测？
+### Q18: LLM-as-a-Judge 是什么？怎么用大模型来做自动化评测？
 
 <details>
 <summary>💡 答案要点</summary>

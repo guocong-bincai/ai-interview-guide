@@ -1181,7 +1181,7 @@ variants = llm_paraphrase(
 
 ## 六、TRL v1.0：Hugging Face 2026年3月后训练库重磅更新（Q13）
 
-### Q13: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
+### Q14: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1283,7 +1283,7 @@ trainer.train()
 
 </details>
 
-### Q14: DAPO 和 GSPO 是什么？它们和 GRPO 有什么区别？
+### Q15: DAPO 和 GSPO 是什么？它们和 GRPO 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1324,7 +1324,7 @@ GSPO:
 
 </details>
 
-### Q15: 什么是信用分配问题（Credit Assignment Problem）？token级别和seq级别的奖励有何不同？
+### Q16: 什么是信用分配问题（Credit Assignment Problem）？token级别和seq级别的奖励有何不同？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1370,6 +1370,52 @@ reward_at_step_t = final_reward * gamma^(T-t)
 </details>
 
 ---
+
+### Q17: 训练数据 Packing 是什么？为什么要正确处理 attention mask 和 loss mask？
+
+<details>
+<summary>💡 答案要点</summary>
+
+Packing 把多条短样本拼进同一个固定长度序列，减少 padding、提高 Token 利用率。风险是样本之间互相注意或把用户输入、padding 也计入损失。
+
+实现时要分别确认：样本边界的 attention 是否隔离、只对目标回答计算 loss、EOS 是否正确、位置 ID 是否符合模型实现。用一小批可手算样本检查有效 Token 数和 label 对齐，再比较 packing 前后的 loss 与吞吐。
+
+</details>
+
+### Q18: 学习率、Warmup、梯度裁剪和有效 Batch Size 如何联动？
+
+<details>
+<summary>💡 答案要点</summary>
+
+有效 Batch Size 约为 `micro_batch × gradient_accumulation × data_parallel_size`。增大它会降低梯度噪声，但通常需要重新验证学习率和训练步数。Warmup 用于缓解训练初期参数与优化器状态不稳定；梯度裁剪限制异常梯度，但不能掩盖坏数据或数值溢出。
+
+排查训练发散时应同时观察 loss、gradient norm、学习率、溢出/跳步、不同数据源占比，而不是只把学习率减半。
+
+</details>
+
+### Q19: DDP、FSDP 和 ZeRO 分别解决什么问题？
+
+<details>
+<summary>💡 答案要点</summary>
+
+- DDP 每张卡保存完整模型和优化器状态，主要并行数据；
+- FSDP/ZeRO 将参数、梯度和优化器状态按不同阶段分片，降低单卡显存；
+- 分片越彻底，通信、预取、保存 checkpoint 和故障恢复越复杂。
+
+选型先用显存账本估算参数、梯度、优化器状态、激活和临时 buffer，再结合网络带宽、模型规模和节点数压测。不要只背“ZeRO-3 最省显存”。
+
+</details>
+
+### Q20: 如何判断微调过拟合、数据泄漏或只是评测噪声？
+
+<details>
+<summary>💡 答案要点</summary>
+
+按数据来源、时间、用户和任务去重后划分训练/验证/盲测集，避免同一模板或近重复样本跨集合。训练 loss 下降但盲测退化可能是过拟合；只有单一 Judge 波动可能是评测噪声；测试题或答案进入训练数据则是泄漏。
+
+应同时检查训练/验证曲线、分层任务指标、通用能力回归、多个随机种子和人工抽检。早停、减小学习率、增加数据多样性或混入通用数据都必须通过盲测验证。
+
+</details>
 
 ## 📝 更新记录
 

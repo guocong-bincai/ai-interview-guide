@@ -15,7 +15,7 @@
 
 ## 一、多模态 AI 应用
 
-### Q1: 如何处理多模态输入（图片 + 文字）？举例说明应用场景。
+### Q1: 多模态输入进入复杂 AI 工作流时，如何设计处理与降级链路？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -368,7 +368,7 @@ class CodingAgent:
 
 ## 四、AI 应用调试与问题排查
 
-### Q18: AI 应用出现问题，如何系统性地排查？
+### Q9: AI 应用出现问题，如何系统性地排查？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -411,7 +411,7 @@ class CodingAgent:
 
 </details>
 
-### Q9: 如何调试和优化 Prompt？
+### Q10: 如何调试和优化 Prompt？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -470,7 +470,7 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 
 ## 五、前沿技术趋势
 
-### Q10: 了解哪些 AI 应用开发的前沿技术？
+### Q11: 了解哪些 AI 应用开发的前沿技术？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -568,7 +568,7 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 
 ---
 
-### Q11: LangChain 2026年4月发布了哪些重要新功能？Deep Agents v0.5、Continual Learning、Harness Hill-Climbing有什么区别？
+### Q12: LangChain 2026年4月发布了哪些重要新功能？Deep Agents v0.5、Continual Learning、Harness Hill-Climbing有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -614,7 +614,7 @@ LangChain 工程师分享的生产实践：
 
 </details>
 
-### Q12: 什么是 Process Reward Model（PRM）？为什么 "过程奖励" 对 Agent 推理比 "结果奖励" 更重要？
+### Q13: 什么是 Process Reward Model（PRM）？为什么 "过程奖励" 对 Agent 推理比 "结果奖励" 更重要？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -711,7 +711,7 @@ class ProcessRewardModel:
 
 </details>
 
-### Q13: Evolver是什么？GEP（Genome Evolution Protocol）如何让AI Agent实现自我进化？
+### Q14: Evolver是什么？GEP（Genome Evolution Protocol）如何让AI Agent实现自我进化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -812,7 +812,7 @@ evolver.evolve(genome, taskResults)
 
 ## 十四、Extended Thinking / Reasoning Token Budget（Q14）
 
-### Q14: 什么是 Extended Thinking（扩展思考）？Thinking Token Budget 如何控制 AI 的"思考量"？
+### Q15: 什么是 Extended Thinking（扩展思考）？Thinking Token Budget 如何控制 AI 的"思考量"？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -952,7 +952,7 @@ print(f"本次调用成本: ${(thinking_cost + output_cost) / 1e6:.4f}")
 
 </details>
 
-### Q15: 2026年AI Agent平台市场格局如何？AutoGen/CrewAI/LangGraph/Coze/Dify各有什么定位？企业如何选型？
+### Q16: 2026年AI Agent平台市场格局如何？AutoGen/CrewAI/LangGraph/Coze/Dify各有什么定位？企业如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1277,7 +1277,7 @@ else:
 
 ## 十六、2026年 AI Agent 框架选型指南：n8n vs Dify vs Coze vs LangGraph（Q16）
 
-### Q16: n8n、Dify、Coze、FastGPT、RAGFlow 五大开源Agent平台深度对比：各自定位和技术架构是什么？如何根据场景选型？
+### Q18: n8n、Dify、Coze、FastGPT、RAGFlow 五大开源Agent平台深度对比：各自定位和技术架构是什么？如何根据场景选型？
 
 <details>
 <summary>💡 答案要点</summary>

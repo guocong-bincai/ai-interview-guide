@@ -318,202 +318,57 @@ for case in test_cases:
 
 ## 三、成本优化实战
 
-### Q7: 如何降低 AI 应用的 Token 成本？（实战经验）
+### Q7: 如何给一个 RAG/Agent 应用做威胁建模？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**成本组成：**
-```
-总成本 = 输入 Token + 输出 Token + 检索 Token
-       (30%)      (50%)        (20%)
-```
+先画数据流和信任边界，而不是直接罗列过滤器：用户输入、检索文档、系统 Prompt、模型、工具、凭证、日志和外部返回分别来自哪里，谁能修改，最终会触发什么副作用。
 
-**优化策略：**
+重点分析四类资产：敏感数据、工具权限、模型/Prompt 配置、业务决策结果。对每条跨边界的数据考虑伪造、篡改、泄露、越权和拒绝服务，再把缓解措施放在对应层：身份鉴别、最小权限、内容与参数验证、隔离执行、审批、审计和限额。
 
-| 策略 | 说明 | 节省比例 | 实施难度 |
-|------|------|----------|----------|
-| **语义缓存** | 相似问题直接返回缓存 | 30-50% | ⭐⭐ |
-| **Prompt 压缩** | LLMLingua 压缩检索结果 | 40-90% | ⭐⭐⭐ |
-| **模型路由** | 简单问题用小模型 | 30-40% | ⭐⭐ |
-| **优化检索** | 减少 k 值，只返回最相关 | 20-30% | ⭐ |
-| **流式输出** | 用户满意可提前终止 | 10-15% | ⭐⭐ |
-| **批量处理** | 多个请求合并调用 | 10-20% | ⭐⭐⭐ |
-
-**实战案例：**
-> "我在项目中综合运用了多种优化策略：
-> 1. **语义缓存**：命中率 45%，节省 30% 成本
-> 2. **Prompt 压缩**：用 LLMLingua 压缩检索结果，节省 40%
-> 3. **模型路由**：简单问题用 GPT-4o-mini，复杂问题用 GPT-4，节省 35%
->
-> 综合下来，整体成本降低了 60%，用户体验没有明显下降。"
-
-**缓存实现：**
-```python
-from sentence_transformers import SentenceTransformer
-import redis
-
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-redis_client = redis.Redis()
-
-def semantic_cache(query, threshold=0.95):
-    query_emb = model.encode(query)
-
-    # 检索缓存
-    cached = redis_client.hgetall("cache:queries")
-    for key, value in cached.items():
-        cached_emb = np.frombuffer(key, dtype=np.float32)
-        similarity = cosine_similarity([query_emb], [cached_emb])[0][0]
-
-        if similarity >= threshold:
-            return value  # 返回缓存答案
-
-    return None  # 缓存未命中
-```
+威胁模型的输出应包含攻击路径、影响、现有控制、剩余风险、责任人和验证用例；它不是一张只在评审会上出现的架构图。
 
 </details>
 
-### Q8: 如何设计智能模型路由（Model Router）？
+### Q8: 间接 Prompt Injection 如何导致工具越权或数据外泄？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**路由策略：**
-```
-用户问题 → 意图分类 → 选择模型 → 调用 → 返回答案
-                    ↓
-        ┌───────────┼───────────┐
-        ↓           ↓           ↓
-    简单问题    中等问题     复杂问题
-   (GPT-4o-mini) (Claude)   (GPT-4)
-```
+间接注入来自模型读取的不可信内容，例如网页、邮件、文档或工具返回。攻击文本诱导模型忽略原任务、读取其他数据并调用外部工具发送出去。
 
-**分类维度：**
+防御不能只写“忽略文档里的指令”：
 
-| 维度 | 简单 | 中等 | 复杂 |
-|------|------|------|------|
-| **问题类型** | 打招呼、常识 | 一般问答 | 复杂推理、代码 |
-| **Token 预算** | < 500 | 500-2000 | > 2000 |
-| **延迟要求** | < 1s | 1-3s | > 3s |
-| **推荐模型** | GPT-4o-mini | Claude/Gemini | GPT-4 |
-
-**实现示例：**
-```python
-class ModelRouter:
-    def __init__(self):
-        # 用轻量级模型做分类器
-        self.classifier = load_classifier()
-
-    def route(self, question):
-        # 意图分类
-        intent = self.classifier.predict(question)
-
-        if intent == "simple":
-            return "qwen3.5-flash"
-        elif intent == "medium":
-            return "claude-3-sonnet"
-        else:
-            return "qwen3.5-plus"
-
-    def generate(self, question):
-        model = self.route(question)
-        return call_llm(model, question)
-```
-
-**面试话术：**
-> "我设计的路由系统把问题分成三档，简单问题用便宜模型（GPT-4o-mini），复杂问题用 GPT-4。分类器本身用轻量级 BERT，成本几乎可以忽略。上线后成本降低了 35%，用户体验没有明显下降。"
+1. 把检索内容和工具结果标记为不可信数据，不授予其改变系统策略的权力；
+2. 工具按最小权限拆分，读取和外发能力不要默认同时开放；
+3. 参数经过 schema、资源范围和策略引擎校验；
+4. 跨信任域写操作、批量读取和外发需要确认；
+5. 对工具链做端到端攻击测试和审计，检测异常数据流。
 
 </details>
 
-## 四、LangGraph 工作流
-
-### Q9: LangGraph 和 LangChain 有什么区别？
+### Q9: 如何构建红队测试集，并避免评测集泄漏和过拟合？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**核心区别：**
+测试集应来自真实事故、威胁模型、领域专家和系统化变体生成，并按攻击类型、语言、模态、工具权限和影响分层。开发集用于调规则；保留集由独立人员管理，只在发布门禁运行；线上新攻击经过脱敏后回流。
 
-| 维度 | LangChain | LangGraph |
-|------|-----------|-----------|
-| **定位** | 链式调用 | 图状工作流 |
-| **控制流** | 线性 | 支持循环和分支 |
-| **状态管理** | 简单 | 持久化状态 |
-| **适用场景** | 简单任务 | 复杂 Agent 编排 |
-| **调试** | 困难 | 可视化追踪 |
-
-**LangGraph 优势：**
-1. **循环支持**：Agent 可以反复思考直到任务完成
-2. **状态持久化**：支持长时间运行的任务
-3. **可视化**：可以查看工作流执行过程
-4. **分支逻辑**：根据条件走不同路径
-
-**面试话术：**
-> "LangChain 适合简单的链式调用，LangGraph 适合复杂的 Agent 编排。特别是需要循环和状态管理的场景，比如多轮对话、任务规划，LangGraph 更有优势。"
+不要只报告“拦截率”。还要报告正常请求误拒率、攻击成功率、敏感数据泄漏率、危险工具执行率及绕过后的影响。若团队反复根据同一保留集调 Prompt，保留集已经失效，需要轮换或建立新的盲测集。
 
 </details>
 
-### Q10: 如何用 LangGraph 实现一个多轮对话 Agent？
+### Q10: LLM-as-a-Judge 用于安全评估时如何校准？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**核心概念：**
-```
-┌─────────────────────────────────────────────────────────┐
-│                   LangGraph 工作流                        │
-└─────────────────────────────────────────────────────────┘
+先让领域专家对一批代表性样本独立标注，再比较 Judge 的准确率、一致性、各类别召回率和严重错误。Rubric 应描述可观察行为与证据，不使用“整体是否安全”这种模糊问题。
 
-State（状态）→ Node（节点）→ Edge（边）→ Graph（图）
-```
-
-**实现示例：**
-```python
-from langgraph.graph import StateGraph, END
-from typing import TypedDict, Annotated
-import operator
-
-# 定义状态
-class AgentState(TypedDict):
-    messages: Annotated[list, operator.add]
-    current_step: str
-
-# 定义节点
-def chat_node(state):
-    response = llm.generate(state["messages"])
-    return {"messages": [response]}
-
-def tool_node(state):
-    # 调用工具
-    tool_result = call_tool(state["messages"][-1])
-    return {"messages": [tool_result]}
-
-# 定义边（条件路由）
-def should_continue(state):
-    if has_tool_call(state["messages"][-1]):
-        return "tool"
-    else:
-        return END
-
-# 构建图
-workflow = StateGraph(AgentState)
-workflow.add_node("chat", chat_node)
-workflow.add_node("tool", tool_node)
-workflow.set_entry_point("chat")
-workflow.add_conditional_edges("chat", should_continue)
-workflow.add_edge("tool", "chat")
-
-# 编译运行
-app = workflow.compile()
-result = app.invoke({"messages": ["你好"], "current_step": "start"})
-```
-
-**面试话术：**
-> "我用 LangGraph 实现了一个多轮对话 Agent，状态管理用 TypedDict 定义，节点处理不同任务，边控制流程。特别是条件路由，可以根据 Agent 的决策动态选择下一步，非常灵活。"
+评测时固定模型版本和 Prompt，随机交换候选顺序，防止位置偏差；把用户输入和被评回答当作引用数据包裹，降低对 Judge 的注入；高风险类别保留人工复核。Judge 适合扩大评测规模，但不能替代安全策略和人工责任。
 
 </details>
-
-### Q11: 什么是越狱攻击(Jailbreak)?如何防御?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -790,7 +645,7 @@ def run_redteam_test():
 
 ---
 
-## 12. LLM幻觉(Hallucination)如何产生?如何缓解?
+## 11. LLM幻觉(Hallucination)如何产生?如何缓解?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1115,7 +970,7 @@ def safe_customer_service(query):
 
 ---
 
-## 13. Prompt注入攻击如何工作?如何防御?
+## 12. Prompt注入攻击如何工作?如何防御?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1426,7 +1281,7 @@ Bing Chat回答:
 
 ---
 
-## 14. LLM评估指标有哪些?如何评估生成质量?
+## 13. LLM评估指标有哪些?如何评估生成质量?
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1852,7 +1707,7 @@ def evaluate_dialogue(conversation):
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-04-06
 
-### Q12: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
+### Q14: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1980,7 +1835,7 @@ results = eval_llm.evaluate(
 
 </details>
 
-### Q13: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
+### Q15: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2171,7 +2026,7 @@ alerts:
 
 ## 五、Agent Harness Engineering：AI Agent评估框架与安全测试（Q12）
 
-### Q14: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
+### Q16: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2375,7 +2230,7 @@ Agent Harness：评估"自主行为"
 
 ## 七、神经符号融合：2026年幻觉控制新范式
 
-### Q15: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
+### Q17: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2495,7 +2350,7 @@ AlphaFold 3：
 
 *版本: v2.7 | 更新: 2026-04-13 | by 二狗子 🐕*
 
-### Q16: 为什么有人说"对齐（Alignment）是笑话"？2026年对齐失效的四大"护城河"为何都在崩塌？
+### Q18: 为什么有人说"对齐（Alignment）是笑话"？2026年对齐失效的四大"护城河"为何都在崩塌？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2587,7 +2442,7 @@ AlphaFold 3：
 
 ---
 
-### Q17: N-Day-Bench是什么？和传统安全基准测试有什么区别？2026年LLM漏洞发现能力如何衡量？
+### Q19: N-Day-Bench是什么？和传统安全基准测试有什么区别？2026年LLM漏洞发现能力如何衡量？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2625,7 +2480,7 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 
 ## 六、Google Research 行为对齐评估：Behavioral Dispositions Framework（Q10）
 
-### Q18: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
+### Q20: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2674,7 +2529,7 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 
 </details>
 
-### Q19: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
+### Q21: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2761,7 +2616,7 @@ Wirken 安全思路（正确）：
 
 ## 二十、2026年 Prompt Injection 七类攻击模式 + RAG 投毒防御（Q19）
 
-### Q20: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
+### Q22: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2972,7 +2827,7 @@ AI 读取图片 → 解析像素中的隐写信息 → 执行指令
 
 ## 二十一、2026年 Agent 评估平台对比：Braintrust vs DeepEval vs Weave vs Langfuse vs Arize（Q20）
 
-### Q21: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
+### Q23: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3183,7 +3038,7 @@ print(f"答案相关性: {result.answer_relevancy:.2%}")
 
 ## 二十一、RAG 评估生命周期：为什么 RAGAS → DeepEval → Patronus 是 2026 年标准路径？（Q21）
 
-### Q21: RAG 评估的完整生命周期是什么？为什么 RAGAS → DeepEval → Patronus 是 2026 年生产级 RAG 的标准路径？
+### Q24: RAG 评估的完整生命周期是什么？为什么 RAGAS → DeepEval → Patronus 是 2026 年生产级 RAG 的标准路径？
 
 **核心概念：RAG 评估是分层级的，不同时机用不同工具**
 
@@ -3291,7 +3146,7 @@ def test_rag_faithfulness():
 - Patronus AI: https://www.patronus.ai
 - RAG Evaluation 2026 Guide: https://datavlab.ai/post/rag-evaluation-methods-metrics-2026-guide
 
-### Q22: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
+### Q25: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3420,7 +3275,7 @@ def safe_plugin_execute(plugin, user_input, policy):
 
 ---
 
-### Q24: EU AI Act 高风险条款 2026年8月2日全面生效意味着什么？中国 AI 应用开发团队出海欧盟需要做哪些合规准备？
+### Q26: EU AI Act 高风险条款 2026年8月2日全面生效意味着什么？中国 AI 应用开发团队出海欧盟需要做哪些合规准备？
 
 **考点：** AI 合规、风险分级、GPAI 义务、出海合规意识（2026 年 8 月热点）
 
@@ -3489,7 +3344,7 @@ def safe_plugin_execute(plugin, user_input, policy):
 
 ---
 
-### Q25: 什么是模型蒸馏攻击（Model Distillation Attack / 对抗性蒸馏）？它和普通蒸馏的本质区别是什么？如何防御？
+### Q27: 什么是模型蒸馏攻击（Model Distillation Attack / 对抗性蒸馏）？它和普通蒸馏的本质区别是什么？如何防御？
 
 **考点：** AI 安全、模型知识产权保护、蒸馏原理、API 滥用防护（2026 年 8 月热点）
 

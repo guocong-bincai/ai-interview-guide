@@ -1359,6 +1359,52 @@ Mamba（选择性）：h_t = A(x_t)h_{t-1} + B(x_t)x_t  ← 输入决定参数
 
 ---
 
+### Q11: MHA、MQA 和 GQA 有什么区别？为什么推理系统常用 GQA？
+
+<details>
+<summary>💡 答案要点</summary>
+
+- MHA 为每个 Query head 配置独立的 Key/Value head，表达能力强，但 KV Cache 较大；
+- MQA 让所有 Query head 共享一组 Key/Value，显著减少 KV Cache 和内存带宽，可能损失质量；
+- GQA 将 Query head 分组，每组共享 Key/Value，是两者之间的折中。
+
+KV Cache 大小与 `层数 × 序列长度 × KV head 数 × head_dim × K/V × dtype` 近似成正比。选型不能只说 GQA 更快，还要比较模型质量、批量大小、长上下文和硬件带宽。
+
+</details>
+
+### Q12: Transformer 的 FFN 做什么？SwiGLU 为什么常见？
+
+<details>
+<summary>💡 答案要点</summary>
+
+Attention 在 Token 之间混合信息，FFN 则对每个 Token 的通道维度独立做非线性变换，通常占据模型的大量参数和计算。SwiGLU 使用门控分支控制信息通过，与 ReLU/GELU FFN 相比常能改善训练效果，但参数量和中间维度的比较必须使用等预算设置。
+
+常见追问包括：为什么 FFN 可以逐 Token 并行、门控分支如何计算、MoE 替换的是哪一部分。
+
+</details>
+
+### Q13: Pre-Norm、Post-Norm 和 RMSNorm 有什么关系？
+
+<details>
+<summary>💡 答案要点</summary>
+
+Pre/Post 描述归一化在残差分支前还是后；LayerNorm/RMSNorm 描述归一化算子本身，二者不是同一维度。Pre-Norm 通常更容易训练深层网络，因为残差主路径更直接；Post-Norm 是原始 Transformer 形式，但深层训练往往更敏感。RMSNorm 不减均值，只按均方根缩放，计算更简单。
+
+面试中应画出残差公式，并说明训练稳定性结论还受初始化、残差缩放和优化器影响。
+
+</details>
+
+### Q14: RoPE 长度外推为什么会退化？常见扩展方法如何验证？
+
+<details>
+<summary>💡 答案要点</summary>
+
+当推理位置超过训练分布时，旋转频率和相对位置模式发生分布外变化；即使模型接口允许更长上下文，也不代表能稳定利用中间信息。位置插值、NTK-aware scaling、YaRN 等方法通过调整位置或频率降低外推难度，但可能牺牲短上下文表现。
+
+验证不能只做 needle test，还要覆盖长文档问答、多跳检索、位置分桶、困惑度、短上下文回归和显存/延迟。
+
+</details>
+
 ## 📝 更新记录
 
 | 日期 | 更新内容 |

@@ -12,270 +12,13 @@
 
 ## 一、基础概念题
 
-### Q1: 什么是 AI Agent？核心组件是什么？
+## 前置知识
 
-<details>
-<summary>💡 答案要点</summary>
+本模块默认已经掌握单 Agent 的定义、ReAct、Function Calling、循环控制和记忆。对应主答案见 [AI Agent 基础](../05-ai-agent-basics/)。
 
-**AI Agent = 能自主决策和行动的 AI**
+多 Agent 面试的重点不是把多个单 Agent 放在一起，而是说明任务为什么值得拆分，以及拆分后如何处理通信、状态、一致性、权限、成本和部分失败。
 
-**核心组件：**
-```
-┌─────────────────────────────────────────┐
-│              AI Agent                   │
-├─────────────────────────────────────────┤
-│  1. LLM（大脑）   - 负责决策和推理       │
-│  2. Tools（工具） - 负责执行（API/DB）   │
-│  3. Memory（记忆）- 短期 + 长期记忆      │
-│  4. Planning（规划）- 任务分解和反思     │
-└─────────────────────────────────────────┘
-```
-
-**面试话术：**
-> "Agent 和普通 LLM 的区别在于：LLM 只能说话，Agent 能干活。Agent 通过调用工具（搜索、API、数据库）完成实际任务。"
-
-</details>
-
-### Q2: ReAct 模式是什么？完整流程是什么？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**ReAct = Reasoning + Acting（推理 + 行动）**
-
-**完整流程：**
-```
-1. Thought（思考）：分析当前情况，决定下一步
-2. Action（行动）：调用工具（搜索、API、数据库等）
-3. Observation（观察）：获取工具返回结果
-4. 循环 1-3，直到任务完成
-5. Final Answer（最终答案）
-```
-
-**Prompt 示例：**
-```
-你可以使用以下工具：
-- search: 搜索网络信息
-- calculator: 计算数学表达式
-- database: 查询数据库
-
-格式：
-Thought: 你的思考
-Action: 工具名称
-Action Input: 工具参数
-Observation: 工具返回
-...（重复）
-Final Answer: 最终答案
-
-问题：{question}
-```
-
-**适用场景：** 需要多步推理 + 外部工具的任务
-
-</details>
-
-### Q3: Function Calling 的原理是什么？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**Function Calling = 让 LLM 调用外部函数**
-
-**原理：**
-1. **定义工具 Schema**（函数名、参数、描述）
-2. **注册工具**（在 LLM 调用时传入 tools 参数）
-3. **解析调用**（解析 LLM 返回的 function_call）
-4. **执行工具**（调用实际 API 获取数据）
-5. **返回结果**（将 API 结果返回给 LLM 生成最终答案）
-
-**面试话术：**
-> "Function Calling 的本质是将非结构化的自然语言转化为结构化的 JSON。在实战中，我通过它实现了自然语言直接查询 SQL 数据库，极大地降低了非技术人员的使用门槛。"
-
-</details>
-
-## 二、设计模式题
-
-### Q4: 如何防止 Agent 进入死循环？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**问题原因：**
-1. 工具调用失败，Agent 重复尝试
-2. 任务太复杂，Agent 无法完成
-3. Prompt 设计不好，Agent 理解错误
-
-**解决方案：**
-```python
-max_iterations = 10
-iteration = 0
-visited = set()  # 记录已执行的动作
-
-while iteration < max_iterations:
-    action = agent.thought()
-    if action in visited:
-        break  # 检测到循环
-    visited.add(action)
-    result = agent.act(action)
-    iteration += 1
-```
-
-**防护措施：**
-1. 最大轮次限制（如最多 10 轮）
-2. 超时机制（如 60 秒无进展则停止）
-3. 工具调用去重（记录已调用的工具 + 参数）
-4. 反思机制（让 Agent 评估当前进展）
-5. 人工介入（复杂任务允许用户中断）
-
-</details>
-
-### Q5: Plan-and-Execute 和 ReAct 有什么区别？
-
-<details>
-<summary>💡 答案要点</summary>
-
-| 维度 | ReAct | Plan-and-Execute |
-|------|-------|------------------|
-| **流程** | 思考→行动→观察（循环） | 先规划→再执行 |
-| **可控性** | 低（动态决策） | 高（预先规划） |
-| **可解释性** | 中 | 高（计划可见） |
-| **适用场景** | 探索性任务 | 确定性任务 |
-
-**Plan-and-Execute 流程：**
-```
-1. Planner：把大任务分解成小步骤
-   ["步骤 1: 搜索天气", "步骤 2: 查询航班", "步骤 3: 预订酒店"]
-
-2. Executor：一步步执行计划
-   执行步骤 1 → 执行步骤 2 → 执行步骤 3
-
-3. 可选：动态调整计划（如果执行失败）
-```
-
-</details>
-
-### Q6: 多 Agent 协作怎么设计？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**典型架构：**
-```
-┌─────────────────────────────────────────────────────────┐
-│                  多 Agent 协作系统                        │
-└─────────────────────────────────────────────────────────┘
-
-用户问题
-    │
-    ▼
-┌─────────────┐
-│ Coordinator │ ← 协调者（分配任务）
-└──────┬──────┘
-       │
-       ├──────────────┬──────────────┬──────────────┐
-       ▼              ▼              ▼              ▼
-┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
-│ Researcher│  │  Writer   │  │  Reviewer │  │  Executor │
-│ 研究员     │  │  写手      │  │  审核员    │  │  执行者    │
-└───────────┘  └───────────┘  └───────────┘  └───────────┘
-```
-
-**实战案例：**
-> "我在项目中设计了一个内容创作 Agent 系统：
-> - Researcher：搜索网络信息
-> - Writer：根据检索内容写作
-> - Reviewer：检查内容质量和合规性
-> - Executor：发布到各个平台
->
-> 通过多 Agent 协作，内容生产效率提升了 3 倍。"
-
-</details>
-
-## 三、工程实践题
-
-### Q7: 你设计过哪些类型的 Agent？
-
-<details>
-<summary>💡 高分回答</summary>
-
-**案例 1：客服 Agent**
-```
-功能：自动回答用户咨询
-架构：意图识别 → RAG 检索 → 答案生成 → 人工兜底
-成果：解决 80% 常见问题，人工成本降低 60%
-```
-
-**案例 2：数据分析 Agent**
-```
-功能：自然语言查询数据库
-架构：NL2SQL → SQL 执行 → 结果可视化
-成果：非技术人员也能自助分析数据
-```
-
-**案例 3：代码生成 Agent**
-```
-功能：根据需求生成代码
-架构：需求理解 → 代码生成 → 单元测试 → 自动修复
-成果：简单功能开发效率提升 50%
-```
-
-</details>
-
-### Q8: Agent 的 Memory 怎么设计？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**短期记忆：**
-- 存储最近 N 轮对话
-- 用列表或环形缓冲区
-- 超出限制时总结或截断
-
-**长期记忆：**
-- 存储重要信息到向量数据库
-- 按需检索相关记忆
-- 支持遗忘机制（删除过期记忆）
-
-**实现示例：**
-```python
-class AgentMemory:
-    def __init__(self):
-        self.short_term = []  # 最近 10 轮对话
-        self.long_term = VectorStore()  # 向量数据库
-
-    def add(self, message):
-        self.short_term.append(message)
-        if len(self.short_term) > 10:
-            # 总结后存入长期记忆
-            summary = self.summarize(self.short_term[:5])
-            self.long_term.add(summary)
-            self.short_term = self.short_term[5:]
-
-    def get(self, query):
-        # 检索相关长期记忆
-        memories = self.long_term.search(query, k=3)
-        return memories + self.short_term
-```
-
-</details>
-
-## 四、高分回答模板
-
-### 🌟 谈 Agent 时的"高分点金石"
-
-**不要只说：** "Agent 会调用工具"
-
-**要这样说：**
-> "我认为 Agent 的核心在于闭环。模型生成答案后，我会设计一个 Reviewer 节点让它自我检查：'这个答案是否满足用户所有要求？'，如果不满足则重新执行。这种反思机制让 Agent 的可靠性提升了 40%。"
-
-### 🌟 谈 Function Calling 时的"高分点金石"
-
-**不要只说：** "调用外部 API"
-
-**要这样说：**
-> "Function Calling 的本质是将非结构化的自然语言转化为结构化的 JSON。在实战中，我通过它实现了自然语言直接查询 SQL 数据库，极大地降低了非技术人员的使用门槛。同时我加入了权限校验和参数白名单，防止 Agent 越权访问。"
-
-## 9. AutoGen如何实现对话式多Agent协作?
+### Q1: AutoGen 如何实现对话式多 Agent 协作？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -613,7 +356,7 @@ user_proxy.initiate_chat(
 
 ---
 
-## 10. CrewAI如何实现角色驱动的Agent协作?
+### Q2: CrewAI 如何实现角色驱动的 Agent 协作？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -944,7 +687,7 @@ result = hiring_crew.kickoff(inputs={
 
 ---
 
-## 11. 企业级Agent架构设计（2026年高频考点）
+### Q3: 企业级多 Agent 架构需要考虑哪些核心问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1188,7 +931,7 @@ class AgentFailover:
 
 ---
 
-## 12. Agent Policy Engine：企业级Agent安全与权限控制（2026年考点）
+### Q4: 多 Agent 系统如何设计 Policy Engine、权限和审计？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1375,7 +1118,7 @@ class ProductionPolicyEngine:
 
 ---
 
-## 13. Microsoft Agent Governance Toolkit（2026年4月开源发布）
+### Q5: Agent 治理工具应该解决哪些问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1484,7 +1227,7 @@ Agent Governance Toolkit负责"规则执行"（动态）
 
 ---
 
-## 12. 企业级AI四层黄金架构：RAG → Agents → MCP → A2A（2026高频考点）
+### Q6: RAG、Agent、MCP 与 A2A 的职责边界是什么？
 
 > **难度：** ⭐⭐⭐⭐⭐  
 > **更新：** 2026-04-06
@@ -1611,7 +1354,7 @@ Step 4: 搭建A2A体系（多Agent规模化协同）
 
 ---
 
-### Q9: 如何用A2A协议实现企业级多Agent编排？Agent发现和任务委托流程是什么？
+### Q7: 如何用 A2A 协议实现 Agent 发现、任务委托和状态查询？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1722,7 +1465,7 @@ class A2AGateway:
 
 ---
 
-## 13. Agent 成熟度模型：L1-L5 能力分级框架（2026 高频考点）
+### Q8: 如何定义 Agent 系统的成熟度？
 
 > **难度：** ⭐⭐⭐⭐  
 > **更新：** 2026-04-06
@@ -1788,7 +1531,7 @@ class A2AGateway:
 
 ## 十四、A2A + MCP 混合架构：2026年多智能体生产部署策略（Q14）
 
-### Q10: 如何设计 A2A + MCP 混合架构？企业级多智能体生产部署有哪些核心检查项？
+### Q9: 如何设计 A2A + MCP 混合架构？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2010,7 +1753,7 @@ Agent Card 发布在 `/.well-known/agent.json`，供其他 Agent 发现和对接
 
 ## 十四、多Agent三大架构模式：Commander/P2P/Hybrid与五种协议对比（Q14）
 
-### Q11: 多Agent系统有哪些主流架构模式？Commander、P2P、Hybrid三种模式各适合什么场景？CrewAI/AutoGen/LangGraph/MCP/A2A如何选择？
+### Q10: Commander、P2P、Hybrid 三种协作模式如何选择？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2207,7 +1950,7 @@ CLI工具编排（tmux/ssh场景）？
 
 ## 十五、ArXiv 2026年4月AI Agent前沿：五大研究热点与生产启示（Q16）
 
-### Q12: 2026年4月ArXiv有哪些值得关注的AI Agent研究？HippoCamp/OmniMem/HERA/BloClaw/NARCBench各自代表了什么方向？
+### Q11: 如何判断一篇多 Agent 研究是否值得工程落地？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2354,7 +2097,7 @@ NARCBench        多智能体系统需要安全审计，
 
 ## 十六、Google Research 双Agent框架：PaperVizAgent + ScholarPeer（Q17）
 
-### Q13: PaperVizAgent 的五Agent架构是什么？为什么"Critic循环"是生成高质量学术图表的关键？
+### Q12: Critic/Verifier Agent 为什么可能提升质量，又可能造成什么问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2421,7 +2164,7 @@ AI 可以帮研究者写文字，但生成顶会/期刊需要的复杂方法图�
 
 ## 十八、Agent Skills vs Tools 区别 + 2026 年 Skills 架构实战（Q18）
 
-### Q14: 什么是 Agent Skills？为什么 2026 年"Skills"成为独立概念？和 Tools 有什么区别？Dify Nacos A2A 插件解决什么问题？
+### Q13: Agent Skills 和 Tools 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2604,7 +2347,7 @@ result = agent.run("客户张先生反映最近订单发货延迟")
 
 *版本: v2.9 | 更新: 2026-05-09 | by 二狗子 🐕*
 
-### Q15: A2A 和 MCP 协议边界在哪里？什么场景必须 A2A+MCP 混合，不能只用某一个？
+### Q14: A2A 和 MCP 的协议边界在哪里？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2699,7 +2442,7 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 
 ## 八、多Agent职责划分与层级任务分解（Q20）
 
-### Q16: 多 Agent 系统中职责划分（Role Assignment）和层级任务分解（Hierarchical Decomposition）是什么？为什么 2026 年企业级 Agent 系统必须用"层级"而不是"扁平"架构？HTTP 协议如何影响多 Agent 通信设计？
+### Q15: 如何做职责划分和层级任务分解？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2866,7 +2609,7 @@ L1 Manager Agent：
 
 </details>
 
-### Q17: Kimi K2.6 的 Agent Swarm 架构是什么？为什么"300个并行子Agent"是2026年多Agent系统的重大突破？
+### Q16: 大规模并行 Agent 的收益和瓶颈是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2981,7 +2724,7 @@ result = k2.6_swarm.research(
 
 ---
 
-### Q22: OpenAI GPT-5.6 Sol 的 Ultra 模式是什么？为什么"运行时动态多智能体编排"是 2026 年测试时计算扩展的新方向？
+### Q17: 运行时动态多 Agent 编排如何控制质量、延迟和成本？
 
 **考点：** 多Agent架构、测试时计算扩展、Orchestrator-SubAgent 模式、推理成本控制
 
@@ -3067,11 +2810,11 @@ Ultra 模式：
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 🆕 | [🤖 多智能体协作（新增Q22）](docs/13-multi-agent-systems/) | Q22 OpenAI GPT-5.6 Sol Ultra 模式（2026年7月）：运行时动态多Agent编排、max vs ultra 推理档位、独立上下文+独立推理预算、与Claude Managed Agents对比、基准数据 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🤖 多智能体协作（新增Q22）](./) | Q22 OpenAI GPT-5.6 Sol Ultra 模式（2026年7月）：运行时动态多Agent编排、max vs ultra 推理档位、独立上下文+独立推理预算、与Claude Managed Agents对比、基准数据 | 🔥🔥🔥🔥🔥 | +1 |
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
-| 🆕 | [🎨 多模态应用（新增Q20）](docs/11-multimodal-ai/) | Q20 Gemini 3.5 Flash（Google I/O 2026）：首个结合前沿智能+原生Agentic能力的Flash模型、4x速度、Coding/Agentic/Multimodal基准超越Gemini 3.1 Pro、Google Agent全家桶 | 🔥🔥🔥🔥🔥 | +1 |
-| 🆕 | [🤖 多智能体协作（新增Q21）](docs/13-multi-agent-systems/) | Q21 Kimi K2.6 Agent Swarm（2026年5月）：300个并行子Agent、4000步并发执行、与传统多Agent架构对比、生产级场景代码、K2.6 vs K2.5升级 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🎨 多模态应用（新增Q20）](../11-multimodal-ai/) | Q20 Gemini 3.5 Flash（Google I/O 2026）：首个结合前沿智能+原生Agentic能力的Flash模型、4x速度、Coding/Agentic/Multimodal基准超越Gemini 3.1 Pro、Google Agent全家桶 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🤖 多智能体协作（新增Q21）](./) | Q21 Kimi K2.6 Agent Swarm（2026年5月）：300个并行子Agent、4000步并发执行、与传统多Agent架构对比、生产级场景代码、K2.6 vs K2.5升级 | 🔥🔥🔥🔥 | +1 |
 
 *版本: v3.126 | 更新: 2026-06-01 | by 二狗子 🐕*

@@ -1625,125 +1625,22 @@ print(f"等待队列长度: {metrics.waiting_queue_size}")
 
 ---
 
-### Q12: 2026 年主流推理框架横评：vLLM 0.5 vs TGI 2.0 vs TensorRT-LLM 1.8 vs SGLang
+### Q14: 推理优化应该关注哪些指标？TTFT、TPOT、ITL 和吞吐如何权衡？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**2026 年主流推理框架最新版本对比：**
+- **TTFT（Time to First Token）**：从请求进入到首个 Token 返回，受排队、Prefill 和调度影响；
+- **TPOT（Time per Output Token）**：生成阶段平均每个输出 Token 的耗时；
+- **ITL（Inter-Token Latency）**：相邻 Token 的间隔，P95/P99 能反映流式输出是否卡顿；
+- **吞吐**：必须区分 requests/s、input tok/s 和 output tok/s；
+- **端到端延迟**：同时受到输入长度、输出长度、工具调用和网络影响。
 
-| 框架 | 最新版本 | 核心优化 | 吞吐量 | 延迟 | 易用性 | 适用场景 |
-|------|----------|----------|--------|------|--------|----------|
-| **vLLM** | 0.5 | PagedAttention + Continuous Batching + Dist-belief | ~90% GPU利用率 | 中低 | ⭐⭐⭐⭐⭐ | 通用场景，生产首选 |
-| **TGI** | 2.0 | FlashAttention 3 + 量化优化 + 动态Batching | ~75% | 低 | ⭐⭐⭐⭐ | HuggingFace 模型首选 |
-| **TensorRT-LLM** | 1.8 | FP8量化 + CUDA Graph + Tensor并行 | ~95% | 极低 | ⭐⭐（配置复杂） | 低延迟场景，高性能需求 |
-| **SGLang** | 0.4 | RadixAttention（Prefix Cache）+ Continuous Batching | ~88% | 中低 | ⭐⭐⭐⭐ | 长上下文，API 服务 |
-| **DeepSpeed-MII** | 0.9 | DeepSpeed 推理优化 + 多节点 | ~85% | 中 | ⭐⭐⭐ | 企业多节点部署 |
+提高批量大小通常增加吞吐，但可能恶化 TTFT；Chunked Prefill 能减少长 Prefill 对其他请求的阻塞，但会增加调度复杂度；量化可以减少显存和带宽，却可能带来质量回退。优化目标应写成带约束的问题，例如“在任务成功率不下降且 P95 TTFT 小于目标值时最大化 output tok/s”。
 
-**各框架核心特色：**
-
-| 框架 | 第一优势 | 独特技术 |
-|------|----------|----------|
-| **vLLM** | 显存利用率 | PagedAttention（分页 KV Cache） |
-| **TGI** | HuggingFace 兼容 | 原生支持 Transformers 模型 |
-| **TensorRT-LLM** | 极致性能 | FP8 Kernel Fusion + Tensor并行 |
-| **SGLang** | 长上下文 | RadixAttention（自动 Prefix Cache） |
-| **DeepSpeed-MII** | 多节点 | 分布式推理优化 |
-
-**实测性能对比（A100-80GB，Llama-3-70B）：**
-
-| 框架 | 吞吐量(req/s) | 首 token 延迟 | 吞吐延迟积(TPOT) | 显存占用 |
-|------|----------------|--------------|------------------|----------|
-| vLLM 0.5 | 245 | 120ms | 8ms | 68GB |
-| TGI 2.0 | 180 | 95ms | 10ms | 72GB |
-| TensorRT-LLM 1.8 | 310 | 65ms | 5ms | 62GB |
-| SGLang 0.4 | 220 | 110ms | 9ms | 65GB |
-
-**选型建议：**
-
-```
-追求最佳性价比 → vLLM 0.5（吞吐量最高，配置简单）
-极致低延迟 → TensorRT-LLM 1.8（FP8 + Kernel Fusion）
-长上下文场景 → SGLang 0.4（RadixAttention 自动复用）
-快速原型验证 → TGI 2.0（HuggingFace 无缝对接）
-多节点企业部署 → DeepSpeed-MII 0.9
-```
-
-**面试话术：**
-> "2026 年推理框架竞争激烈，vLLM 0.5 通过 PagedAttention 把显存利用率提升到 90%，SGLang 0.4 用 RadixAttention 解决了长上下文的 Prefix Cache 问题，TensorRT-LLM 1.8 的 FP8 量化是低延迟场景的终极方案。我生产环境用 vLLM 部署，8 卡 A100 稳定跑 200+ QPS；如果是延迟敏感场景（如在线对话），会考虑 TensorRT-LLM。"
+跨框架横评和完整 Benchmark 方法见 [推理框架 Q17-Q18](../19-inference-frameworks/#十推理框架基准测试方法)。
 
 </details>
-
----
-
-## 五、速记卡片
-
-### 推理基础
-
-| 概念 | 一句话解释 |
-|------|------------|
-| **Prefill** | 并行计算 prompt 的 KV，计算密集 |
-| **Decode** | 串行生成 token，访存密集 |
-| **KV Cache** | 缓存历史 token 的 KV，避免重复计算 |
-| **Memory-bound** | 推理瓶颈在内存带宽，不在算力 |
-
-### KV Cache 优化
-
-| 技术 | 原理 | 效果 |
-|------|------|------|
-| **KV 量化** | INT8/INT4 存储 KV | 节省 50-75% 显存 |
-| **PagedAttention** | 分页管理，动态分配 | 提升 2.4x 吞吐 |
-| **Prefix Sharing** | 共享 System Prompt | 节省 60% 显存 |
-
-### 模型量化
-
-| 精度 | 占用 | 适用场景 |
-|------|------|----------|
-| **FP16** | 2B | 基准 |
-| **INT8** | 1B | 平衡 |
-| **INT4** | 0.5B | 极致压缩 |
-| **GPTQ** | INT4 | 最优解，慢 |
-| **AWQ** | INT4 | 快速，实用 |
-
-### 推理加速
-
-| 技术 | 原理 | 加速比 |
-|------|------|--------|
-| **FlashAttention** | 分块计算，减少 I/O | 3-6x |
-| **Continuous Batching** | 动态批处理 | 2-3x |
-| **Speculative Decoding** | 小模型猜，大模型验证 | 2-4x |
-| **Medusa** | 单模型多预测头 | 2-3x |
-
-### 推理框架（2026）
-
-| 框架 | 特色 | 适用场景 |
-|------|------|----------|
-| **vLLM 0.5** | PagedAttention，通用首选 | 生产环境 |
-| **TensorRT-LLM 1.8** | FP8 极低延迟 | 在线推理 |
-| **SGLang 0.4** | RadixAttention，长上下文 | Agent 服务 |
-| **TGI 2.0** | HuggingFace 兼容 | 快速原型 |
-
-## 📝 更新记录
-
-| 日期 | 更新内容 |
-|------|----------|
-| 2026-04-25 | 新增 Q14：Prefix Caching / RadixAttention（长上下文推理必备优化） |
-| 2026-04-03 | 新增 Q12：2026 年主流推理框架横评（vLLM 0.5 / TGI 2.0 / TensorRT-LLM 1.8 / SGLang） |
-| 2026-03-05 | 新增 LLM 推理优化面试题 10 道 |
-
-
----
-
-**上一模块：** [模型训练](../07-model-training/)
-**下一模块：** [AI 安全评估](../09-ai-safety-evaluation/)
-
----
-
-[返回目录 →](../../README.md)
-
----
-
-### Q13: Google TurboQuant是什么？它如何实现KV Cache零损失压缩？和PagedAttention有什么关系？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1792,7 +1689,7 @@ TurboQuant 是 Google 2026年4月发布的向量量化压缩算法，发表在 I
 
 </details>
 
-### Q14: 什么是 Prefix Caching 和 RadixAttention？为什么长上下文场景必须用它？
+### Q15: 什么是 Prefix Caching 和 RadixAttention？为什么长上下文场景必须用它？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1909,7 +1806,7 @@ Prefill延迟(16K):      2.3s              0.4s
 
 </details>
 
-### Q15: 什么是 Attention Matching？MIT 如何实现 KV Cache 50倍无损压缩？2026年 KV Cache 优化技术有哪些新方向？
+### Q16: 什么是 Attention Matching？MIT 如何实现 KV Cache 50倍无损压缩？2026年 KV Cache 优化技术有哪些新方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2022,7 +1919,7 @@ KV Cache 优化五大方向：
 
 ## 十六、vLLM v1 + PD分离架构 + Mooncake 生产部署（Q16）
 
-### Q16: vLLM v1的PD分离架构是什么？Mooncake + LMCache如何实现KV Cache跨节点传输？生产环境如何部署？
+### Q17: vLLM v1的PD分离架构是什么？Mooncake + LMCache如何实现KV Cache跨节点传输？生产环境如何部署？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2202,7 +2099,7 @@ llm = LLM(
 
 ---
 
-### Q17: 什么是 Continuous Batching 和 Chunked Prefill？2026 年为什么它们是推理引擎的核心优化？
+### Q18: 什么是 Continuous Batching 和 Chunked Prefill？2026 年为什么它们是推理引擎的核心优化？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2267,10 +2164,10 @@ Chunked Prefill：
                     ↑ 新请求可以更快进入
 ```
 
-**2026 年 vLLM 0.5 的 Chunked Prefill 实现：**
+**配置示意（参数名随框架版本变化，使用前查官方文档）：**
 
 ```python
-# vLLM 0.5 chunked prefill 配置
+# vLLM 风格的 chunked prefill 配置示意
 config = {
     "chunked_prefill": {
         "max_chunk_size": 4096,  # 每块 4K tokens
@@ -2309,11 +2206,10 @@ vllm serve meta-llama/Llama-4-17B
 
 **面试话术：**
 
-> "2026 年推理引擎的核心优化是 Continuous Batching + Chunked Prefill 的组合拳。Continuous Batching 解决'谁先完成谁先走'的资源动态分配问题，Chunked Prefill 解决'长序列预填充阻塞新请求'的延迟问题。实际生产中，vLLM 0.5 启用这两个特性后，GPU 利用率从 50% 提升到 90%，吞吐提升 3 倍。面试能说清楚这两个技术的工作原理和 trade-off，说明你对推理系统有实战理解，而不是只会调 API。"
+> “Continuous Batching 在迭代粒度补入和移出请求，提高调度灵活性；Chunked Prefill 把长输入拆开，减少单个 Prefill 长时间阻塞 Decode。它们可能提高稳定吞吐并改善尾延迟，但收益取决于长度分布、并发和调度参数，必须用 TTFT、ITL、吞吐和任务质量共同验证。”
 
 **延伸阅读：**
-- vLLM Blog: "Chunked Prefill in vLLM 0.5"
+- vLLM 官方文档：Chunked Prefill（以当前版本为准）
 - Hugging Face: "Continuous Batching Explained"
 
 </details>
-

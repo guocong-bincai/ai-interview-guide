@@ -4,6 +4,8 @@
 > **更新：** 2026-04-16
 > **考点：** MCP协议架构、Server开发、Client集成、安全机制、企业级部署、vs Function Calling
 
+> **版本提示：** MCP 规范和 SDK 仍在演进。协议字段、授权流程和扩展提案必须标注规范版本，并以 [MCP 官方规范](https://modelcontextprotocol.io/specification/) 为准；生态数量和产品支持情况不作为稳定面试结论。
+
 ## 📋 目录
 
 1. [MCP基础概念](#一mcp基础概念)

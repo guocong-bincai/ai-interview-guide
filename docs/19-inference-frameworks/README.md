@@ -621,156 +621,61 @@ def select_inference_engine(workload, hardware):
 
 ---
 
-## 十、2026年四大推理框架版本横评（vLLM 0.5 / TGI 2.0 / TensorRT-LLM 1.8 / DeepSpeed-MII 0.9）
+## 十、推理框架基准测试方法
 
-### Q17: vLLM 0.5、TGI 2.0、TensorRT-LLM 1.8、DeepSpeed-MII 0.9 四大框架2026年核心更新是什么？
-
-<details>
-<summary>💡 答案要点</summary>
-
-**2026年四大框架版本定位对比：**
-
-| 框架 | 版本 | 核心定位 | 2026年主打优化 |
-|------|------|----------|----------------|
-| **vLLM** | 0.5 | 高性能通用推理 | PagedAttention动态调整、MoE增强、分布式改进 |
-| **TGI** | 2.0 | HuggingFace官方推理 | 万亿参数支持、gRPC流式优化、动态批处理升级 |
-| **TensorRT-LLM** | 1.8 | 极致性能生产部署 | 全链路编译优化、算子融合、FP8/INT4 |
-| **DeepSpeed-MII** | 0.9 | 企业级多框架集成 | 自动优化策略、零代码部署 |
-
-**vLLM 0.5 核心更新（2026年4月重点）：**
-
-| 优化 | 原理 | 效果 |
-|------|------|------|
-| **PagedAttention动态页调整** | 可根据请求序列长度自动适配KV Cache分页尺寸 | 显存利用率从90%→95%以上，延迟降低12% |
-| **MoE模型增强** | FusedMoE内核解决多专家调度延迟 | Mixtral 8×7B吞吐量较vLLM 0.4提升28% |
-| **分布式推理改进** | NCCL/MPI通信策略优化，多机多卡动态负载均衡 | 超100卡集群性能损耗降低30% |
-| **FP8 KV缓存量化** | FP8精度存储KV Cache，精度损失<0.5% | KV Cache显存占用降低40% |
-| **投机解码改进** | 新增投机解码算法，首token延迟降低 | 高并发场景TTFT降低 |
-
-**TGI 2.0 核心更新：**
-
-| 优化 | 原理 | 效果 |
-|------|------|------|
-| **自适应批处理** | 根据请求到达频率、序列长度动态调整批大小 | 高并发(64+)吞吐量较TGI 1.9提升35% |
-| **万亿美元参数支持** | 针对超大规模参数模型的分布式推理优化 | 支持Llama 3 405B等超大规模模型 |
-| **流式输出优化** | 重构流式输出内核，支持动态token生成速率调整 | 首token延迟(TTFT)降低20%，WebSocket通信优化 |
-| **量化完善** | GPTQ/AWQ/bnb三种方案全支持，AWQ量化2100 tok/s | 量化性能较上一版本提升40% |
-| **极简部署** | Docker容器化快速部署，负载均衡插件集成 | 降低大规模部署运维成本 |
-
-**TensorRT-LLM 1.8 核心更新：**
-
-| 优化 | 原理 | 效果 |
-|------|------|------|
-| **全链路编译优化** | 从模型到硬件的端到端优化 | H100上吞吐量达7620 tok/s |
-| **FlashAttention 3.0** | 深度融合注意力计算 | 内存访问优化，吞吐量提升 |
-| **FP8/INT4混合精度** | 不同层使用不同精度，平衡性能与精度 | 显存减少50%+，速度提升40% |
-| **算子融合** | 多个小算子融合为单个大算子 | 计算效率最大化 |
-| **PyTorch-first架构** | 降低门槛，无需复杂TRT建模 | 使用体验大幅改善 |
-
-**DeepSpeed-MII 0.9 核心更新：**
-
-| 优化 | 原理 | 效果 |
-|------|------|------|
-| **自动优化策略** | 零代码自动调优 | 部署周期从天级降至分钟级 |
-| **多框架集成** | 支持vLLM/TGI/TensorRT后端 | 一套接口，多引擎切换 |
-| **弹性扩缩容** | Kubernetes原生集成 | 负载变化时自动扩缩 |
-| **运维友好** | 监控、日志、告警开箱即用 | 降低企业运维成本 |
-
-**面试话术：**
-> "2026年四大推理框架都有重大更新。vLLM 0.5的核心是PagedAttention动态调整——从固定页大小到按需自动适配，显存利用率提升到95%以上；TGI 2.0主打万亿美元参数支持和流式输出优化，解决了高并发场景下的性能瓶颈；TensorRT-LLM 1.8依然是极致性能的代表，H100上吞吐量7620 tok/s；DeepSpeed-MII 0.9的亮点是'零代码部署'，自动优化策略让不懂底层的人也能快速上线。"
-
-</details>
-
-### Q18: 2026年H100统一基准测试数据如何？四大框架如何选型？
+### Q17: 为什么不能直接背诵不同推理框架的吞吐和延迟数字？
 
 <details>
 <summary>💡 答案要点</summary>
 
-**2026年H100四大框架基准测试（Llama 3 70B，FP8量化）：**
+框架性能取决于模型、精度、GPU、并行策略、输入/输出长度、并发、调度参数和质量约束。不同报告中的 `tok/s` 可能分别指请求吞吐、输出吞吐或所有 GPU 的聚合吞吐，不能横向比较。
 
-| 框架 | 并发16 | 并发32 | 并发64 | 并发128 | 显存利用率 |
-|------|--------|--------|--------|---------|-----------|
-| **vLLM 0.5** | 1580 tok/s / 86/13.2ms | 2860 / 98/15.1ms | 4520 / 123/18.2ms | 6850 / 189/25.7ms | **95.3%** |
-| **TGI 2.0** | 1280 / 105/16.3ms | 2250 / 132/19.7ms | 3680 / 178/24.5ms | 4520 / 267/32.8ms | 82.7% |
-| **TensorRT-LLM 1.8** | **2150** / 68/10.2ms | **3860** / 85/12.6ms | **5980** / 109/15.8ms | **7620** / 165/22.3ms | 92.8% |
-| **DeepSpeed-MII 0.9** | 1120 / 128/18.7ms | 1980 / 156/22.4ms | 3050 / 212/28.9ms | 3860 / 325/38.6ms | 78.9% |
+面试中看到一张横评表，应先追问：
 
-**性能解读：**
+- 是否使用同一模型权重、量化精度和 GPU；
+- 输入/输出长度分布是否相同，是否包含长尾请求；
+- 报告的是 TTFT、TPOT、ITL、P50/P95/P99 中哪一个；
+- 是否在相同并发和相同显存余量下比较；
+- 是否启用 Prefix Cache、Chunked Prefill、Speculative Decoding；
+- 是否发生 OOM、请求丢弃、超时或质量回退。
 
-| 指标 | 冠军 | 原因 |
-|------|------|------|
-| **吞吐量** | TensorRT-LLM 1.8（并发128: 7620 tok/s） | 算子融合+FlashAttention 3.0+FP8 |
-| **首字延迟(TTFT)** | TensorRT-LLM 1.8（109ms） | 内核级优化 |
-| **显存利用率** | vLLM 0.5（95.3%） | PagedAttention动态调整 |
-| **并发稳定性** | vLLM 0.5 + TensorRT-LLM | 并发128稳定运行 |
-| **部署门槛** | DeepSpeed-MII 0.9（最低） | 自动优化，零代码 |
-
-**2026年H100批量推理基准（Qwen 2 100B，INT4量化）：**
-
-| 框架 | 并发8 | 并发16 | 并发32 | 算力利用率 |
-|------|-------|--------|--------|-----------|
-| **vLLM 0.5** | 980 | 1850 | 3260 | 89.6% |
-| **TGI 2.0** | 720 | 1380 | 2450 | 78.2% |
-| **TensorRT-LLM 1.8** | 1120 | 2150 | 3820 | **94.3%** |
-| **DeepSpeed-MII 0.9** | 650 | 1220 | 2180 | 72.8% |
-
-**2026推理框架选型决策树：**
-
-```python
-def select_inference_engine_2026(workload, hardware):
-    # 场景1: 追求极致性能，生产环境NVIDIA
-    if hardware == "H100" and workload.priority == "performance":
-        return "TensorRT-LLM 1.8"  # 吞吐量7620 tok/s
-
-    # 场景2: 通用生产，高并发稳定
-    elif workload.concurrent_users > 100:
-        return "vLLM 0.5"  # 显存利用率95.3%，并发最稳定
-
-    # 场景3: HuggingFace模型快速上线
-    elif workload.model_source == "HF" and workload.needs_streaming:
-        return "TGI 2.0"  # 官方支持好，gRPC流式优化
-
-    # 场景4: 企业内部快速部署
-    elif workload.team_expertise == "low":
-        return "DeepSpeed-MII 0.9"  # 零代码，自动优化
-
-    # 场景5: 多轮对话共享前缀
-    elif workload.type == "multi_turn":
-        return "SGLang"  # RadixAttention，前缀复用30-50%
-
-    # 场景6: 量化模型
-    elif workload.quantized:
-        return "LMDeploy"  # TurboMind，C++量化加速
-
-    else:
-        return "vLLM 0.5"  # 默认均衡选择
-```
-
-**2026年面试核心结论：**
-
-| 需求 | 推荐框架 | 理由 |
-|------|----------|------|
-| 极致吞吐量 | TensorRT-LLM 1.8 | 7620 tok/s，并发128最强 |
-| 高并发稳定 | vLLM 0.5 | 95.3%显存利用率，并发稳定 |
-| HuggingFace模型 | TGI 2.0 | 官方支持，模型适配最好 |
-| 快速企业部署 | DeepSpeed-MII 0.9 | 零代码，自动优化 |
-| 多轮对话 | SGLang | RadixAttention前缀复用 |
-| 量化模型 | LMDeploy | C++ TurboMind量化加速 |
-
-**面试话术：**
-> "2026年H100基准测试的核心结论：TensorRT-LLM 1.8吞吐量最高（7620 tok/s），但vLLM 0.5显存利用率最高（95.3%）且并发最稳定。选型没有绝对最优，只有场景最优：极致性能选TRT-LLM，高并发稳定选vLLM，快速部署选DeepSpeed-MII，多轮对话选SGLang。面试时能说出这套选型逻辑，说明你有实际的生产部署经验。"
+因此，版本号和一组孤立数字不构成选型证据。
 
 </details>
 
----
+### Q18: 如何设计可复现的 LLM 推理框架 Benchmark？
 
-*版本: v2.7 | 更新: 2026-04-08 | by 二狗子 🐕*
+<details>
+<summary>💡 答案要点</summary>
 
----
+### 1. 固定不可变条件
 
-## 六、新兴推理框架补充（Ollama / XInference / TGI / llama.cpp）
+记录模型与 revision、dtype/量化方案、GPU 型号与数量、驱动/CUDA、框架 commit、容器镜像、并行策略和完整启动参数。
 
-### Q19: Ollama 和 vLLM 有什么区别？各自适用场景是什么？
+### 2. 使用代表性流量
+
+至少覆盖短问短答、长输入短输出、短输入长输出和混合长度；从生产日志提取长度分布时要脱敏。预热后再测，并分别测试低并发、目标并发和过载点。
+
+### 3. 同时报告质量与系统指标
+
+| 类别 | 指标 |
+|---|---|
+| 延迟 | TTFT、TPOT/ITL、端到端 P50/P95/P99 |
+| 吞吐 | requests/s、input tok/s、output tok/s |
+| 稳定性 | 错误率、超时率、OOM、队列长度 |
+| 资源 | GPU 利用率、显存峰值、功耗 |
+| 质量 | 固定解码设置下的任务成功率或困惑度回退 |
+| 成本 | 每千次请求或每百万有效输出 Token 成本 |
+
+### 4. 画出容量曲线
+
+不要只报一个“最高吞吐”。逐步增加到达率，观察 TTFT/P99 在何处急剧上升，找到满足 SLO 的最大稳定负载；重复多轮并报告方差。
+
+### 30 秒回答
+
+> “我会固定模型、精度、硬件和启动参数，用生产长度分布做预热后的压力测试。结果同时报告 TTFT、TPOT、P95/P99、输入/输出吞吐、错误率和显存，而不是只报 tok/s。最终选满足质量与延迟 SLO 的最大稳定负载，并把脚本、镜像和原始结果一起保存，保证可复现。”
+
+</details>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -815,7 +720,7 @@ curl http://localhost:11434/api/generate -d '{
 
 </details>
 
-### Q20: XInference 和 vLLM 有什么区别？什么场景选 XInference？
+### Q19: XInference 和 vLLM 有什么区别？什么场景选 XInference？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -870,7 +775,7 @@ answer = llm.generate("用户问题", context=reranked)
 
 </details>
 
-### Q21: HuggingFace TGI 和 vLLM 有什么关系？各自优劣是什么？
+### Q20: HuggingFace TGI 和 vLLM 有什么关系？各自优劣是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -931,7 +836,7 @@ docker run -d --gpus all \
 
 </details>
 
-### Q22: llama.cpp 是什么？它有哪些独特优势？
+### Q21: llama.cpp 是什么？它有哪些独特优势？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -975,7 +880,7 @@ docker run -d --gpus all \
 
 </details>
 
-### Q23: 如何根据场景选择推理框架？完整的选型决策树是什么？
+### Q22: 如何根据场景选择推理框架？完整的选型决策树是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1035,7 +940,7 @@ docker run -d --gpus all \
 
 ## 十一、2026年七框架终极对比：oMLX/MLC LLM/LMDeploy新成员与硬件选型（Q21）
 
-### Q24: 除了vLLM/SGLang/TensorRT-LLM，2026年还有哪些推理框架值得关注？oMLX/MLC LLM/LMDeploy各适合什么场景？如何按硬件选框架？
+### Q23: 除了vLLM/SGLang/TensorRT-LLM，2026年还有哪些推理框架值得关注？oMLX/MLC LLM/LMDeploy各适合什么场景？如何按硬件选框架？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1193,7 +1098,7 @@ Ollama        200ms   3500 tok/s  78GB    无需编译
 
 ---
 
-### Q25: DFlash是什么？为什么"块扩散"是2026年投机采样新的突破方向？
+### Q24: DFlash是什么？为什么"块扩散"是2026年投机采样新的突破方向？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1276,7 +1181,7 @@ llm = LLM(
 
 ---
 
-### Q26: 什么是 EAGLE 投机采样？为什么它比传统 Speculative Decoding 更快？2026年 vLLM EAGLE v3 有哪些核心改进？
+### Q25: 什么是 EAGLE 投机采样？为什么它比传统 Speculative Decoding 更快？2026年 vLLM EAGLE v3 有哪些核心改进？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1390,7 +1295,7 @@ llm = LLM(
 
 ## 二十七、SGLang 三大 RCE 漏洞（CVE-2026-3059/3060/3989）：Pickle 反序列化危机（Q27）
 
-### Q27: 什么是 SGLang 的 CVE-2026-3059/3060/3989？Pickle 反序列化为何是 AI 基础设施的定时炸弹？
+### Q26: 什么是 SGLang 的 CVE-2026-3059/3060/3989？Pickle 反序列化为何是 AI 基础设施的定时炸弹？
 
 **背景：**
 

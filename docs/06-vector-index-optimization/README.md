@@ -6,7 +6,7 @@
 
 ## 📋 核心面试题
 
-### Q: 向量数据库有哪些索引？分别有啥区别和原理？
+### Q1: 向量数据库有哪些索引？分别有什么区别和原理？
 
 <details>
 <summary>💡 完整答案</summary>
@@ -49,7 +49,7 @@ Layer 0 (底层):  F ───── G ───── H ───── I
 ```
 
 **优点：**
-- ✅ 检索速度最快（O(log N)）
+- ✅ 在合适参数和数据分布下通常有很好的低延迟表现
 - ✅ 精度最高（接近暴力搜索）
 - ✅ 支持实时插入
 
@@ -261,7 +261,9 @@ LSH = 哈希 + 桶内搜索
 
 ## 📊 性能对比总结
 
-### 速度对比（100 万条数据）
+### 速度对比（不要背固定数字）
+
+下面的延迟只能视为示意，不能跨硬件、维度、距离度量和召回目标直接比较。可靠回答应说明数据规模、向量维度、过滤条件、并发、构建参数和目标 Recall，然后在相同条件下压测。
 
 | 索引 | 检索延迟 | 相对速度 |
 |------|----------|----------|
@@ -337,7 +339,7 @@ LSH = 哈希 + 桶内搜索
 
 </details>
 
-### Q9: 混合检索的融合策略有哪些?RRF算法详解
+### Q2: 混合检索的融合策略有哪些？RRF 算法详解
 
 <details>
 <summary>💡 答案要点</summary>
@@ -588,7 +590,7 @@ print(f"最优k={best_k}, Recall={best_recall}")
 | 2026-03-02 | 新增向量数据库索引详解专题 |
 
 
-### Q13: 为什么需要两阶段检索（向量检索+Rerank）？ColBERT Late Interaction 模型详解
+### Q3: 为什么需要两阶段检索（向量检索 + Rerank）？ColBERT Late Interaction 模型详解
 
 <details>
 <summary>💡 答案要点</summary>
@@ -717,7 +719,7 @@ class TwoStageRetriever:
 
 </details>
 
-### Q14: HNSW 生产调参实战：M/ef/efConstruction 如何选择？有哪些性能陷阱？
+### Q4: HNSW 生产调参实战：M/ef/efConstruction 如何选择？有哪些性能陷阱？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -924,7 +926,7 @@ PROD_CONFIG = {
 
 ## 三、向量数据库选型深度对比（Pinecone / Milvus / Qdrant / Weaviate）
 
-### Q10: Pinecone、Milvus、Qdrant 三大向量数据库怎么选？各自优劣是什么？
+### Q5: Pinecone、Milvus、Qdrant 三类向量数据库方案怎么选？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1036,7 +1038,7 @@ Qdrant 特色：支持多维向量过滤
 
 </details>
 
-### Q11: 什么是向量数据库的"混合搜索"？为什么重要？
+### Q6: 什么是向量数据库的“混合搜索”？为什么重要？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1122,7 +1124,7 @@ results = client.search(
 
 </details>
 
-### Q12: 什么是 DiskANN？它解决了什么问题？和 HNSW 怎么选？
+### Q7: 什么是 DiskANN？它解决了什么问题？和 HNSW 怎么选？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1207,7 +1209,7 @@ collection.create_index(
 
 ## 十五、向量索引生产运维与监控（Q15）
 
-### Q15: 如何对向量索引进行生产级监控与调优？HNSW/IVF各有什么监控指标？
+### Q8: 如何监控与调优向量索引？HNSW/IVF 各有什么指标？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1304,7 +1306,7 @@ def check_vector_index_health(collection):
 
 ## 十六、向量数据库选型：Pinecone vs Milvus vs Qdrant vs Weaviate 2026年深度对比（Q16）
 
-### Q16: 2026年向量数据库如何选型？Pinecone Serverless、Milvus Cluster、Qdrant Cloud 各有什么适用场景？自托管 vs 云服务成本对比？
+### Q9: 托管服务与自托管向量数据库如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1490,7 +1492,7 @@ result = client.query.get("Article", ["title", "content"]) \
 
 ## 十、2026年 Late Interaction 检索：ColBERTv2、ColPali、ColQwen（Q10）
 
-### Q20: 什么是 Late Interaction 检索？为什么它是2026年向量检索的重要方向？ColBERTv2、ColPali、ColQwen 各自特点是什么？
+### Q10: 什么是 Late Interaction 检索？ColBERTv2、ColPali、ColQwen 各自解决什么问题？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1632,7 +1634,7 @@ def hybrid_retrieval(query, collection, top_k=100):
 
 ---
 
-### Q21: 什么是 DiskANN？它如何实现冷热分层存储？
+### Q11: DiskANN 如何利用磁盘与内存实现大规模 ANN 检索？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1689,7 +1691,7 @@ collection.create_index(field_name="embedding", index_params=index_params)
 
 ---
 
-### Q22: 什么是二进制量化（Binary Quantization）？它和 PQ 有什么区别？
+### Q12: 什么是二进制量化（Binary Quantization）？它和 PQ 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1743,7 +1745,7 @@ response = client.embeddings.create(
 
 ---
 
-### Q17: pgvector 详解：何时选 pgvector？如何做向量 + 业务条件混合检索？
+### Q13: 何时选择 pgvector？如何做向量与业务条件混合检索？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1822,7 +1824,7 @@ results = vector_store.similarity_search(
 
 ---
 
-### Q18: 向量数据库迁移策略：从 Pinecone 迁移到 Qdrant 怎么做到零停机？
+### Q14: 向量数据库迁移如何避免停机和检索回退？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1889,7 +1891,7 @@ def route(query_vector, traffic_pct=0.1):
 
 ---
 
-### Q19: 什么是 Context Poisoning（上下文污染）？RAG 知识库如何防御？
+### Q15: 什么是 Context Poisoning（上下文污染）？RAG 知识库如何防御？
 
 <details>
 <summary>💡 答案要点</summary>

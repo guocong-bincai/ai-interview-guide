@@ -2537,7 +2537,7 @@ class AgentContainerPool:
 
 ## 五、进阶 Agent 机制（补充 Q10-Q12）
 
-### Q28: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
+### Q16: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2610,7 +2610,7 @@ def reflexion_agent(task, max_turns=3):
 
 </details>
 
-### Q11: Agent 的上下文窗口管理有哪些策略？如何避免超出限制？
+### Q17: Agent 的上下文窗口管理有哪些策略？如何避免超出限制？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2688,7 +2688,7 @@ def trim_tool_result(result, max_tokens=2000):
 
 </details>
 
-### Q12: AutoGPT 的工作原理是什么？它和普通 Agent 有什么区别？
+### Q18: AutoGPT 的工作原理是什么？它和普通 Agent 有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2780,7 +2780,7 @@ class AutoGPT:
 
 ## 六、2026年Claude Opus 4.6核心能力：Inter-tool Thinking与自适应思考（Q13）
 
-### Q13: Claude Opus 4.6的Inter-tool Thinking是什么？为什么它是2026年Agent能力的重大突破？
+### Q19: Claude Opus 4.6的Inter-tool Thinking是什么？为什么它是2026年Agent能力的重大突破？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2872,7 +2872,7 @@ Claude Opus 4.6在SWE-bench Verified上达到**80.8%**，OSWorld（Computer Use�
 
 ---
 
-## 18. 2026年Agent岗位分化与面试趋势（新增考点）
+## 20. 2026年Agent岗位分化与面试趋势（新增考点）
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2973,7 +2973,7 @@ class AgentEval:
 
 ## 七、2026年AI Agent长期记忆与持续学习：ALTK-Evolve（Q14）
 
-### Q14: ALTK-Evolve是什么？为什么"Eternal Intern Problem"是2026年Agent核心挑战？
+### Q21: ALTK-Evolve是什么？为什么"Eternal Intern Problem"是2026年Agent核心挑战？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3031,7 +3031,7 @@ IBM Research 2026年4月发布的 ALTK-Evolve，给出了系统性答案：
 
 ## 七、Anthropic 可信 Agent 框架：Model/Harness/Tools/Environment 四组件（Q15）
 
-### Q15: Anthropic 的"可信 Agent"框架是什么？为什么 Agent = Model + Harness + Tools + Environment？
+### Q22: Anthropic 的"可信 Agent"框架是什么？为什么 Agent = Model + Harness + Tools + Environment？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3081,7 +3081,7 @@ Anthropic 2026年4月发布的"Trustworthy Agents in Practice"给出了明确定
 
 </details>
 
-### Q16: 什么是 Automated Alignment Researchers（AAR）？AI 如何加速对齐研究？它对 AI 应用开发有什么启示？
+### Q23: 什么是 Automated Alignment Researchers（AAR）？AI 如何加速对齐研究？它对 AI 应用开发有什么启示？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3168,7 +3168,7 @@ AAR 会"作弊"：
 
 </details>
 
-### Q17: BFCL 是什么？如何系统性评估 Function Calling 质量？
+### Q24: BFCL 是什么？如何系统性评估 Function Calling 质量？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3268,7 +3268,7 @@ def monitor():
 
 [返回目录 →](../../README.md)]
 
-### Q18: Voyager 是什么？为什么"具身智能终身学习"是2026年 Agent 最重要的方向之一？
+### Q25: Voyager 是什么？为什么"具身智能终身学习"是2026年 Agent 最重要的方向之一？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3356,7 +3356,7 @@ while not task_complete:
 
 ---
 
-### Q19: Workflow、Agent 和 Tools 三者的区别与联系是什么？
+### Q26: Workflow、Agent 和 Tools 三者的区别与联系是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3403,7 +3403,7 @@ Agent：
 
 ---
 
-### Q20: 什么是 Agentic RAG？它和传统 RAG 的核心区别是什么？
+### Q27: 什么是 Agentic RAG？它和传统 RAG 的核心区别是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3495,7 +3495,7 @@ class AgenticRAG:
 
 ---
 
-### Q21: SSE vs WebSocket，AI Agent 应用该如何选型？
+### Q28: SSE vs WebSocket，AI Agent 应用该如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3599,7 +3599,7 @@ async def agent_websocket(websocket: WebSocket):
 
 ---
 
-### Q22: 什么是 Guardrails（安全护栏）？如何在 Agent 中设计输入输出安全防护？
+### Q29: 什么是 Guardrails（安全护栏）？如何在 Agent 中设计输入输出安全防护？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3747,7 +3747,7 @@ result = guard(
 
 ---
 
-### Q23: 如何防御 Prompt 注入攻击？有哪些具体的防护策略？
+### Q30: 如何防御 Prompt 注入攻击？有哪些具体的防护策略？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3860,7 +3860,7 @@ AI 回复：{response}
 
 ---
 
-### Q24: 什么是模型漂移（Model Drift）？如何检测和应对？
+### Q31: 什么是模型漂移（Model Drift）？如何检测和应对？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3968,7 +3968,7 @@ class ModelDriftDetector:
 
 ---
 
-### Q25: 什么是数据飞轮（Data Flywheel）？如何在 Agent 产品中构建？
+### Q32: 什么是数据飞轮（Data Flywheel）？如何在 Agent 产品中构建？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4084,7 +4084,7 @@ class DataFlywheel:
 
 ---
 
-### Q26: 如何评估和控制 AI Agent 的 ROI？有哪些关键指标？
+### Q33: 如何评估和控制 AI Agent 的 ROI？有哪些关键指标？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4201,7 +4201,7 @@ def compress_context(messages: list) -> list:
 
 ---
 
-### Q27: 如何做 AI Agent 的 Human-in-the-Loop（人机协同）设计？
+### Q34: 如何做 AI Agent 的 Human-in-the-Loop（人机协同）设计？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4320,7 +4320,7 @@ app.invoke(
 
 ---
 
-### Q29: Agent 的核心架构公式是什么？决策引擎、信息视野、执行通道分别是什么？
+### Q35: Agent 的核心架构公式是什么？决策引擎、信息视野、执行通道分别是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4365,7 +4365,7 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q30: Harness 工程是什么？为什么说"模型决定上限、Harness 决定下限"？
+### Q36: Harness 工程是什么？为什么说"模型决定上限、Harness 决定下限"？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4407,7 +4407,7 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q31: Agent 工程范式演进有哪几个阶段？工作流 vs 自主 Agent 怎么选型？
+### Q37: Agent 工程范式演进有哪几个阶段？工作流 vs 自主 Agent 怎么选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4458,7 +4458,7 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q32: 千轮上下文关联怎么实现？对话摘要算法具体怎么做？
+### Q38: 千轮上下文关联怎么实现？对话摘要算法具体怎么做？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4523,7 +4523,7 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q33: SKILL.md 是一次性全塞进 context 的吗？Progressive Disclosure 三级加载机制是什么？
+### Q39: SKILL.md 是一次性全塞进 context 的吗？Progressive Disclosure 三级加载机制是什么？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4582,7 +4582,7 @@ metadata 常驻、廉价（100 token/个）
 
 ---
 
-### Q34: 传统开发转 Agent 开发的最大挑战是什么？确定性编程和概率性编程有什么区别？
+### Q40: 传统开发转 Agent 开发的最大挑战是什么？确定性编程和概率性编程有什么区别？
 
 <details>
 <summary>💡 答案要点</summary>
