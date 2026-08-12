@@ -17,6 +17,9 @@
 
 ### Q1: Temperature、Top-P、Top-K 是什么？怎么调？
 
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q01-sampling-parameters.webp"><img src="../../assets/illustrations/02-prompt-engineering/q01-sampling-parameters.webp" width="760" alt="采样参数调优动漫知识图：Temperature 改变分布尖锐度，Top-P 按累计概率动态取核，Top-K 固定候选数，并用任务评测集做单变量调参"></a></p>
+<p align="center"><sub>记忆点：采样参数是任务级超参数，要用评测集调，不靠背固定值。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -43,6 +46,9 @@
 </details>
 
 ### Q2: 什么是 Chain of Thought（CoT）？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q02-chain-of-thought.webp"><img src="../../assets/illustrations/02-prompt-engineering/q02-chain-of-thought.webp" width="760" alt="思维链动漫知识图：把复杂任务拆成中间步骤，同时用答案、证据或工具结果校验最终结论"></a></p>
+<p align="center"><sub>记忆点：CoT 帮助拆解复杂任务，但推理文本本身不等于事实证明。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -71,6 +77,9 @@
 </details>
 
 ### Q3: Few-shot Learning 是什么？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q03-few-shot.webp"><img src="../../assets/illustrations/02-prompt-engineering/q03-few-shot.webp" width="760" alt="少样本学习动漫知识图：用少量一致且有代表性的示例教会模型输入输出映射、格式和语气"></a></p>
+<p align="center"><sub>记忆点：Few-shot 的关键是示例代表性和一致性，不是示例越多越好。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -146,6 +155,9 @@
 ## 📝 进阶Prompt技巧
 
 ### Q4: 什么是Self-Consistency?如何提升推理准确率?
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q04-self-consistency.webp"><img src="../../assets/illustrations/02-prompt-engineering/q04-self-consistency.webp" width="760" alt="自洽性动漫知识图：独立采样多条推理路径，规范化候选答案，再通过投票或验证器聚合"></a></p>
+<p align="center"><sub>记忆点：多路径降低偶然错误，但多数票不天然等于真相。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -231,6 +243,9 @@ def self_consistency(question, n=5):
 ---
 
 ### Q5: 什么是Tree of Thoughts(ToT)?与CoT的区别?
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q05-tree-of-thoughts.webp"><img src="../../assets/illustrations/02-prompt-engineering/q05-tree-of-thoughts.webp" width="760" alt="思维树动漫知识图：CoT 沿单一路径前进，ToT 对多个状态进行生成、评估、剪枝和回溯"></a></p>
+<p align="center"><sub>记忆点：CoT 是一条推理链，ToT 是可搜索、可剪枝、可回溯的状态树。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -348,6 +363,9 @@ class TreeOfThoughts:
 
 ### Q6: 什么是Auto-CoT?如何减少人工示例?
 
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q06-auto-cot.webp"><img src="../../assets/illustrations/02-prompt-engineering/q06-auto-cot.webp" width="760" alt="自动思维链动漫知识图：聚类多样问题、选择代表样本、生成并校验推理示例，最后按需检索"></a></p>
+<p align="center"><sub>记忆点：自动生成不等于直接信任，示例库必须经过验证和过滤。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -441,6 +459,9 @@ def solve_new_question(new_q):
 ---
 
 ### Q7: 如何防止Prompt Leakage(提示词泄露)?
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q07-prompt-leakage.webp"><img src="../../assets/illustrations/02-prompt-engineering/q07-prompt-leakage.webp" width="760" alt="提示词泄露防御动漫知识图：敏感信息不进入提示词，并通过输入检测、最小权限和输出过滤分层防护"></a></p>
+<p align="center"><sub>记忆点：最可靠的秘密保护方式，是根本不把秘密交给模型。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -541,6 +562,9 @@ prompt = """
 
 ### Q8: 什么是 Prompt Injection（提示词注入）？和 Prompt Leakage 有什么区别？
 
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q08-prompt-injection.webp"><img src="../../assets/illustrations/02-prompt-engineering/q08-prompt-injection.webp" width="760" alt="提示词注入与泄露动漫知识图：注入是劫持模型行为，泄露是敏感信息外流，授权必须在模型外执行"></a></p>
+<p align="center"><sub>记忆点：注入是攻击手段，泄露是可能后果；权限判断不能只靠提示词。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -620,6 +644,9 @@ if detect(dangerous_patterns, user_input):
 ---
 
 ### Q9: Structured Outputs / JSON Mode 是什么？和 Function Calling 有什么区别？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q09-structured-outputs.webp"><img src="../../assets/illustrations/02-prompt-engineering/q09-structured-outputs.webp" width="760" alt="结构化输出动漫知识图：JSON Mode 保证语法，Schema 约束结构，Function Calling 只提出工具调用，由应用执行"></a></p>
+<p align="center"><sub>记忆点：JSON 管语法，Schema 管结构，Tool Call 管意图，真正执行仍在应用侧。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -709,6 +736,9 @@ response = client.chat.completions.create(
 </details>
 
 ### Q10: ReAct Prompting 的局限是什么？工程实践中如何规避？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q10-react-limitations.webp"><img src="../../assets/illustrations/02-prompt-engineering/q10-react-limitations.webp" width="760" alt="ReAct 局限与修复动漫知识图：上下文漂移、多步延迟和规划执行耦合，分别由状态摘要、并行终止和先规划再校验治理"></a></p>
+<p align="center"><sub>记忆点：ReAct 循环可用，但状态、延迟和权限要由系统治理。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -817,6 +847,9 @@ class PlanAndSolve:
 </details>
 
 ### Q11: 如何写 System Prompt 让 Agent 更稳定？必须包含哪些要素？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q11-system-prompt.webp"><img src="../../assets/illustrations/02-prompt-engineering/q11-system-prompt.webp" width="760" alt="生产级 System Prompt 动漫知识图：角色目标边界为核心，配合工具权限、输出契约、安全、异常处理和系统外校验"></a></p>
+<p align="center"><sub>记忆点：Prompt 定规则，授权、校验、监控与兜底必须由系统执行。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -950,7 +983,10 @@ SYSTEM_PROMPT = """
 
 ---
 
-## 12. 什么是Context Engineering（上下文工程）？如何处理Long Context中的"Lost in the Middle"问题？
+### Q12: 什么是 Context Engineering（上下文工程）？如何处理 Long Context 中的“Lost in the Middle”问题？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q12-context-engineering.webp"><img src="../../assets/illustrations/02-prompt-engineering/q12-context-engineering.webp" width="760" alt="上下文工程动漫知识图：长上下文中间信息容易被忽略，通过相关性筛选、压缩、分段抽取和首尾强化重组上下文"></a></p>
+<p align="center"><sub>记忆点：上下文工程不是塞得多，而是把对的信息放在对的位置。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1226,6 +1262,9 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 
 ### Q13: 如何根据场景调优 Temperature 等采样参数？
 
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q13-sampling-tuning.webp"><img src="../../assets/illustrations/02-prompt-engineering/q13-sampling-tuning.webp" width="760" alt="场景化采样调优动漫知识图：事实问答与创意写作目标不同，通过同一评测集做单变量实验并设置回归门禁"></a></p>
+<p align="center"><sub>记忆点：参数没有万能值，围绕任务目标做可复现的单变量实验。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1309,7 +1348,10 @@ Temperature 高时（>0.7）：
 
 ---
 
-### Q12-1: 推理模型（o3/R1）的 Prompt 策略与普通模型有何不同？
+### Q14: 推理模型的 Prompt 策略与普通模型有何不同？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q14-reasoning-model-prompt.webp"><img src="../../assets/illustrations/02-prompt-engineering/q14-reasoning-model-prompt.webp" width="760" alt="推理模型提示策略动漫知识图：普通模型接受清晰指令约束与示例，推理模型接收完整问题和验收标准并自行使用推理预算"></a></p>
+<p align="center"><sub>记忆点：说明任务与验收标准，不要替推理模型规定每一步思路。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1380,7 +1422,10 @@ response = anthropic.messages.create(
 
 </details>
 
-### Q14: Prompt Caching（提示词缓存）是什么？如何判断它是否真的省钱？
+### Q15: Prompt Caching（提示词缓存）是什么？如何判断它是否真的省钱？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q15-prompt-caching.webp"><img src="../../assets/illustrations/02-prompt-engineering/q15-prompt-caching.webp" width="760" alt="提示词缓存动漫知识图：稳定前缀优先排列并被复用，动态内容置后，用写入命中 token、延迟、成本和复用次数验证收益"></a></p>
+<p align="center"><sub>记忆点：命中率高不等于省钱，要用账单与延迟数据证明收益。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1465,7 +1510,10 @@ response = client.responses.create(
 
 ---
 
-### Q15: Chain-of-Verification (CoVe) 是什么？如何减少 LLM 幻觉？
+### Q16: Chain-of-Verification (CoVe) 是什么？如何减少 LLM 幻觉？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q16-cove.webp"><img src="../../assets/illustrations/02-prompt-engineering/q16-cove.webp" width="760" alt="链式验证动漫知识图：先生成初稿，再提出验证问题，使用独立证据核验，最后根据证据重写答案"></a></p>
+<p align="center"><sub>记忆点：先答、再问、独立查、按证据改；模型自证不等于事实核验。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1582,7 +1630,10 @@ final = reconcile_and_rewrite(internal_v, external_v)
 
 ---
 
-### Q16: 生产环境中如何 A/B 测试和评估不同的 Prompt？
+### Q17: 生产环境中如何 A/B 测试和评估不同的 Prompt？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q17-prompt-evaluation.webp"><img src="../../assets/illustrations/02-prompt-engineering/q17-prompt-evaluation.webp" width="760" alt="生产 Prompt 评估动漫知识图：依次经过离线回归、影子流量和在线 A/B，联合观察效果、安全、延迟与成本并保留回滚"></a></p>
+<p align="center"><sub>记忆点：先回归，后影子，再灰度；效果和代价必须一起看。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1737,7 +1788,10 @@ jobs:
 
 ---
 
-### Q17: Speculative RAG 是什么？它为什么可能同时提高质量并降低延迟？
+### Q18: Speculative RAG 是什么？它为什么可能同时提高质量并降低延迟？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q18-speculative-rag.webp"><img src="../../assets/illustrations/02-prompt-engineering/q18-speculative-rag.webp" width="760" alt="Speculative RAG 动漫知识图：检索证据被分组，小模型基于各组证据并行起草，大模型一次验证聚合最终答案"></a></p>
+<p align="center"><sub>记忆点：小模型并行起草，大模型一次验证聚合，不是先瞎猜再逐句查证。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1783,7 +1837,10 @@ Query
 
 ---
 
-### Q18: LLM-as-a-Judge 是什么？怎么用大模型来做自动化评测？
+### Q19: LLM-as-a-Judge 是什么？怎么用大模型来做自动化评测？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q19-llm-as-judge.webp"><img src="../../assets/illustrations/02-prompt-engineering/q19-llm-as-judge.webp" width="760" alt="大模型裁判动漫知识图：匿名候选按 Rubric 被比较评分，并通过换序、人工校准集和一致性监控控制偏差"></a></p>
+<p align="center"><sub>记忆点：先校准裁判，再相信分数；Judge 评分不是绝对真相。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>

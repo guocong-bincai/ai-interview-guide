@@ -42,6 +42,14 @@
 
 ## 2. Temperature、Top-P、Top-K
 
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q02-sampling-parameters.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q02-sampling-parameters.webp" width="100%" alt="采样参数动漫知识图：Temperature 调整概率分布的平坦程度，Top-P 按累计概率动态选择候选集合，Top-K 固定保留概率最高的 K 个候选">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：Temperature 调分布，Top-P 看累计概率，Top-K 限候选数；点击图片可查看原图。</sub></p>
+
 ### Temperature（温度）
 
 控制输出的随机性：
@@ -80,6 +88,14 @@ Temperature=0.2, Top-P=0.95
 
 ## 3. Context Window（上下文窗口）
 
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q03-context-window.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q03-context-window.webp" width="100%" alt="上下文窗口动漫知识图：输入 Token 与输出 Token 共用容量，超限时可通过截断、总结、滑动窗口、向量检索和分层摘要处理">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：上下文窗口同时装输入和输出，超限要裁剪、压缩或检索；点击图片可查看原图。</sub></p>
+
 **定义：** LLM 一次能处理的总 token 数（输入 + 输出）。
 
 | 模型 | 上下文限制 |
@@ -98,6 +114,14 @@ Temperature=0.2, Top-P=0.95
 5. **分层摘要** - 重要信息摘要 + 最近对话原文
 
 ## 4. LLM 和传统机器学习模型有什么区别？为什么是“大”语言模型？
+
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q04-llm-vs-task-model.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q04-llm-vs-task-model.webp" width="100%" alt="任务专用模型与通用 LLM 对比动漫知识图：两者都属于机器学习，应依据任务边界、质量、延迟、成本和风险选型，也可组合成混合系统">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：先看任务边界，再权衡质量、延迟、成本与风险；点击图片可查看原图。</sub></p>
 
 ### 30 秒回答
 
@@ -128,6 +152,14 @@ LLM 通常是以 Transformer 为基础、在大规模语料上进行自监督预
 - RAG、微调和传统分类器分别解决什么问题？
 
 ## 5. 幻觉（Hallucination）
+
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q05-hallucination.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q05-hallucination.webp" width="100%" alt="LLM 幻觉治理动漫知识图：流畅回答可能包含无依据事实，应通过 RAG、提示约束、引用溯源、外部校验和人工审核建立证据防线">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：幻觉要靠证据、校验与风险分级治理；点击图片可查看原图。</sub></p>
 
 **定义：** 模型编造不存在的信息。
 
@@ -161,6 +193,14 @@ LLM 通常是以 Transformer 为基础、在大规模语料上进行自监督预
 
 ## 6. 什么是涌现能力（Emergent Abilities）？“突然出现”一定是真的吗？
 
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q06-emergent-abilities.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q06-emergent-abilities.webp" width="100%" alt="涌现能力动漫知识图：底层能力可能随规模和计算连续增长，但离散评分跨过阈值时会表现为突然跳变，因此不存在统一参数阈值">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：能力可能连续增长，评分却会突然跳变；点击图片可查看原图。</sub></p>
+
 ### 30 秒回答
 
 涌现能力通常指：模型规模或训练计算增加后，某项能力在评测上从接近随机快速提升。它是一个观察结果，不代表存在统一的参数阈值，也不能仅凭模型大小预测。部分“突然出现”还可能来自离散评分指标——底层能力连续改善，但只有跨过答对阈值后分数才跳变。
@@ -189,6 +229,14 @@ LLM 通常是以 Transformer 为基础、在大规模语料上进行自监督预
 ---
 
 ## 7. LLM 为什么是概率模型？为什么同样的输入输出会不一样？
+
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q07-probabilistic-generation.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q07-probabilistic-generation.webp" width="100%" alt="LLM 概率生成动漫知识图：上文经过 Logits 和 Softmax 得到下一 Token 概率分布，贪心或采样等解码策略从分布中选择 Token，工程侧再做稳定性与格式校验">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：模型给概率，解码做选择，工程负责校验；点击图片可查看原图。</sub></p>
 
 **核心：LLM 本质是一个"概率分布"——对每个 Token 计算概率，再按策略采样，所以输出天然带随机性。**
 
@@ -220,6 +268,14 @@ LLM 通常是以 Transformer 为基础、在大规模语料上进行自监督预
 ---
 
 ## 8. LLM的幻觉(Hallucination)与偏见(Bias)
+
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q08-hallucination-vs-bias.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q08-hallucination-vs-bias.webp" width="100%" alt="幻觉与偏见对比动漫知识图：幻觉关注回答是否有事实依据，偏见关注不同群体是否受到系统性不公平影响，两者需要不同检测方法和持续评测闭环">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：幻觉查证据，偏见查群体差异，两者都要持续评测；点击图片可查看原图。</sub></p>
 
 ### 幻觉问题（补充：如何检测与量化幻觉？）
 
@@ -294,6 +350,14 @@ result = evaluate(dataset, metrics=[faithfulness])
 
 ## 9. 如何评估LLM的输出质量?
 
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q09-llm-evaluation.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q09-llm-evaluation.webp" width="100%" alt="LLM 输出质量评估动漫知识图：从真实测试集出发，组合任务匹配的自动指标、人工维度和 RAG 指标，对比基线与新版本并检查回归">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：先定义好答案，再选指标；自动全量加人工抽样；点击图片可查看原图。</sub></p>
+
 **核心指标**
 
 <details>
@@ -343,6 +407,14 @@ results = evaluate(
 ---
 
 ## 10. Tokenization分词算法:BPE vs SentencePiece
+
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q10-tokenization.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q10-tokenization.webp" width="100%" alt="BPE 与 SentencePiece 动漫知识图：BPE 学习高频相邻子词的合并规则，SentencePiece 直接在原始文本上训练并可使用 BPE 或 Unigram，两者都能把罕见词拆为已知子词">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：BPE 学合并规则，SentencePiece 直接建模原始文本；点击图片可查看原图。</sub></p>
 
 **Tokenization = 将文本切分成模型能理解的最小单位(Token)**
 
@@ -511,6 +583,14 @@ text = "2024年AI发展很快"
 ---
 
 ## 11. 长文本处理:超出Context Window怎么办?
+
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q11-long-context.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q11-long-context.webp" width="100%" alt="长文本处理动漫知识图：超出上下文边界后，应按对话、问答、概览或全文任务选择分层记忆、RAG、递归摘要或长上下文模型，并处理 Lost in the Middle">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：近保真、远保要、超远按需，方案取决于任务；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -799,6 +879,14 @@ def multi_pass_qa(long_text, question):
 
 ## 12. 如何给 LLM 选型？质量/速度/成本怎么权衡？（方法论）
 
+<p align="center">
+  <a href="../../assets/illustrations/01-basic-concepts/q12-model-selection.webp">
+    <img src="../../assets/illustrations/01-basic-concepts/q12-model-selection.webp" width="100%" alt="LLM 选型方法动漫知识图：用真实任务集比较候选模型的质量、P95 延迟、单位请求成本、稳定性与安全，寻找 Pareto 前沿并设计路由和降级">
+  </a>
+</p>
+
+<p align="center"><sub>🧠 图解记忆：用真实任务找 Pareto 最优，再做路由与降级；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -853,6 +941,10 @@ def multi_pass_qa(long_text, question):
 
 ## 13. 什么是推理模型（Reasoning Model）？o3/R1/QwQ 和普通模型有什么区别？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q13-reasoning-model.webp"><img src="../../assets/illustrations/01-basic-concepts/q13-reasoning-model.webp" width="100%" alt="推理模型与普通模型动漫知识图：依据任务复杂度将简单任务路由到直接响应，将复杂任务路由到内部推理，并统一做答案验证和预算控制"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：推理能力要按任务价值路由，不是默认全开；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -893,6 +985,10 @@ def multi_pass_qa(long_text, question):
 ---
 
 ## 14. 什么是 Test-Time Compute（测试时算力）？Thinking Budget 如何控制 AI 的思考量？
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q14-test-time-compute.webp"><img src="../../assets/illustrations/01-basic-concepts/q14-test-time-compute.webp" width="100%" alt="测试时算力与思考预算动漫知识图：推理时可根据任务复杂度分配不同思考预算，并在质量、延迟和成本之间权衡和持续评测"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：把思考预算花在值得的复杂问题上；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -976,6 +1072,10 @@ Anthropic 2025 年研究发现：对于**简单问题**，推理模型反而比�
 
 ## 15. 什么是 Logits？LLM 是如何一步步生成下一个 Token 的？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q15-logits-next-token.webp"><img src="../../assets/illustrations/01-basic-concepts/q15-logits-next-token.webp" width="100%" alt="下一 Token 生成动漫知识图：输入经 Tokenizer、Embedding、Transformer 和 LM Head 得到未归一化 Logits，再经 Softmax 和解码选择 Token，循环直到 EOS"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：LM Head 打分，Softmax 归一化，解码选 Token，循环到 EOS；点击图片可查看原图。</sub></p>
+
 **Logits** = 模型输出层（LM Head）对词表中每个 Token 的打分（未归一化的原始分数），数值越大表示越可能被选中。
 
 ### 完整生成流程（面试必答）
@@ -1004,6 +1104,10 @@ Anthropic 2025 年研究发现：对于**简单问题**，推理模型反而比�
 
 ## 16. 解码策略对比：贪心解码 vs Beam Search vs 采样
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q16-decoding-strategies.webp"><img src="../../assets/illustrations/01-basic-concepts/q16-decoding-strategies.webp" width="100%" alt="解码策略对比动漫知识图：贪心每步保留最高概率分支，Beam Search 保留多条高分序列路径，采样按概率探索不同分支"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：贪心走一条，Beam 留多路，采样按概率探索；点击图片可查看原图。</sub></p>
+
 ### 三种解码策略
 
 | 策略 | 原理 | 优点 | 缺点 | 适用场景 |
@@ -1027,6 +1131,10 @@ Anthropic 2025 年研究发现：对于**简单问题**，推理模型反而比�
 
 ## 17. 为什么 Temperature=0 时输出依然不完全确定？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q17-temperature-zero.webp"><img src="../../assets/illustrations/01-basic-concepts/q17-temperature-zero.webp" width="100%" alt="Temperature 等于零仍非绝对确定的动漫知识图：浮点并行、并列值处理及批处理或推理内核差异可能在近似并列时改变 argmax 结果"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：T=0 降低采样随机性，环境一致才接近可复现；点击图片可查看原图。</sub></p>
+
 **面试坑点：很多人以为 T=0 就是完全确定，其实不然。**
 
 ### 原因（三大层面）
@@ -1047,6 +1155,10 @@ Anthropic 2025 年研究发现：对于**简单问题**，推理模型反而比�
 ---
 
 ## 18. 什么是重复惩罚（repetition_penalty）？如何防止复读机？
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q18-repetition-penalty.webp"><img src="../../assets/illustrations/01-basic-concepts/q18-repetition-penalty.webp" width="100%" alt="重复惩罚动漫知识图：通过调整已出现 Token 的 Logits、按频次惩罚或禁止重复 n-gram 抑制复读，但惩罚过强会损伤语义和流畅度"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：先调 Logits 抑制重复，惩罚过强会伤流畅度；点击图片可查看原图。</sub></p>
 
 ### 定义
 
@@ -1085,6 +1197,10 @@ for token in seen_tokens:
 
 ## 19. 什么是停止符（EOS / Stop Token）？生成是如何终止的？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q19-generation-stop.webp"><img src="../../assets/illustrations/01-basic-concepts/q19-generation-stop.webp" width="100%" alt="生成终止机制动漫知识图：EOS 自然终止、长度上限硬截断、Stop 序列业务终止及结构化或工具边界终止，并提示 JSON 误截断风险"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：EOS 自然停，上限兜底，Stop 要防误截断；点击图片可查看原图。</sub></p>
+
 ### 定义
 
 **EOS（End of Sequence）** = 词表中一个特殊的终止 Token，模型生成它即代表回答结束。
@@ -1112,6 +1228,10 @@ for token in seen_tokens:
 
 ## 20. 为什么主流 LLM 都是 Decoder-only 架构？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q20-decoder-only.webp"><img src="../../assets/illustrations/01-basic-concepts/q20-decoder-only.webp" width="100%" alt="Transformer 架构对比动漫知识图：Encoder-only 擅长理解表征，Encoder-Decoder 擅长条件转换，Decoder-only 用因果注意力统一下一词预测和开放生成"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：理解看编码，转换看双栈，开放生成常用 Decoder-only；点击图片可查看原图。</sub></p>
+
 ### 三类架构对比
 
 | 架构 | 代表模型 | 特点 | 现状 |
@@ -1137,6 +1257,10 @@ for token in seen_tokens:
 <a id="training"></a>
 
 ## 21. Embedding（嵌入向量）是什么？和 Token 有什么关系？
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q21-embedding.webp"><img src="../../assets/illustrations/01-basic-concepts/q21-embedding.webp" width="100%" alt="Token 与 Embedding 动漫知识图：文本切分为离散 Token 和 Token ID 后查表得到连续向量，再经 Transformer 上下文化；文本 Embedding 则服务于检索和聚类"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：Token 是离散符号，Embedding 是连续坐标，上下文让含义改变；点击图片可查看原图。</sub></p>
 
 **Embedding = 把文本/Token 映射成稠密向量的技术**，是 LLM 理解语义的基石。
 
@@ -1195,6 +1319,10 @@ print(cos_sim(vec1, vec2))  # 语义相关度打分
 
 ## 22. 什么是 In-Context Learning（上下文学习）？Zero-shot / Few-shot 有什么区别？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q22-in-context-learning.webp"><img src="../../assets/illustrations/01-basic-concepts/q22-in-context-learning.webp" width="100%" alt="上下文学习动漫知识图：Zero-shot、One-shot 与 Few-shot 通过指令和示例在当前上下文中示范任务，模型参数保持冻结；微调则更新权重"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：ICL 用上下文示范任务，不改参数；微调把行为写进权重；点击图片可查看原图。</sub></p>
+
 **In-Context Learning（ICL）= 不更新模型参数，仅通过在 Prompt 中提供示例，让模型学会完成新任务。**
 
 ### 三种形式（面试必答）
@@ -1244,6 +1372,10 @@ prompt = """
 
 ## 23. LLM 是怎么训练出来的？预训练 → SFT → 对齐（RLHF/DPO）三阶段流程？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q23-training-stages.webp"><img src="../../assets/illustrations/01-basic-concepts/q23-training-stages.webp" width="100%" alt="LLM 训练三阶段动漫知识图：预训练通过下一 Token 预测学习语言和知识，SFT 学习指令遵循，RLHF 或 DPO 使用偏好数据建立行为与安全边界"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：预训练学语言与知识，SFT 学指令，对齐学偏好；点击图片可查看原图。</sub></p>
+
 **主流 LLM 训练分三阶段：预训练（学知识）→ SFT（学对话）→ 对齐（学偏好）**
 
 ### 三阶段对比（面试重点）
@@ -1286,6 +1418,10 @@ prompt = """
 
 ## 24. 什么是 Scaling Law（规模定律）？Chinchilla 法则修正了什么？
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q24-scaling-law.webp"><img src="../../assets/illustrations/01-basic-concepts/q24-scaling-law.webp" width="100%" alt="Scaling Law 动漫知识图：参数、训练数据和算力增加时验证损失呈可预测下降但收益递减，固定算力下需要联合优化参数规模与训练 Token 数"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：Scaling Law 预测趋势，固定算力要平衡参数与数据；点击图片可查看原图。</sub></p>
+
 **Scaling Law = 模型性能（Loss）与参数量、数据量、计算量之间存在可预测的幂律关系。**
 
 ### 核心公式（OpenAI 2020）
@@ -1324,6 +1460,10 @@ N = 参数量    D = 训练数据量    a,b,c,α,β = 常数
 ---
 
 ## 25. KV Cache 是什么？为什么能大幅加速 LLM 推理？（基础概念版）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q25-kv-cache.webp"><img src="../../assets/illustrations/01-basic-concepts/q25-kv-cache.webp" width="100%" alt="KV Cache 动漫知识图：Prefill 建立各层 K/V 缓存，Decode 每步仅为新 Token 计算 Q/K/V，将 K/V 追加并让当前 Q 关注历史缓存，以显存换取更少重复计算"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：历史 K/V 可复用，以显存换每步解码速度；点击图片可查看原图。</sub></p>
 
 **KV Cache = 把已经算过的历史 Token 的 K（Key）和 V（Value）缓存起来，避免重复计算。**
 
@@ -1376,6 +1516,10 @@ KV Cache 大小 = 2 × batch × seq_len × n_layers × n_heads × d_head × 字�
 
 ## 26. RLHF 和 DPO 有什么区别？（入门对比版）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q26-rlhf-vs-dpo.webp"><img src="../../assets/illustrations/01-basic-concepts/q26-rlhf-vs-dpo.webp" width="100%" alt="RLHF 与 DPO 对比动漫知识图：RLHF 先训练奖励模型再在线采样并用 PPO 更新策略，DPO 使用偏好对和参考模型直接优化偏好损失"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：RLHF 先学奖励再强化，DPO 直接学偏好差；点击图片可查看原图。</sub></p>
+
 **两者都是"对齐"阶段的技术，目标相同：让模型输出符合人类偏好。区别在于实现路径。**
 
 ### 一句话版本
@@ -1424,6 +1568,10 @@ KV Cache 大小 = 2 × batch × seq_len × n_layers × n_heads × d_head × 字�
 
 ## 27. 7B 模型需要多少显存？参数量如何换算显存？（高频估算题）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q27-memory-estimation.webp"><img src="../../assets/illustrations/01-basic-concepts/q27-memory-estimation.webp" width="100%" alt="模型显存估算动漫知识图：权重显存约等于参数量乘每参数字节，实际推理还需 KV Cache、激活和框架开销，训练还需梯度与优化器状态"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：先算权重，再加 KV、激活与运行开销；点击图片可查看原图。</sub></p>
+
 **核心公式：显存（GB）≈ 参数量 × 每参数字节数**
 
 ### 推理显存估算（面试必答）
@@ -1468,6 +1616,10 @@ for name, bytes_p in [("FP32", 4), ("FP16", 2), ("INT8", 1), ("INT4", 0.5)]:
 ---
 
 ## 28. 什么是 Chat Template（对话模板）？为什么用错模板效果会暴跌？
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q28-chat-template.webp"><img src="../../assets/illustrations/01-basic-concepts/q28-chat-template.webp" width="100%" alt="Chat Template 动漫知识图：结构化 messages 经模型官方模板插入角色标记、分隔和特殊 Token，转换为训练时见过的输入格式，手工拼接可能造成角色混乱"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：消息是结构化数据，Chat Template 把角色翻成模型见过的 Token 格式；点击图片可查看原图。</sub></p>
 
 **Chat Template = 把多轮消息列表转换成模型在训练时见过的格式（角色标记 + 特殊 Token）。**
 
@@ -1526,6 +1678,10 @@ prompt = f"System: 你是一个严谨的AI助手\nUser: 1+1等于几？\nAssista
 
 ## 29. 什么是 MoE（混合专家模型）？为什么 DeepSeek V3 / Qwen3 都用它？（高频）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q29-moe.webp"><img src="../../assets/illustrations/01-basic-concepts/q29-moe.webp" width="100%" alt="MoE 动漫知识图：路由器为每个 Token 选择少量专家计算并加权汇总，扩大模型容量但仍需加载专家权重，并面对通信、负载均衡和路由稳定性问题"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：路由决定激活专家，省计算不等于省权重与通信；点击图片可查看原图。</sub></p>
+
 **MoE（Mixture of Experts）= 把 Transformer 中的 FFN 层替换成"多个专家 + 路由器"，每个 Token 只激活少数几个专家。**
 
 ### 核心原理（面试必答）
@@ -1575,6 +1731,10 @@ MoE 模型：
 
 ## 30. 为什么说 LLM API 是无状态的？多轮对话的"记忆"到底存在哪？（应用开发第一性原理）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q30-stateless-api.webp"><img src="../../assets/illustrations/01-basic-concepts/q30-stateless-api.webp" width="100%" alt="无状态 LLM API 动漫知识图：每次调用都是独立计算，应用层维护会话 ID、历史消息、摘要、长期记忆检索和持久化，并在每次请求重建上下文"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：模型没有上次，记忆是应用每次重新提供的上下文；点击图片可查看原图。</sub></p>
+
 **LLM API 无状态 = 每次调用都是独立的一次计算，模型本身不保存任何对话历史。**
 
 ### 核心认知
@@ -1609,6 +1769,10 @@ LLM = 一个纯函数：f(输入文本) → 输出文本
 ---
 
 ## 31. 什么是 Prompt Caching（提示词缓存）？为什么能把 LLM 成本降 90%？（API 层高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q31-prompt-caching.webp"><img src="../../assets/illustrations/01-basic-concepts/q31-prompt-caching.webp" width="100%" alt="Prompt Caching 动漫知识图：多个请求在字节级前缀一致时跨请求复用前缀 Prefill 的 KV 结果，稳定静态内容应放前、动态字段放后，并区分解码 KV Cache 和语义缓存"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：缓存命中靠前缀完全一致，收益要看命中率与账单；点击图片可查看原图。</sub></p>
 
 **Prompt Caching = API 层复用相同"前缀"的 KV Cache，跳过重复的 Prefill 计算。**
 
@@ -1652,6 +1816,10 @@ LLM = 一个纯函数：f(输入文本) → 输出文本
 
 ## 32. 大模型量化是什么？INT8 / INT4 / AWQ / GPTQ 怎么选？（基础概念版）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q32-quantization.webp"><img src="../../assets/illustrations/01-basic-concepts/q32-quantization.webp" width="100%" alt="大模型量化动漫知识图：高精度权重通过校准映射到 INT8 或 INT4 离散级别，以精度换显存和带宽，选择方案需考虑量化范围、误差、硬件内核、吞吐和 KV Cache"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：量化用精度换显存和带宽，是否更快取决于硬件与内核；点击图片可查看原图。</sub></p>
+
 **量化 = 用更低精度的数值（INT8/INT4）表示模型权重/激活，减少显存占用并加速推理。**
 
 ### 一句话原理
@@ -1694,6 +1862,10 @@ INT4: 每个权重 0.5 字节 → 7B 模型 ≈ 3.5GB（再减半）
 
 ## 33. 为什么 LLM 数学能力差？怎么缓解？（高频追问）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q33-math-reliability.webp"><img src="../../assets/illustrations/01-basic-concepts/q33-math-reliability.webp" width="100%" alt="LLM 数学可靠性动漫知识图：数字分词、next-token 目标和误差累积使精确计算不可靠，工程上应由模型提取意图和约束、工具执行计算、结构化校验后再解释结果"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：LLM 理解与表达，工具精确计算，校验守住结果；点击图片可查看原图。</sub></p>
+
 **LLM 数学差是结构性问题，不是"再训大一点"就能完全解决的。**
 
 ### 四大原因（面试必答）
@@ -1728,6 +1900,10 @@ INT4: 每个权重 0.5 字节 → 7B 模型 ≈ 3.5GB（再减半）
 ---
 
 ## 34. Transformer 中的 Attention 机制是什么？为什么它是 LLM 的核心？（必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q34-attention.webp"><img src="../../assets/illustrations/01-basic-concepts/q34-attention.webp" width="100%" alt="Scaled Dot-Product Multi-Head Attention 动漫知识图：输入投影为 Q/K/V，QK 转置点积经缩放、掩码和 Softmax 得到权重，再加权汇总 V，多头并行后拼接投影"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：QK 算关注，Softmax 分权重，再汇总 V，多头看不同关系；点击图片可查看原图。</sub></p>
 
 **Attention = 让模型在处理每个 Token 时，动态关注输入中所有其他 Token 的相关程度。**
 
@@ -1797,6 +1973,10 @@ output = linear_out(attn_output)  # 最终投影
 
 ## 35. 为什么 Transformer 需要 Position Encoding？RoPE 和绝对位置编码有什么区别？（高频）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q35-rope.webp"><img src="../../assets/illustrations/01-basic-concepts/q35-rope.webp" width="100%" alt="位置编码与 RoPE 动漫知识图：绝对位置编码给每个位置添加编号向量，RoPE 按位置旋转 Q/K，使注意力点积携带相对距离，并提示长度外推仍需缩放、训练和评测"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：绝对编码记位置编号，RoPE 让 QK 角度携带相对距离；点击图片可查看原图。</sub></p>
+
 **Position Encoding = 给每个位置的 Token 加上位置信息，因为 Attention 本身不具备感知顺序的能力。**
 
 ### 为什么需要位置编码？
@@ -1850,6 +2030,10 @@ Transformer 的 Self-Attention 是对称操作:
 ---
 
 ## 36. LLM 预训练用什么损失函数？Cross-Entropy Loss 和 Perplexity 有什么关系？（常见追问）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q36-cross-entropy-ppl.webp"><img src="../../assets/illustrations/01-basic-concepts/q36-cross-entropy-ppl.webp" width="100%" alt="交叉熵与困惑度动漫知识图：下一 Token 预测使用左移目标，对非填充位置计算正确 Token 概率的负对数并求平均，Perplexity 是平均交叉熵的指数"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：交叉熵惩罚正确 Token 的低概率，PPL 是平均损失的指数；点击图片可查看原图。</sub></p>
 
 **LLM 预训练使用 Cross-Entropy Loss（交叉熵损失），也叫 Next-Token Prediction Loss。**
 
@@ -1913,6 +2097,10 @@ LLM 典型范围：GPT-3 base perplexity ~20，GPT-4o < 5
 
 ## 37. LayerNorm 和 RMSNorm 有什么区别？为什么现在的 LLM 大多用 RMSNorm？（高频）
 
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q37-layernorm-rmsnorm.webp"><img src="../../assets/illustrations/01-basic-concepts/q37-layernorm-rmsnorm.webp" width="100%" alt="LayerNorm 与 RMSNorm 对比动漫知识图：LayerNorm 先减均值中心化再按方差归一化并缩放平移，RMSNorm 不做中心化，只按均方根归一化并缩放"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：LayerNorm 先中心化再缩放，RMSNorm 只按均方根缩放；点击图片可查看原图。</sub></p>
+
 **LayerNorm = 对每个样本的每个位置，沿特征维度做标准化；RMSNorm 是其简化版，去掉了均值中心化，只保留归一化。**
 
 ### 两者的计算公式对比
@@ -1974,6 +2162,10 @@ class RMSNorm(nn.Module):
 ---
 
 ## 38. Decoder-only 模型中的因果掩码（Causal Mask）是怎么工作的？为什么必须有它？（高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q38-causal-mask.webp"><img src="../../assets/illustrations/01-basic-concepts/q38-causal-mask.webp" width="100%" alt="因果掩码动漫知识图：下三角可见性保证每个位置只能关注自身和左侧历史，在 Softmax 前把未来位置分数设为负无穷，使其注意力概率为零"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：下三角只看左边，Mask 在 Softmax 前把未来分数变成负无穷；点击图片可查看原图。</sub></p>
 
 **Causal Mask = 在 Self-Attention 中屏蔽未来的 Token，确保模型只能看到当前位置及之前的词。**
 
@@ -2042,6 +2234,10 @@ def forward_with_causal_mask(q, k, v, causal_mask_mat):
 ---
 
 ## 39. 预训练数据去重（Deduplication）有什么重要性？MinHash 和 SimHash 怎么做的？（进阶高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q39-deduplication.webp"><img src="../../assets/illustrations/01-basic-concepts/q39-deduplication.webp" width="100%" alt="预训练数据去重动漫知识图：先规范化和精确哈希去重，再用 MinHash 签名相等比例估计 Jaccard 并经 LSH 召回，或用 SimHash 指纹汉明距离找近重复，最后精判保留高质版本"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：MinHash 估 Jaccard，SimHash 比汉明距离，LSH 先召回再精判；点击图片可查看原图。</sub></p>
 
 **数据去重 = 移除训练数据集中重复或高度相似的文档，避免模型过度拟合重复内容。**
 
@@ -2118,6 +2314,10 @@ Step 2: LSH（Locality-Sensitive Hashing）— 高效近似最近邻搜索
 ---
 
 ## 40. 什么是 Catastrophic Forgetting（灾难性遗忘）？微调时怎么缓解？（实战必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q40-catastrophic-forgetting.webp"><img src="../../assets/illustrations/01-basic-concepts/q40-catastrophic-forgetting.webp" width="100%" alt="灾难性遗忘动漫知识图：狭窄领域微调可能提升领域能力却损伤通用能力，应以领域集和通用回归集配对评估，并通过数据回放、学习率早停、LoRA、正则和持续学习缓解"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：领域能力提升要和通用能力回归一起看；点击图片可查看原图。</sub></p>
 
 **Catastrophic Forgetting = 模型在对新数据进行微调时，大幅遗忘原来已经学到的通用知识。**
 

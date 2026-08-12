@@ -14,6 +14,9 @@
 
 ### Q1: 什么是 RAG？为什么需要 RAG？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q01-what-is-rag.webp"><img src="../../assets/illustrations/03-rag-system/q01-what-is-rag.webp" width="760" alt="RAG 动漫知识图：先从可更新知识库检索证据，再将问题与证据交给模型生成带引用的回答"></a></p>
+<p align="center"><sub>记忆点：先找证据，再据证回答；检索和生成都需要评测。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -36,6 +39,9 @@
 </details>
 
 ### Q2: RAG 的完整流程是什么？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q02-rag-pipeline.webp"><img src="../../assets/illustrations/03-rag-system/q02-rag-pipeline.webp" width="760" alt="生产 RAG 全流程动漫知识图：离线解析分块建索引，在线查询改写、混合检索、过滤重排、上下文组装、生成引用与可观测反馈"></a></p>
+<p align="center"><sub>记忆点：离线建好知识，在线找准证据，生成全程可观测。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -80,6 +86,9 @@
 
 ### Q3: 为什么 RAG 要用向量数据库？其他数据库不行吗？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q03-vector-database.webp"><img src="../../assets/illustrations/03-rag-system/q03-vector-database.webp" width="760" alt="RAG 数据库选型动漫知识图：语义检索、精确过滤、图关系和原始文件分别选择合适存储，并通过混合检索融合"></a></p>
+<p align="center"><sub>记忆点：按检索信号选索引，生产系统通常组合多种检索。</sub></p>
+
 <details>
 <summary>💡 高分回答</summary>
 
@@ -110,6 +119,9 @@
 </details>
 
 ### Q4: Embedding 是什么？1536 维什么意思？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q04-embedding.webp"><img src="../../assets/illustrations/03-rag-system/q04-embedding.webp" width="760" alt="Embedding 动漫知识图：编码器把内容映射为语义坐标，维度是坐标数量而非概念数量或质量分数"></a></p>
+<p align="center"><sub>记忆点：Embedding 把语义变成可比较的坐标，不同模型的向量不能直接混用。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -151,6 +163,9 @@
 
 ### Q5: 设计一个企业级知识库问答系统，你会怎么架构？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q05-enterprise-rag.webp"><img src="../../assets/illustrations/03-rag-system/q05-enterprise-rag.webp" width="760" alt="企业知识库问答架构动漫知识图：数据接入、版本存储、分块索引、权限过滤、混合检索、重排、模型网关与引用评测协同工作"></a></p>
+<p align="center"><sub>记忆点：知识、权限、检索、生成和评测必须一起设计。</sub></p>
+
 <details>
 <summary>💡 高分回答</summary>
 
@@ -186,6 +201,9 @@
 
 ### Q6: 如何选择 Chunk 大小？有什么影响？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q06-chunk-size.webp"><img src="../../assets/illustrations/03-rag-system/q06-chunk-size.webp" width="760" alt="Chunk 大小选择动漫知识图：过小丢上下文、过大稀释相关性，按文档结构切分并用任务评测集选择大小和重叠"></a></p>
+<p align="center"><sub>记忆点：按文档结构切，再用任务评测集定大小；没有通用最佳字数。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -214,6 +232,9 @@
 
 ### Q7: 如何解决检索结果不相关（Recall 质量差）？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q07-retrieval-quality.webp"><img src="../../assets/illustrations/03-rag-system/q07-retrieval-quality.webp" width="760" alt="RAG 检索诊断动漫知识图：区分未召回、召回不准、排序不准和权限过滤错误，再映射到查询、检索、过滤、重排和分块优化"></a></p>
+<p align="center"><sub>记忆点：先定位哪一层错，再调对应环节，并用标注集验证。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -240,6 +261,9 @@
 </details>
 
 ### Q8: 如何降低 RAG 系统的成本？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q08-rag-cost.webp"><img src="../../assets/illustrations/03-rag-system/q08-rag-cost.webp" width="760" alt="RAG 成本优化动漫知识图：量化向量化、检索、重排、输入和生成成本，在质量与 SLA 门槛内使用缓存、压缩、路由和批处理"></a></p>
+<p align="center"><sub>记忆点：先量成本结构，再在质量门槛内优化。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -268,6 +292,9 @@
 
 </details>
 ### Q9: RAG 系统的语义缓存（Semantic Cache）如何实现？有哪些关键问题？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q09-semantic-cache.webp"><img src="../../assets/illustrations/03-rag-system/q09-semantic-cache.webp" width="760" alt="语义缓存动漫知识图：语义相似只是命中候选，还需校验租户、权限、语言、TTL 和知识版本，并在更新时失效"></a></p>
+<p align="center"><sub>记忆点：语义相似只是候选，作用域和知识版本决定能否复用。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -401,6 +428,9 @@ class SemanticCache:
 
 ### Q10: 什么是Query改写?如何提升检索效果?
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q10-query-rewriting.webp"><img src="../../assets/illustrations/03-rag-system/q10-query-rewriting.webp" width="760" alt="Query 改写动漫知识图：结合对话补全独立问题，可选扩展、多查询与 HyDE，并行检索后融合去重和重排"></a></p>
+<p align="center"><sub>记忆点：补全意图，扩展表达，检索后再融合；改写不能改变用户意图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -521,6 +551,9 @@ results = retriever.get_relevant_documents(rewritten)
 
 ### Q11: 什么是上下文压缩?如何减少无效Token?
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q11-context-compression.webp"><img src="../../assets/illustrations/03-rag-system/q11-context-compression.webp" width="760" alt="上下文压缩动漫知识图：检索片段经过重排、过滤和证据抽取，仅把保留来源边界的相关内容交给模型"></a></p>
+<p align="center"><sub>记忆点：删冗余不删依据，省 Token 也要守住证据召回。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -632,6 +665,9 @@ chunk_embeddings = split_embedding(full_embedding, chunk_boundaries)
 ---
 
 ### Q12: 如何选择 Embedding 模型？有哪些关键维度？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q12-embedding-selection.webp"><img src="../../assets/illustrations/03-rag-system/q12-embedding-selection.webp" width="760" alt="Embedding 模型选型动漫知识图：用领域标注集比较语言适配、检索质量、输入长度、维度存储、吞吐延迟、成本隐私和指令兼容性"></a></p>
+<p align="center"><sub>记忆点：用自己的数据测检索，再算部署、存储和迁移成本。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -870,6 +906,9 @@ embedding = custom_model.encode("医学专业术语")
 
 ### Q13: GraphRAG 是什么？与普通向量 RAG 的核心区别？何时选择？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q13-graphrag.webp"><img src="../../assets/illustrations/03-rag-system/q13-graphrag.webp" width="760" alt="GraphRAG 与向量 RAG 对比动漫知识图：向量检索语义相似内容，图谱支持实体关系遍历、社区总结和多跳推理，复杂场景可混合"></a></p>
+<p align="center"><sub>记忆点：相似内容用向量，关系推理看图谱；GraphRAG 并非总是更优。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1081,6 +1120,9 @@ answer = graphrag_answer("支付宝的创始人和阿里巴巴CTO是什么关系
 ---
 
 ### Q14: Agentic RAG 是什么？与普通 RAG 的区别？如何实现多跳推理？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q14-agentic-rag.webp"><img src="../../assets/illustrations/03-rag-system/q14-agentic-rag.webp" width="760" alt="Agentic RAG 动漫知识图：Agent 规划子问题、选择检索工具、检查证据并循环改写，系统控制工具权限、预算和停止条件"></a></p>
+<p align="center"><sub>记忆点：让 Agent 决定怎么找，但系统决定能找什么、何时停。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1519,6 +1561,9 @@ RAGAS Faithfulness 均值：> 0.85
 
 ### Q15: 如何建立 RAG 系统的生产级可观测性体系？有哪些关键监控指标和告警策略？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q15-observability.webp"><img src="../../assets/illustrations/03-rag-system/q15-observability.webp" width="760" alt="RAG 可观测性动漫知识图：全链路 Trace 记录查询改写、检索、过滤重排和生成，并联合监控检索、生成、系统和成本指标"></a></p>
+<p align="center"><sub>记忆点：能还原每次答案，才能定位、评估和迭代。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1651,6 +1696,9 @@ groups:
 ---
 
 ### Q16: 什么是多模态 RAG？如何实现图文混合检索？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q16-multimodal-rag.webp"><img src="../../assets/illustrations/03-rag-system/q16-multimodal-rag.webp" width="760" alt="多模态 RAG 动漫知识图：解析文本、图表、表格和图片，保留页码区域与原始资源，跨模态检索并回到原页引用"></a></p>
+<p align="center"><sub>记忆点：图文一起索引，答案回到原页与区域；只做 OCR 会丢布局关系。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1806,6 +1854,9 @@ def encode_text(text: str) -> np.ndarray:
 
 ### Q17: Parent-Document Retrieval 和 Sentence Window Retrieval 是什么？
 
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q17-parent-window.webp"><img src="../../assets/illustrations/03-rag-system/q17-parent-window.webp" width="760" alt="父文档与句子窗口检索动漫知识图：用小粒度内容精准检索，再分别回填父章节或相邻句子窗口以补全上下文"></a></p>
+<p align="center"><sub>记忆点：小粒度检索、大范围回填；结构选父子，局部语义选窗口。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1901,6 +1952,9 @@ query_engine = index.as_query_engine(
 ---
 
 ### Q18: 如何做 RAG 知识库的动态知识更新？有哪些策略？
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q18-dynamic-update.webp"><img src="../../assets/illustrations/03-rag-system/q18-dynamic-update.webp" width="760" alt="动态 RAG 知识更新动漫知识图：变更事件幂等入库，生成并验证新索引，通过别名原子切换，按知识版本失效缓存并支持回滚"></a></p>
+<p align="center"><sub>记忆点：版本化构建、原子切换、可验证、可回滚。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
