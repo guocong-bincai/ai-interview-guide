@@ -10,9 +10,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MARKDOWN_FILES = [ROOT / "README.md", *sorted((ROOT / "docs").glob("*/README.md"))]
+INTRO_FILES = sorted(ROOT.glob("README*.md"))
+MARKDOWN_FILES = [*INTRO_FILES, *sorted((ROOT / "docs").glob("*/README.md"))]
 QUESTION_RE = re.compile(r"^(?:###\s+Q|##\s+)(\d+)[.:：、]\s*(.+?)\s*$")
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+HTML_LINK_RE = re.compile(r'(?:href|src)="([^"]+)"')
 PERCENT_RE = re.compile(
     r"(?:提升|降低|下降|减少|节省|命中率|准确率|召回率|幻觉率|利用率|成本).{0,18}?\d+(?:\.\d+)?%"
 )
@@ -58,7 +60,8 @@ def check_links() -> list[str]:
     errors: list[str] = []
     for path in MARKDOWN_FILES:
         for _, line in prose_lines(path):
-            for target in LINK_RE.findall(line):
+            targets = [*LINK_RE.findall(line), *HTML_LINK_RE.findall(line)]
+            for target in targets:
                 clean = target.split("#", 1)[0].strip()
                 if not clean or clean.startswith(("http://", "https://", "mailto:")):
                     continue
@@ -72,7 +75,9 @@ def check_numbering_and_duplicates() -> list[str]:
     warnings: list[str] = []
     by_title: dict[str, list[tuple[Path, int, str]]] = defaultdict(list)
 
-    for path in MARKDOWN_FILES[1:]:
+    for path in MARKDOWN_FILES:
+        if path.parent == ROOT:
+            continue
         records = question_records(path)
         seen_numbers: dict[int, list[int]] = defaultdict(list)
         seen_titles: dict[str, list[int]] = defaultdict(list)
@@ -108,7 +113,9 @@ def check_numbering_and_duplicates() -> list[str]:
 
 def check_unqualified_metrics() -> list[str]:
     warnings: list[str] = []
-    for path in MARKDOWN_FILES[1:]:
+    for path in MARKDOWN_FILES:
+        if path.parent == ROOT:
+            continue
         lines = path.read_text(encoding="utf-8").splitlines()
         for index, line in enumerate(lines):
             if not PERCENT_RE.search(line):

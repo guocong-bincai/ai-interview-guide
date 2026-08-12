@@ -1,4 +1,14 @@
 <p align="center">
+  <b>简体中文</b> ·
+  <a href="README_EN.md">English</a> ·
+  <a href="README_JA.md">日本語</a> ·
+  <a href="README_KO.md">한국어</a> ·
+  <a href="README_PT-BR.md">Português do Brasil</a> ·
+  <a href="README_ES.md">Español</a> ·
+  <a href="README_ID.md">Bahasa Indonesia</a>
+</p>
+
+<p align="center">
   <img src="assets/readme-hero.svg" width="100%" alt="AI 工程师面试宝典：面向不同 AI 岗位的分类题库与成长路线">
 </p>
 
