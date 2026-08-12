@@ -5,11 +5,11 @@
 
 ## 📋 目录
 
-1. [核心框架与企业架构（Q1-Q8）](#core-architecture)
-2. [A2A + MCP 混合架构（Q9）](#a2a-mcp)
-3. [协作模式与协议边界（Q10、Q13-Q14）](#collaboration-protocols)
-4. [研究评估与 Critic 架构（Q11-Q12）](#research-evaluation)
-5. [职责分解与运行时编排（Q15-Q17）](#runtime-orchestration)
+1. [核心框架与企业架构](#core-architecture)
+2. [A2A + MCP 混合架构](#a2a-mcp)
+3. [协作模式与协议边界](#collaboration-protocols)
+4. [研究评估与 Critic 架构](#research-evaluation)
+5. [职责分解与运行时编排](#runtime-orchestration)
 
 <a id="core-architecture"></a>
 

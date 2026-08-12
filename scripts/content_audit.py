@@ -147,13 +147,35 @@ def check_module_tocs() -> list[str]:
             errors.append(f"{path.relative_to(ROOT)}: 缺少二级目录")
             continue
 
-        toc_lines: list[str] = []
-        for _, line in lines[toc_index + 1 :]:
+        toc_lines: list[tuple[int, str]] = []
+        for line_no, line in lines[toc_index + 1 :]:
             if line.startswith("## "):
                 break
-            toc_lines.append(line)
-        if not any(LINK_RE.search(line) for line in toc_lines):
+            toc_lines.append((line_no, line))
+
+        link_lines = [item for item in toc_lines if LINK_RE.search(item[1])]
+        if not link_lines:
             errors.append(f"{path.relative_to(ROOT)}: 目录没有可点击链接")
+            continue
+
+        numbers: list[int] = []
+        for line_no, line in link_lines:
+            match = re.match(r"^(\d+)\.\s+\[([^]]+)\]\(", line)
+            if not match:
+                errors.append(
+                    f"{path.relative_to(ROOT)}:{line_no}: "
+                    "目录项应使用有序链接格式"
+                )
+                continue
+            numbers.append(int(match.group(1)))
+            if re.search(r"(?:^|[（(\s·])Q\d+", match.group(2), re.I):
+                errors.append(
+                    f"{path.relative_to(ROOT)}:{line_no}: "
+                    "目录名称不应重复显示 Q 编号"
+                )
+
+        if numbers and numbers != list(range(1, len(numbers) + 1)):
+            errors.append(f"{path.relative_to(ROOT)}: 目录序号不连续")
     return errors
 
 

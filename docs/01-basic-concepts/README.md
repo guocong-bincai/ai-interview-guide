@@ -2,11 +2,11 @@
 
 ## 📋 目录
 
-1. [基础概念（Q1-Q5）](#basics)
-2. [核心原理与评估（Q6-Q11）](#principles)
-3. [模型选型与推理（Q12-Q20）](#reasoning)
-4. [Embedding 与训练（Q21-Q29）](#training)
-5. [应用工程基础（Q30-Q40）](#application-engineering)
+1. [基础概念](#basics)
+2. [核心原理与评估](#principles)
+3. [模型选型与推理](#reasoning)
+4. [Embedding 与训练](#training)
+5. [应用工程基础](#application-engineering)
 
 ---
 

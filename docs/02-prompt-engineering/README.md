@@ -5,10 +5,10 @@
 
 ## 📋 目录
 
-1. [必背概念（Q1-Q3）](#core-concepts)
+1. [必背概念](#core-concepts)
 2. [Prompt 设计最佳实践](#prompt-best-practices)
-3. [进阶 Prompt 技巧（Q4-Q12）](#advanced-prompting)
-4. [生产调优与评测（Q13-Q18）](#production-evaluation)
+3. [进阶 Prompt 技巧](#advanced-prompting)
+4. [生产调优与评测](#production-evaluation)
 5. [速记卡片](#quick-reference)
 
 <a id="core-concepts"></a>

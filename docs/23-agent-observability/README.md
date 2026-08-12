@@ -9,12 +9,12 @@
 ## 📋 目录
 
 1. [为什么 Agent 可观测性是必考题](#why-observability)
-2. [核心监控指标体系（Q1-Q7）](#metrics)
-3. [面试高频追问（Q8）](#follow-ups)
+2. [核心监控指标体系](#metrics)
+3. [面试高频追问](#follow-ups)
 4. [速记卡片](#quick-reference)
 5. [面试话术模板](#answer-template)
-6. [Voice Agent 评估（Q9）](#voice-evaluation)
-7. [可观测性平台与生产实践（Q10-Q17）](#platform-comparison)
+6. [Voice Agent 评估](#voice-evaluation)
+7. [可观测性平台与生产实践](#platform-comparison)
 
 ---
 

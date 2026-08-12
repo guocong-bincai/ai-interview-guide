@@ -4,18 +4,18 @@
 
 ## 📋 目录
 
-1. [Q1 · asyncio / async-await 最佳实践](#q1)
-2. [Q2 · Pydantic v2 与结构化输出](#q2)
-3. [Q3 · LLM 重试与指数退避](#q3)
-4. [Q4 · FastAPI SSE 与 WebSocket](#q4)
-5. [Q5 · GIL 与多进程](#q5)
-6. [Q6 · pytest + Mock 测试](#q6)
-7. [Q7 · 内存管理与 OOM 排查](#q7)
-8. [Q8 · 批量并发调用 LLM API](#q8)
-9. [Q9 · asyncio 超时、取消与背压](#q9)
-10. [Q10 · Protocol 与依赖注入](#q10)
-11. [Q11 · 配置、密钥与结构化日志](#q11)
-12. [Q12 · 内存增长与事件循环阻塞](#q12)
+1. [asyncio / async-await 最佳实践](#q1)
+2. [Pydantic v2 与结构化输出](#q2)
+3. [LLM 重试与指数退避](#q3)
+4. [FastAPI SSE 与 WebSocket](#q4)
+5. [GIL 与多进程](#q5)
+6. [pytest + Mock 测试](#q6)
+7. [内存管理与 OOM 排查](#q7)
+8. [批量并发调用 LLM API](#q8)
+9. [asyncio 超时、取消与背压](#q9)
+10. [Protocol 与依赖注入](#q10)
+11. [配置、密钥与结构化日志](#q11)
+12. [内存增长与事件循环阻塞](#q12)
 
 ---
 
