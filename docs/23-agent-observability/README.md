@@ -130,8 +130,7 @@ class ObservableAgent:
 
 ---
 
-### Q2: 如何用 LangSmith 做 Agent 调试？有哪些高级用法？
-
+### Q1: 如何用 LangSmith 做 Agent 调试？有哪些高级用法？
 **LangSmith 核心功能：**
 
 <details>
@@ -213,8 +212,7 @@ def compare_prompt_versions(prompt_v1: str, prompt_v2: str, test_set: list):
 
 ---
 
-### Q3: 如何监控 Agent 的 Token 消耗和成本？有哪些优化策略？
-
+### Q2: 如何监控 Agent 的 Token 消耗和成本？有哪些优化策略？
 **成本监控架构：**
 
 <details>
@@ -331,8 +329,7 @@ class SemanticCache:
 
 ---
 
-### Q4: 如何检测 Agent 的行为异常？循环、幻觉、死循环如何发现？
-
+### Q3: 如何检测 Agent 的行为异常？循环、幻觉、死循环如何发现？
 **异常检测架构：**
 
 <details>
@@ -420,8 +417,7 @@ async def agent_run(query: str):
 
 ---
 
-### Q5: 如何用 Arize Phoenix 做开源可观测性？和 LangSmith 有什么区别？
-
+### Q4: 如何用 Arize Phoenix 做开源可观测性？和 LangSmith 有什么区别？
 **Arize Phoenix 核心用法：**
 
 <details>
@@ -489,8 +485,7 @@ eval_df = run_evaluation(
 
 ---
 
-### Q6: 如何设计 Agent 的 SLA 和告警规则？有哪些关键阈值？
-
+### Q5: 如何设计 Agent 的 SLA 和告警规则？有哪些关键阈值？
 **SLA 设计：**
 
 <details>
@@ -585,8 +580,7 @@ groups:
 
 ---
 
-### Q7: 如何做 Agent 的 A/B 测试？有哪些评估指标？
-
+### Q6: 如何做 Agent 的 A/B 测试？有哪些评估指标？
 **Agent A/B 测试架构：**
 
 <details>
@@ -772,8 +766,7 @@ tool_tree = build_tool_call_tree(run.tool_calls)
 
 ## 六、Voice Agent 评估新框架：EVA（Q9）
 
-### Q9: EVA 框架是什么？为什么"Accuracy-Experience Tradeoff"是 Voice Agent 评估的核心发现？
-
+### Q7: EVA 框架是什么？为什么"Accuracy-Experience Tradeoff"是 Voice Agent 评估的核心发现？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -843,8 +836,7 @@ ServiceNow 2026年3月发布的 EVA，首次同时评估任务完成 + 对话体
 
 ## 十、2026年新锐Agent可观测性平台：Opik vs Maxim AI vs Latitude（Q10）
 
-### Q10: Opik、Maxim AI、Latitude 三大2026新锐平台各有什么特点？如何选型？
-
+### Q8: Opik、Maxim AI、Latitude 三大2026新锐平台各有什么特点？如何选型？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -934,8 +926,7 @@ Latitude方案：发现异常 → 直接创建Issue → 自动关联Agent执行�
 
 </details>
 
-### Q11: 为什么说"Agent可观测性≠传统LLM监控"？Agent轨迹追踪有哪些独特挑战？
-
+### Q9: 为什么说"Agent可观测性≠传统LLM监控"？Agent轨迹追踪有哪些独特挑战？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1051,8 +1042,7 @@ ReAct Loop中的状态管理问题：
 
 </details>
 
-### Q12: OpenTelemetry 在 Agent 系统中的完整接入实战
-
+### Q10: OpenTelemetry 在 Agent 系统中的完整接入实战
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1207,8 +1197,7 @@ service:
 
 </details>
 
-### Q13: Grafana Dashboard 设计：Agent 监控面板关键指标
-
+### Q11: Grafana Dashboard 设计：Agent 监控面板关键指标
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1336,8 +1325,7 @@ groups:
 
 </details>
 
-### Q14: 多 Agent 系统的分布式追踪：TraceID 传递与关联
-
+### Q12: 多 Agent 系统的分布式追踪：TraceID 传递与关联
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1458,8 +1446,7 @@ CREATE TABLE agent_task_children (
 
 </details>
 
-### Q15: 生产环境 Agent 成本超支告警：预算控制最佳实践
-
+### Q13: 生产环境 Agent 成本超支告警：预算控制最佳实践
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1612,8 +1599,7 @@ class AgentBudgetController:
 </details>
 
 
-### Q16: SLA 违约复盘模板：从告警到根因分析的完整流程
-
+### Q14: SLA 违约复盘模板：从告警到根因分析的完整流程
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1773,8 +1759,7 @@ ORDER BY num_segments DESC;
 
 </details>
 
-### Q17: Agent 日志结构化设计：如何让日志可搜索、可分析？
-
+### Q15: Agent 日志结构化设计：如何让日志可搜索、可分析？
 <details>
 <summary>💡 答案要点</summary>
 

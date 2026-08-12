@@ -16,7 +16,6 @@
 ## 一、多模态基础
 
 ### Q1: 什么是多模态学习？为什么重要?
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -92,7 +91,6 @@
 </details>
 
 ### Q2: 如何评估多模态模型的性能？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -156,7 +154,6 @@ CLIP 结果：
 ## 二、CLIP模型
 
 ### Q3: CLIP 的核心思想是什么？如何训练？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -289,7 +286,6 @@ prediction = classes[similarity.argmax()]  # "猫"
 </details>
 
 ### Q4: CLIP 如何做 Zero-shot 分类？为什么效果好？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -408,7 +404,6 @@ CLIP：
 ## 三、BLIP模型
 
 ### Q5: BLIP 和 CLIP 有什么区别？为什么需要 BLIP？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -533,7 +528,6 @@ BLIP 解决方案：
 </details>
 
 ### Q6: BLIP-2 有什么改进？Q-Former 是什么？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -680,7 +674,6 @@ BLIP-2（188M）> Flamingo（80B）
 ## 四、应用实战
 
 ### Q7: 如何用多模态模型做图文检索系统？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -857,7 +850,6 @@ final_results = sorted(zip(candidates, rerank_scores),
 </details>
 
 ### Q8: 如何评估和优化多模态 RAG 系统？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1639,8 +1631,7 @@ embeddings = clip_model.get_text_features(texts)  # 批量快10倍
 
 ## 六、Gemma 4：Google DeepMind 2026年4月重磅发布
 
-### Q11: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
-
+### Q9: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2037,8 +2028,7 @@ class ImageQualityEvaluator:
 
 ## 七、Vision-Language Agent 评估：MMLU-Pro、MathVista、ChartQA、DocVQA（Q17）
 
-### Q12: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
-
+### Q10: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2241,8 +2231,7 @@ def evaluate_docvqa(documents, questions):
 
 ## 五、2026年全模态模型新突破：Qwen3.5-Omni 与 NVIDIA Nemotron 3 Nano Omni（Q18）
 
-### Q13: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
-
+### Q11: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2347,8 +2336,7 @@ def evaluate_docvqa(documents, questions):
 
 </details>
 
-### Q14: NVIDIA Nemotron 3 Nano Omni 是什么？为什么"端侧全模态"是2026年的重要方向？
-
+### Q12: NVIDIA Nemotron 3 Nano Omni 是什么？为什么"端侧全模态"是2026年的重要方向？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2412,8 +2400,7 @@ scenarios = {
 
 </details>
 
-### Q15: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
-
+### Q13: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
 <details>
 <summary>💡 答案要点</summary>
 

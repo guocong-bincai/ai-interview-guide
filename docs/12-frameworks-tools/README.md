@@ -14,7 +14,6 @@
 ## 一、框架使用题
 
 ### Q1: LangChain 的核心组件有哪些？如何使用 Chain？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -58,7 +57,6 @@ print(result)
 </details>
 
 ### Q2: LangGraph 和 LangChain 有什么区别？什么时候用 LangGraph？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -112,7 +110,6 @@ app = graph.compile()
 </details>
 
 ### Q3: 如何使用 LlamaIndex 构建 RAG 系统？和 LangChain 有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -171,7 +168,6 @@ print(response)
 ## 二、向量数据库题
 
 ### Q4: 向量数据库的索引类型有哪些？怎么选？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -200,7 +196,6 @@ print(response)
 </details>
 
 ### Q5: 如何优化向量检索的精度和速度？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -228,7 +223,6 @@ print(response)
 </details>
 
 ### Q6: 向量数据库的 Metadata 过滤怎么用？有什么应用场景？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -272,7 +266,6 @@ results = collection.search(
 ## 三、测试评估题
 
 ### Q7: 如何测试 AI 应用的质量？有哪些评估指标？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -302,7 +295,6 @@ results = collection.search(
 </details>
 
 ### Q8: 如何构建 AI 应用的测试集？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -339,7 +331,6 @@ results = collection.search(
 ## 四、部署运维题
 
 ### Q9: 如何部署 LLM 应用到生产环境？需要注意什么？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -376,7 +367,6 @@ results = collection.search(
 </details>
 
 ### Q10: 如何监控 AI 应用的成本？如何优化？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1484,8 +1474,7 @@ class StreamResumer:
 
 ---
 
-### Q15: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
-
+### Q11: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1753,8 +1742,7 @@ response = client.messages.create(
 
 </details>
 
-### Q17: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
-
+### Q12: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1842,8 +1830,7 @@ Step 3: 输出
 </details>
 
 
-### Q18: LangGraph vs Semantic Kernel 2026年深度对比：微软新一代 Agent Framework 来了，如何选择？
-
+### Q13: LangGraph vs Semantic Kernel 2026年深度对比：微软新一代 Agent Framework 来了，如何选择？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1992,8 +1979,7 @@ app = graph.compile()
 
 ---
 
-### Q19: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
-
+### Q14: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2185,8 +2171,7 @@ queued → in_progress → requires_action → completed
 
 ## 十五、LangGraph 生产监控 + Time-Travel 调试 + Checkpointing 架构（Q15）
 
-### Q20: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
-
+### Q15: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2415,8 +2400,7 @@ if results["answer_quality"] < 0.8:
 
 ## 十六、2026年 Agent 框架选型深度指南：LangGraph vs Claude Agent SDK vs CrewAI vs AutoGen（Q16）
 
-### Q21: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
-
+### Q16: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2665,8 +2649,7 @@ result = agent.run_sync("分析季度销售数据")
 
 ---
 
-### Q22: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
-
+### Q17: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
 <details>
 <summary>💡 答案要点</summary>
 

@@ -2394,6 +2394,430 @@ LoRA 冻结大部分预训练权重，只训练低秩适配矩阵
 > "灾难性遗忘的本质是模型为了适应新数据而覆盖了旧权重。我的应对三板斧：1）微调时混入 5-10% 的通用预训练数据；2）尽量用 LoRA 而不是全量微调，冻结大部分权重天然防遗忘；3）调完后立刻用 MMLU 或 GSM8K 跑一下，确认通用能力没有崩。一般这样组合用，遗忘程度能控制在可接受范围内。"
 
 ---
+## 41. FlashAttention 是什么？为什么它比标准 Attention 快很多？（高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q41-flashattention.webp"><img src="../../assets/illustrations/01-basic-concepts/q41-flashattention.webp" width="100%" alt="FlashAttention动漫知识图：传统Attention在HBM上两次读写中间矩阵，FlashAttention分块将计算全部留在SRAM，通过在线softmax和重计算避免写出QK^T和Attention矩阵"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：注意力计算的瓶颈不是算不快，而是数据搬太多——把计算移到SRAM里做，少搬数据就快了。</sub></p>
+
+**FlashAttention = I/O 感知的注意力算法：把计算拆成小方块放在 GPU SRAM 上做，避免反复从 HBM（高带宽显存）读写中间结果。**
+
+### 核心问题：标准 Attention 的 I/O 瓶颈
+
+```
+标准 Softmax(QK^T)V 的计算流程：
+1. Q @ K^T → M×M 中间矩阵（写入 HBM）
+2. softmax(M×M) → 又一个中间矩阵（写入 HBM）
+3. Softmax_M × V → 最终输出
+
+问题：
+- 对于一个 seq_len=8192 的序列，QK^T 就是 8192×8192 ≈ 67M 个 float16 = 128MB
+- 长序列下中间矩阵远大于 SRAM，只能存在 HBM
+- HBM 读写的速度远慢于 SRAM（约 10~20 倍差距）
+- 每次 block 计算完都要写回 HBM、下次再读回来 → 大量时间浪费在搬运数据
+```
+
+### FlashAttention 的三大优化
+
+#### 1. Tiling（分块计算）
+```
+把 Q、K、V 分成小 blocks，每个 block 大小适配 SRAM：
+  Block-Q (n×d) + Block-K (m×d)^T → Block-QK^T → softmax → Block-O (n×d)
+
+每个 block 的计算完全在 SRAM 内完成，只有最终输出写回 HBM
+→ 大幅减少 HBM 读写次数
+```
+
+#### 2. Online Softmax
+```
+传统 softmax 需要两遍遍历数据（先求 max，再归一化）。
+FlashAttention 用递推方式一次搞定：
+
+在线 softmax 递推公式：
+给定前 i 个块的 max(m_i) 和 sum(s_i)，加入第 i+1 块后：
+  m_new = max(m_i, m_{i+1})
+  s_new = s_i * exp(m_i - m_new) + s_{i+1} * exp(m_{i+1} - m_new)
+  o_new = (o_i * exp(m_i - m_new) + o_{i+1} * exp(m_{i+1} - m_new)) / s_new
+
+这样每处理一个 block 就能更新全局统计量，不需要保存整个中间矩阵！
+```
+
+#### 3. Re-computation（重计算）
+```
+因为不保存中间矩阵，反向传播时需要重新计算 QK^T。
+但重计算的成本远低于存储和传输中间矩阵的成本。
+
+权衡：多一次正向计算 ↔ 省掉 M×M 显存存储
+对于长序列场景，后者收益巨大
+```
+
+### 性能对比
+
+| 指标 | 标准 Attention | FlashAttention |
+|------|---------------|----------------|
+| **显存占用** | O(n²)（存完整中间矩阵） | O(n)（只存分块结果） |
+| **训练速度** | 基准 | 1.5~2× 更快 |
+| **支持的最大序列长度** | 受限于显存 | 大幅提升 |
+| **数值精度** | 标准 softmax | 数值稳定（在线算法保证） |
+
+### 面试高频追问
+
+- **FlashAttention-2 vs FlashAttention-1 有什么区别？** FA-2 进一步优化了 CUDA kernel，减少了寄存器压力并改进了 load/store 调度，实测再提速 ~25%
+- **FlashAttention 能用于 Transformer Encoder 吗？** 可以——任何使用注意力机制的场景都可以受益，不限于 Decoder-only
+- **FlashAttention 对硬件有要求吗？** 需要较新的 GPU（如 A100/H100 的更大 SRAM），对消费级显卡也有优化版本
+
+**面试话术：**
+> "FlashAttention 的核心思想是 I/O 感知设计——不是让计算更快，而是让数据搬运更少。传统 Attention 要把 QK^T 这个巨大的中间矩阵写到显存再读回来，而 FlashAttention 把 Q、K、V 切成小块全放在 SRAM 里算完，用在线 Softmax 递推替代全矩阵操作，最后只把输出写回显存。实际效果是训练速度提升 1.5~2 倍，而且显存占用从 O(n²) 降到 O(n)，这让超长上下文训练成为可能。现在几乎所有主流 LLM 框架都内置了 FlashAttention。"
+
+---
+
+## 42. MHA、MQA、GQA 有什么本质区别？为什么行业转向了 GQA？（高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q42-attention-variants.webp"><img src="../../assets/illustrations/01-basic-concepts/q42-attention-variants.webp" width="100%" alt="注意力变体动漫知识图：MHA各有独立KV头保精度但KVCache大，MQA所有头共享一个KV头省显存但精度降，GQA取折衷按组共享KV头兼顾速度与质量"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：MHA是全栈精英(贵但强)，MQA是极简主义(省但弱)，GQA是性价比之王。</sub></p>
+
+**MHA/MQA/GQA 都是 Self-Attention 的变体，核心区别在于 Key 和 Value 头的数量分配策略，本质是在「KV Cache 大小」和「表达能力」之间做权衡。**
+
+### 三种方案的对比
+
+假设模型有 H 个 Query 头和 d_head 维度的 head：
+
+| 方案 | Query 头数 | Key 头数 | Value 头数 | KV Cache 大小 | 推理速度 | 质量损失 |
+|------|-----------|---------|-----------|--------------|---------|---------||
+| **MHA** (Multi-Head Attention) | H | H | H | 最大 (H 份) | 基准 | 无 |
+| **MQA** (Multi-Query Attention) | H | 1 | 1 | 最小 (1/H 份) | 最快 | 较大 |
+| **GQA** (Grouped-Query Attention) | H | G | G | 中等 (H/G 份) | 较快 | 很小 |
+
+其中 G = 分组数（通常 G << H 但 G > 1）
+
+### 原理拆解
+
+#### MHA：标准多头注意力
+```
+每个 Query 头都有自己的 K 头和 V 头
+Q[i] @ K[i]^T → Attention → ... （i = 1...H）
+优点：表达能力最强
+缺点：KV Cache 随头数线性增长，推理内存开销大
+代表：BERT, 早期 GPT
+```
+
+#### MQA：所有 Query 头共享一组 KV 头
+```
+Q[i] @ K[0]^T → Attention → ... （i = 1...H，都用同一个 K/V）
+优点：KV Cache 缩减 H 倍，推理速度快
+缺点：不同 Query 头被迫看同样的 K/V，表达能力严重受限，质量下降明显
+代表：一些极端部署场景的小模型
+```
+
+#### GQA：按组共享 KV 头（⭐ 工业界首选）
+```
+将 H 个 Query 头分为 G 组，每组共享一个 K/V 头
+Q[group_0] @ K[0]^T, Q[group_1] @ K[1]^T, ...
+优点：KV Cache 缩减 G 倍，质量几乎无损
+缺点：需要精心设计分组数 G
+代表：Llama 3 (8 heads / 8 groups = 8GQA), Gemma 2, DeepSeek V2/V3
+```
+
+### 关键数学关系
+
+```
+KV Cache 大小（FP16）≈ 2 × num_layers × H × d_head × seq_len × batch_size × bytes_per_elem
+
+对于 Llama 3-70B（128 heads, 8 GQA groups）:
+  seq_len=8192, batch=1:
+    MHA KV Cache: 2 × 80 × 128 × 128 × 8192 × 2 = ~27 GB
+    GQA KV Cache: 2 × 80 × 8 × 128 × 8192 × 2 = ~1.7 GB（节省 16 倍！）
+```
+
+### Up-training（轻量升级）
+```
+GQA 论文发现：可以用很小的代价把已有 MHA 模型升级为 GQA 模型
+步骤：
+1. 加载训练好的 MHA checkpoint
+2. 对每个组的多个 KV 权重做平均（mean pooling）→ 得到 G 组的新 KV
+3. 少量数据（几百条 prompt-response）微调 → 恢复几乎完整的精度
+成本：只需几小时而非几天的训练
+```
+
+### 面试高频追问
+
+- **2025 年出现了 MLA（Multi-Latent Attention），它与 GQA 有什么不同？** 
+  MLA 不只是减少 KV 头数，而是把所有头共享的 KV 投影为一个低秩 latent tensor（rank=r），同时保持 query 方向不变。DeepSeek V2/V3 用的就是这个思路，相比 GQA 进一步压缩了 KV Cache 而不牺牲表达能力。
+  
+- **什么时候该用 MQA 而不是 GQA？** 
+  几乎没有理由用 MQA——它在质量上退化明显且只在极边缘部署场景有优势。GQA 已经覆盖了 MQA 的所有适用场景且效果更好。
+
+**面试话术：**
+> "MHA 到 GQA 的演进本质上是在问一个问题：多少个 KV 头才够用？MHA 每个头独享 KV 容量但太烧显存，MQA 把所有头共享一个 KV 省显存但质量崩了。GQA 找到黄金分割点——把头分成 G 组，每组共享 KV。工业界的共识是 G 通常在 4~16 之间，比如 Llama 3 的 70B 用的是 8GQA（128个头÷8组），显存节省了 16 倍而质量几乎无损。关键是 GQA 还支持 up-training，可以直接从 MHA checkpoint 升级，这对生态非常友好。"
+
+---
+
+## 43. Continuous Batching（连续批处理）是怎么工作的？为什么吞吐量能大幅提升？（实战必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q43-continuous-batching.webp"><img src="../../assets/illustrations/01-basic-concepts/q43-continuous-batching.webp" width="100%" alt="连续批处理动漫知识图：静态批处理等所有请求完成才释放GPU，连续批处理在迭代级别动态调度——请求完成立即腾出slot，新请求随时加入计算流"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：静态批处理像公交车等满发车，连续批处理像地铁到站就走——有人下车就有人上车，永不浪费座位。</sub></p>
+
+**Continuous Batching（也叫 Iteration-Level Batching 或 In-Flight Batching）是一种 LLM 推理调度技术，以 Token 级别的细粒度动态管理批处理中的请求，而非等到整批请求全部完成后才释放资源。**
+
+### 传统静态批处理的致命缺陷
+
+```
+静态批处理（Static Batching）的工作方式：
+┌──────────┬──────────────┬──────────┐
+│ Request 1 │  Prefill ──▶ Decode ──▶ Decode ──▶ Decode（结束）│
+│ Request 2 │  Prefill ──▶ Decode ──▶ Decode ──▶ Decode ──▶ Decode（结束）│
+│ Request 3 │  Prefill ──▶ Decode ──▶ Decode（结束）              │
+└──────────┴──────────────┴──────────┘
+
+问题：
+  - 三个请求并行执行，但必须等最慢的请求(Request 2)完成后批次才算结束
+  - Request 3 提前结束了，但它占用的 GPU 资源不能释放给新请求
+  - GPU 利用率极低：长请求期间短请求对应的计算单元空闲
+```
+
+### Continuous Batching 的核心思想
+
+```
+迭代级调度——每个 Token 生成后检查哪些请求完成了：
+
+Step 0: [R1-Prefill] [R2-Prefill] [R3-Prefill]
+Step 1: [R1-Dec]     [R2-Dec]     [R3-Dec]     ← 一起生成第一轮
+Step 2: [R1-Dec]     [R2-Dec]     [R3-完成✅]   ← R3 完成！
+        ↑ 立刻释放 R3 的资源 → 放入新请求 R4！
+Step 3: [R1-Dec]     [R2-Dec]     [R4-New]      ← R4 替换了 R3
+Step 4: [R1-Dec]     [R2-Dec]     [R4-Dec]      ← 继续
+Step 5: [R1-完成✅]  [R2-Dec]     [R4-Dec]      ← R1 也完成了 → R5 加入
+Step 6: [R5-New]     [R2-Dec]     [R4-Dec]      ← 循环往复...
+```
+
+### Continuous Batching 的关键组件
+
+| 组件 | 作用 |
+|------|------|
+| **迭代级调度器** | 每个 Token 生成后评估完成状态，决定是否移除/添加请求 |
+| **PagedAttention** | 将 KV Cache 分页管理，支持请求的动态加入/退出（无拷贝、零开销） |
+| **Chunked Prefill** | 长 prompt 拆成 chunks 分批处理，避免 prefill 阶段独占 GPU 太久 |
+| **Scheduler Policy** | 决定等待队列中哪个新请求进入批次（FIFO / Shortest Job First 等） |
+
+### 与传统 Batch 的性能对比
+
+| 指标 | Static Batching | Continuous Batching |
+|------|----------------|--------------------||
+| **吞吐量化** | 基准 | 23×（vLLM 实测） |
+| **尾部延迟 (p99)** | 高（被最长请求拖垮） | 低（新请求可立即插入） |
+| **GPU 利用率** | 低（长请求拖累批次） | 高（接近 100%） |
+| **并发请求数** | 受限 | 大幅提高 |
+
+### Chunked Prefill（与 Continuous Batching 配合）
+```
+问题：一个超长 prompt（比如 100K tokens）预填充需要很长时间
+→ 在此期间 GPU 全力服务于 prefill，其他 decode 请求全部阻塞
+
+解法：将 prefill 任务切分为 chunks（如 2048 tokens/chunk），每个 chunk
+与其他请求的 decode 交替执行
+→ 既保证了 throughput，又控制了 tail latency
+```
+
+### 面试高频追问
+
+- **Continuous Batching 和 vLLM 的关系？** vLLM 是最早将 Continuous Batching + PagedAttention 结合的开源推理框架，后来 HuggingFace TGI、TensorRT-LLM、SGLang 等也都实现了类似机制
+- **Prefill 和 Decode 能混在一起算吗？** 技术上可以（vLLM 默认会分开调用不同 kernel），但通常 prefill 调 Matmul kernel（计算密集），decode 调 Attention kernel（访存密集），分开调度更优
+- **调度策略怎么选？** 简单场景用 FIFO；追求吞吐用 SJF（Shortest Job First）；生产环境一般用 weighted fair scheduling
+
+**面试话术：**
+> "Continuous Batching 解决的是 LLM Serving 中最核心的资源浪费问题。想象一下餐厅厨师炒菜——如果一定要等桌上的客人全部吃完才能上新菜，那厨房产能肯定很低。但如果有人吃完一道就能立刻上桌下一道，厨房产出就会最大化。vLLM 的 Continuous Batching 就是这样做的：每个 request 生成到 EOS 时立刻释放它的 KV Cache 槽位，新请求直接补进来。配合 PagedAttention 的分页管理和 Chunked Prefill 防止长 prompt 独占 GPU，最终可以实现 20 倍以上的吞吐量提升。这套组合拳现在已经成了 LLM Serving 的事实标准。"
+
+---
+
+## 44. ALiBi 位置编码是什么？和 RoPE 有什么区别、各适用于什么场景？（进阶高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q44-alibi-vs-rope.webp"><img src="../../assets/illustrations/01-basic-concepts/q44-alibi-vs-rope.webp" width="100%" alt="位置编码对比动漫知识图：RoPE通过旋转矩阵把相对位置信息注入QK内积，ALiBi则在Attention score上直接加线性衰减偏置，前者依赖训练时的长度后者天然外推到更长序列"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：RoPE是用旋转让位置变成向量的一部分，ALiBi是直接给分数贴衰减标签。</sub></p>
+
+**ALiBi (Attention with Linear Biases) = 一种简单而有效的绝对位置编码方法，直接在 Attention Score 上加一个与位置距离成比例的负向偏置项。**
+
+### RoPE 回顾（已有的 Q35）
+```
+Rotary Positional Embedding:
+  - 将 Q 和 K 分别乘上一个旋转矩阵 R(θᵢ)，旋转角度 θᵢ 依赖于位置 i
+  - 计算 QK^T 时，旋转自然转化为两个位置之间的相对位置信息
+  - 优势：天然建模相对位置，已在训练序列长度范围内表现优秀
+  - 劣势：超出训练长度的外推能力有限
+```
+
+### ALiBi 的设计思想
+```
+核心 idea：不在 embedding 层加位置信息，而是在 Attention Score 层面直接加偏置
+
+公式：Attention(i, j) = Softmax( Q_i K_j^T / √d + b_i )
+
+其中 b_i = -m × |i - j|
+  m 是斜率系数（每个 attention head 有不同的 m）
+  |i - j| 是位置之间的距离
+  越远的 token，score 越小（施加负向偏置）
+
+注意：这个偏置是固定的（训练无关），不经过梯度更新！
+```
+
+### ALiBi vs RoPE 对比
+
+| 维度 | RoPE | ALiBi |
+|------|------|-------|
+| **位置编码方式** | 旋转矩阵作用于 Q/K 向量 | 线性偏置直接加到 Attention Score |
+| **是否 learnable** | ✅ 是（嵌入网络的一部分） | ❌ 否（固定的斜率参数） |
+| **外推能力** | 中等（受训练长度限制） | ⭐ 强（天然适合外推） |
+| **实现复杂度** | 中等（需要特殊的 rotary kernel） | 极低（一行代码即可） |
+| **代表的模型** | LLaMA, Mistral, Qwen, Gemma | BigScience BLOOM, Meena |
+| **与训练长度的关系** | 需要针对目标长度训练 | 无需调整，直接用 |
+
+### ALiBi 的外推优势详解
+```
+RoPE 的问题：
+  训练时在 4K 长度上学习的旋转模式，到了 8K 或 32K 可能不work
+  虽然有一些改进（NTK-aware scaling、Pi-Scale 等），但本质上是 heuristic
+
+ALiBi 的优势：
+  线性衰减的模式在所有长度上都一致——没有"外推"的概念
+  因为偏置是固定的数学函数：b_i = -m × distance
+  
+  实际验证：
+  - BLOOM 训练时最大长度 2K，测试时可以很好地外推到 8K+
+  - 2025 年的工作（如 RoFormer-Gen、YaRN）都在尝试结合 RoPE 的准确性和 ALiBi 的外推性
+```
+
+### Hybrid 趋势（2025-2026）
+```
+研究发现：RoPE 的精度高 + ALiBi 的外推好 = 最好的组合
+代表性做法：
+  1. RoFormer++ : RoPE + ALiBi 联合使用
+  2. YaRN (Yet Another RoPE tuning) : 先用 NTK-aware scaling 修改 RoPE，再用 ALiBi-style bias 增强外推
+  3. 部分模型采用 "基础 RoPE + 可选 ALiBi head" 的双轨架构
+
+工程实践：
+  - 如果只做常规训练（已知最大长度）→ RoPE 就够了
+  - 如果需要极致长文本外推 → 优先考虑 RoPE + 插值技巧，或在预算允许时考虑 Hybrid
+```
+
+### 面试高频追问
+
+- **ALiBi 为什么不学？为什么固定斜率反而更好？**
+  ALiBi 的斜率是通过 validation 搜索得到的固定值。研究表明，固定的线性衰减恰好匹配了人类语言中"近处相关性强、远处相关性弱"的自然规律， learned 的位置编码反而可能在推理时学到不适合外推的模式。
+
+- **FlashAttention 兼容 ALiBi 吗？**
+  原生 FlashAttention 不直接支持 ALiBi（因为它假设 Attention 是纯注意力形式）。但 FlashInfer 等新一代后端已经实现了带 ALiBi 偏置的高效 Attention kernel。
+
+**面试话术：**
+> "ALiBi 和 RoPE 都是解决 Transformer '看不到位置' 问题的方案，但路子完全不同。RoPE 把位置信息揉进向量本身（用旋转变换），优点是训练时表达力强，缺点是换长度时要微调。ALiBi 则另辟蹊径——直接在 Attention Score 上加一个线性衰减的偏置，相当于告诉模型'离你越远的词影响力越小'。这个规则完全不随长度变化，所以外推能力极强。业界趋势是两者结合：RoPE 负责训练时的表达能力，ALiBi 负责推理时的外推鲁棒性。"
+
+---
+
+## 45. Logit Bias 和采样控制：如何精准控制 LLM 的输出？（实战必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q45-sampling-control.webp"><img src="../../assets/illustrations/01-basic-concepts/q45-sampling-control.webp" width="100%" alt="采样控制动漫知识图：温度控制概率分布的平滑程度，Top-K和Top-N限制候选集大小，重复惩罚降低已出现token的概率，logit_bias强制提升或压制特定词元，stop_sequences定义终止条件"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：生成控制是一把组合拳——温度管风格、候选集管范围、惩罚管倾向、Bias管精确控制。</sub></p>
+
+**Logit Bias = 在模型输出的 logits 上加一个手动设置的偏置值，直接改变特定 token 被选中的概率。它是 LLM 可控生成的最后一道防线。**
+
+### 采样控制的"工具链"全景
+
+```
+模型输出 logits（原始未归一化的分数）
+       ↓
+[1] Logit Bias  —— 手动加减特定 token 的分数
+       ↓
+[2] Temperature  —— 整体缩放 logits，控制随机性
+       ↓
+[3] Top-K / Top-P / Top-A —— 过滤候选集，缩小选择范围
+       ↓
+[4] Repetition Penalty —— 对已出现的 token 降分
+       ↓
+[5] Stop Sequences —— 命中即终止生成
+       ↓
+Softmax → 采样 → 输出 token
+```
+
+### Logit Bias 详解
+
+```python
+# OpenAI API 示例
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "请用一句话回答"}],
+    logit_bias={
+        1234: 10,   # Token ID 1234 的 score +10（极高概率被选中）
+        5678: -10,  # Token ID 5678 的 score -10（极低概率被选中）
+    }
+)
+# 注意：bias 范围通常是 -100 ~ 100（不同 provider 可能不同）
+# +10 意味着该 token 的概率大约是原来的 e^10 ≈ 22026 倍
+# -10 意味着该 token 的概率大约是原来的 e^-10 ≈ 4.5e-5 倍
+```
+
+**关键特性：**
+- Logit Bias 直接修改的是 **raw logits**（Softmax 之前的值），而非概率
+- 指数级的影响：bias=+10 使某 token 的概率翻 2万倍，bias=+5 翻倍
+- 优先级最高：在 Temperature 之前生效（先加 bias，再缩放宽窄）
+- 不支持批量 token 的排除（需逐 token ID 设置）
+
+### Top-A（Absolute Threshold）采样
+
+```
+Top-A（Absolute threshold sampling）是比 Top-P 更精细的控制方法：
+
+原理：
+  对每个 token 的 softmax 概率 p_i，保留满足以下条件的 token：
+    p_i > A × (max(p))^A
+  其中 A 是一个很小的值（如 0.02），max(p) 是最高概率
+
+特点：
+  - 自动适应模型的置信度水平
+  - 当模型很有信心时（max p 很大），候选集较小
+  - 当模型犹豫不决时（max p 很小），候选集自动扩大
+  - 避免了 Top-P 中"概率分布平坦时选太多 token"的问题
+
+代表应用：Anthropic Claude 系列采用此方法
+```
+
+### 采样控制策略实战搭配
+
+| 场景 | 推荐配置 | 说明 |
+|------|---------|------||
+| **聊天/对话** | temp=0.7, top_p=0.9 | 平衡创意和质量 |
+| **事实问答** | temp=0.1, top_p=0.95 | 偏向确定性和准确性 |
+| **代码生成** | temp=0.2, top_p=0.95, repetition_penalty=1.1 | 代码要准确也要有多样性 |
+| **JSON 结构化输出** | temp=0, logit_bias={合法字符ID:+20, 非法ID:-20} | 严格约束输出格式 |
+| **品牌术语强制** | logit_bias={"Apple":+15, "苹果":-15} | 强制使用英文 brand name |
+| **创作/故事** | temp=1.0, top_k=40 | 高多样性和创意 |
+
+### 常见陷阱
+
+```
+❌ 陷阱1：Temperature 和 Top-P 混用时行为不可预期
+   解决：先设 Temp，再做 Top-P 截断。多数 API 会自动按这个顺序处理
+
+❌ 陷阱2：Repetition Penalty 和 Logit Bias 冲突
+   解决：Bias 优先于 Penalty。如果需要对已出现的 token 同时做 bias 调整和 penalty，
+   需要在应用层自行合并效果
+
+❌ 陷阱3：Top-A 的参数 A 太小导致候选集为空
+   解决：A 通常在 0.01~0.05 之间，具体取决于 vocab size 和模型风格
+```
+
+### 面试高频追问
+
+- **Temperature 到底怎么影响采样？** Temperature = τ 时，新 logits = raw_logits / τ。τ < 1 使分布更尖锐（偏向最高分 token），τ > 1 使分布更平坦（增加随机性），τ = 0 等价于 greedy decoding（取 argmax）
+- **Top-K、Top-P、Top-A 三者的关系？** Top-K 固定数量，Top-P 自适应比例，Top-A 自适应绝对阈值。实践中 Top-P 最常用，Top-A 在 Anthropic 证明了对不确定性场景更鲁棒
+- **能否用 logit_bias 实现"禁止输出某些内容"？** 可以但不优雅——需要提前知道要禁用的 token ID 列表。更好的方式是配合 guard-rails 系统或使用 stop sequences
+
+**面试话术：**
+> "Logit Bias 是我在需要精确控制 LLM 输出时最后的杀手锏。它的原理很直观——直接往模型的原始打分上加钱或扣钱，加的正越多那个 token 越容易被选中。比如在 JSON 输出场景中，我会把合法的逗号、冒号、引号的 token 加 positive bias，把中文标点加 huge negative bias，确保模型不会输出格式混乱的结果。配合 Temperature 控制整体风格、Top-P 控制候选集大小、repetition penalty 防复读，这一套工具链基本能覆盖 99% 的生产环境控制需求。"
+
+---
+
 ## 📝 速记卡片
 
 ### LLM基础概念
@@ -2437,6 +2861,11 @@ LoRA 冻结大部分预训练权重，只训练低秩适配矩阵
 | **Causal Mask** | Decoder-only预测时只看前面,未来位置设为-inf;自回归核心保障 |
 | **数据去重** | MinHash+LSH工业标配,Gopher减少20%训练数据;防过拟合重复内容 |
 | **灾难性遗忘** | 微调时覆盖旧权重;混入通用数据+LoRA缓解;5-10%通用数据 |
+| **FlashAttention** | SRAM分块计算+在线Softmax+重计算;IO感知设计,O(n²)→O(n)显存;训练提速1.5~2× |
+| **GQA/MQA** | GQA按组共享KV头(如Llama3 8GQA);比MQA质量好,比MHA省显存16倍;工业界首选 |
+| **Continuous Batching** | 迭代级动态调度;请求完成立即释放slot;配合PagedAttention吞吐提升20×+;vLLM事实标准 |
+| **ALiBi vs RoPE** | ALiBi线性偏置外推强、RoPE旋转编码精度高;混合架构是2025趋势 |
+| **Logit Bias & Top-A** | Bias直接改raw logits指数级影响;Top-A自适应绝对阈值;温度/候选集/惩罚/ Bias组合拳全覆盖 |
 
 ### 分词算法
 
@@ -2457,3 +2886,25 @@ LoRA 冻结大部分预训练权重，只训练低秩适配矩阵
 ---
 
 [返回目录 →](../../README.md)
+
+
+---
+
+*版本: v3.129 | 更新: 2026-08-13 | by 二狗子 🐕*
+
+
+---
+
+## 📚 数据更新（v3.129 - 2026-08-13）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [💡 FlashAttention](./) | Q41 FlashAttention I/O感知设计：SRAM分块+在线Softmax递推+重计算；显存O(n²)→O(n)，训练提速1.5~2×，FA-2再提25% | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [⚡ GQA/MQA](./) | Q42 MHA→MQA→GQA演进：KV头共享策略权衡，Llama3 8GQA省16倍显存质量无损，支持up-training | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔄 Continuous Batching](./) | Q43 迭代级动态调度：请求完成立即释放slot，配合PagedAttention吞吐提升20×+，chunked prefill防长prompt阻塞 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [📍 ALiBi vs RoPE](./) | Q44 ALiBi线性偏置外推强、RoPE旋转编码精度高，YaRN混合架构2025趋势，FlashInfer支持ALiBi kernel | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🎛️ Logit Bias & Top-A](./) | Q45 生成控制工具链：Logit Bias指数级修改raw logits，Top-A自适应绝对阈值，温度/候选集/惩罚/Bias组合拳 | 🔥🔥🔥🔥 | +1 |
+
+**总计新增：5 道题**
+
+*版本: v3.128 | 更新: 2026-07-02*

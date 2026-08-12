@@ -15,7 +15,6 @@
 ## 一、微调基础概念
 
 ### Q1: 什么是微调（Fine-tuning）？为什么需要微调？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -45,7 +44,6 @@
 </details>
 
 ### Q2: 全量微调 vs 参数高效微调（PEFT）有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -81,7 +79,6 @@
 </details>
 
 ### Q3: 什么时候用微调，什么时候用 RAG？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -129,7 +126,6 @@
 ## 二、LoRA与PEFT
 
 ### Q4: 什么是 LoRA？它的原理是什么？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -180,7 +176,6 @@ LoRA 微调：W' = W + BA
 </details>
 
 ### Q5: LoRA 的超参数怎么选？r 和 alpha 如何影响性能？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -235,7 +230,6 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 </details>
 
 ### Q6: QLoRA 和 LoRA 有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -280,7 +274,6 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 ## 三、对齐技术：RLHF与DPO
 
 ### Q7: 什么是 RLHF？为什么需要对齐？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -354,7 +347,6 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 </details>
 
 ### Q8: 什么是 DPO？它和 RLHF 有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -409,7 +401,6 @@ DPO：
 </details>
 
 ### Q9: RLHF/DPO 的数据怎么标注？成本高吗？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -470,7 +461,6 @@ DPO：
 ## 四、训练优化
 
 ### Q10: 训练时遇到 OOM（显存不足）怎么办？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -556,7 +546,6 @@ training_args = TrainingArguments(
 </details>
 
 ### Q11: 如何防止微调时的灾难性遗忘（Catastrophic Forgetting）？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -646,7 +635,6 @@ for task in tasks:
 </details>
 
 ### Q12: PEFT方法对比:LoRA vs QLoRA vs Adapter vs Prefix-Tuning
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1201,8 +1189,7 @@ variants = llm_paraphrase(
 
 ## 六、TRL v1.0：Hugging Face 2026年3月后训练库重磅更新（Q13）
 
-### Q14: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
-
+### Q13: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1303,8 +1290,7 @@ trainer.train()
 
 </details>
 
-### Q15: DAPO 和 GSPO 是什么？它们和 GRPO 有什么区别？
-
+### Q14: DAPO 和 GSPO 是什么？它们和 GRPO 有什么区别？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1344,8 +1330,7 @@ GSPO:
 
 </details>
 
-### Q16: 什么是信用分配问题（Credit Assignment Problem）？token级别和seq级别的奖励有何不同？
-
+### Q15: 什么是信用分配问题（Credit Assignment Problem）？token级别和seq级别的奖励有何不同？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1391,8 +1376,7 @@ reward_at_step_t = final_reward * gamma^(T-t)
 
 ---
 
-### Q17: 训练数据 Packing 是什么？为什么要正确处理 attention mask 和 loss mask？
-
+### Q16: 训练数据 Packing 是什么？为什么要正确处理 attention mask 和 loss mask？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1402,8 +1386,7 @@ Packing 把多条短样本拼进同一个固定长度序列，减少 padding、�
 
 </details>
 
-### Q18: 学习率、Warmup、梯度裁剪和有效 Batch Size 如何联动？
-
+### Q17: 学习率、Warmup、梯度裁剪和有效 Batch Size 如何联动？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1413,8 +1396,7 @@ Packing 把多条短样本拼进同一个固定长度序列，减少 padding、�
 
 </details>
 
-### Q19: DDP、FSDP 和 ZeRO 分别解决什么问题？
-
+### Q18: DDP、FSDP 和 ZeRO 分别解决什么问题？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1426,8 +1408,7 @@ Packing 把多条短样本拼进同一个固定长度序列，减少 padding、�
 
 </details>
 
-### Q20: 如何判断微调过拟合、数据泄漏或只是评测噪声？
-
+### Q19: 如何判断微调过拟合、数据泄漏或只是评测噪声？
 <details>
 <summary>💡 答案要点</summary>
 

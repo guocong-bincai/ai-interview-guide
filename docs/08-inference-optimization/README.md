@@ -14,7 +14,6 @@
 ## 一、推理基础
 
 ### Q1: LLM 推理和训练有什么区别？为什么推理更难优化？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -72,7 +71,6 @@
 </details>
 
 ### Q2: 什么是自回归生成？Prefill 和 Decode 有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -145,7 +143,6 @@ Decode 阶段：
 ## 二、KV Cache优化
 
 ### Q3: 什么是 KV Cache？为什么需要它？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -232,7 +229,6 @@ Attention(Q, K, V) = softmax(QK^T / √d) V
 </details>
 
 ### Q4: KV Cache 量化是什么？如何实现？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -331,7 +327,6 @@ class KVCacheQuantizer:
 </details>
 
 ### Q5: 什么是 PagedAttention？它解决什么问题？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -444,7 +439,6 @@ if page.ref_count > 1:
 ## 三、模型量化
 
 ### Q6: 模型量化是什么？INT8/INT4/FP8 有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -555,7 +549,6 @@ if page.ref_count > 1:
 </details>
 
 ### Q7: GPTQ、AWQ 是什么？它们有什么区别？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -658,7 +651,6 @@ for channel in range(num_channels):
 ## 四、推理加速
 
 ### Q8: FlashAttention 是什么？为什么能加速？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -757,7 +749,6 @@ for i in range(0, n, block_size):
 </details>
 
 ### Q9: 批处理（Batching）如何提升推理吞吐量？Continuous Batching 是什么？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -866,7 +857,6 @@ class ContinuousBatcher:
 </details>
 
 ### Q10: Speculative Decoding（推测解码）是什么？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -977,7 +967,6 @@ class ContinuousBatcher:
 </details>
 
 ### Q11: 什么是PagedAttention?vLLM如何工作?
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1644,8 +1633,7 @@ print(f"等待队列长度: {metrics.waiting_queue_size}")
 
 ---
 
-### Q14: 推理优化应该关注哪些指标？TTFT、TPOT、ITL 和吞吐如何权衡？
-
+### Q12: 推理优化应该关注哪些指标？TTFT、TPOT、ITL 和吞吐如何权衡？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1708,8 +1696,7 @@ TurboQuant 是 Google 2026年4月发布的向量量化压缩算法，发表在 I
 
 </details>
 
-### Q15: 什么是 Prefix Caching 和 RadixAttention？为什么长上下文场景必须用它？
-
+### Q13: 什么是 Prefix Caching 和 RadixAttention？为什么长上下文场景必须用它？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1825,8 +1812,7 @@ Prefill延迟(16K):      2.3s              0.4s
 
 </details>
 
-### Q16: 什么是 Attention Matching？MIT 如何实现 KV Cache 50倍无损压缩？2026年 KV Cache 优化技术有哪些新方向？
-
+### Q14: 什么是 Attention Matching？MIT 如何实现 KV Cache 50倍无损压缩？2026年 KV Cache 优化技术有哪些新方向？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1938,8 +1924,7 @@ KV Cache 优化五大方向：
 
 ## 十六、vLLM v1 + PD分离架构 + Mooncake 生产部署（Q16）
 
-### Q17: vLLM v1的PD分离架构是什么？Mooncake + LMCache如何实现KV Cache跨节点传输？生产环境如何部署？
-
+### Q15: vLLM v1的PD分离架构是什么？Mooncake + LMCache如何实现KV Cache跨节点传输？生产环境如何部署？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2118,8 +2103,7 @@ llm = LLM(
 
 ---
 
-### Q18: 什么是 Continuous Batching 和 Chunked Prefill？2026 年为什么它们是推理引擎的核心优化？
-
+### Q16: 什么是 Continuous Batching 和 Chunked Prefill？2026 年为什么它们是推理引擎的核心优化？
 <details>
 <summary>💡 答案要点</summary>
 

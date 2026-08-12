@@ -15,7 +15,6 @@
 ## 一、AI 安全与合规
 
 ### Q1: 如何防止 AI 应用生成有害内容？（内容安全）
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -74,7 +73,6 @@ def safety_check(response):
 </details>
 
 ### Q2: 如何处理用户隐私数据？（PII 保护）
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -126,7 +124,6 @@ def sanitize_pii(text):
 </details>
 
 ### Q3: 如何防止 AI 应用被滥用？（刷量、攻击）
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -189,7 +186,6 @@ func (rl *RateLimiter) Wait() {
 ## 二、评估与测试
 
 ### Q4: 如何评估 AI 应用的质量？（评估体系）
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -230,7 +226,6 @@ func (rl *RateLimiter) Wait() {
 </details>
 
 ### Q5: 如何做 AI 应用的回归测试？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -289,7 +284,6 @@ for case in test_cases:
 </details>
 
 ### Q6: RAGAS 的四个指标是什么？如何优化？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -319,7 +313,6 @@ for case in test_cases:
 ## 三、成本优化实战
 
 ### Q7: 如何给一个 RAG/Agent 应用做威胁建模？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -332,7 +325,6 @@ for case in test_cases:
 </details>
 
 ### Q8: 间接 Prompt Injection 如何导致工具越权或数据外泄？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -349,7 +341,6 @@ for case in test_cases:
 </details>
 
 ### Q9: 如何构建红队测试集，并避免评测集泄漏和过拟合？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -360,7 +351,6 @@ for case in test_cases:
 </details>
 
 ### Q10: LLM-as-a-Judge 用于安全评估时如何校准？
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1762,8 +1752,7 @@ def evaluate_dialogue(conversation):
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-04-06
 
-### Q14: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
-
+### Q11: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1890,8 +1879,7 @@ results = eval_llm.evaluate(
 
 </details>
 
-### Q15: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
-
+### Q12: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2086,8 +2074,7 @@ alerts:
 
 ## 五、Agent Harness Engineering：AI Agent评估框架与安全测试（Q12）
 
-### Q16: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
-
+### Q13: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2290,8 +2277,7 @@ Agent Harness：评估"自主行为"
 
 ## 七、神经符号融合：2026年幻觉控制新范式
 
-### Q17: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
-
+### Q14: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2410,8 +2396,7 @@ AlphaFold 3：
 
 *版本: v2.7 | 更新: 2026-04-13 | by 二狗子 🐕*
 
-### Q18: 为什么有人说"对齐（Alignment）是笑话"？2026年对齐失效的四大"护城河"为何都在崩塌？
-
+### Q15: 为什么有人说"对齐（Alignment）是笑话"？2026年对齐失效的四大"护城河"为何都在崩塌？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2502,8 +2487,7 @@ AlphaFold 3：
 
 ---
 
-### Q19: N-Day-Bench是什么？和传统安全基准测试有什么区别？2026年LLM漏洞发现能力如何衡量？
-
+### Q16: N-Day-Bench是什么？和传统安全基准测试有什么区别？2026年LLM漏洞发现能力如何衡量？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2540,8 +2524,7 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 
 ## 六、Google Research 行为对齐评估：Behavioral Dispositions Framework（Q10）
 
-### Q20: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
-
+### Q17: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2589,8 +2572,7 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 
 </details>
 
-### Q21: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
-
+### Q18: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2676,8 +2658,7 @@ Wirken 安全思路（正确）：
 
 ## 二十、2026年 Prompt Injection 七类攻击模式 + RAG 投毒防御（Q19）
 
-### Q22: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
-
+### Q19: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2887,8 +2868,7 @@ AI 读取图片 → 解析像素中的隐写信息 → 执行指令
 
 ## 二十一、2026年 Agent 评估平台对比：Braintrust vs DeepEval vs Weave vs Langfuse vs Arize（Q20）
 
-### Q23: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
-
+### Q20: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3206,8 +3186,7 @@ def test_rag_faithfulness():
 - Patronus AI: https://www.patronus.ai
 - RAG Evaluation 2026 Guide: https://datavlab.ai/post/rag-evaluation-methods-metrics-2026-guide
 
-### Q25: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
-
+### Q21: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
 <details>
 <summary>💡 答案要点</summary>
 
