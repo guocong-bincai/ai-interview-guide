@@ -103,7 +103,7 @@
   </tr>
 </table>
 
-<p align="center"><b>01–10 共 10 个核心专题、236 道题，现已全部完成逐题配图。</b></p>
+<p align="center"><b>01–15 共 15 个核心专题、347 道题，现已全部完成逐题配图。</b></p>
 
 <p align="center">
   <a href="docs/01-basic-concepts/">01 LLM 基础</a> ·
@@ -115,7 +115,12 @@
   <a href="docs/07-model-training/">07 模型训练</a> ·
   <a href="docs/08-inference-optimization/">08 推理优化</a> ·
   <a href="docs/09-ai-safety-evaluation/">09 安全评测</a> ·
-  <a href="docs/10-production-deployment/">10 生产部署</a>
+  <a href="docs/10-production-deployment/">10 生产部署</a><br>
+  <a href="docs/11-multimodal-ai/">11 多模态 AI</a> ·
+  <a href="docs/12-frameworks-tools/">12 框架工具</a> ·
+  <a href="docs/13-multi-agent-systems/">13 多 Agent</a> ·
+  <a href="docs/14-mcp-skill-systems/">14 MCP / Skills</a> ·
+  <a href="docs/15-advanced-topics/">15 进阶专题</a>
 </p>
 
 <a id="quick-start" name="quick-start"></a>
