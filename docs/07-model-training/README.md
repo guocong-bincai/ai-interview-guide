@@ -15,6 +15,9 @@
 ## 一、微调基础概念
 
 ### Q1: 什么是微调（Fine-tuning）？为什么需要微调？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q01-fine-tuning.webp" width="860" alt="预训练通用能力经过目标数据微调成为任务专长的流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：预训练学通用规律，微调学稳定任务与行为；先定目标，再用评测证明改变。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -44,6 +47,9 @@
 </details>
 
 ### Q2: 全量微调 vs 参数高效微调（PEFT）有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q02-full-vs-peft.webp" width="860" alt="全量微调与 PEFT 参数更新范围、资源及部署取舍图"></p>
+<p align="center"><sub>🧠 记忆锚点：全量更新能力强但成本高；PEFT 冻结主干，只训练小增量，先用它建立基线。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -79,6 +85,9 @@
 </details>
 
 ### Q3: 什么时候用微调，什么时候用 RAG？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q03-rag-vs-finetuning.webp" width="860" alt="RAG 更新知识与微调塑造行为的选型及组合图"></p>
+<p align="center"><sub>🧠 记忆锚点：RAG 给模型可更新的小抄，微调训练稳定的做事方式；知识与行为不要混为一谈。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -126,6 +135,9 @@
 ## 二、LoRA与PEFT
 
 ### Q4: 什么是 LoRA？它的原理是什么？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q04-lora-mechanism.webp" width="860" alt="LoRA 冻结原权重并通过低秩矩阵学习权重增量的机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：主干 W 不动，用 A、B 两个小矩阵学习 ΔW；低秩假设把大更新变成小增量。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -176,6 +188,9 @@ LoRA 微调：W' = W + BA
 </details>
 
 ### Q5: LoRA 的超参数怎么选？r 和 alpha 如何影响性能？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q05-lora-tuning.webp" width="860" alt="LoRA 秩、缩放、目标模块和验证集联动调参图"></p>
+<p align="center"><sub>🧠 记忆锚点：r 决定容量，alpha/r 决定强度，target_modules 决定改哪里；用验证集选，不背固定参数。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -230,6 +245,9 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 </details>
 
 ### Q6: QLoRA 和 LoRA 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q06-qlora.webp" width="860" alt="QLoRA 量化冻结主干、反量化计算与训练 LoRA 增量机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：QLoRA 量化冻结的主干省显存，LoRA 增量仍训练；量化是存储策略，不等于全程低精度算。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -274,6 +292,9 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 ## 三、对齐技术：RLHF与DPO
 
 ### Q7: 什么是 RLHF？为什么需要对齐？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q07-rlhf.webp" width="860" alt="RLHF 监督微调、奖励模型和 PPO 对齐三阶段流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：SFT 教会回答，奖励模型学会比较，PPO 在奖励与不偏离参考模型之间优化。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -347,6 +368,9 @@ target_modules = ["q_proj", "k_proj", "v_proj", "o_proj"]
 </details>
 
 ### Q8: 什么是 DPO？它和 RLHF 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q08-dpo-vs-rlhf.webp" width="860" alt="DPO 直接偏好优化与 RLHF 奖励模型强化学习路径对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：RLHF 先学评分器再做强化学习；DPO 把偏好关系直接写进损失，省掉奖励模型与 PPO。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -401,6 +425,9 @@ DPO：
 </details>
 
 ### Q9: RLHF/DPO 的数据怎么标注？成本高吗？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q09-preference-data.webp" width="860" alt="偏好数据候选生成、评分标尺、多人标注、仲裁和防泄漏流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：先定标尺再比较答案；多人一致性、仲裁、分层抽检和防泄漏决定偏好数据质量。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -461,6 +488,9 @@ DPO：
 ## 四、训练优化
 
 ### Q10: 训练时遇到 OOM（显存不足）怎么办？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q10-training-oom.webp" width="860" alt="训练显存账本、OOM 诊断和参数激活状态分片优化图"></p>
+<p align="center"><sub>🧠 记忆锚点：OOM 先定位谁占显存；减批量不够时，再从激活、状态、参数和分片逐层处理。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -546,6 +576,9 @@ training_args = TrainingArguments(
 </details>
 
 ### Q11: 如何防止微调时的灾难性遗忘（Catastrophic Forgetting）？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q11-catastrophic-forgetting.webp" width="860" alt="微调数据分布导致灾难性遗忘及双重评测缓解机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：遗忘是数据分布与更新过强共同造成；领域指标和通用回归必须一起看。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -635,6 +668,9 @@ for task in tasks:
 </details>
 
 ### Q12: PEFT方法对比:LoRA vs QLoRA vs Adapter vs Prefix-Tuning
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q12-peft-methods.webp" width="860" alt="LoRA、QLoRA、Adapter、Prefix 与 Prompt Tuning 增量位置图"></p>
+<p align="center"><sub>🧠 记忆锚点：LoRA 改权重增量，Adapter 加小模块，Prefix/Prompt 加可训练向量；QLoRA 再量化主干。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -795,7 +831,10 @@ Output (d维)
 
 ---
 
-## 13. 微调数据如何准备?数据质量如何保证?
+### Q13: 微调数据如何准备？数据质量如何保证？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q13-training-data.webp" width="860" alt="微调数据目标、采集、清洗、标注、防泄漏划分与错误回补闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：先定义好样本，再清洗标注；按来源切分防泄漏，用错误分析持续回补数据。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1187,9 +1226,12 @@ variants = llm_paraphrase(
 | LoRA | 80-90% | 无 |
 | QLoRA | 90-95% | -15% |
 
-## 六、TRL v1.0：Hugging Face 2026年3月后训练库重磅更新（Q13）
+## 六、后训练与分布式训练进阶
 
-### Q13: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
+### Q14: TRL v1.0 是什么？为什么代表了后训练库的工程化成熟？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q14-post-training-framework.webp" width="860" alt="后训练框架稳定接口、可插拔训练器与共享工程闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：方法会变，数据、奖励、采样和评测接口要稳定；框架价值是复用工程闭环。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1290,7 +1332,10 @@ trainer.train()
 
 </details>
 
-### Q14: DAPO 和 GSPO 是什么？它们和 GRPO 有什么区别？
+### Q15: DAPO 和 GSPO 是什么？它们和 GRPO 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q15-policy-optimization.webp" width="860" alt="GRPO、DAPO、GSPO 在采样、优势估计、重要性比率和裁剪粒度上的对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：不要只背缩写；看采样、优势估计、重要性比率和裁剪到底按 token 还是序列计算。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1330,7 +1375,10 @@ GSPO:
 
 </details>
 
-### Q15: 什么是信用分配问题（Credit Assignment Problem）？token级别和seq级别的奖励有何不同？
+### Q16: 什么是信用分配问题（Credit Assignment Problem）？token级别和seq级别的奖励有何不同？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q16-credit-assignment.webp" width="860" alt="序列级奖励与 token 步骤级信用分配机制对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：序列奖励只说结果好坏，信用分配要找出哪一步造成结果；粒度越细，信号也越难做准。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1376,7 +1424,10 @@ reward_at_step_t = final_reward * gamma^(T-t)
 
 ---
 
-### Q16: 训练数据 Packing 是什么？为什么要正确处理 attention mask 和 loss mask？
+### Q17: 训练数据 Packing 是什么？为什么要正确处理 attention mask 和 loss mask？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q17-packing.webp" width="860" alt="训练数据 Packing、跨样本注意力隔离和目标回答损失掩码图"></p>
+<p align="center"><sub>🧠 记忆锚点：Packing 提升 token 利用率；attention mask 隔离样本，loss mask 只训练目标回答。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1386,7 +1437,10 @@ Packing 把多条短样本拼进同一个固定长度序列，减少 padding、�
 
 </details>
 
-### Q17: 学习率、Warmup、梯度裁剪和有效 Batch Size 如何联动？
+### Q18: 学习率、Warmup、梯度裁剪和有效 Batch Size 如何联动？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q18-training-stability.webp" width="860" alt="有效 Batch、学习率、Warmup、梯度裁剪及训练曲线联动图"></p>
+<p align="center"><sub>🧠 记忆锚点：Batch 改变梯度噪声，Warmup 稳住起步，裁剪挡异常峰值；四者要结合曲线联调。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1396,7 +1450,10 @@ Packing 把多条短样本拼进同一个固定长度序列，减少 padding、�
 
 </details>
 
-### Q18: DDP、FSDP 和 ZeRO 分别解决什么问题？
+### Q19: DDP、FSDP 和 ZeRO 分别解决什么问题？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q19-distributed-training.webp" width="860" alt="DDP 复制模型与 FSDP、ZeRO 分片训练状态和通信取舍图"></p>
+<p align="center"><sub>🧠 记忆锚点：DDP 复制模型并行数据；FSDP/ZeRO 分片训练状态，越省显存越依赖通信与工程能力。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1408,7 +1465,10 @@ Packing 把多条短样本拼进同一个固定长度序列，减少 padding、�
 
 </details>
 
-### Q19: 如何判断微调过拟合、数据泄漏或只是评测噪声？
+### Q20: 如何判断微调过拟合、数据泄漏或只是评测噪声？
+
+<p align="center"><img src="../../assets/illustrations/07-model-training/q20-overfit-leakage-noise.webp" width="860" alt="过拟合、数据泄漏和评测噪声的信号、排查与验证矩阵图"></p>
+<p align="center"><sub>🧠 记忆锚点：先排泄漏，再看跨切片曲线；多种子、多评审和盲测才能区分过拟合与噪声。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
