@@ -28,6 +28,9 @@
 
 ### Q1: 向量数据库有哪些索引？分别有什么区别和原理？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q01-index-types.webp" width="860" alt="Flat、HNSW、IVF、IVF-PQ 与 LSH 向量索引的核心机制和选型权衡"></p>
+<p align="center"><sub>🧠 记忆锚点：Flat 做真值，HNSW 用图换低延迟，IVF 先分桶，PQ 用精度换内存；用同一数据集压测选型。</sub></p>
+
 <details>
 <summary>💡 完整答案</summary>
 
@@ -363,6 +366,9 @@ LSH = 哈希 + 桶内搜索
 
 ### Q2: 混合检索的融合策略有哪些？RRF 算法详解
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q02-rrf.webp" width="860" alt="RRF 忽略 BM25 和向量检索不可比分数，按每个结果的倒数排名累加融合"></p>
+<p align="center"><sub>🧠 记忆锚点：分数不可直接加，RRF 只看名次再累加；参数必须在验证集上调。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -621,6 +627,9 @@ print(f"最优k={best_k}, Recall={best_recall}")
 
 ### Q3: 为什么需要两阶段检索（向量检索 + Rerank）？ColBERT Late Interaction 模型详解
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q03-two-stage-colbert.webp" width="860" alt="两阶段检索先用轻量检索器广泛召回再由重排器精排，ColBERT 保留 token 向量做 MaxSim 晚期交互"></p>
+<p align="center"><sub>🧠 记忆锚点：粗排要快且不漏，精排要准；Late Interaction 保留 token 级匹配再聚合。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -756,6 +765,9 @@ class TwoStageRetriever:
 <a id="q4"></a>
 
 ### Q4: HNSW 生产调参实战：M/ef/efConstruction 如何选择？有哪些性能陷阱？
+
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q04-hnsw-tuning.webp" width="860" alt="HNSW 的 M 控制图连接与内存，efConstruction 控制建图质量，efSearch 控制在线召回延迟权衡"></p>
+<p align="center"><sub>🧠 记忆锚点：M 管图与内存，efConstruction 管建图质量，efSearch 管在线召回与延迟。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -976,6 +988,9 @@ PROD_CONFIG = {
 
 ### Q5: Pinecone、Milvus、Qdrant 三类向量数据库方案怎么选？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q05-database-selection.webp" width="860" alt="从规模过滤更新合规运维总成本和可迁移性选择托管分布式或轻量向量数据库"></p>
+<p align="center"><sub>🧠 记忆锚点：先写需求与基准再选产品；规模、过滤、更新、合规、运维与总成本缺一不可。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1090,6 +1105,9 @@ Qdrant 特色：支持多维向量过滤
 
 ### Q6: 什么是向量数据库的“混合搜索”？为什么重要？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q06-hybrid-search.webp" width="860" alt="混合检索三路召回、过滤、融合与重排机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：语义找相关，关键词保精确，元数据守约束；先保证过滤正确，再融合重排。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1183,6 +1201,9 @@ results = client.search(
 
 ### Q7: 什么是 DiskANN？它解决了什么问题？和 HNSW 怎么选？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q07-diskann-vs-hnsw.webp" width="860" alt="HNSW 与 DiskANN 内存和 SSD 存储取舍图"></p>
+<p align="center"><sub>🧠 记忆锚点：HNSW 用内存换低延迟；DiskANN 把冷数据放 SSD、热导航留内存。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1269,6 +1290,9 @@ collection.create_index(
 <a id="q8"></a>
 
 ### Q8: 如何监控与调优向量索引？HNSW/IVF 各有什么指标？
+
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q08-index-monitoring.webp" width="860" alt="向量索引真值集、监控指标与闭环调优图"></p>
+<p align="center"><sub>🧠 记忆锚点：用真值集看召回，用尾延迟看体验；基础设施、索引、业务三层联动。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1368,6 +1392,9 @@ def check_vector_index_health(collection):
 <a id="q9"></a>
 
 ### Q9: 托管服务与自托管向量数据库如何选型？
+
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q09-managed-vs-self-hosted.webp" width="860" alt="托管与自建向量数据库责任边界和选型维度图"></p>
+<p align="center"><sub>🧠 记忆锚点：托管是外包运维责任，自建是购买控制权；按合规、能力和总成本选。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1557,6 +1584,9 @@ result = client.query.get("Article", ["title", "content"]) \
 
 ### Q10: 什么是 Late Interaction 检索？ColBERTv2、ColPali、ColQwen 各自解决什么问题？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q10-late-interaction.webp" width="860" alt="Late Interaction 细粒度匹配及文本与视觉模型对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：ColBERT 对 token，视觉 Late Interaction 对页面 patch；更细更准，但索引更大、计算更贵。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1701,6 +1731,9 @@ def hybrid_retrieval(query, collection, top_k=100):
 
 ### Q11: DiskANN 如何利用磁盘与内存实现大规模 ANN 检索？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q11-diskann-query.webp" width="860" alt="DiskANN 内存导航、SSD 批量读取与候选精排流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：内存放导航与热点，SSD 放大体量；Beam Search 批量读邻居，候选再精排。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1760,6 +1793,9 @@ collection.create_index(field_name="embedding", index_params=index_params)
 
 ### Q12: 什么是二进制量化（Binary Quantization）？它和 PQ 有什么区别？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q12-binary-vs-pq.webp" width="860" alt="二进制量化与乘积量化压缩、距离计算及精排对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：BQ 把维度压成比特，极快但损失大；PQ 分段查码本，压缩与精度更均衡。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1815,6 +1851,9 @@ response = client.embeddings.create(
 <a id="q13"></a>
 
 ### Q13: 何时选择 pgvector？如何做向量与业务条件混合检索？
+
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q13-pgvector.webp" width="860" alt="pgvector 业务字段与向量同库及混合查询执行流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：向量与业务同库换一致性和简单运维；过滤要看选择性与执行计划。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1897,6 +1936,9 @@ results = vector_store.similarity_search(
 
 ### Q14: 向量数据库迁移如何避免停机和检索回退？
 
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q14-vector-db-migration.webp" width="860" alt="向量数据库快照回填、增量追平、双写、影子验证与回滚流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：先快照回填，再增量追平；双写、影子比对、灰度切流，旧库保留可回滚。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1970,6 +2012,9 @@ def route(query_vector, traffic_pct=0.1):
 <a id="q15"></a>
 
 ### Q15: 什么是 Context Poisoning（上下文污染）？RAG 知识库如何防御？
+
+<p align="center"><img src="../../assets/illustrations/06-vector-index-optimization/q15-context-poisoning.webp" width="860" alt="RAG 上下文污染威胁链与入库、检索、生成、行动四层防线图"></p>
+<p align="center"><sub>🧠 记忆锚点：知识库内容只是证据，不是指令；入库验来源，检索带信任，生成可引用，行动再授权。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
