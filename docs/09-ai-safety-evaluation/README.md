@@ -15,6 +15,9 @@
 ## 一、AI 安全与合规
 
 ### Q1: 如何防止 AI 应用生成有害内容？（内容安全）
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q01-content-safety.webp" width="860" alt="AI 内容安全输入识别、生成约束、输出审核和反馈四道防线图"></p>
+<p align="center"><sub>🧠 记忆锚点：输入识别意图，生成约束边界，输出再次审核；高风险转人工，误杀与漏放都要监控。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -73,6 +76,9 @@ def safety_check(response):
 </details>
 
 ### Q2: 如何处理用户隐私数据？（PII 保护）
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q02-pii-protection.webp" width="860" alt="PII 数据最小化、脱敏、加密、授权、保留和审计全生命周期图"></p>
+<p align="center"><sub>🧠 记忆锚点：先少收、再脱敏；传输存储要加密，日志向量库也算数据，权限与保留期必须可审计。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -124,6 +130,9 @@ def sanitize_pii(text):
 </details>
 
 ### Q3: 如何防止 AI 应用被滥用？（刷量、攻击）
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q03-abuse-prevention.webp" width="860" alt="AI 应用身份鉴权、限流、配额、异常行为和成本熔断联防图"></p>
+<p align="center"><sub>🧠 记忆锚点：鉴权确认谁在用，限流控制多快，配额控制多少，异常检测判断怎么用，熔断守住成本与依赖。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -186,6 +195,9 @@ func (rl *RateLimiter) Wait() {
 ## 二、评估与测试
 
 ### Q4: 如何评估 AI 应用的质量？（评估体系）
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q04-quality-evaluation.webp" width="860" alt="AI 应用任务成功、依据扎根、安全、鲁棒、体验、成本质量评估体系图"></p>
+<p align="center"><sub>🧠 记忆锚点：先定义任务成功，再分质量、安全、鲁棒、延迟、成本评；离线门禁与线上反馈形成闭环。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -226,6 +238,9 @@ func (rl *RateLimiter) Wait() {
 </details>
 
 ### Q5: 如何做 AI 应用的回归测试？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q05-regression-testing.webp" width="860" alt="AI 基线版本与候选版本在固定数据和多层测试中的回归比较图"></p>
+<p align="center"><sub>🧠 记忆锚点：固定数据与版本，既测确定性契约也测概率分布；看分层退化，不只看平均分。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -284,6 +299,9 @@ for case in test_cases:
 </details>
 
 ### Q6: RAGAS 的四个指标是什么？如何优化？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q06-ragas-metrics.webp" width="860" alt="RAGAS 上下文精度、召回、忠实性和回答相关性诊断图"></p>
+<p align="center"><sub>🧠 记忆锚点：Precision 看召回结果准不准，Recall 看证据全不全，Faithfulness 看回答是否有据，Relevancy 看是否答题。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -313,6 +331,9 @@ for case in test_cases:
 ## 三、成本优化实战
 
 ### Q7: 如何给一个 RAG/Agent 应用做威胁建模？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q07-threat-modeling.webp" width="860" alt="RAG Agent 资产、信任边界、数据流、威胁、控制和验证闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：先画资产、身份和信任边界，再沿数据流找威胁；控制必须能被测试，剩余风险必须有人负责。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -325,6 +346,9 @@ for case in test_cases:
 </details>
 
 ### Q8: 间接 Prompt Injection 如何导致工具越权或数据外泄？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q08-indirect-injection.webp" width="860" alt="不可信外部内容经模型诱导 Agent 工具越权和数据外泄的攻击防御图"></p>
+<p align="center"><sub>🧠 记忆锚点：外部内容只能当数据，不能升级成指令；模型提议动作，策略与用户授权决定能不能执行。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -341,6 +365,9 @@ for case in test_cases:
 </details>
 
 ### Q9: 如何构建红队测试集，并避免评测集泄漏和过拟合？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q09-red-team-dataset.webp" width="860" alt="从威胁模型构建红队测试集、攻击家族隔离、隐藏盲测和回归闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：红队集来自威胁模型，不是随机越狱句；按攻击家族隔离，隐藏盲测，失败样本进入回归而非泄漏答案。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -351,6 +378,9 @@ for case in test_cases:
 </details>
 
 ### Q10: LLM-as-a-Judge 用于安全评估时如何校准？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q10-judge-calibration.webp" width="860" alt="LLM Judge 人工金标校准、偏差控制、分层一致性和人工升级图"></p>
+<p align="center"><sub>🧠 记忆锚点：Judge 是测量仪器，不是标准答案；用人工金标校准偏差，分切片看一致性，不确定时转人工。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -640,7 +670,7 @@ def run_redteam_test():
 
 ---
 
-## 11. LLM幻觉(Hallucination)如何产生?如何缓解?
+### 工程补充：LLM 幻觉的产生与缓解
 
 <details>
 <summary>💡 答案要点</summary>
@@ -975,7 +1005,7 @@ def safe_customer_service(query):
 
 ---
 
-## 12. Prompt注入攻击如何工作?如何防御?
+### 工程补充：Prompt Injection 攻击原理与防御
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1291,7 +1321,7 @@ Bing Chat回答:
 
 ---
 
-## 13. LLM评估指标有哪些?如何评估生成质量?
+### 工程补充：生成质量评估指标
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1753,6 +1783,10 @@ def evaluate_dialogue(conversation):
 > **更新：** 2026-04-06
 
 ### Q11: RAGAS vs TruLens vs DeepEval vs UpTrain 四大评估框架深度对比？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q11-evaluation-tools.webp" width="860" alt="RAG 评估指标库、测试框架、观测平台和托管服务按闭环选型图"></p>
+<p align="center"><sub>🧠 记忆锚点：指标库解决怎么算，测试框架解决怎么卡门，观测平台解决线上怎么看；按团队闭环组合工具。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1880,6 +1914,10 @@ results = eval_llm.evaluate(
 </details>
 
 ### Q12: 如何建立 RAG 评估 Pipeline？评估结果如何驱动 RAG 迭代优化？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q12-rag-evaluation-pipeline.webp" width="860" alt="RAG 检索与生成分段评估、切片归因和迭代优化流水线图"></p>
+<p align="center"><sub>🧠 记忆锚点：检索和生成分段评，分切片看失败；指标只负责报警，样例归因才决定改哪里。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2075,6 +2113,10 @@ alerts:
 ## 五、Agent Harness Engineering：AI Agent评估框架与安全测试（Q12）
 
 ### Q13: 什么是Agent Harness Engineering？为什么它是2026年AI Agent生产的必备能力？LLM-as-a-Judge、轨迹分析、混沌工程如何落地？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q13-agent-harness.webp" width="860" alt="Agent Harness 对计划、轨迹、工具、状态、副作用进行记录重放和断言图"></p>
+<p align="center"><sub>🧠 记忆锚点：Agent 不能只评最终文本；轨迹、工具参数、状态和副作用都要可记录、可重放、可断言。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2278,6 +2320,10 @@ Agent Harness：评估"自主行为"
 ## 七、神经符号融合：2026年幻觉控制新范式
 
 ### Q14: 什么是神经符号融合（Neural-Symbolic Fusion）？2026年如何用它解决大模型幻觉问题？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q14-neural-symbolic.webp" width="860" alt="神经模型提出候选计划、符号规则验证约束后执行的闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：神经模型负责理解与候选，符号系统负责可验证约束；规则能挡已知边界，不能替代完整安全治理。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2397,6 +2443,10 @@ AlphaFold 3：
 *版本: v2.7 | 更新: 2026-04-13 | by 二狗子 🐕*
 
 ### Q15: 为什么有人说"对齐（Alignment）是笑话"？2026年对齐失效的四大"护城河"为何都在崩塌？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q15-alignment-limits.webp" width="860" alt="训练对齐与系统提示的软约束及外部强制安全控制分层图"></p>
+<p align="center"><sub>🧠 记忆锚点：对齐降低风险概率，却不是权限系统；真正的边界要由外部策略、最小权限和可审计执行保证。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2488,6 +2538,10 @@ AlphaFold 3：
 ---
 
 ### Q16: N-Day-Bench是什么？和传统安全基准测试有什么区别？2026年LLM漏洞发现能力如何衡量？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q16-vulnerability-discovery.webp" width="860" alt="漏洞发现基准从代码探索、动态测试到复现证据和补丁验证的真实闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：安全基准要测发现、复现和修复的完整过程；题目需防污染，结果要由可执行证据验证。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2525,6 +2579,10 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 ## 六、Google Research 行为对齐评估：Behavioral Dispositions Framework（Q10）
 
 ### Q17: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q17-behavioral-dispositions.webp" width="860" alt="模型自我报告与多场景重复行为试验形成概率分布的对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：模型说自己会怎么做只是文本；行为倾向要在多场景、多次试验和真实约束下由行动统计。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2573,6 +2631,10 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 </details>
 
 ### Q18: 为什么说"Agent网关"是2026年AI安全的新盲区？Flying Penguin的安全设计 vs NemoClaw有何本质区别？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q18-agent-gateway.webp" width="860" alt="Agent 工具调用经过身份、参数、权限、数据和人工确认策略后执行的网关图"></p>
+<p align="center"><sub>🧠 记忆锚点：API 网关管请求，Agent 网关还要管工具意图、参数、数据流和副作用；策略必须在模型外强制执行。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2659,6 +2721,10 @@ Wirken 安全思路（正确）：
 ## 二十、2026年 Prompt Injection 七类攻击模式 + RAG 投毒防御（Q19）
 
 ### Q19: 2026年 Prompt Injection 有哪七类攻击模式？RAG 投毒、中间人、多模态注入如何防御？企业级防御方案是什么？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q19-prompt-injection-paths.webp" width="860" alt="七类 Prompt Injection 入口及信任边界、能力白名单和最小权限防御图"></p>
+<p align="center"><sub>🧠 记忆锚点：注入入口会变，根因相同——不可信数据被当成高权限指令；隔离信任、限制能力、验证副作用。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2869,6 +2935,10 @@ AI 读取图片 → 解析像素中的隐写信息 → 执行指令
 ## 二十一、2026年 Agent 评估平台对比：Braintrust vs DeepEval vs Weave vs Langfuse vs Arize（Q20）
 
 ### Q20: 如何选择 Agent 评估平台？Braintrust、DeepEval、Weave、Langfuse、Arize 各有什么适用场景？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q20-evaluation-platform.webp" width="860" alt="Agent 数据集、实验、轨迹、CI、线上监控和人工复核评估闭环选型图"></p>
+<p align="center"><sub>🧠 记忆锚点：平台选型看数据集、实验、轨迹、CI、线上监控和协作是否打通；先做最小闭环，再比较产品。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3078,7 +3148,11 @@ print(f"答案相关性: {result.answer_relevancy:.2%}")
 
 ## 二十一、RAG 评估生命周期：为什么 RAGAS → DeepEval → Patronus 是 2026 年标准路径？（Q21）
 
-### Q24: RAG 评估的完整生命周期是什么？为什么 RAGAS → DeepEval → Patronus 是 2026 年生产级 RAG 的标准路径？
+### Q21: RAG 评估的完整生命周期是什么？如何从离线指标走向生产监控？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q21-rag-lifecycle.webp" width="860" alt="RAG 版本化数据、离线评估、CI、灰度、线上监控与失败回流生命周期图"></p>
+<p align="center"><sub>🧠 记忆锚点：离线找问题，CI 防回归，灰度控风险，线上监控发现分布漂移；失败样本回流但盲测保持隔离。</sub></p>
+
 
 **核心概念：RAG 评估是分层级的，不同时机用不同工具**
 
@@ -3186,7 +3260,11 @@ def test_rag_faithfulness():
 - Patronus AI: https://www.patronus.ai
 - RAG Evaluation 2026 Guide: https://datavlab.ai/post/rag-evaluation-methods-metrics-2026-guide
 
-### Q21: 微软2026年5月披露的Semantic Kernel RCE漏洞（CVE-2026-26030/CVE-2026-25592）是什么？AI Agent框架为何成为RCE重灾区？
+### Q22: Agent 框架为什么容易出现远程代码执行（RCE）风险？如何系统防御？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q22-agent-rce.webp" width="860" alt="不可信输入经模型输出进入危险执行入口及结构化工具和隔离沙箱阻断图"></p>
+<p align="center"><sub>🧠 记忆锚点：模型输出不是代码授权；禁止动态执行不可信文本，工具要结构化、沙箱化、最小权限并可审计。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3314,7 +3392,11 @@ def safe_plugin_execute(plugin, user_input, policy):
 
 ---
 
-### Q26: EU AI Act 高风险条款 2026年8月2日全面生效意味着什么？中国 AI 应用开发团队出海欧盟需要做哪些合规准备？
+### Q23: AI 应用出海欧盟时，如何为高风险 AI 法规要求做工程准备？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q23-eu-high-risk-ai.webp" width="860" alt="高风险 AI 从角色范围到风险、数据、日志、监督、安全和上线监控的合规证据链图"></p>
+<p align="center"><sub>🧠 记忆锚点：合规不是一份声明，而是风险、数据、日志、监督、鲁棒和监控的可审计证据链；先确认角色与适用范围。</sub></p>
+
 
 **考点：** AI 合规、风险分级、GPAI 义务、出海合规意识（2026 年 8 月热点）
 
@@ -3383,7 +3465,11 @@ def safe_plugin_execute(plugin, user_input, policy):
 
 ---
 
-### Q27: 什么是模型蒸馏攻击（Model Distillation Attack / 对抗性蒸馏）？它和普通蒸馏的本质区别是什么？如何防御？
+### Q24: 什么是模型蒸馏攻击（Model Distillation Attack / 对抗性蒸馏）？它和普通蒸馏的本质区别是什么？如何防御？
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q24-distillation-attack.webp" width="860" alt="授权模型蒸馏压缩与黑盒自适应查询进行未授权能力提取的对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：普通蒸馏有授权并服务于压缩，蒸馏攻击通过大量自适应查询提取能力；防御靠身份、配额、异常与证据。</sub></p>
+
 
 **考点：** AI 安全、模型知识产权保护、蒸馏原理、API 滥用防护（2026 年 8 月热点）
 
