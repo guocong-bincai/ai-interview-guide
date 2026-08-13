@@ -9,7 +9,7 @@ Create illustrations that teach the answer rather than decorate the heading. Use
 
 ## Workflow
 
-1. Inspect repository instructions, existing illustration style, question headings, answer boundaries, asset paths, and audit scripts.
+1. Inspect repository instructions, existing illustration style, question headings, answer boundaries, asset paths, and audit scripts. Discover real module paths from the filesystem; never infer a directory name from its display title or number.
 2. Read each complete question and answer, including code, tables, caveats, examples, engineering tradeoffs, and follow-up questions.
 3. Write an internal generation card with:
    - exact question;

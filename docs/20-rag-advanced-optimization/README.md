@@ -2608,7 +2608,7 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 - 分块与 overlap：见 [RAG 系统 Q6](../03-rag-system/#q6-如何选择-chunk-大小有什么影响)；
 - 混合检索、RRF 与 Rerank：见 [向量索引优化](../06-vector-index-optimization/)；
 - 成本控制：见 [RAG 系统 Q8](../03-rag-system/#q8-如何降低-rag-系统的成本)；
-- 动态知识更新：见 [RAG 系统 Q18](../03-rag-system/#q18-如何做-rag-知识库的动态知识更新有哪些策略)；
+- 动态知识更新：见 [RAG 系统 Q20](../03-rag-system/#q20-如何做-rag-知识库的动态知识更新有哪些策略)；
 - Agent 工具兜底：见 [Agent 基础 Q10](../05-ai-agent-basics/#q10-工具调用的完整流程是什么如何处理失败)。
 
 ### Q29: 你做的 RAG 项目最大挑战是什么？（开放题）

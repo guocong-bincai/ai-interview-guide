@@ -1335,7 +1335,10 @@ class MultiHopRAG:
 
 ## 高频追问：RAG 效果如何提升？出现幻觉怎么办？
 
-### Q: RAG 效果不好如何排查和提升？
+### Q15: RAG 效果不好如何排查和提升？
+
+<p align="center"><img src="../../assets/illustrations/03-rag-system/q15-rag-troubleshooting.webp" width="860" alt="RAG 效果差时按检索、排序、生成和数据四层定位并用单变量实验验证图"></p>
+<p align="center"><sub>🧠 记忆锚点：先用分层指标和失败切片定位根因，再做单变量实验；不要一看到答案差就同时改切分、召回、重排和 Prompt。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1453,7 +1456,10 @@ answer = await llm.generate(query=user_query, context=compressed)
 
 </details>
 
-### Q: RAG 出现幻觉怎么办？
+### Q16: RAG 出现幻觉怎么办？
+
+<p align="center"><img src="../../assets/illustrations/03-rag-system/q16-rag-hallucination.webp" width="860" alt="RAG 幻觉按未检索证据、错误证据、冲突过期和模型脱离证据分类治理图"></p>
+<p align="center"><sub>🧠 记忆锚点：先分清没证据、错证据、冲突证据还是没用证据；低温度不能补回缺失证据，覆盖不足应澄清或拒答。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1559,7 +1565,7 @@ RAGAS Faithfulness 均值：> 0.85
 
 </details>
 
-### Q15: 如何建立 RAG 系统的生产级可观测性体系？有哪些关键监控指标和告警策略？
+### Q17: 如何建立 RAG 系统的生产级可观测性体系？有哪些关键监控指标和告警策略？
 
 <p align="center"><a href="../../assets/illustrations/03-rag-system/q15-observability.webp"><img src="../../assets/illustrations/03-rag-system/q15-observability.webp" width="760" alt="RAG 可观测性动漫知识图：全链路 Trace 记录查询改写、检索、过滤重排和生成，并联合监控检索、生成、系统和成本指标"></a></p>
 <p align="center"><sub>记忆点：能还原每次答案，才能定位、评估和迭代。</sub></p>
@@ -1695,7 +1701,7 @@ groups:
 
 ---
 
-### Q16: 什么是多模态 RAG？如何实现图文混合检索？
+### Q18: 什么是多模态 RAG？如何实现图文混合检索？
 
 <p align="center"><a href="../../assets/illustrations/03-rag-system/q16-multimodal-rag.webp"><img src="../../assets/illustrations/03-rag-system/q16-multimodal-rag.webp" width="760" alt="多模态 RAG 动漫知识图：解析文本、图表、表格和图片，保留页码区域与原始资源，跨模态检索并回到原页引用"></a></p>
 <p align="center"><sub>记忆点：图文一起索引，答案回到原页与区域；只做 OCR 会丢布局关系。</sub></p>
@@ -1852,7 +1858,7 @@ def encode_text(text: str) -> np.ndarray:
 
 ---
 
-### Q17: Parent-Document Retrieval 和 Sentence Window Retrieval 是什么？
+### Q19: Parent-Document Retrieval 和 Sentence Window Retrieval 是什么？
 
 <p align="center"><a href="../../assets/illustrations/03-rag-system/q17-parent-window.webp"><img src="../../assets/illustrations/03-rag-system/q17-parent-window.webp" width="760" alt="父文档与句子窗口检索动漫知识图：用小粒度内容精准检索，再分别回填父章节或相邻句子窗口以补全上下文"></a></p>
 <p align="center"><sub>记忆点：小粒度检索、大范围回填；结构选父子，局部语义选窗口。</sub></p>
@@ -1951,7 +1957,7 @@ query_engine = index.as_query_engine(
 
 ---
 
-### Q18: 如何做 RAG 知识库的动态知识更新？有哪些策略？
+### Q20: 如何做 RAG 知识库的动态知识更新？有哪些策略？
 
 <p align="center"><a href="../../assets/illustrations/03-rag-system/q18-dynamic-update.webp"><img src="../../assets/illustrations/03-rag-system/q18-dynamic-update.webp" width="760" alt="动态 RAG 知识更新动漫知识图：变更事件幂等入库，生成并验证新索引，通过别名原子切换，按知识版本失效缓存并支持回滚"></a></p>
 <p align="center"><sub>记忆点：版本化构建、原子切换、可验证、可回滚。</sub></p>
