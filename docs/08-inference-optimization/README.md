@@ -14,6 +14,9 @@
 ## 一、推理基础
 
 ### Q1: LLM 推理和训练有什么区别？为什么推理更难优化？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q01-training-vs-inference.webp" width="860" alt="LLM 训练并行更新参数与推理串行服务的瓶颈对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：训练要高吞吐地更新参数；推理要在动态请求下低延迟读权重、管 KV，并逐 token 生成。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -71,6 +74,9 @@
 </details>
 
 ### Q2: 什么是自回归生成？Prefill 和 Decode 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q02-prefill-decode.webp" width="860" alt="LLM Prefill 并行处理提示与 Decode 串行生成的阶段瓶颈图"></p>
+<p align="center"><sub>🧠 记忆锚点：Prefill 并行吃完整提示，决定首 token；Decode 串行追加 token，决定流式速度。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -143,6 +149,9 @@ Decode 阶段：
 ## 二、KV Cache优化
 
 ### Q3: 什么是 KV Cache？为什么需要它？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q03-kv-cache.webp" width="860" alt="自回归解码缓存历史 Key Value 避免重复计算的机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：KV Cache 用显存保存历史 K/V，换掉重复前缀计算；生成越长、并发越高，缓存越大。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -229,6 +238,9 @@ Attention(Q, K, V) = softmax(QK^T / √d) V
 </details>
 
 ### Q4: KV Cache 量化是什么？如何实现？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q04-kv-quantization.webp" width="860" alt="KV Cache 分组量化、尺度元数据、反量化与质量评估机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：KV 量化压的是缓存读写；分组与尺度决定误差，必须用长上下文质量和尾延迟一起验。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -327,6 +339,9 @@ class KVCacheQuantizer:
 </details>
 
 ### Q5: 什么是 PagedAttention？它解决什么问题？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q05-pagedattention.webp" width="860" alt="PagedAttention 逻辑 KV 序列映射到非连续物理显存页的机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：请求看到连续 KV，显存实际按页分配；按需扩容、及时回收，减少碎片并支撑动态批处理。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -439,6 +454,9 @@ if page.ref_count > 1:
 ## 三、模型量化
 
 ### Q6: 模型量化是什么？INT8/INT4/FP8 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q06-numeric-formats.webp" width="860" alt="INT8、INT4 和 FP8 表示方式、量化对象及硬件质量取舍图"></p>
+<p align="center"><sub>🧠 记忆锚点：INT 用尺度映射范围，FP 保留指数动态范围；选精度要看量化对象、硬件内核和质量验证。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -549,6 +567,9 @@ if page.ref_count > 1:
 </details>
 
 ### Q7: GPTQ、AWQ 是什么？它们有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q07-gptq-awq.webp" width="860" alt="GPTQ 逐块误差补偿与 AWQ 保护激活敏感通道的量化对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：GPTQ 用误差补偿逐块量化，AWQ 保护激活敏感通道；最终看目标硬件与任务评测。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -651,6 +672,9 @@ for channel in range(num_channels):
 ## 四、推理加速
 
 ### Q8: FlashAttention 是什么？为什么能加速？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q08-flashattention.webp" width="860" alt="FlashAttention 通过片上分块和在线 softmax 减少 HBM 读写的机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：加速来自 IO-aware 分块与在线 softmax，不是近似注意力；少写 HBM 才是关键。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -749,6 +773,9 @@ for i in range(0, n, block_size):
 </details>
 
 ### Q9: 批处理（Batching）如何提升推理吞吐量？Continuous Batching 是什么？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q09-continuous-batching.webp" width="860" alt="静态批处理等待长请求与连续批处理按迭代进出队对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：静态批次等最慢请求；连续批处理按迭代进出队，用调度和分页 KV 保持 GPU 忙碌。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -857,6 +884,9 @@ class ContinuousBatcher:
 </details>
 
 ### Q10: Speculative Decoding（推测解码）是什么？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q10-speculative-decoding.webp" width="860" alt="草稿模型提案、目标模型并行验证及拒绝校正的投机解码图"></p>
+<p align="center"><sub>🧠 记忆锚点：草稿模型负责猜，目标模型并行验；只有高接受率且草稿够便宜，才真正减少目标模型串行步数。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -966,7 +996,7 @@ class ContinuousBatcher:
 
 </details>
 
-### Q11: 什么是PagedAttention?vLLM如何工作?
+### 工程补充：vLLM 中的 PagedAttention 工作流
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1065,7 +1095,7 @@ outputs = llm.generate(prompts, sampling_params)
 
 ---
 
-## 12. 什么是投机采样(Speculative Decoding)?如何加速推理?
+### 工程补充：投机采样实现与参数调优
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1341,7 +1371,7 @@ main, medusa = model(prompt)
 
 ---
 
-## 13. 什么是Continuous Batching?如何提升吞吐量?
+### 工程补充：Continuous Batching 调度器实现
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1633,7 +1663,11 @@ print(f"等待队列长度: {metrics.waiting_queue_size}")
 
 ---
 
-### Q12: 推理优化应该关注哪些指标？TTFT、TPOT、ITL 和吞吐如何权衡？
+### Q11: 推理优化应该关注哪些指标？TTFT、TPOT、ITL 和吞吐如何权衡？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q11-inference-metrics.webp" width="860" alt="推理请求时间线上的 TTFT、ITL、TPOT、端到端延迟与吞吐指标图"></p>
+<p align="center"><sub>🧠 记忆锚点：TTFT 看首 token，ITL/TPOT 看流式速度，吞吐要分请求与 token；用尾延迟和质量约束优化。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1648,6 +1682,11 @@ print(f"等待队列长度: {metrics.waiting_queue_size}")
 跨框架横评和完整 Benchmark 方法见 [推理框架 Q17-Q18](../19-inference-frameworks/#十推理框架基准测试方法)。
 
 </details>
+
+### Q12: KV Cache 量化与误差补偿的核心思路是什么？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q12-kv-error-compensation.webp" width="860" alt="KV 向量旋转均匀化、主信号量化和残差校正的误差补偿图"></p>
+<p align="center"><sub>🧠 记忆锚点：旋转让离群值变均匀，主量化压大头，残差校正补偏差；是否值得取决于端到端内核收益。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1697,6 +1736,9 @@ TurboQuant 是 Google 2026年4月发布的向量量化压缩算法，发表在 I
 </details>
 
 ### Q13: 什么是 Prefix Caching 和 RadixAttention？为什么长上下文场景必须用它？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q13-prefix-caching.webp" width="860" alt="共享前缀 KV 复用、Radix Tree 最长前缀匹配和缓存治理图"></p>
+<p align="center"><sub>🧠 记忆锚点：前缀必须 token 完全一致才能复用；Radix 树找最长共享路径，命中省 Prefill，缓存仍要隔离与淘汰。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1813,6 +1855,9 @@ Prefill延迟(16K):      2.3s              0.4s
 </details>
 
 ### Q14: 什么是 Attention Matching？MIT 如何实现 KV Cache 50倍无损压缩？2026年 KV Cache 优化技术有哪些新方向？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q14-kv-optimization-landscape.webp" width="860" alt="KV Cache 分页、前缀复用、量化、重要性淘汰和卸载迁移全景图"></p>
+<p align="center"><sub>🧠 记忆锚点：分页解决碎片，前缀缓存省重复计算，量化/淘汰减体积，卸载与传输扩容量；组合前先测质量。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1925,6 +1970,9 @@ KV Cache 优化五大方向：
 ## 十六、vLLM v1 + PD分离架构 + Mooncake 生产部署（Q16）
 
 ### Q15: vLLM v1的PD分离架构是什么？Mooncake + LMCache如何实现KV Cache跨节点传输？生产环境如何部署？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q15-pd-disaggregation.webp" width="860" alt="Prefill 计算池与 Decode 带宽池分离及跨节点 KV 传输架构图"></p>
+<p align="center"><sub>🧠 记忆锚点：Prefill 计算密集，Decode 访存密集；分离能独立扩缩，但 KV 传输不能成为新瓶颈。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2104,6 +2152,9 @@ llm = LLM(
 ---
 
 ### Q16: 什么是 Continuous Batching 和 Chunked Prefill？2026 年为什么它们是推理引擎的核心优化？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q16-chunked-prefill.webp" width="860" alt="Continuous Batching 与 Chunked Prefill 在 token 预算内交错调度图"></p>
+<p align="center"><sub>🧠 记忆锚点：连续批处理让请求按迭代进出；Chunked Prefill 把长提示切片穿插，防止一次 Prefill 堵住 Decode。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
