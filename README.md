@@ -12,6 +12,12 @@
   <img src="assets/readme-hero.svg" width="100%" alt="AI 工程师面试宝典：面向不同 AI 岗位的分类题库与成长路线">
 </p>
 
+<h3 align="center">一份面向 AI 全岗位的系统化面试宝典</h3>
+
+<p align="center">
+  岗位路线全覆盖 · 核心考点图文化 · 工程取舍可复述 · 内容质量可校验
+</p>
+
 <p align="center">
   <a href="#quick-start"><b>快速开始</b></a> ·
   <a href="#roadmap"><b>学习路线</b></a> ·
@@ -29,26 +35,58 @@
 </p>
 
 > [!TIP]
-> **先选岗位，再走路线。** 这不是只面向某一个职位的题库。AI 应用、RAG、Agent、训练推理、FDE、多模态和安全评测方向，都可以从下方选择各自的专题组合与成长路径。
+> **先选岗位，再走路线；先看图建立记忆，再用答案组织表达。** 这不是只为某一个职位准备的题库。无论你面试 AI 应用、RAG、Agent、模型训练与推理、FDE、多模态还是安全评测，都可以找到对应的专题组合、成长路线和高频考点。
 
 ## ✨ 这份指南有什么不同
 
 <table>
   <tr>
-    <td width="33%" valign="top">
-      <h3>🎯 面向真实岗位</h3>
-      <p>覆盖 AI 应用、RAG、Agent、训练推理、FDE、多模态和安全评测等方向，不做脱离场景的概念堆砌。</p>
+    <td width="50%" valign="top">
+      <h3>🧭 AI 岗位全覆盖</h3>
+      <p>覆盖 AI 应用、RAG、Agent、模型训练与推理、FDE、多模态、安全评测等主流方向。不同岗位选择不同专题组合，不必从头盲目刷到尾。</p>
     </td>
-    <td width="33%" valign="top">
-      <h3>⚖️ 强调工程取舍</h3>
-      <p>回答不止“是什么”，还要解释质量、延迟、成本、安全、复杂度和替代方案。</p>
+    <td width="50%" valign="top">
+      <h3>🖼️ 图文双通道记忆</h3>
+      <p>把抽象原理、系统流程、概念对比和常见误区转成动漫知识图。先用画面建立记忆锚点，再结合文字答案形成可复述的面试表达。</p>
     </td>
-    <td width="33%" valign="top">
-      <h3>🧪 可以持续校验</h3>
-      <p>573 道题按 27 个专题组织，并用自动审计检查链接、重复题和缺少条件的数据。</p>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>⚖️ 回答强调工程取舍</h3>
+      <p>不止解释“是什么”，还会继续回答为什么这样选、如何验证，以及质量、延迟、成本、安全、复杂度和替代方案之间如何权衡。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🧪 内容可以持续校验</h3>
+      <p>573 道题按 27 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
     </td>
   </tr>
 </table>
+
+## 🧠 看得懂，才能记得住、说得出
+
+这里的插画不是装饰图。每张图都会先通读完整题目和答案，再提炼出<strong>核心机制、工程流程、易错认知和一句话记忆点</strong>。面试前可以先看图快速唤醒知识结构，再展开文字答案复习细节。
+
+<table>
+  <tr>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/01-basic-concepts/"><img src="assets/illustrations/01-basic-concepts/q25-kv-cache.webp" width="100%" alt="LLM 基础题图解示例：KV Cache"></a>
+      <br><b>LLM 基础图解</b><br>
+      <sub>把 Token、解码、Attention、KV Cache 等抽象概念画成可理解的机制图。</sub>
+    </td>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/02-prompt-engineering/"><img src="assets/illustrations/02-prompt-engineering/q10-react-limitations.webp" width="100%" alt="Prompt Engineering 题图解示例：ReAct 局限与工程修复"></a>
+      <br><b>Prompt 与 Agent 图解</b><br>
+      <sub>用流程、对比和风险边界理解 Prompt、ReAct、上下文工程与评测。</sub>
+    </td>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/03-rag-system/"><img src="assets/illustrations/03-rag-system/q02-rag-pipeline.webp" width="100%" alt="RAG 系统题图解示例：完整生产流程"></a>
+      <br><b>RAG 系统图解</b><br>
+      <sub>从知识入库、检索重排到生成评测，建立完整的生产系统全景。</sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center"><b>首批 77 道核心题已完成逐题配图，后续专题持续补充。</b></p>
 
 <a id="quick-start" name="quick-start"></a>
 
