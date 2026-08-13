@@ -16,6 +16,9 @@
 
 ### Q1: 如何实现 LLM 的流式输出（Streaming）？SSE 和 WebSocket 怎么选？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q01-streaming.webp" width="860" alt="LLM 流式输出按单向推送和双向实时交互选择 SSE 或 WebSocket 图"></p>
+<p align="center"><sub>🧠 记忆锚点：以服务器持续推送为主选 SSE；需要频繁双向实时交互选 WebSocket，同时都要处理取消、重连和背压。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -63,6 +66,9 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 
 ### Q2: 如何设计一个 NL2SQL（自然语言转 SQL）系统？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q02-nl2sql.webp" width="860" alt="NL2SQL 从 schema 检索、SQL 生成、AST 策略校验到只读执行和结果溯源图"></p>
+<p align="center"><sub>🧠 记忆锚点：生成 SQL 只是中间一步；真正的生产边界是语义上下文、AST 校验、数据权限、受限执行和全链路审计。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -98,6 +104,9 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 
 ### Q3: 如何评估 RAG 系统的质量？RAGAS 的四个指标是什么？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q03-rag-evaluation.webp" width="860" alt="RAG 检索指标、生成指标与端到端业务指标分层评估图"></p>
+<p align="center"><sub>🧠 记忆锚点：先拆开评检索与生成，再看端到端任务成功；低分必须回到失败切片定位根因，不能只盯总分。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -125,6 +134,9 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 </details>
 
 ### Q4: 如何监控 AI 应用的健康度？需要关注哪些指标？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q04-observability.webp" width="860" alt="AI 请求跨网关、检索、模型和工具的可靠性、性能、质量与成本四层可观测性图"></p>
+<p align="center"><sub>🧠 记忆锚点：一次请求要把指标、链路、日志和评测关联起来，同时观察可靠性、性能、质量与成本。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -158,6 +170,9 @@ func streamHandler(w http.ResponseWriter, r *http.Request) {
 ## 三、多模态与高级应用题
 
 ### Q5: 如何处理多模态输入（图片 + 文字）？举例说明应用场景。
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q05-multimodal.webp" width="860" alt="多模态文档经文件校验、版面解析、OCR、视觉和表格理解后输出可定位证据图"></p>
+<p align="center"><sub>🧠 记忆锚点：多模态不是把图片直接丢给模型；先拆版面和区域，再融合问题，最后用定位证据与置信度验证答案。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -196,6 +211,9 @@ response = client.chat.completions.create(
 </details>
 
 ### Q6: 如何设计一个支持多轮对话的 AI 系统？上下文怎么管理？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q06-conversation-memory.webp" width="860" alt="多轮对话上下文由规则、近期对话、摘要、检索记忆、任务状态和工具结果构建图"></p>
+<p align="center"><sub>🧠 记忆锚点：上下文管理不是盲目追加历史，而是围绕当前任务，在 Token 预算内选择、压缩和检索可溯源状态。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -240,6 +258,9 @@ class ConversationManager:
 ## 四、安全与合规题
 
 ### Q7: 如何防止 Prompt Injection（提示词注入）攻击？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q07-prompt-injection.webp" width="860" alt="不可信输入通过模型外信任边界和最小权限工具控制阻断 Prompt Injection 图"></p>
+<p align="center"><sub>🧠 记忆锚点：模型内提示不是安全边界；分隔符和关键词只是辅助，核心是限制能力、校验参数、确认副作用并审计。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -289,6 +310,9 @@ if detect_injection_attempt(user_question):
 
 ### Q8: 如何处理 AI 生成内容的合规问题？（版权、隐私、敏感内容）
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q08-content-compliance.webp" width="860" alt="AI 生成内容从版权同意、隐私最小化、风险分类到人工复核和申诉留存的分层治理图"></p>
+<p align="center"><sub>🧠 记忆锚点：版权、隐私、内容安全和公平性要分别识别风险；风险越高，证据、人工复核和事件留存要求越强。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -331,6 +355,9 @@ def check_content(text):
 ## 五、成本优化题
 
 ### Q9: 如何设计一个智能模型路由（Model Router）系统？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q09-model-router.webp" width="860" alt="模型路由按任务、复杂度、模态、SLA 和预算先过滤硬约束再优化质量成本延迟图"></p>
+<p align="center"><sub>🧠 记忆锚点：先用质量、合规、SLA 等硬约束筛掉不可用模型，再在可行集合中优化成本与延迟，并准备降级兜底。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -379,6 +406,9 @@ class ModelRouter:
 
 ### Q10: 如何用 LLMLingua 压缩 Prompt？能省多少成本？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q10-prompt-compression.webp" width="860" alt="Prompt 压缩保留系统指令与引用证据并通过质量忠实度召回率回归评测图"></p>
+<p align="center"><sub>🧠 记忆锚点：压缩要优先保留指令、约束和证据；节省多少取决于语料冗余度，必须通过质量回归后再上线。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -417,6 +447,9 @@ response = llm.generate(compressed['compressed_prompt'])
 </details>
 
 ### Q11: 如何对 LLM API 做限流和熔断？Token 速率控制和背压机制怎么做？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q11-traffic-protection.webp" width="860" alt="LLM API 多租户配额限流、有界队列背压和熔断降级协同保护图"></p>
+<p align="center"><sub>🧠 记忆锚点：限流控制谁能进，背压防止队列失控，熔断隔离故障上游；Token 配额要先预留、再按实际用量对账。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -577,6 +610,9 @@ circuit_breaker:
 
 ### Q12: 如何设计 LLM API Gateway？多模型路由和 A/B 测试怎么做？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q12-llm-gateway.webp" width="860" alt="LLM Gateway 统一认证配额路由缓存观测和安全能力并连接多模型提供方图"></p>
+<p align="center"><sub>🧠 记忆锚点：Gateway 承担跨应用通用控制，业务 Prompt、RAG 和工具编排仍留在应用；实验需粘性分流、可追踪、可回退。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -688,6 +724,9 @@ class LLMGateway:
 </details>
 
 ### Q13: MLOps完整流程是什么?如何实现CI/CD?
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q13-mlops.webp" width="860" alt="MLOps 对代码数据特征配置版本化并经训练评估注册灰度监控回训的 CI CD 闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：版本化每个输入和产物，记录完整血缘；CI 做检查与评估，CD 只晋级已注册的不可变产物，并保留回滚。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1038,6 +1077,9 @@ class LLMRouter:
 
 ### Q14: 如何监控LLM生产环境?数据漂移如何检测?
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q14-drift-monitoring.webp" width="860" alt="LLM 输入、检索、输出和业务结果分布漂移检测及人工任务评测确认影响图"></p>
+<p align="center"><sub>🧠 记忆锚点：分布变化只是调查信号，不等于质量已经变坏；要切片、抽样和任务评测确认影响后再回滚或适配。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1349,6 +1391,9 @@ WHERE time > now() - 7d
 
 ### Q15: Cloudflare Sandboxes是什么？2026年4月GA对企业级Agent部署有什么意义？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q15-agent-sandbox.webp" width="860" alt="编码 Agent 在非 Root、网络文件受限且密钥代理注入的专属隔离沙箱中工作图"></p>
+<p align="center"><sub>🧠 记忆锚点：给 Agent 可恢复的专属工作空间和工程能力，但不给宿主机权限；密钥不进上下文，外呼经凭证代理。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1389,6 +1434,9 @@ Cloudflare Sandboxes = 给 AI Agent 配备自己的专属电脑（持久化隔�
 </details>
 
 ### Q16: 什么是 Model Router（模型路由）？2026年企业如何实现智能模型选型？有哪些架构模式？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q16-production-routing.webp" width="860" alt="生产模型路由经硬约束过滤、候选评分、策略分配和离线评估学习的闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：生产路由要有规则兜底和稳定回退，再用影子流量与离线评估校准阈值或训练轻量路由器。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1528,6 +1576,9 @@ def route_model(task: str) -> str:
 
 ### Q17: Go 如何用 Worker Pool 模式处理高并发 LLM 请求？有哪些踩坑点？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q17-go-worker-pool.webp" width="860" alt="Go 有界任务队列、固定 Worker、全局限流、取消传播和优雅关闭图"></p>
+<p align="center"><sub>🧠 记忆锚点：并发必须有界，队列满要背压；context 取消要一路传到上游，关闭时先停接收、再排空、等待并只关闭一次。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1636,6 +1687,9 @@ func (p *LLMWorkerPool) Submit(ctx context.Context, prompt string) <-chan string
 
 ### Q18: LLMOps 和 MLOps 有什么区别？LLM 应用上线后需要运维哪些东西？
 
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q18-llmops.webp" width="860" alt="LLMOps 在 MLOps 基础上增加 Prompt、RAG、模型路由、评测集和工具权限版本治理图"></p>
+<p align="center"><sub>🧠 记忆锚点：LLMOps 扩展而不是替代 MLOps；上线后还要运维 Prompt、索引、路由、评测与工具权限，并把告警关联到精确版本。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1722,6 +1776,9 @@ Prompt 管理：Langfuse / PromptLayer
 ---
 
 ### Q19: Prompt 管理在生产环境怎么做？版本控制、A/B 测试、灰度发布如何实现？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q19-prompt-release.webp" width="860" alt="Prompt 模板、变量契约和模型配置经测试注册、粘性实验、灰度发布与自动回滚图"></p>
+<p align="center"><sub>🧠 记忆锚点：Prompt 是“模板 + 变量契约 + 模型配置”的可测试制品；请求必须记录版本，实验要粘性分流，异常可自动回滚。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1837,6 +1894,9 @@ func rollbackPrompt(name string, targetVersion string) error {
 ---
 
 ### Q20: RAG 项目上线后怎么治理？检索策略灰度发布、效果评测、回滚怎么做？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q20-retrievalops.webp" width="860" alt="版本化检索策略包经离线、影子、金丝雀到全量发布并分层评估和一键回滚图"></p>
+<p align="center"><sub>🧠 记忆锚点：把模型、索引和检索参数打成可追踪策略包；离线、影子、金丝雀逐级放量，按检索、生成、业务和成本分层归因。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
