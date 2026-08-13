@@ -74,19 +74,49 @@
       <sub>把 Token、解码、Attention、KV Cache 等抽象概念画成可理解的机制图。</sub>
     </td>
     <td width="33%" valign="top" align="center">
-      <a href="docs/02-prompt-engineering/"><img src="assets/illustrations/02-prompt-engineering/q10-react-limitations.webp" width="100%" alt="Prompt Engineering 题图解示例：ReAct 局限与工程修复"></a>
-      <br><b>Prompt 与 Agent 图解</b><br>
-      <sub>用流程、对比和风险边界理解 Prompt、ReAct、上下文工程与评测。</sub>
-    </td>
-    <td width="33%" valign="top" align="center">
       <a href="docs/03-rag-system/"><img src="assets/illustrations/03-rag-system/q02-rag-pipeline.webp" width="100%" alt="RAG 系统题图解示例：完整生产流程"></a>
       <br><b>RAG 系统图解</b><br>
       <sub>从知识入库、检索重排到生成评测，建立完整的生产系统全景。</sub>
     </td>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/04-transformer-architecture/"><img src="assets/illustrations/04-transformer-architecture/q03-self-attention.webp" width="100%" alt="Transformer 架构题图解示例：Self-Attention 计算机制"></a>
+      <br><b>Transformer 架构图解</b><br>
+      <sub>用结构分解和数据流理解 Attention、位置编码、归一化与架构演进。</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/05-ai-agent-basics/"><img src="assets/illustrations/05-ai-agent-basics/q02-react-loop.webp" width="100%" alt="Agent 基础题图解示例：ReAct 推理与行动循环"></a>
+      <br><b>Agent 系统图解</b><br>
+      <sub>把规划、工具调用、记忆、反思和风险边界串成可复述的工作流。</sub>
+    </td>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/08-inference-optimization/"><img src="assets/illustrations/08-inference-optimization/q05-pagedattention.webp" width="100%" alt="推理优化题图解示例：PagedAttention 显存管理机制"></a>
+      <br><b>训练与推理图解</b><br>
+      <sub>理解微调、对齐、量化、KV Cache、批处理以及吞吐延迟取舍。</sub>
+    </td>
+    <td width="33%" valign="top" align="center">
+      <a href="docs/10-production-deployment/"><img src="assets/illustrations/10-production-deployment/q12-llm-gateway.webp" width="100%" alt="生产部署题图解示例：LLM Gateway 工程架构"></a>
+      <br><b>安全与生产图解</b><br>
+      <sub>从安全评测、网关和限流走到可观测、发布与生产可靠性。</sub>
+    </td>
   </tr>
 </table>
 
-<p align="center"><b>首批 77 道核心题已完成逐题配图，后续专题持续补充。</b></p>
+<p align="center"><b>01–10 共 10 个核心专题、236 道题，现已全部完成逐题配图。</b></p>
+
+<p align="center">
+  <a href="docs/01-basic-concepts/">01 LLM 基础</a> ·
+  <a href="docs/02-prompt-engineering/">02 Prompt</a> ·
+  <a href="docs/03-rag-system/">03 RAG</a> ·
+  <a href="docs/04-transformer-architecture/">04 Transformer</a> ·
+  <a href="docs/05-ai-agent-basics/">05 Agent</a><br>
+  <a href="docs/06-vector-index-optimization/">06 向量检索</a> ·
+  <a href="docs/07-model-training/">07 模型训练</a> ·
+  <a href="docs/08-inference-optimization/">08 推理优化</a> ·
+  <a href="docs/09-ai-safety-evaluation/">09 安全评测</a> ·
+  <a href="docs/10-production-deployment/">10 生产部署</a>
+</p>
 
 <a id="quick-start" name="quick-start"></a>
 
