@@ -16,6 +16,9 @@
 
 ### Q1: 什么是Transformer？为什么要引入Transformer？
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q01-transformer-vs-rnn.webp"><img src="../../assets/illustrations/04-transformer-architecture/q01-transformer-vs-rnn.webp" width="760" alt="Transformer 与 RNN 对比动漫知识图：RNN 依赖串行状态传递，Transformer 用全局自注意力缩短信息路径并实现并行训练"></a></p>
+<p align="center"><sub>🧠 图解记忆：注意力缩短信息路径，并行性改变训练效率；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -89,6 +92,9 @@ Linear + Softmax → 输出概率分布
 </details>
 
 ### Q2: Transformer的Encoder和Decoder有什么区别？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q02-encoder-decoder.webp"><img src="../../assets/illustrations/04-transformer-architecture/q02-encoder-decoder.webp" width="760" alt="Encoder 与 Decoder 对比动漫知识图：Encoder 双向理解整段输入，Decoder 通过因果遮罩只看历史并逐 Token 生成，可用 Cross-Attention 读取编码结果"></a></p>
+<p align="center"><sub>🧠 图解记忆：Encoder 看全局，Decoder 只看过去并逐步生成；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -187,6 +193,9 @@ Attention Matrix:
 ## 二、注意力机制
 
 ### Q3: Self-Attention（自注意力）是如何计算的？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q03-self-attention.webp"><img src="../../assets/illustrations/04-transformer-architecture/q03-self-attention.webp" width="760" alt="Self-Attention 计算动漫知识图：输入投影为 Q K V，计算 QK 转置、缩放与可选遮罩，经 Softmax 得到权重后聚合 V"></a></p>
+<p align="center"><sub>🧠 图解记忆：Q 和 K 算关注权重，缩放稳定 Softmax，再用权重汇总 V；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -307,6 +316,9 @@ output = attention_weights @ V
 </details>
 
 ### Q4: Multi-Head Attention（多头注意力）是什么？为什么要用多头？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q04-multi-head-attention.webp"><img src="../../assets/illustrations/04-transformer-architecture/q04-multi-head-attention.webp" width="760" alt="多头注意力动漫知识图：输入经独立投影进入多个注意力子空间，分别捕捉语法、语义、位置和长程关系，再拼接并通过输出投影融合"></a></p>
+<p align="center"><sub>🧠 图解记忆：多头在不同子空间看关系，最后合并；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -443,6 +455,9 @@ Head 4（位置关系）:
 
 ### Q5: 位置编码（Positional Encoding）是什么？为什么需要它？
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q05-positional-encoding.webp"><img src="../../assets/illustrations/04-transformer-architecture/q05-positional-encoding.webp" width="760" alt="位置编码动漫知识图：自注意力本身不能区分排列顺序，Token Embedding 加入位置坐标后才能分辨语序，并对比 Sin Cos、Learned、RoPE 与 ALiBi"></a></p>
+<p align="center"><sub>🧠 图解记忆：内容向量告诉模型是什么，位置编码告诉模型在哪里；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -576,6 +591,9 @@ def apply_rotary_emb(q, k, cos, sin):
 ## 三、BERT与GPT
 
 ### Q6: BERT 和 GPT 有什么区别？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q06-bert-vs-gpt.webp"><img src="../../assets/illustrations/04-transformer-architecture/q06-bert-vs-gpt.webp" width="760" alt="BERT 与 GPT 对比动漫知识图：BERT 使用双向 Encoder 和遮词目标理解上下文，GPT 使用因果遮罩 Decoder 预测下一个 Token 并自回归生成"></a></p>
+<p align="center"><sub>🧠 图解记忆：BERT 补空理解上下文，GPT 沿时间预测下一个 Token；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -739,6 +757,9 @@ GPT：
 ## 四、优化技巧
 
 ### Q7: Transformer 训练时有哪些优化技巧？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q07-training-toolbox.webp"><img src="../../assets/illustrations/04-transformer-architecture/q07-training-toolbox.webp" width="760" alt="Transformer 训练工具箱动漫知识图：Warmup、Label Smoothing、Dropout、梯度裁剪、混合精度、梯度累积和分布式并行分别改善稳定性、泛化、显存与吞吐"></a></p>
+<p align="center"><sub>🧠 图解记忆：先稳优化，再控过拟合，最后扩吞吐；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -960,6 +981,9 @@ class ModelParallel(nn.Module):
 
 ### Q8: Q K V矩阵的详细计算过程是什么?
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q08-qkv-tensors.webp"><img src="../../assets/illustrations/04-transformer-architecture/q08-qkv-tensors.webp" width="760" alt="Q K V 与多头张量动漫知识图：Q 表示查询目标，K 表示可匹配索引，V 表示实际内容，输入线性投影后拆头计算注意力并拼接输出"></a></p>
+<p align="center"><sub>🧠 图解记忆：Q 与 K 决定看谁，权重再聚合 V 的内容；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1102,6 +1126,9 @@ output = weights @ V
 ---
 
 ### Q9: 位置编码的详细原理是什么?为什么用sin/cos?
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q09-sinusoidal-position.webp"><img src="../../assets/illustrations/04-transformer-architecture/q09-sinusoidal-position.webp" width="760" alt="Sin Cos 位置编码动漫知识图：多组不同频率正弦余弦波为位置提供坐标，相位差表达相对位移，公式可生成更长位置但有效能力仍需验证"></a></p>
+<p align="center"><sub>🧠 图解记忆：多频率给位置坐标，相位差携带相对距离；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1273,6 +1300,9 @@ K_rot = rotate(K, position)
 
 ### Q10: 什么是SSM（状态空间模型）？2026年Transformer+SSM混合架构为什么是重要趋势？
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q10-transformer-ssm.webp"><img src="../../assets/illustrations/04-transformer-architecture/q10-transformer-ssm.webp" width="760" alt="Transformer 与 SSM 混合架构动漫知识图：Transformer 擅长全局关系但注意力成本随长度平方增长，SSM 以选择性状态做线性序列建模，混合层发挥二者互补能力"></a></p>
+<p align="center"><sub>🧠 图解记忆：注意力负责全局交互，SSM 负责线性长程状态；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1376,6 +1406,9 @@ Mamba（选择性）：h_t = A(x_t)h_{t-1} + B(x_t)x_t  ← 输入决定参数
 
 ### Q11: MHA、MQA 和 GQA 有什么区别？为什么推理系统常用 GQA？
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q11-mha-mqa-gqa.webp"><img src="../../assets/illustrations/04-transformer-architecture/q11-mha-mqa-gqa.webp" width="760" alt="MHA MQA GQA 对比动漫知识图：MHA 为每个查询头保留独立 KV，MQA 全部共享一组 KV，GQA 分组共享以折中质量、内存带宽和 KV Cache"></a></p>
+<p align="center"><sub>🧠 图解记忆：共享越多缓存越小，GQA 在质量与带宽间折中；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1389,6 +1422,9 @@ KV Cache 大小与 `层数 × 序列长度 × KV head 数 × head_dim × K/V × 
 
 ### Q12: Transformer 的 FFN 做什么？SwiGLU 为什么常见？
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q12-ffn-swiglu.webp"><img src="../../assets/illustrations/04-transformer-architecture/q12-ffn-swiglu.webp" width="760" alt="FFN 与 SwiGLU 动漫知识图：Attention 在 Token 之间混合信息，FFN 逐 Token 进行通道变换，SwiGLU 用门控与值分支相乘后投影"></a></p>
+<p align="center"><sub>🧠 图解记忆：Attention 搬运 Token 信息，FFN 逐 Token 加工特征；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1400,6 +1436,9 @@ Attention 在 Token 之间混合信息，FFN 则对每个 Token 的通道维度�
 
 ### Q13: Pre-Norm、Post-Norm 和 RMSNorm 有什么关系？
 
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q13-norm-placement.webp"><img src="../../assets/illustrations/04-transformer-architecture/q13-norm-placement.webp" width="760" alt="Pre-Norm Post-Norm 与 RMSNorm 动漫知识图：Pre Post 描述归一化在残差分支的位置，LayerNorm 与 RMSNorm 描述归一化算法，二者属于不同维度"></a></p>
+<p align="center"><sub>🧠 图解记忆：Pre/Post 问放哪里，Layer/RMS 问怎么算；点击图片可查看原图。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1410,6 +1449,9 @@ Pre/Post 描述归一化在残差分支前还是后；LayerNorm/RMSNorm 描述�
 </details>
 
 ### Q14: RoPE 长度外推为什么会退化？常见扩展方法如何验证？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q14-rope-extrapolation.webp"><img src="../../assets/illustrations/04-transformer-architecture/q14-rope-extrapolation.webp" width="760" alt="RoPE 长度外推动漫知识图：超出训练长度后位置频率进入分布外，可用位置插值、NTK-aware 或 YaRN 扩展，并需按位置、长文多跳、困惑度、短上下文回归和成本综合验证"></a></p>
+<p align="center"><sub>🧠 图解记忆：能放得下，不等于每个位置都用得好；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
