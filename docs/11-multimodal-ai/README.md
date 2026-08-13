@@ -16,6 +16,8 @@
 ## 一、多模态基础
 
 ### Q1: 什么是多模态学习？为什么重要?
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q01-multimodal-learning.webp"><img src="../../assets/illustrations/11-multimodal-ai/q01-multimodal-learning.webp" width="760" alt="多模态学习图解：图像、文本、音频和视频共同汇入统一语义理解"></a></p>
+<p align="center"><sub>🧠 图解记忆：多模态的价值不在于简单叠加输入，而在于把不同感官信号对齐到统一语义后完成理解、检索与生成；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -91,6 +93,8 @@
 </details>
 
 ### Q2: 如何评估多模态模型的性能？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q02-multimodal-evaluation.webp"><img src="../../assets/illustrations/11-multimodal-ai/q02-multimodal-evaluation.webp" width="760" alt="多模态评估图解：检索、理解和生成任务分别映射到匹配的评价指标"></a></p>
+<p align="center"><sub>🧠 图解记忆：多模态模型没有一个万能分数，检索看排序召回、理解看答案正确性、生成同时看质量与跨模态对齐；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -154,6 +158,8 @@ CLIP 结果：
 ## 二、CLIP模型
 
 ### Q3: CLIP 的核心思想是什么？如何训练？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q03-clip-contrastive-learning.webp"><img src="../../assets/illustrations/11-multimodal-ai/q03-clip-contrastive-learning.webp" width="760" alt="CLIP 对比学习图解：图像与文本双编码器进入共享空间，匹配图文对拉近、错配样本推远"></a></p>
+<p align="center"><sub>🧠 图解记忆：CLIP 用图文双塔把两种模态映射到共享空间，通过批内对比学习拉近正确配对、推远错误配对；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -286,6 +292,8 @@ prediction = classes[similarity.argmax()]  # "猫"
 </details>
 
 ### Q4: CLIP 如何做 Zero-shot 分类？为什么效果好？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q04-clip-zero-shot.webp"><img src="../../assets/illustrations/11-multimodal-ai/q04-clip-zero-shot.webp" width="760" alt="CLIP 零样本分类图解：把类别写成文本提示形成类别原型，与图像向量比较相似度后直接分类"></a></p>
+<p align="center"><sub>🧠 图解记忆：CLIP 把类别名称包装成提示词并编码为类别原型，再与图像向量比较相似度，因此能在不做任务微调的情况下分类新类别；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -404,6 +412,8 @@ CLIP：
 ## 三、BLIP模型
 
 ### Q5: BLIP 和 CLIP 有什么区别？为什么需要 BLIP？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q05-clip-vs-blip.webp"><img src="../../assets/illustrations/11-multimodal-ai/q05-clip-vs-blip.webp" width="760" alt="CLIP 与 BLIP 对比图解：CLIP 侧重图文对齐与检索，BLIP 增加跨模态融合、文本解码和 CapFilt 数据自举"></a></p>
+<p align="center"><sub>🧠 图解记忆：CLIP 的双编码器擅长图文对齐但不能生成，BLIP 通过 ITC、ITM、LM 联合训练和文本解码器统一了检索、字幕与视觉问答；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -528,6 +538,8 @@ BLIP 解决方案：
 </details>
 
 ### Q6: BLIP-2 有什么改进？Q-Former 是什么？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q06-q-former.webp"><img src="../../assets/illustrations/11-multimodal-ai/q06-q-former.webp" width="760" alt="BLIP-2 Q-Former 图解：冻结视觉编码器与语言模型，用可学习查询提取并压缩视觉信息后桥接到 LLM"></a></p>
+<p align="center"><sub>🧠 图解记忆：BLIP-2 不联合重训两个大模型，而是让 Q-Former 用固定数量的可学习 Query 提取和压缩视觉 token，再投影到冻结 LLM 的输入空间；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -674,6 +686,8 @@ BLIP-2（188M）> Flamingo（80B）
 ## 四、应用实战
 
 ### Q7: 如何用多模态模型做图文检索系统？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q07-image-text-retrieval.webp"><img src="../../assets/illustrations/11-multimodal-ai/q07-image-text-retrieval.webp" width="760" alt="图文检索系统图解：离线编码图片并建立向量索引，在线编码文本后 ANN 召回并用跨模态模型精排"></a></p>
+<p align="center"><sub>🧠 图解记忆：生产级图文检索先离线建立图片向量索引，在线把文本映射到同一空间，用 ANN 快速召回候选，再用跨模态匹配模型精排；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -850,6 +864,8 @@ final_results = sorted(zip(candidates, rerank_scores),
 </details>
 
 ### Q8: 如何评估和优化多模态 RAG 系统？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q08-multimodal-rag-evaluation.webp"><img src="../../assets/illustrations/11-multimodal-ai/q08-multimodal-rag-evaluation.webp" width="760" alt="多模态 RAG 评估优化图解：分别评估检索、生成和跨模态一致性，再通过混合召回、融合精排与证据约束形成反馈闭环"></a></p>
+<p align="center"><sub>🧠 图解记忆：多模态 RAG 要分层判断瓶颈在召回、生成还是图文一致性，再分别用混合召回、融合精排和证据约束优化，而不是只盯最终答案分数；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1024,7 +1040,9 @@ def ecommerce_qa(user_image, user_question):
 
 </details>
 
-## 9. LLaVA如何工作?视觉Encoder如何连接LLM?
+### Q9: LLaVA 如何工作？视觉 Encoder 如何连接 LLM？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q09-llava-projector.webp"><img src="../../assets/illustrations/11-multimodal-ai/q09-llava-projector.webp" width="760" alt="LLaVA 视觉桥接图解：CLIP 提取视觉 token，经可训练 MLP 投影到 LLM 嵌入空间，再与问题文本拼接生成答案"></a></p>
+<p align="center"><sub>🧠 图解记忆：LLaVA 冻结视觉编码器并用投影层把视觉 token 对齐到 LLM 的维度与语义空间，再和问题 token 拼接，让语言模型完成视觉问答；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1284,7 +1302,9 @@ print(result[0]["generated_text"])
 
 ---
 
-## 10. 多模态RAG如何实现?图文混合检索?
+### Q10: 多模态 RAG 如何实现？图文混合检索怎么做？
+<p align="center"><a href="../../assets/illustrations/11-multimodal-ai/q10-multimodal-rag-implementation.webp"><img src="../../assets/illustrations/11-multimodal-ai/q10-multimodal-rag-implementation.webp" width="760" alt="多模态 RAG 实现图解：图像、文本和关键词多路召回，经过融合与多模态精排后，将原始图文证据交给模型生成带引用的答案"></a></p>
+<p align="center"><sub>🧠 图解记忆：多模态 RAG 应保留图像、文本和图文对的原始证据，先多路召回并统一融合精排，再让多模态模型基于证据生成并引用来源；点击图片可查看原图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1631,7 +1651,12 @@ embeddings = clip_model.get_text_features(texts)  # 批量快10倍
 
 ## 六、Gemma 4：Google DeepMind 2026年4月重磅发布
 
-### Q9: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
+### Q11: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q11-edge-multimodal-architecture.webp"><img src="../../assets/illustrations/11-multimodal-ai/q11-edge-multimodal-architecture.webp" alt="端侧多模态模型通过高效表示、MoE 稀疏激活和 KV 复用平衡能力、延迟与内存" width="100%"></a>
+
+> 🧠 **图解记忆：** 端侧多模态不是把大模型原样塞进设备，而是用逐层高效表示、MoE 稀疏激活和 KV 复用，在硬件约束下平衡能力、延迟与内存。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1757,7 +1782,11 @@ Gemma 4：layer 1(E1) → layer 2(E2) → ... → layer n(En)（每层独立embe
 
 ## 高频追问：AI 生图方向（一面/二面真题）
 
-### Q: 生图子 Agent 用的什么模型？原理是什么？
+### Q12: 生图子 Agent 用的什么模型？原理是什么？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q12-image-generation-agent.webp"><img src="../../assets/illustrations/11-multimodal-ai/q12-image-generation-agent.webp" alt="生图 Agent 从理解意图、增强提示词、调用扩散模型到质量验收的完整流程" width="100%"></a>
+
+> 🧠 **图解记忆：** 生图 Agent 的职责是理解意图、增强 Prompt、选择与调用模型并验收结果；真正从噪声去噪成图的是扩散模型。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1825,7 +1854,11 @@ class ImageGenerationAgent:
 
 </details>
 
-### Q: 生图多样性是通过预设规则判断还是通过 LLM 判断？
+### Q13: 生图多样性是通过预设规则判断还是通过 LLM 判断？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q13-image-diversity-strategy.webp"><img src="../../assets/illustrations/11-multimodal-ai/q13-image-diversity-strategy.webp" alt="规则枚举与 LLM 语义变体结合生成可控且丰富的图像方案" width="100%"></a>
+
+> 🧠 **图解记忆：** 参数化差异（Seed、风格、角度、光照）适合规则，语义级变化适合 LLM，生产中用规则定边界、LLM 造变体并去重验收。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1900,7 +1933,11 @@ class ImageDiversityStrategy:
 
 </details>
 
-### Q: 如何评估生图准确性？
+### Q14: 如何评估生图准确性？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q14-image-generation-evaluation.webp"><img src="../../assets/illustrations/11-multimodal-ai/q14-image-generation-evaluation.webp" alt="生图质量从离线指标、视觉评审到线上用户行为的三层评估体系" width="100%"></a>
+
+> 🧠 **图解记忆：** 生图质量不能靠单一分数：离线指标筛查语义与分布问题，视觉 Judge 检查细节，线上行为验证真实用户价值。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2028,7 +2065,12 @@ class ImageQualityEvaluator:
 
 ## 七、Vision-Language Agent 评估：MMLU-Pro、MathVista、ChartQA、DocVQA（Q17）
 
-### Q10: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
+### Q15: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q15-vision-agent-evaluation.webp"><img src="../../assets/illustrations/11-multimodal-ai/q15-vision-agent-evaluation.webp" alt="Vision-Language Agent 从基础理解、视觉推理、真实操作到生产反馈的分层评估" width="100%"></a>
+
+> 🧠 **图解记忆：** 视觉 Agent 要从基础理解、视觉推理、真实操作到生产反馈分层评测；Benchmark 高分只是必要条件，不等于生产可用。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2231,7 +2273,12 @@ def evaluate_docvqa(documents, questions):
 
 ## 五、2026年全模态模型新突破：Qwen3.5-Omni 与 NVIDIA Nemotron 3 Nano Omni（Q18）
 
-### Q11: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
+### Q16: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q16-thinker-talker-omni.webp"><img src="../../assets/illustrations/11-multimodal-ai/q16-thinker-talker-omni.webp" alt="全模态模型以 Thinker 统一理解推理、MoE 稀疏计算并由 Talker 流式表达" width="100%"></a>
+
+> 🧠 **图解记忆：** Thinker 统一处理多模态并做推理决策，MoE 按需激活专家，Talker 流式表达，从而减少 ASR→LLM→TTS 级联的延迟与误差。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2336,7 +2383,12 @@ def evaluate_docvqa(documents, questions):
 
 </details>
 
-### Q12: NVIDIA Nemotron 3 Nano Omni 是什么？为什么"端侧全模态"是2026年的重要方向？
+### Q17: NVIDIA Nemotron 3 Nano Omni 是什么？为什么"端侧全模态"是2026年的重要方向？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q17-edge-cloud-omni.webp"><img src="../../assets/illustrations/11-multimodal-ai/q17-edge-cloud-omni.webp" alt="端侧与云端全模态模型通过量化、稀疏激活和路由协同取舍实时性、隐私与能力" width="100%"></a>
+
+> 🧠 **图解记忆：** 端侧优先实时、隐私与离线可用，云端优先复杂任务能力；通过量化、稀疏激活和模型路由实现端云协同。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2400,7 +2452,12 @@ scenarios = {
 
 </details>
 
-### Q13: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
+### Q18: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
+
+<a href="../../assets/illustrations/11-multimodal-ai/q18-fast-agent-model-routing.webp"><img src="../../assets/illustrations/11-multimodal-ai/q18-fast-agent-model-routing.webp" alt="快速 Agent 模型承担高频主流程并将少数复杂步骤路由给强模型" width="100%"></a>
+
+> 🧠 **图解记忆：** Agent 会多轮调用模型，单次延迟和成本会被循环放大，所以应让快模型承担主流程、强模型处理少数高难步骤。
+
 <details>
 <summary>💡 答案要点</summary>
 
