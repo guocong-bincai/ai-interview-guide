@@ -57,7 +57,7 @@
     </td>
     <td width="50%" valign="top">
       <h3>🧪 内容可以持续校验</h3>
-      <p>573 道题按 27 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
+      <p>588 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
     </td>
   </tr>
 </table>
@@ -193,7 +193,7 @@ flowchart LR
 
 ## 📚 题库导航
 
-共 **27 个专题、573 道题**。点击分类展开完整目录。
+共 **28 个专题、588 道题**。点击分类展开完整目录。
 
 <details open>
 <summary><b>🧠 基础与模型</b> · 6 个专题 / 136 道题</summary>
@@ -231,7 +231,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 6 个专题 / 119 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 134 道题</summary>
 <br>
 
 - [09 · 安全与评估](docs/09-ai-safety-evaluation/) — 内容安全、Prompt 注入、隐私、红队和评测
@@ -240,6 +240,7 @@ flowchart LR
 - [24 · Python 工程](docs/24-python-engineering/) — 异步、类型、测试、重试和性能排查
 - [25 · AI 系统设计](docs/25-system-design-ai/) — 客服、知识库、网关、任务系统和审核系统
 - [26 · FDE 工程师](docs/26-forward-deployed-engineer/) — 问题拆解、客户交付、生产 AI 系统与现场工程
+- [28 · 测试 Harness 与评测](docs/28-test-harness-evaluation/) — Test Harness、mock/stub/fake/spy、LLM Eval Harness 与灰度评测
 
 </details>
 

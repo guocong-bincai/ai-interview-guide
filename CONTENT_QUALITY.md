@@ -76,6 +76,7 @@ python3 scripts/collapse_long_code_blocks.py
 | 25 | AI 系统设计 |
 | 26 | FDE 岗位的问题发现、客户交付、现场工程和产品化反馈 |
 | 27 | 项目经验、指标解释、技术取舍和事故复盘 |
+| 28 | Test Harness、替身选型、fixture、flaky 治理与 LLM 评测 Harness |
 
 同一知识点只能有一个“主答案”。其他模块需要它时，应链接主答案并只补充本模块特有的追问。
 
