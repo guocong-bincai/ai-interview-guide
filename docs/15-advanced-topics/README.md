@@ -17,6 +17,10 @@
 
 ### Q1: 多模态输入进入复杂 AI 工作流时，如何设计处理与降级链路？
 
+<a href="../../assets/illustrations/15-advanced-topics/q01-multimodal-degradation.webp"><img src="../../assets/illustrations/15-advanced-topics/q01-multimodal-degradation.webp" alt="多模态输入处理、路由、校验与可解释降级链路图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先识别和标准化模态，再按能力路由；任何环节失败都要有可解释降级。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -56,6 +60,10 @@ response = client.chat.completions.create(
 </details>
 
 ### Q2: 多模态应用的性能和成本如何优化？
+
+<a href="../../assets/illustrations/15-advanced-topics/q02-multimodal-cost.webp"><img src="../../assets/illustrations/15-advanced-topics/q02-multimodal-cost.webp" alt="多模态应用从输入压缩到模型路由的性能成本优化图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先减少输入，再选择模型，最后优化调度；省成本不能牺牲关键视觉信息。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -103,6 +111,10 @@ else:
 
 ### Q3: 什么是 Agentic Workflow？和传统 AI 应用有什么区别？
 
+<a href="../../assets/illustrations/15-advanced-topics/q03-agentic-workflow.webp"><img src="../../assets/illustrations/15-advanced-topics/q03-agentic-workflow.webp" alt="固定流程与目标驱动 Agentic Workflow 反馈闭环对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 传统流程按预设步骤走，Agentic Workflow 围绕目标根据反馈动态改计划。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -140,6 +152,10 @@ else:
 </details>
 
 ### Q4: 如何设计一个自主编程 Agent（类似 Devin）？
+
+<a href="../../assets/illustrations/15-advanced-topics/q04-coding-agent-loop.webp"><img src="../../assets/illustrations/15-advanced-topics/q04-coding-agent-loop.webp" alt="自主编程 Agent 探索、改码、测试、修复与回滚闭环图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 自主编程不是一次生成代码，而是探索、修改、执行、验证和修复的受控闭环。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -204,6 +220,10 @@ class CodingAgent:
 
 ### Q5: 多 Agent 协作系统怎么设计？
 
+<a href="../../assets/illustrations/15-advanced-topics/q05-multi-agent-design.webp"><img src="../../assets/illustrations/15-advanced-topics/q05-multi-agent-design.webp" alt="多 Agent 任务 DAG、输入输出契约和结果聚合设计图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先证明任务值得拆，再明确依赖、契约和聚合规则；Agent 数量不是目标。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -248,6 +268,10 @@ class CodingAgent:
 
 ### Q6: 如何判断一个场景是否适合用 AI 解决？
 
+<a href="../../assets/illustrations/15-advanced-topics/q06-ai-use-case-fit.webp"><img src="../../assets/illustrations/15-advanced-topics/q06-ai-use-case-fit.webp" alt="AI 场景能力、数据、价值、体验与风险五维决策图解" width="100%"></a>
+
+> 🧠 **图解记忆：** AI 项目要同时过能力、数据、价值、体验和风险五道门。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -289,6 +313,10 @@ class CodingAgent:
 </details>
 
 ### Q7: 设计一个企业级 AI 应用架构，需要考虑哪些方面？
+
+<a href="../../assets/illustrations/15-advanced-topics/q07-enterprise-ai-architecture.webp"><img src="../../assets/illustrations/15-advanced-topics/q07-enterprise-ai-architecture.webp" alt="企业级 AI 应用分层架构与横切治理能力图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 企业架构要把不确定的模型包进可控、可观测、可恢复的工程系统。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -342,6 +370,10 @@ class CodingAgent:
 
 ### Q8: 什么是企业级AI四层黄金架构？RAG、AI Agents、MCP、A2A如何协同？
 
+<a href="../../assets/illustrations/15-advanced-topics/q08-four-layer-ai-stack.webp"><img src="../../assets/illustrations/15-advanced-topics/q08-four-layer-ai-stack.webp" alt="企业 AI 的 RAG、Agent、MCP 与 A2A 四层协作架构图解" width="100%"></a>
+
+> 🧠 **图解记忆：** RAG 让它知道，Agent 让它做完，MCP 让它用工具，A2A 让团队协作。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -369,6 +401,10 @@ class CodingAgent:
 ## 四、AI 应用调试与问题排查
 
 ### Q9: AI 应用出现问题，如何系统性地排查？
+
+<a href="../../assets/illustrations/15-advanced-topics/q09-troubleshooting.webp"><img src="../../assets/illustrations/15-advanced-topics/q09-troubleshooting.webp" alt="AI 应用复现、分层 Trace、根因定位与回归测试图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先复现再分层定位，用 Trace 和固定测试集验证根因，而不是凭感觉改 Prompt。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -412,6 +448,10 @@ class CodingAgent:
 </details>
 
 ### Q10: 如何调试和优化 Prompt？
+
+<a href="../../assets/illustrations/15-advanced-topics/q10-prompt-debugging.webp"><img src="../../assets/illustrations/15-advanced-topics/q10-prompt-debugging.webp" alt="Prompt 版本化、单变量实验、评估与灰度发布图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Prompt 优化是实验工程：固定数据、一次改一项，用指标和样例共同验收。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -471,6 +511,10 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 ## 五、前沿技术趋势
 
 ### Q11: 了解哪些 AI 应用开发的前沿技术？
+
+<a href="../../assets/illustrations/15-advanced-topics/q11-frontier-tech-map.webp"><img src="../../assets/illustrations/15-advanced-topics/q11-frontier-tech-map.webp" alt="AI 应用前沿技术按生产价值筛选与落地图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 前沿不等于可用，先看能否提升质量、延迟、成本或安全。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -570,6 +614,10 @@ promptfoo eval --prompts prompt_a.yaml --prompts prompt_b.yaml
 
 ### Q12: LangChain 2026年4月发布了哪些重要新功能？Deep Agents v0.5、Continual Learning、Harness Hill-Climbing有什么区别？
 
+<a href="../../assets/illustrations/15-advanced-topics/q12-agent-continual-improvement.webp"><img src="../../assets/illustrations/15-advanced-topics/q12-agent-continual-improvement.webp" alt="Agent 从记忆 Skill、外部 Harness 到模型权重的持续改进图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Agent 改进先优化外部 Harness 和经验，再在证据充分时更新权重。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -615,6 +663,10 @@ LangChain 工程师分享的生产实践：
 </details>
 
 ### Q13: 什么是 Process Reward Model（PRM）？为什么 "过程奖励" 对 Agent 推理比 "结果奖励" 更重要？
+
+<a href="../../assets/illustrations/15-advanced-topics/q13-process-reward-model.webp"><img src="../../assets/illustrations/15-advanced-topics/q13-process-reward-model.webp" alt="结果奖励 ORM 与逐步过程奖励 PRM 对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 结果奖励告诉你成败，过程奖励告诉你哪一步走错；长链 Agent 更需要后者。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -712,6 +764,10 @@ class ProcessRewardModel:
 </details>
 
 ### Q14: Evolver是什么？GEP（Genome Evolution Protocol）如何让AI Agent实现自我进化？
+
+<a href="../../assets/illustrations/15-advanced-topics/q14-agent-self-evolution.webp"><img src="../../assets/illustrations/15-advanced-topics/q14-agent-self-evolution.webp" alt="Agent 候选策略生成、隔离评测、选择、发布与回滚进化闭环图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 自我进化必须先生成候选，再隔离评测和选择；能回滚才可上线。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -813,6 +869,10 @@ evolver.evolve(genome, taskResults)
 ## 十四、Extended Thinking / Reasoning Token Budget（Q14）
 
 ### Q15: 什么是 Extended Thinking（扩展思考）？Thinking Token Budget 如何控制 AI 的"思考量"？
+
+<a href="../../assets/illustrations/15-advanced-topics/q15-thinking-budget.webp"><img src="../../assets/illustrations/15-advanced-topics/q15-thinking-budget.webp" alt="扩展思考按任务复杂度分配预算并平衡质量延迟成本图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 思考预算是可配置资源，按任务难度分配，并用质量、延迟和成本约束。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -953,6 +1013,10 @@ print(f"本次调用成本: ${(thinking_cost + output_cost) / 1e6:.4f}")
 </details>
 
 ### Q16: 2026年AI Agent平台市场格局如何？AutoGen/CrewAI/LangGraph/Coze/Dify各有什么定位？企业如何选型？
+
+<a href="../../assets/illustrations/15-advanced-topics/q16-agent-platform-selection.webp"><img src="../../assets/illustrations/15-advanced-topics/q16-agent-platform-selection.webp" alt="Agent 平台按数据边界、控制需求、协作模式与团队能力选型图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 平台没有总冠军，先定数据和控制边界，再匹配协作模式与团队能力。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1152,6 +1216,10 @@ n8n 定位：
 
 ### Q17: Claude Managed Agents 2026年5月三大新功能：Dreaming、Outcomes、Multiagent Orchestration 是什么？
 
+<a href="../../assets/illustrations/15-advanced-topics/q17-managed-agent-improvement.webp"><img src="../../assets/illustrations/15-advanced-topics/q17-managed-agent-improvement.webp" alt="托管 Agent 的记忆、反思、目标和多智能体编排改进闭环图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 记忆负责保存，反思负责归纳，Outcome 负责验收，编排负责执行。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1278,6 +1346,10 @@ else:
 ## 十六、2026年 AI Agent 框架选型指南：n8n vs Dify vs Coze vs LangGraph（Q16）
 
 ### Q18: n8n、Dify、Coze、FastGPT、RAGFlow 五大开源Agent平台深度对比：各自定位和技术架构是什么？如何根据场景选型？
+
+<a href="../../assets/illustrations/15-advanced-topics/q18-open-agent-platform-selection.webp"><img src="../../assets/illustrations/15-advanced-topics/q18-open-agent-platform-selection.webp" alt="n8n Dify Coze FastGPT RAGFlow 按核心任务与边界选型路线图" width="100%"></a>
+
+> 🧠 **图解记忆：** 先判断核心是系统流程、AI 应用还是文档 RAG，再选最贴近主任务的平台。
 
 <details>
 <summary>💡 答案要点</summary>
