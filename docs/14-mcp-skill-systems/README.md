@@ -24,6 +24,10 @@
 
 ### Q1: 什么是MCP（Model Context Protocol）？为什么它是2026年AI开发者的必备技能？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q01-mcp-unified-connection.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q01-mcp-unified-connection.webp" alt="MCP统一连接模型、工具与数据图解" width="100%"></a>
+
+> 🧠 **图解记忆：** MCP 统一的是 AI 与工具、数据的连接协议，不是模型本身。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -63,6 +67,10 @@ AI模型 ←→ MCP Client ←→ MCP Server ←→ 工具A/B/C...
 </details>
 
 ### Q2: MCP的三大核心原语是什么？各自作用是什么？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q02-mcp-primitives.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q02-mcp-primitives.webp" alt="MCP Tools Resources Prompts三大原语图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Tools 负责做，Resources 负责读，Prompts 负责复用说法。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -160,8 +168,12 @@ AI模型 ←→ MCP Client ←→ MCP Server ←→ 工具A/B/C...
 
 ### Q3: MCP的完整架构是怎样的？Client、Server、Transport三层如何协同？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q03-mcp-client-server-transport.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q03-mcp-client-server-transport.webp" alt="MCP Client Server Transport三层协同图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Client 代表 AI 发请求，Server 代表能力执行，Transport 只负责可靠传消息。
+
 <details>
-<parameter name="summary">💡 答案要点</summary>
+<summary>💡 答案要点</summary>
 
 **MCP三层架构：**
 
@@ -261,8 +273,12 @@ data: {"finished": true}
 
 ### Q4: MCP Server有哪几种类型？如何选择？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q04-mcp-server-selection.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q04-mcp-server-selection.webp" alt="MCP Server类型与选择流程图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先看能力是否现成，再看数据边界和信任责任，最后决定复用还是自建。
+
 <details>
-<parameter name="summary">💡 答案要点</summary>
+<summary>💡 答案要点</summary>
 
 **MCP Server分类：**
 
@@ -322,8 +338,12 @@ npx @modelcontextprotocol/server-google-drive
 
 ### Q5: 如何用Python开发一个MCP Server？FastMCP框架怎么用？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q05-fastmcp-development.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q05-fastmcp-development.webp" alt="FastMCP开发生产级MCP Server图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 框架让注册能力很快，生产质量取决于校验、权限、超时和可观测性。
+
 <details>
-<parameter name="summary">💡 答案要点</summary>
+<summary>💡 答案要点</summary>
 
 **FastMCP = 最流行的Python MCP Server开发框架**
 
@@ -487,8 +507,12 @@ fastmcp dev server.py  # 热重载开发模式
 
 ### Q6: MCP Server如何处理身份认证和安全？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q06-mcp-auth-security.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q06-mcp-auth-security.webp" alt="MCP身份认证授权沙箱与审计图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 认证证明是谁，授权限制能做什么，沙箱与审计控制做坏后的影响。
+
 <details>
-<parameter name="summary">💡 答案要点</summary>
+<summary>💡 答案要点</summary>
 
 **认证方式对比：**
 
@@ -612,8 +636,12 @@ def expensive_operation(data: str) -> dict:
 
 ### Q7: 如何在Claude Code和Cursor中配置MCP Server？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q07-mcp-client-configuration.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q07-mcp-client-configuration.webp" alt="Claude Code和Cursor配置MCP Server图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 配置先确定怎么连、带什么参数和凭证，再用握手与能力列表验证连接。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **Claude Code MCP配置：**
 
@@ -724,8 +752,12 @@ npx -y @modelcontextprotocol/server-everything-search
 
 ### Q8: Claude Code MCP 500K工具结果永续化是什么？解决了什么问题？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q08-large-tool-results.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q08-large-tool-results.webp" alt="MCP大结果持久化与按需读取图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 大结果应持久化并返回引用，模型按需分块读取，而不是一次塞满上下文。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **问题背景：**
 
@@ -811,8 +843,12 @@ def analyze_large_log(log_file: str) -> str:
 
 ### Q9: MCP和Function Calling有什么区别？各自适用场景是什么？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q09-mcp-vs-function-calling.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q09-mcp-vs-function-calling.webp" alt="MCP与Function Calling分工对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Function Calling 决定怎么叫函数，MCP 规定能力如何被发现、连接和调用。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **核心区别：**
 
@@ -903,8 +939,12 @@ MCP（标准化协议）：
 
 ### Q10: MCP和OpenAI Tools API / GPTs有什么异同？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q10-mcp-tools-platforms.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q10-mcp-tools-platforms.webp" alt="MCP Tools API与托管平台对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Tools 是模型能力，MCP 是开放连接协议，托管平台是应用运行环境。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **三者定位对比：**
 
@@ -1015,8 +1055,12 @@ MCP的优势：
 
 ### Q11: MCP的安全机制是怎样的？企业如何做权限管控？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q11-enterprise-permission-control.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q11-enterprise-permission-control.webp" alt="企业MCP身份工具数据与执行环境最小权限审计图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 最小权限贯穿身份、工具、数据和执行环境，每次调用都要可追踪。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **MCP安全分层：**
 
@@ -1217,8 +1261,12 @@ def audited_tool(user_id: str, action: str, **kwargs):
 
 ### Q12: 如何在企业中规模化部署MCP？架构是怎样的？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q12-enterprise-mcp-architecture.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q12-enterprise-mcp-architecture.webp" alt="企业级MCP Gateway Registry Server架构图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Gateway 管入口和策略，Registry 管能力和版本，Server 隔离执行真实业务。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **企业MCP架构：**
 
@@ -1409,8 +1457,12 @@ async def publish_version(tool_id: str, version: ToolVersion):
 
 ### Q13: 2026年MCP生态有哪些重要更新？MCP的Roadmap是什么？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q13-mcp-roadmap-validation.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q13-mcp-roadmap-validation.webp" alt="MCP规范生态与生产验证路线图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先分清已发布规范与提案，再看客户端、服务端和生产验证是否同时到位。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **2026年MCP三大重要更新：**
 
@@ -1508,8 +1560,12 @@ MCP生态（截至2026年4月）：
 
 ### Q14: MCP Server市场有哪些？如何快速找到需要的Server？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q14-mcp-server-discovery.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q14-mcp-server-discovery.webp" alt="MCP Server发现与上线前验证图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 找到 Server 只是开始，上线前必须验来源、验权限、验行为、锁版本。
+
 <details>
-<parameter name="summary">💡 答案要点</parameter>
+<summary>💡 答案要点</summary>
 
 **主流MCP Server市场/目录：**
 
@@ -1623,6 +1679,10 @@ AI/ML类：
 ---
 
 ### Q15: OWASP MCP Top 10 有哪些核心安全风险？如何防御？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q15-owasp-mcp-defense.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q15-owasp-mcp-defense.webp" alt="OWASP MCP核心风险与纵深防御图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 不只防输入，还要验证身份、工具来源、上下文边界和每次执行。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1758,6 +1818,10 @@ results = vector_db.search(
 
 ### Q16: OWASP Agent Top 10（2026）有哪些新威胁？和传统 OWASP Top 10 有什么区别？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q16-agent-vs-web-security.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q16-agent-vs-web-security.webp" alt="Agent安全与传统Web安全边界对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Web 防恶意用户，Agent 还要防被恶意内容操控后替用户行动的 AI。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1875,6 +1939,10 @@ Agent安全：
 
 
 ### Q17: SEP-1686 Tasks 原语是什么？为什么它是2026年MCP最重要的企业级更新？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q17-mcp-tasks.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q17-mcp-tasks.webp" alt="MCP异步长任务状态结果取消与清理生命周期图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 长任务要 call now、fetch later，用协议化 task_id 管状态、结果、取消和清理。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2006,6 +2074,10 @@ client.tasks.delete(result.task_id)
 ---
 
 ### Q18: MCP协议有哪些特有的安全攻击向量？Confused Deputy、Token Passthrough、SSRF如何防御？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q18-mcp-special-attacks.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q18-mcp-special-attacks.webp" alt="MCP混乱代理令牌穿透与SSRF攻击防御图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 代理要确认代表谁，令牌要确认发给谁，外连要确认能去哪里。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2212,6 +2284,10 @@ class SSRFProtection:
 
 ### Q19: MCP 2026年有哪些企业级 Readiness 问题需要解决？Audit Trails、Enterprise Auth、Gateway Patterns 最新进展？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q19-enterprise-readiness.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q19-enterprise-readiness.webp" alt="MCP企业就绪审计认证网关配置迁移四项能力图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 企业就绪不是能连上，而是身份可管、调用可审、网关可控、配置可迁。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2402,6 +2478,10 @@ XAA 正在解决"一个配置，多个 AI 应用共用"的问题：
 
 ### Q20: MCP Sampling 原语是什么？为什么它让 Server 实现 Agentic 行为成为可能？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q20-mcp-sampling.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q20-mcp-sampling.webp" alt="MCP Sampling回调与审批边界图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Sampling 让 Server 借 Client 的模型思考，但模型调用与工具执行仍由 Client 和用户把关。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2556,6 +2636,10 @@ Why:
 
 ### Q21: MCP Client 有哪几种类型？Internal vs External Client 的区别？Sampling 如何实现回调？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q21-mcp-client-types.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q21-mcp-client-types.webp" alt="MCP内置外置Client与Sampling回调图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Client 的核心职责是管连接、模型与审批；内置还是外置取决于部署和治理边界。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2671,6 +2755,10 @@ Server A/B/C → 通过 Client 代为调用 LLM
 
 
 ### Q22: MCP 授权流程（Authorization Flow）是怎么工作的？PRM、OAuth 2.1、DPoP 如何协同？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q22-mcp-authorization-flow.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q22-mcp-authorization-flow.webp" alt="MCP PRM OAuth与DPoP授权流程图解" width="100%"></a>
+
+> 🧠 **图解记忆：** PRM 负责发现，OAuth 负责授权，DPoP 证明令牌由原客户端持有。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2792,6 +2880,10 @@ headers = {
 
 
 ### Q23: MCP Server Card 是什么？如何让 AI 应用自动发现和评估 Server 能力？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q23-mcp-server-card.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q23-mcp-server-card.webp" alt="MCP Server Card能力与风险清单图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Server Card 是机器可读的能力与风险清单，发现之后仍要验证信任和权限。
 
 
 <details>
@@ -2920,6 +3012,10 @@ MCP 官方有专门的 **Server Card Working Group**，正在定义标准格式�
 
 ### Q24: MCP Triggers 和 Events 是什么？为什么它们让 AI Agent 从"被动响应"变成"主动感知"？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q24-mcp-triggers-events.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q24-mcp-triggers-events.webp" alt="MCP Events与Triggers主动感知流程图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Event 描述发生了什么，Trigger 决定何时唤醒 Agent；主动感知也必须可控可重放。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3034,6 +3130,10 @@ class OrderProcessingAgent:
 
 
 ### Q25: MCP Registry 是什么？如何发布和分发企业级 MCP Server？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q25-mcp-registry.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q25-mcp-registry.webp" alt="MCP Registry发布分发与供应链治理图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Registry 不只是目录，还要承担身份、版本、分发和供应链治理。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3152,6 +3252,10 @@ npx @smithery/cli@latest install @github      # GitHub MCP Servernpx @smithery/c
 
 
 ### Q26: MCP Skills Over MCP 是什么？为什么它让 AI Agent 能动态组合多工具能力？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q26-skills-over-mcp.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q26-skills-over-mcp.webp" alt="Skills Over MCP动态能力组合图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Tool 是具体动作，Skill 是面向目标的能力；动态组合前先校验契约、权限和依赖。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3277,6 +3381,10 @@ result = await agent.execute_composite_task([
 
 ### Q27: 什么情况下不应该用MCP？MCP的边界在哪里？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q27-mcp-boundaries.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q27-mcp-boundaries.webp" alt="MCP适用场景边界抽象成本与替代方案决策图解" width="100%"></a>
+
+> 🧠 **图解记忆：** MCP 是可复用能力协议，不是万能接口；抽象收益小于成本时就别用。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3333,6 +3441,10 @@ result = await agent.execute_composite_task([
 ---
 
 ### Q28: MCP 现在有多少种官方 SDK？Go/PHP/Ruby/Rust/Swift 开发者如何快速接入 MCP？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q28-mcp-multilang-sdk.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q28-mcp-multilang-sdk.webp" alt="MCP多语言SDK选型与兼容测试图解" width="100%"></a>
+
+> 🧠 **图解记忆：** SDK 只改变实现语言，不改变协议语义；先按团队与场景选语言，再做跨实现兼容测试。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3467,6 +3579,10 @@ async fn main() -> anyhow::Result<()> {
 
 ### Q29: 2026年新增的官方MCP Server有哪些？Sequential Thinking和Memory有什么特点？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q29-mcp-capability-servers.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q29-mcp-capability-servers.webp" alt="MCP Thinking Memory Fetch能力服务器图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Thinking 管过程，Memory 管关系与持久化，Fetch 管获取，Everything 用来学习和测试协议。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3554,6 +3670,10 @@ Agent 内置 Memory（短期） + MCP Memory Server（长期知识图谱）
 ---
 
 ### Q30: MCP Security 现状如何？2026年为什么企业级 MCP 部署必须解决安全问题？OWASP MCP Top 10 之外有哪些关键风险？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q30-enterprise-security-baseline.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q30-enterprise-security-baseline.webp" alt="企业MCP身份网络工具来源与审计安全基线图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 生产 MCP 先收紧身份、网络、工具来源和审计，再谈能力规模。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3688,6 +3808,10 @@ AUDIT_RETENTION_DAYS=90
 
 ### Q31: 什么是 CoSAI Agentic Identity Framework？2026年5月发布的"签名Agent清单+持续授权"解决了什么问题？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q31-agentic-identity.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q31-agentic-identity.webp" alt="Agentic Identity签名清单持续授权与代操作令牌图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 签名清单定身份，持续授权控每一步，代操作令牌串起用户意图与审计链。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3788,6 +3912,10 @@ AUDIT_RETENTION_DAYS=90
 
 ### Q32: τ-bench是什么？为什么它是2026年最接近真实生产环境的Agent评估基准？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q32-agent-evaluation.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q32-agent-evaluation.webp" alt="真实生产环境Agent评估基准图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 评 Agent 要看它在动态用户、真实状态和政策约束下，是否用对工具完成任务。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3872,6 +4000,10 @@ evaluation_dimensions = {
 ---
 
 ### Q33: MCP 2026 企业级 Ready 现状如何？Audit Trails/SSO/Gateway/Config Portability 四个缺口分别是什么？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q33-enterprise-ready-checklist.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q33-enterprise-ready-checklist.webp" alt="MCP企业就绪审计认证网关与配置清单图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 审计和身份是合规底线，网关和配置决定能否规模化运维与迁移。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4019,6 +4151,10 @@ evaluation_dimensions = {
 
 ### Q34: MCP "Tool Poisoning"和"Agent Zero"是什么？2026年5月披露的三个Critical CVE（CVE-2026-30624/30617/33224）为何让整个MCP生态告急？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q34-tool-poisoning.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q34-tool-poisoning.webp" alt="MCP工具描述投毒第三方Server供应链风险与防御图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 工具描述也是输入，第三方 Server 也是代码；上线前验来源，运行时限权限和外联。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4146,6 +4282,10 @@ mcp_config = {
 
 ### Q35: 什么是 ACP（Agent Commerce Protocol）和 UCP（Universal Commerce Protocol）？2026年四大协议（MCP/A2A/ACP/UCP）如何构成完整的 Agent 技术栈？
 
+<a href="../../assets/illustrations/14-mcp-skill-systems/q35-agent-protocol-stack.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q35-agent-protocol-stack.webp" alt="MCP A2A与商业协议分层图解" width="100%"></a>
+
+> 🧠 **图解记忆：** MCP 连工具，A2A 协作任务，商业协议处理支付与合约；先按层次选，不把路线图当标准。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4212,6 +4352,10 @@ Layer 1: 推理运行时
 ---
 
 ### Q36: MCP "六大安全挑战"是什么？Supply Chain Registry Risk、STDIO Execution Flaw、Input/Instruction Boundary Failure、Authentication Governance 分别如何防御？
+
+<a href="../../assets/illustrations/14-mcp-skill-systems/q36-mcp-security-boundaries.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q36-mcp-security-boundaries.webp" alt="MCP六大安全边界与纵深防御图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 安全要覆盖来源、启动、输入、身份、数据和追踪六个边界，不能只加一个登录框。
 
 <details>
 <summary>💡 答案要点</summary>
