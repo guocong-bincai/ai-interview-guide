@@ -14,6 +14,10 @@
 ## 一、基础概念题
 
 ### Q1: 什么是 AI Agent？核心组件是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q01-agent-loop.webp" width="860" alt="AI Agent 由模型决策、工具执行、观察反馈、记忆与规划组成闭环"></p>
+<p align="center"><sub>🧠 记忆锚点：Agent 的核心不是会说，而是能在反馈中持续行动。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -37,6 +41,10 @@
 </details>
 
 ### Q2: ReAct 模式是什么？完整流程是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q02-react-loop.webp" width="860" alt="ReAct 在思考、行动、观察之间循环直到满足停止条件"></p>
+<p align="center"><sub>🧠 记忆锚点：一步一想、一动一看，直到满足终止条件。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -74,6 +82,10 @@ Final Answer: 最终答案
 </details>
 
 ### Q3: Function Calling 的原理是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q03-function-calling-boundary.webp" width="860" alt="Function Calling 将自然语言转为结构化参数并由应用侧校验执行"></p>
+<p align="center"><sub>🧠 记忆锚点：模型负责建议调用，应用负责校验与执行。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -94,6 +106,10 @@ Final Answer: 最终答案
 ## 二、设计模式题
 
 ### Q4: 如何防止 Agent 进入死循环？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q04-loop-prevention.webp" width="860" alt="通过最大步数、总超时、动作去重、进展检测和人工接管防止 Agent 死循环"></p>
+<p align="center"><sub>🧠 记忆锚点：限制预算，检测无进展，必要时交给人。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -127,6 +143,10 @@ while iteration < max_iterations:
 </details>
 
 ### Q5: Plan-and-Execute 和 ReAct 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q05-plan-react.webp" width="860" alt="ReAct 逐步动态决策，Plan-and-Execute 先全局规划再执行，复杂任务可混合使用"></p>
+<p align="center"><sub>🧠 记忆锚点：Plan 保方向，ReAct 管变化。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -171,6 +191,10 @@ while iteration < max_iterations:
 </details>
 
 ### Q6: 多 Agent 协作怎么设计？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q06-multi-agent-collaboration.webp" width="860" alt="协调者按角色契约分配任务，多 Agent 通过共享状态协作并收敛结果"></p>
+<p align="center"><sub>🧠 记忆锚点：先定角色与契约，再共享状态，由协调者收敛结果。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -209,6 +233,10 @@ while iteration < max_iterations:
 ## 三、工程实践题
 
 ### Q7: 你设计过哪些类型的 Agent？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q07-agent-project-types.webp" width="860" alt="客服、数据分析和代码 Agent 的典型工程闭环及项目回答结构"></p>
+<p align="center"><sub>🧠 记忆锚点：别罗列名词，用一条真实闭环证明你做过。</sub></p>
+
 <details>
 <summary>💡 高分回答</summary>
 
@@ -236,6 +264,10 @@ while iteration < max_iterations:
 </details>
 
 ### Q8: Agent 的 Memory 怎么设计？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q08-agent-memory.webp" width="860" alt="Agent 短期记忆与长期记忆的检索、合并和受控写入机制"></p>
+<p align="center"><sub>🧠 记忆锚点：短期保连续，长期按需取；先检索再合并，重要才写入。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -289,8 +321,12 @@ class AgentMemory:
 > "Function Calling 的本质是将非结构化的自然语言转化为结构化的 JSON。在实战中，我通过它实现了自然语言直接查询 SQL 数据库，极大地降低了非技术人员的使用门槛。同时我加入了权限校验和参数白名单，防止 Agent 越权访问。"
 
 ### Q9: 什么是LangGraph?如何构建复杂Agent工作流?
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q09-langgraph.webp" width="860" alt="LangGraph 用节点、条件边、共享状态和检查点表达 Agent 分支循环与恢复"></p>
+<p align="center"><sub>🧠 记忆锚点：节点做事，边定流向，状态贯穿，检查点可恢复。</sub></p>
+
 <details>
-<parameter name="summary">💡 答案要点</summary>
+<summary>💡 答案要点</summary>
 
 **LangGraph = 用图结构构建有状态的Agent应用**
 
@@ -457,6 +493,10 @@ result = app.invoke({"topic": "AI Agent的未来"})
 ---
 
 ### Q10: 工具调用的完整流程是什么?如何处理失败?
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q10-tool-call-failures.webp" width="860" alt="工具调用从结构化参数、应用校验到执行回传，并按错误类型重试降级"></p>
+<p align="center"><sub>🧠 记忆锚点：先校验再执行；按错误分类重试，失败要能降级退出。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -712,7 +752,10 @@ class AgentWithTools:
 
 ---
 
-## 11. 工具调用失败怎么处理?重试策略?
+### Q11: 工具调用失败怎么处理？重试策略是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q11-tool-retry.webp" width="860" alt="工具错误先分类，再按参数、瞬态、服务异常和连续失败采取修正退避降级与熔断"></p>
+<p align="center"><sub>🧠 记忆锚点：先分类再重试；瞬态退避，永久失败换路，连续失败熔断。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1139,7 +1182,10 @@ class RobustToolExecutor:
 
 ---
 
-## 12. Agent记忆系统如何设计?短期vs长期记忆?
+### Q12: Agent 记忆系统如何设计？短期 vs 长期记忆？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q12-memory-layers.webp" width="860" alt="Agent 工作记忆、短期记忆和长期记忆的分层读写检索与遗忘机制"></p>
+<p align="center"><sub>🧠 记忆锚点：工作记忆管任务，短期保会话，长期跨会话；检索与遗忘同样重要。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1483,7 +1529,10 @@ food_memories = memory.recall(
 
 ---
 
-## 13. Agent如何做规划(Planning)?任务分解策略?
+### Q13: Agent 如何做规划（Planning）？任务分解策略是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q13-planning.webp" width="860" alt="Agent 将目标拆成带依赖的可执行 DAG，并根据进展检查结果动态重规划"></p>
+<p align="center"><sub>🧠 记忆锚点：先拆可执行步骤，标依赖；结果偏离就重规划。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1806,7 +1855,10 @@ class ReWOO:
 
 ---
 
-## 14. 什么是Human-in-the-Loop？Agent何时应该暂停等待人工确认？
+### Q14: 什么是 Human-in-the-Loop？Agent 何时应该暂停等待人工确认？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q14-hitl.webp" width="860" alt="Agent 按风险分级执行，高风险操作在检查点暂停等待人工审批"></p>
+<p align="center"><sub>🧠 记忆锚点：高风险先暂停，带上下文审批；超时默认拒绝，可从检查点恢复。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2026,7 +2078,10 @@ app.invoke(None, thread)  # 从检查点恢复执行
 
 ---
 
-## 15. 如何评测Agent的能力？有哪些主流Benchmark？
+### Q15: 如何评测 Agent 的能力？有哪些主流 Benchmark？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q15-agent-evaluation.webp" width="860" alt="Agent 评测结合离线基准、分层评审和在线监控形成持续改进闭环"></p>
+<p align="center"><sub>🧠 记忆锚点：别只看最终答案；评任务、轨迹、工具、恢复、成本与安全。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2329,7 +2384,10 @@ class AgentMonitor:
 
 ## 高频面试追问（一面/二面真题补充）
 
-### Q: 单轮对话和多轮对话的 Token 消耗大概多少？如何控制？
+### Q16: 单轮对话和多轮对话的 Token 消耗大概多少？如何控制？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q16-token-budget.webp" width="860" alt="上下文窗口按系统提示、历史、检索、当前问题和输出预留分配 Token 预算"></p>
+<p align="center"><sub>🧠 记忆锚点：先预留输出，再给系统、历史和检索分预算；旧对话摘要，检索只留相关。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2397,7 +2455,10 @@ class TokenBudgetManager:
 
 </details>
 
-### Q: Agent 的记忆架构怎么做？
+### Q17: Agent 的记忆架构怎么做？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q17-memory-types.webp" width="860" alt="Agent 工作、情节、语义和程序四类记忆的存储检索及沉淀流程"></p>
+<p align="center"><sub>🧠 记忆锚点：当前任务进工作记忆，经历进情节，知识进语义，做法进程序。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2478,7 +2539,10 @@ class AgentMemory:
 
 </details>
 
-### Q: 上下文语义重写机制是什么？为什么需要它？
+### Q18: 上下文语义重写机制是什么？为什么需要它？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q18-query-rewrite.webp" width="860" alt="Query Rewrite 利用对话历史消解代词并补全省略，将问题改写为独立检索查询"></p>
+<p align="center"><sub>🧠 记忆锚点：先消歧补全成独立问题，再去检索；重写不改意图。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2552,7 +2616,10 @@ rewritten = await rewrite_with_context(query, history)
 
 </details>
 
-### Q: 整个 Agent 的部署方式，容器化部署还是宿主机部署？
+### Q19: 整个 Agent 的部署方式，容器化部署还是宿主机部署？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q19-deployment-choice.webp" width="860" alt="Agent 本地宿主机开发与生产容器化部署的选型和隔离架构"></p>
+<p align="center"><sub>🧠 记忆锚点：开发可直跑，生产容器化；代码执行和多租户必须强隔离。</sub></p>
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2627,7 +2694,11 @@ class AgentContainerPool:
 
 ## 五、进阶 Agent 机制（补充 Q10-Q12）
 
-### Q11: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
+### Q20: Reflexion 自我反思机制是什么？和 ReAct 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q20-reflexion.webp" width="860" alt="ReAct 按环境反馈逐步行动，Reflexion 在整次尝试后评估反思并把经验带入下一轮"></p>
+<p align="center"><sub>🧠 记忆锚点：ReAct 看环境走下一步；Reflexion 复盘整次尝试，把教训带进下一轮。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2699,7 +2770,11 @@ def reflexion_agent(task, max_turns=3):
 
 </details>
 
-### Q12: Agent 的上下文窗口管理有哪些策略？如何避免超出限制？
+### Q21: Agent 的上下文窗口管理有哪些策略？如何避免超出限制？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q21-context-management.webp" width="860" alt="Agent 在固定上下文预算内对规则、对话、工具结果、检索片段和工作状态分层压缩"></p>
+<p align="center"><sub>🧠 记忆锚点：规则不丢、最近保真、旧史摘要，工具与检索只留有用。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2776,7 +2851,11 @@ def trim_tool_result(result, max_tokens=2000):
 
 </details>
 
-### Q13: AutoGPT 的工作原理是什么？它和普通 Agent 有什么区别？
+### Q22: AutoGPT 的工作原理是什么？它和普通 Agent 有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q22-autogpt.webp" width="860" alt="AutoGPT 从高层目标生成优先级任务队列并自主执行反思更新，普通 ReAct 聚焦当前任务"></p>
+<p align="center"><sub>🧠 记忆锚点：ReAct 解当前任务，AutoGPT 管长期目标与任务队列；自主越高，预算和边界越重要。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2872,7 +2951,11 @@ class AutoGPT:
 
 ## 六、2026年Claude Opus 4.6核心能力：Inter-tool Thinking与自适应思考（Q13）
 
-### Q14: Claude Opus 4.6的Inter-tool Thinking是什么？为什么它是2026年Agent能力的重大突破？
+### Q23: Claude Opus 4.6 的 Inter-tool Thinking 是什么？为什么它是 2026 年 Agent 能力的重要进展？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q23-inter-tool-thinking.webp" width="860" alt="Inter-tool Thinking 在每次工具返回后重新评估质量状态风险并动态决定继续重试换工具回退或停止"></p>
+<p align="center"><sub>🧠 记忆锚点：每次工具返回都重新判断下一步；难度与风险决定思考预算。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2963,7 +3046,7 @@ Claude Opus 4.6在SWE-bench Verified上达到**80.8%**，OSWorld（Computer Use�
 
 ---
 
-## 20. 2026年Agent岗位分化与面试趋势（新增考点）
+## 2026 年 Agent 岗位分化与面试趋势
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3064,7 +3147,11 @@ class AgentEval:
 
 ## 七、2026年AI Agent长期记忆与持续学习：ALTK-Evolve（Q14）
 
-### Q15: ALTK-Evolve是什么？为什么"Eternal Intern Problem"是2026年Agent核心挑战？
+### Q24: ALTK-Evolve 是什么？为什么“Eternal Intern Problem”是 2026 年 Agent 的核心挑战？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q24-experience-to-principles.webp" width="860" alt="Agent 将有证据的完整轨迹提炼、巩固为版本化可迁移原则并按需检索复用"></p>
+<p align="center"><sub>🧠 记忆锚点：不是重放日志，而是把有证据的轨迹提炼成可迁移原则，再按需取用。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3121,7 +3208,11 @@ IBM Research 2026年4月发布的 ALTK-Evolve，给出了系统性答案：
 
 ## 七、Anthropic 可信 Agent 框架：Model/Harness/Tools/Environment 四组件（Q15）
 
-### Q16: Anthropic 的"可信 Agent"框架是什么？为什么 Agent = Model + Harness + Tools + Environment？
+### Q25: Anthropic 的“可信 Agent”框架是什么？为什么 Agent = Model + Harness + Tools + Environment？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q25-trustworthy-agent.webp" width="860" alt="可信 Agent 的模型、Harness、工具和运行环境四层边界与纵深防御"></p>
+<p align="center"><sub>🧠 记忆锚点：模型给智能，Harness 给约束，工具给能力，环境定边界；可信来自整套系统。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3170,7 +3261,11 @@ Anthropic 2026年4月发布的"Trustworthy Agents in Practice"给出了明确定
 
 </details>
 
-### Q17: 什么是 Automated Alignment Researchers（AAR）？AI 如何加速对齐研究？它对 AI 应用开发有什么启示？
+### Q26: 什么是 Automated Alignment Researchers（AAR）？AI 如何加速对齐研究？它对 AI 应用开发有什么启示？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q26-automated-alignment-research.webp" width="860" alt="自动化对齐研究以可验证评估器驱动批量实验，并通过留出集对抗评估和人工监督防止奖励投机"></p>
+<p align="center"><sub>🧠 记忆锚点：先造可靠评尺，再让 AI 批量试验；用留出集和人工监督防评分钻空子。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3256,7 +3351,11 @@ AAR 会"作弊"：
 
 </details>
 
-### Q18: BFCL 是什么？如何系统性评估 Function Calling 质量？
+### Q27: BFCL 是什么？如何系统性评估 Function Calling 质量？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q27-function-calling-eval.webp" width="860" alt="Function Calling 评测覆盖调用相关性、简单并行串行和边界场景，并逐层检查工具参数依赖执行与答案"></p>
+<p align="center"><sub>🧠 记忆锚点：不只看函数名；还要看参数、依赖、并行、该不该调用和执行结果。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3360,7 +3459,11 @@ def monitor():
 
 [返回目录 →](../../README.md)]
 
-### Q19: Voyager 是什么？为什么"具身智能终身学习"是2026年 Agent 最重要的方向之一？
+### Q28: Voyager 是什么？为什么“具身智能终身学习”是 2026 年 Agent 的重要方向之一？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q28-voyager.webp" width="860" alt="Voyager 通过自主课程探索环境，将验证后的经验沉淀为技能并在新任务中检索组合"></p>
+<p align="center"><sub>🧠 记忆锚点：探索产生经验，验证后沉淀技能；新任务先复用再组合，失败继续改。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3447,7 +3550,11 @@ while not task_complete:
 
 ---
 
-### Q20: Workflow、Agent 和 Tools 三者的区别与联系是什么？
+### Q29: Workflow、Agent 和 Tools 三者的区别与联系是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q29-workflow-agent-tools.webp" width="860" alt="工具提供原子能力，工作流固定控制路径，Agent 根据观察动态选择路径，生产系统常混合使用"></p>
+<p align="center"><sub>🧠 记忆锚点：工具是能力，工作流预先定路，Agent 动态选路；生产常用有边界的混合。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3493,7 +3600,11 @@ Agent：
 
 ---
 
-### Q21: 什么是 Agentic RAG？它和传统 RAG 的核心区别是什么？
+### Q30: 什么是 Agentic RAG？它和传统 RAG 的核心区别是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q30-agentic-rag.webp" width="860" alt="传统 RAG 一次检索后生成，Agentic RAG 会评估证据充分性并迭代改写查询和切换数据源"></p>
+<p align="center"><sub>🧠 记忆锚点：传统 RAG 检一次就答；Agentic RAG 会判断证据够不够，不够就换问法和数据源。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3589,7 +3700,11 @@ class AgenticRAG:
 
 ---
 
-### Q22: SSE vs WebSocket，AI Agent 应用该如何选型？
+### Q31: SSE vs WebSocket，AI Agent 应用该如何选型？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q31-sse-websocket.webp" width="860" alt="SSE 适合服务端单向持续推送，WebSocket 适合低延迟全双工实时交互"></p>
+<p align="center"><sub>🧠 记忆锚点：只需服务端持续推送选 SSE；双方频繁实时互动选 WebSocket。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3697,7 +3812,11 @@ async def agent_websocket(websocket: WebSocket):
 
 ---
 
-### Q23: 什么是 Guardrails（安全护栏）？如何在 Agent 中设计输入输出安全防护？
+### Q32: 什么是 Guardrails（安全护栏）？如何在 Agent 中设计输入输出安全防护？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q32-guardrails.webp" width="860" alt="Agent Guardrails 在输入、模型输出、工具调用和执行环境进行分层安全控制与审计"></p>
+<p align="center"><sub>🧠 记忆锚点：护栏不是一层关键词；输入、模型输出、工具执行三道门，风险越高控制越强。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3849,7 +3968,11 @@ result = guard(
 
 ---
 
-### Q24: 如何防御 Prompt 注入攻击？有哪些具体的防护策略？
+### Q33: 如何防御 Prompt 注入攻击？有哪些具体的防护策略？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q33-prompt-injection.webp" width="860" alt="将可信指令控制面与不可信外部数据面隔离，并用最小权限校验和人工确认阻断 Prompt 注入"></p>
+<p align="center"><sub>🧠 记忆锚点：把外部内容当数据，不当指令；最小权限、强校验、敏感动作要确认。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3966,7 +4089,11 @@ AI 回复：{response}
 
 ---
 
-### Q25: 什么是模型漂移（Model Drift）？如何检测和应对？
+### Q34: 什么是模型漂移（Model Drift）？如何检测和应对？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q34-model-drift.webp" width="860" alt="模型漂移通过线上分段监控和固定回归集定位输入规则行为输出成本变化，再灰度修复"></p>
+<p align="center"><sub>🧠 记忆锚点：先分清哪里漂；用线上监控加固定回归集定位，再灰度修复。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4078,7 +4205,11 @@ class ModelDriftDetector:
 
 ---
 
-### Q26: 什么是数据飞轮（Data Flywheel）？如何在 Agent 产品中构建？
+### Q35: 什么是数据飞轮（Data Flywheel）？如何在 Agent 产品中构建？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q35-data-flywheel.webp" width="860" alt="Agent 数据飞轮将获授权的真实失败清洗标注为高质量数据，经评测灰度改进后回流产品"></p>
+<p align="center"><sub>🧠 记忆锚点：把真实失败变成高质量样本，经评测灰度回到产品；飞轮靠质量与闭环，不靠堆日志。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4198,7 +4329,11 @@ class DataFlywheel:
 
 ---
 
-### Q27: 如何评估和控制 AI Agent 的 ROI？有哪些关键指标？
+### Q36: 如何评估和控制 AI Agent 的 ROI？有哪些关键指标？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q36-agent-roi.webp" width="860" alt="Agent ROI 按任务比较可验证业务收益与模型工具基础设施人工失败维护等全生命周期成本"></p>
+<p align="center"><sub>🧠 记忆锚点：ROI 看每个任务的真实收益减全生命周期成本；高自动化率不等于高价值。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4324,7 +4459,11 @@ def compress_context(messages: list) -> list:
 
 ---
 
-### Q28: 如何做 AI Agent 的 Human-in-the-Loop（人机协同）设计？
+### Q37: 如何做 AI Agent 的 Human-in-the-Loop（人机协同）设计？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q37-hitl-design.webp" width="860" alt="Human-in-the-Loop 根据风险和置信度选择自动执行抽查显式审批或阻断，并提供可审计审批上下文"></p>
+<p align="center"><sub>🧠 记忆锚点：风险和置信度共同决定介入；审批要看得懂影响，拒绝超时都安全收口。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4447,7 +4586,11 @@ app.invoke(
 
 ---
 
-### Q29: Agent 的核心架构公式是什么？决策引擎、信息视野、执行通道分别是什么？
+### Q38: Agent 的核心架构公式是什么？决策引擎、信息视野、执行通道分别是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q38-agent-formula.webp" width="860" alt="Agent 由决策引擎、信息视野和执行通道组成观察决策行动反馈闭环，并由 Harness 治理"></p>
+<p align="center"><sub>🧠 记忆锚点：看什么决定判断，能做什么决定影响；决策、信息、执行必须闭环且有边界。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4491,7 +4634,11 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q30: Harness 工程是什么？为什么说"模型决定上限、Harness 决定下限"？
+### Q39: Harness 工程是什么？为什么说“模型决定上限、Harness 决定下限”？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q39-harness-engineering.webp" width="860" alt="Harness 通过上下文工具约束恢复预算检查点和观测把模型概率能力变成稳定系统行为"></p>
+<p align="center"><sub>🧠 记忆锚点：模型决定能不能，Harness 决定稳不稳；管上下文、工具、约束、恢复和观测。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4532,7 +4679,11 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q31: Agent 工程范式演进有哪几个阶段？工作流 vs 自主 Agent 怎么选型？
+### Q40: Agent 工程范式演进有哪几个阶段？工作流 vs 自主 Agent 怎么选型？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q40-paradigm-selection.webp" width="860" alt="Agent 工程从 Prompt、Context、Harness 到工具循环和图编排逐级增加复杂度，并按确定性风险恢复需求选型"></p>
+<p align="center"><sub>🧠 记忆锚点：复杂度逐级增加；流程确定用工作流，开放不确定才给 Agent 自主，生产多为混合。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4582,7 +4733,11 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q32: 千轮上下文关联怎么实现？对话摘要算法具体怎么做？
+### Q41: 千轮上下文关联怎么实现？对话摘要算法具体怎么做？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q41-hierarchical-summary.webp" width="860" alt="千轮对话保留近期原文，将远期对话逐级汇总并抽取结构化事实，回答时按当前问题召回"></p>
+<p align="center"><sub>🧠 记忆锚点：近处留原文，远处做分层摘要；事实结构化，回答时按当前问题召回。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4646,7 +4801,11 @@ Agent = 决策引擎 + 信息视野 + 执行通道
 
 ---
 
-### Q33: SKILL.md 是一次性全塞进 context 的吗？Progressive Disclosure 三级加载机制是什么？
+### Q42: SKILL.md 是一次性全塞进 context 的吗？Progressive Disclosure 三级加载机制是什么？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q42-progressive-disclosure.webp" width="860" alt="Skill 采用渐进式披露，元数据用于发现，命中后加载正文，脚本模板参考资料按任务需要读取执行"></p>
+<p align="center"><sub>🧠 记忆锚点：元数据负责发现，正文命中才加载，资源执行到哪读到哪。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4704,7 +4863,11 @@ metadata 常驻、廉价（100 token/个）
 
 ---
 
-### Q34: 传统开发转 Agent 开发的最大挑战是什么？确定性编程和概率性编程有什么区别？
+### Q43: 传统开发转 Agent 开发的最大挑战是什么？确定性编程和概率性编程有什么区别？
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q43-probabilistic-engineering.webp" width="860" alt="确定性程序用断点和单测验证固定路径，概率性 Agent 需用结构约束统计评测观测恢复和人工把关工程化"></p>
+<p align="center"><sub>🧠 记忆锚点：概率能力不能靠一次调通；用结构约束、统计评测、观测与兜底把它工程化。</sub></p>
+
 <details>
 <summary>💡 答案要点</summary>
 
