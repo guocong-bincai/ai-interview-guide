@@ -14,6 +14,11 @@
 ## 一、框架使用题
 
 ### Q1: LangChain 的核心组件有哪些？如何使用 Chain？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q01-langchain-chain.webp"><img src="../../assets/illustrations/12-frameworks-tools/q01-langchain-chain.webp" alt="LangChain 将 Prompt、LLM、解析器、检索、记忆和工具组件编排为可复用 Chain" width="100%"></a>
+
+> 🧠 **图解记忆：** LangChain 把模型、提示词、检索与工具组件化，Chain 把它们串成可复用流程。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -57,6 +62,11 @@ print(result)
 </details>
 
 ### Q2: LangGraph 和 LangChain 有什么区别？什么时候用 LangGraph？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q02-langgraph-vs-langchain.webp"><img src="../../assets/illustrations/12-frameworks-tools/q02-langgraph-vs-langchain.webp" alt="LangChain 线性流程与 LangGraph 有状态分支循环图的对比和选型" width="100%"></a>
+
+> 🧠 **图解记忆：** 线性无状态用 LangChain，有状态、分支、循环和恢复用 LangGraph。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -110,6 +120,11 @@ app = graph.compile()
 </details>
 
 ### Q3: 如何使用 LlamaIndex 构建 RAG 系统？和 LangChain 有什么区别？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q03-llamaindex-rag.webp"><img src="../../assets/illustrations/12-frameworks-tools/q03-llamaindex-rag.webp" alt="LlamaIndex 从文档切块、索引、检索到回答的 RAG 流程及其与 LangChain 的定位差异" width="100%"></a>
+
+> 🧠 **图解记忆：** LlamaIndex 擅长让数据可检索，LangChain 擅长把能力编成流程。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -168,6 +183,11 @@ print(response)
 ## 二、向量数据库题
 
 ### Q4: 向量数据库的索引类型有哪些？怎么选？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q04-vector-index-selection.webp"><img src="../../assets/illustrations/12-frameworks-tools/q04-vector-index-selection.webp" alt="HNSW、IVF、PQ、LSH 向量索引机制及召回延迟内存更新成本选型" width="100%"></a>
+
+> 🧠 **图解记忆：** 索引选型是在召回、延迟、内存和更新成本之间取舍。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -196,6 +216,11 @@ print(response)
 </details>
 
 ### Q5: 如何优化向量检索的精度和速度？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q05-vector-retrieval-optimization.webp"><img src="../../assets/illustrations/12-frameworks-tools/q05-vector-retrieval-optimization.webp" alt="查询改写、混合召回、ANN 粗排、Cross-Encoder 精排和 Top-K 的检索优化漏斗" width="100%"></a>
+
+> 🧠 **图解记忆：** 先用混合召回扩大覆盖，再用 Rerank 提精度，用 ANN、量化和缓存控延迟。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -223,6 +248,11 @@ print(response)
 </details>
 
 ### Q6: 向量数据库的 Metadata 过滤怎么用？有什么应用场景？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q06-metadata-filtering.webp"><img src="../../assets/illustrations/12-frameworks-tools/q06-metadata-filtering.webp" alt="Metadata 过滤先限定租户权限和时间边界，再在可见文档中执行向量近邻检索" width="100%"></a>
+
+> 🧠 **图解记忆：** Metadata 先限定可见数据边界，向量相似度再决定相关性。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -266,6 +296,11 @@ results = collection.search(
 ## 三、测试评估题
 
 ### Q7: 如何测试 AI 应用的质量？有哪些评估指标？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q07-ai-quality-evaluation.webp"><img src="../../assets/illustrations/12-frameworks-tools/q07-ai-quality-evaluation.webp" alt="AI 应用通过离线指标、人工抽检和线上反馈三层评估并设置回归发布门" width="100%"></a>
+
+> 🧠 **图解记忆：** 离线指标守底线，人工评审找原因，线上反馈验证真实价值。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -295,6 +330,11 @@ results = collection.search(
 </details>
 
 ### Q8: 如何构建 AI 应用的测试集？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q08-test-dataset-lifecycle.webp"><img src="../../assets/illustrations/12-frameworks-tools/q08-test-dataset-lifecycle.webp" alt="AI 测试集从真实场景采样、分层标注、去重质检、版本回归到线上失败回流的闭环" width="100%"></a>
+
+> 🧠 **图解记忆：** 测试集来自真实场景，覆盖正常与边界，并随线上失败持续生长。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -331,6 +371,10 @@ results = collection.search(
 ## 四、部署运维题
 
 ### Q9: 如何部署 LLM 应用到生产环境？需要注意什么？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q09-production-deployment.webp"><img src="../../assets/illustrations/12-frameworks-tools/q09-production-deployment.webp" alt="LLM 应用从网关限流、AI 服务和模型路由到 LLM RAG 的生产链路与可靠性防护" width="100%"></a>
+
+> 🧠 **图解记忆：** 生产部署不是把 Demo 上云，而是用限流、超时、重试、降级、监控和安全把不确定模型变成可靠服务。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -367,6 +411,10 @@ results = collection.search(
 </details>
 
 ### Q10: 如何监控 AI 应用的成本？如何优化？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q10-cost-observability.webp"><img src="../../assets/illustrations/12-frameworks-tools/q10-cost-observability.webp" alt="AI 请求成本按 Token 模型检索和基础设施拆解归因，并用缓存路由和上下文治理优化" width="100%"></a>
+
+> 🧠 **图解记忆：** 先把成本归因到每个请求，再用缓存、路由和上下文治理降低单位任务成本。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -399,7 +447,11 @@ results = collection.search(
 
 </details>
 
-## 11. Coze平台如何搭建AI应用?与传统开发的区别?
+### Q11: Coze 平台如何搭建 AI 应用？与传统开发有什么区别？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q11-coze-vs-code.webp"><img src="../../assets/illustrations/12-frameworks-tools/q11-coze-vs-code.webp" alt="Coze 可视化低代码流程与传统代码工程在速度控制力和适用场景上的对比" width="100%"></a>
+
+> 🧠 **图解记忆：** Coze 用配置换开发速度，代码开发用工程成本换控制力，生产常用混合方案。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -619,7 +671,11 @@ workflow:
 
 ---
 
-## 12. Dify本地部署与性能优化实战?
+### Q12: Dify 如何本地部署并进行性能优化？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q12-dify-deployment.webp"><img src="../../assets/illustrations/12-frameworks-tools/q12-dify-deployment.webp" alt="Dify 本地部署的 Web Worker PostgreSQL Redis 向量库和模型服务架构及优化重点" width="100%"></a>
+
+> 🧠 **图解记忆：** Dify 本地部署要拆清 Web、Worker 与存储，优化从队列并发、缓存连接池和检索链路入手。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -988,7 +1044,11 @@ security:
 
 ---
 
-## 13. Function Calling如何实现工具并行调用和错误重试？
+### Q13: Function Calling 如何实现工具并行调用和错误重试？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q13-parallel-tool-calls.webp"><img src="../../assets/illustrations/12-frameworks-tools/q13-parallel-tool-calls.webp" alt="Function Calling 先校验参数并按依赖 DAG 调度工具，再以超时幂等重试和部分失败隔离保证可靠" width="100%"></a>
+
+> 🧠 **图解记忆：** 先按依赖决定并行，再用校验、超时、幂等重试和部分失败隔离保证可靠。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1224,7 +1284,11 @@ result = executor.execute_safe("get_weather", {"city": "北京"}, timeout=5)
 
 ---
 
-## 14. 如何实现LLM流式输出（Streaming）？前后端完整方案？
+### Q14: 如何实现 LLM 流式输出（Streaming）？前后端完整方案是什么？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q14-streaming-pipeline.webp"><img src="../../assets/illustrations/12-frameworks-tools/q14-streaming-pipeline.webp" alt="LLM Token 流经后端异步迭代器和 SSE 到浏览器增量渲染的端到端方案" width="100%"></a>
+
+> 🧠 **图解记忆：** 流式输出是端到端管道，后端逐块转发、前端增量渲染，并处理取消、断线和背压。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1474,7 +1538,11 @@ class StreamResumer:
 
 ---
 
-### Q11: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
+### Q15: 2026年 Dify、Coze、n8n、OpenClaw 四大平台如何选型？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q15-platform-selection.webp"><img src="../../assets/illustrations/12-frameworks-tools/q15-platform-selection.webp" alt="Dify Coze n8n OpenClaw 按数据控制 AI 编排系统集成和自主执行需求选型" width="100%"></a>
+
+> 🧠 **图解记忆：** 先看数据与控制边界，再看 AI 编排、系统集成和自主执行需求。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1605,7 +1673,11 @@ curl -X POST http://localhost/api/v1/chat-messages \
 | **Streaming流式** | SSE协议，TTFT从5s→300ms，Nginx关闭缓冲 |
 | **Dify/Coze/n8n/OpenClaw** | 个人助理→OpenClaw，企业AI→Dify，低代码Bot→Coze，自动化→n8n |
 
-## 16. Prompt Caching 是什么？2026 年 API 成本优化的重大突破？
+### Q16: Prompt Caching 是什么？为什么它能显著降低 API 成本？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q16-prompt-caching.webp"><img src="../../assets/illustrations/12-frameworks-tools/q16-prompt-caching.webp" alt="Prompt Caching 首次计算稳定长前缀并在后续请求中复用缓存只计算变化尾部" width="100%"></a>
+
+> 🧠 **图解记忆：** Prompt Cache 复用稳定前缀的计算，前缀越长越稳定、复用越多，节省越明显。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1742,7 +1814,11 @@ response = client.messages.create(
 
 </details>
 
-### Q12: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
+### Q17: DSPy 是什么？为什么"声明式 LLM 编程"是 2026 年的重要范式转变？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q17-dspy-declarative.webp"><img src="../../assets/illustrations/12-frameworks-tools/q17-dspy-declarative.webp" alt="DSPy 用 Signature 和 Module 声明任务，并用训练示例、质量指标和优化器编译 Prompt 与流程" width="100%"></a>
+
+> 🧠 **图解记忆：** DSPy 把任务和指标写成程序，让优化器搜索 Prompt 与示例，把调提示词从手艺变成可评估工程。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1830,7 +1906,11 @@ Step 3: 输出
 </details>
 
 
-### Q13: LangGraph vs Semantic Kernel 2026年深度对比：微软新一代 Agent Framework 来了，如何选择？
+### Q18: LangGraph vs Semantic Kernel 2026年深度对比：微软新一代 Agent Framework 来了，如何选择？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q18-agent-framework-selection.webp"><img src="../../assets/illustrations/12-frameworks-tools/q18-agent-framework-selection.webp" alt="LangGraph 与 Microsoft Agent Framework 按状态控制跨云能力微软生态和企业集成需求选型" width="100%"></a>
+
+> 🧠 **图解记忆：** 复杂状态控制与跨云优先 LangGraph，微软企业生态与深度集成优先 Microsoft Agent Framework。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1979,7 +2059,11 @@ app = graph.compile()
 
 ---
 
-### Q14: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
+### Q19: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q19-stateful-assistant-api.webp"><img src="../../assets/illustrations/12-frameworks-tools/q19-stateful-assistant-api.webp" alt="状态化 Assistant API 中 Assistant Thread Run File Search 和 Code Interpreter 的对象职责与执行状态机" width="100%"></a>
+
+> 🧠 **图解记忆：** Assistant 定义能力，Thread 保存对话，Run 驱动一次执行，工具在 Run 中按需参与。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2171,7 +2255,11 @@ queued → in_progress → requires_action → completed
 
 ## 十五、LangGraph 生产监控 + Time-Travel 调试 + Checkpointing 架构（Q15）
 
-### Q15: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
+### Q20: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q20-langgraph-production.webp"><img src="../../assets/illustrations/12-frameworks-tools/q20-langgraph-production.webp" alt="LangGraph 每步写入 Checkpoint 并以 Time Travel 重放历史状态，在高风险节点人工审批并全链路监控" width="100%"></a>
+
+> 🧠 **图解记忆：** Checkpoint 让状态可恢复，Time Travel 让问题可重放，人审中断让高风险动作可控制。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2400,7 +2488,11 @@ if results["answer_quality"] < 0.8:
 
 ## 十六、2026年 Agent 框架选型深度指南：LangGraph vs Claude Agent SDK vs CrewAI vs AutoGen（Q16）
 
-### Q16: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
+### Q21: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q21-agent-framework-routing.webp"><img src="../../assets/illustrations/12-frameworks-tools/q21-agent-framework-routing.webp" alt="生产级 Agent 框架按状态复杂度角色协作生态数据中心类型安全和厂商绑定需求路由选型" width="100%"></a>
+
+> 🧠 **图解记忆：** 框架没有总冠军，先按状态复杂度与生态边界缩小范围，再用可观测、恢复和测试能力定生产方案。
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2649,7 +2741,11 @@ result = agent.run_sync("分析季度销售数据")
 
 ---
 
-### Q17: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
+### Q22: 为什么选 Go+Eino 做 AI 平台，而不是 Python+LangChain？如何做技术栈选型？
+
+<a href="../../assets/illustrations/12-frameworks-tools/q22-go-eino-python.webp"><img src="../../assets/illustrations/12-frameworks-tools/q22-go-eino-python.webp" alt="企业 AI 混合架构以 Go Eino 承担高并发核心服务并以 Python LangChain 支持算法实验和快速迭代" width="100%"></a>
+
+> 🧠 **图解记忆：** 不是 Go 战胜 Python，而是核心服务用 Go 保稳定，算法实验用 Python 保迭代，各放在最合适的位置。
 <details>
 <summary>💡 答案要点</summary>
 
