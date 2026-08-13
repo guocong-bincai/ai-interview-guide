@@ -23,6 +23,10 @@
 
 ### Q1: AutoGen 如何实现对话式多 Agent 协作？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q01-autogen-conversation.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q01-autogen-conversation.webp" alt="AutoGen GroupChatManager 动态选择发言者并让不同 Agent 在共享消息流中协商和调用工具" width="100%"></a>
+
+> 🧠 **图解记忆：** AutoGen 用对话协商换灵活性，必须用发言选择、终止条件和预算防止失控。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -371,6 +375,10 @@ user_proxy.initiate_chat(
 
 ### Q2: CrewAI 如何实现角色驱动的 Agent 协作？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q02-crewai-roles.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q02-crewai-roles.webp" alt="CrewAI 以 Role Goal Backstory 定义研究写作审核角色并让任务产物沿顺序或层级流程交付" width="100%"></a>
+
+> 🧠 **图解记忆：** CrewAI 先定角色与目标，再让任务和产物沿流程流动，适合分工清晰的团队式协作。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -712,6 +720,10 @@ result = hiring_crew.kickoff(inputs={
 
 ### Q3: 企业级多 Agent 架构需要考虑哪些核心问题？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q03-enterprise-architecture.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q03-enterprise-architecture.webp" alt="企业级多 Agent 平台的接入编排能力三层架构及贯穿全链路的治理可观测和容灾" width="100%"></a>
+
+> 🧠 **图解记忆：** 企业多 Agent 的重点不是 Agent 数量，而是可观测、可控制、可恢复和可扩展。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -966,6 +978,10 @@ class AgentFailover:
 
 ### Q4: 多 Agent 系统如何设计 Policy Engine、权限和审计？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q04-policy-engine.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q04-policy-engine.webp" alt="Agent 动作经过风险分类预算 Scope 白名单人工审批工具执行和不可篡改审计的外部强制链路" width="100%"></a>
+
+> 🧠 **图解记忆：** 边界必须在模型外结构化执行，先鉴权和预算，再审批执行，全程留痕。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1153,6 +1169,10 @@ class ProductionPolicyEngine:
 
 ### Q5: Agent 治理工具应该解决哪些问题？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q05-agent-governance.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q05-agent-governance.webp" alt="Agent 运行时治理以身份策略审计和紧急停止回答主体权限行为与失控处置" width="100%"></a>
+
+> 🧠 **图解记忆：** 治理要回答 Agent 是谁、能做什么、做过什么，以及失控时如何立即停下。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1261,6 +1281,10 @@ Agent Governance Toolkit负责"规则执行"（动态）
 ---
 
 ### Q6: RAG、Agent、MCP 与 A2A 的职责边界是什么？
+
+<a href="../../assets/illustrations/13-multi-agent-systems/q06-rag-agent-mcp-a2a.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q06-rag-agent-mcp-a2a.webp" alt="RAG 提供知识 Agent 负责决策 MCP 连接工具 A2A 负责智能体发现委托的分层关系" width="100%"></a>
+
+> 🧠 **图解记忆：** RAG 管知识，Agent 管决策，MCP 管工具，A2A 管协作，四者分层组合。
 
 > **难度：** ⭐⭐⭐⭐⭐  
 > **更新：** 2026-04-06
@@ -1389,6 +1413,10 @@ Step 4: 搭建A2A体系（多Agent规模化协同）
 
 ### Q7: 如何用 A2A 协议实现 Agent 发现、任务委托和状态查询？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q07-a2a-task-lifecycle.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q07-a2a-task-lifecycle.webp" alt="A2A 通过 Agent Card 注册发现并以可查询可流式更新的任务状态机完成委托" width="100%"></a>
+
+> 🧠 **图解记忆：** Agent Card 负责被发现，Task 状态机负责可追踪委托，认证与超时保证生产可靠。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1505,6 +1533,10 @@ class A2AGateway:
 
 ### Q8: 如何定义 Agent 系统的成熟度？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q08-agent-maturity.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q08-agent-maturity.webp" alt="Agent 从问答调用工具自主规划主动发起到组织多智能体的五级成熟度阶梯" width="100%"></a>
+
+> 🧠 **图解记忆：** 成熟度看自主权如何增长：回答、执行、规划、主动、组织；业务只选需要的级别。
+
 > **难度：** ⭐⭐⭐⭐  
 > **更新：** 2026-04-06
 
@@ -1572,6 +1604,10 @@ class A2AGateway:
 ## 十四、A2A + MCP 混合架构：2026年多智能体生产部署策略（Q14）
 
 ### Q9: 如何设计 A2A + MCP 混合架构？
+
+<a href="../../assets/illustrations/13-multi-agent-systems/q09-a2a-mcp-architecture.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q09-a2a-mcp-architecture.webp" alt="编排器通过 A2A 委托专业 Agent 且每个 Agent 通过 MCP 使用搜索数据库代码工具的混合架构" width="100%"></a>
+
+> 🧠 **图解记忆：** A2A 是 Agent 间的语言，MCP 是 Agent 操作工具的接口，生产系统通常分层混用。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1797,6 +1833,10 @@ Agent Card 发布在 `/.well-known/agent.json`，供其他 Agent 发现和对接
 
 ### Q10: Commander、P2P、Hybrid 三种协作模式如何选择？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q10-collaboration-patterns.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q10-collaboration-patterns.webp" alt="Commander 集中控制 P2P 对等协商和 Hybrid 主干治理局部协作三种多智能体模式对比" width="100%"></a>
+
+> 🧠 **图解记忆：** 稳定主流程用 Commander，探索协商用 P2P，复杂生产系统通常用 Hybrid。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1996,6 +2036,10 @@ CLI工具编排（tmux/ssh场景）？
 
 ### Q11: 如何判断一篇多 Agent 研究是否值得工程落地？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q11-research-evidence.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q11-research-evidence.webp" alt="多 Agent 研究从真实问题强单 Agent 基线消融全面评测可复现到小流量试点的证据漏斗" width="100%"></a>
+
+> 🧠 **图解记忆：** 先证明多 Agent 比强单 Agent 多出的收益，再看这份收益能否覆盖协调成本和风险。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2143,6 +2187,10 @@ NARCBench        多智能体系统需要安全审计，
 
 ### Q12: Critic/Verifier Agent 为什么可能提升质量，又可能造成什么问题？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q12-critic-verifier.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q12-critic-verifier.webp" alt="生成者 Critic 结构化反馈有限次修订和 Verifier 终止组成的质量闭环及同源偏差循环成本风险" width="100%"></a>
+
+> 🧠 **图解记忆：** Critic 只有在标准独立、反馈可执行且循环有上限时才真正提升质量。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2209,6 +2257,10 @@ AI 可以帮研究者写文字，但生成顶会/期刊需要的复杂方法图�
 ## 十八、Agent Skills vs Tools 区别 + 2026 年 Skills 架构实战（Q18）
 
 ### Q13: Agent Skills 和 Tools 有什么区别？
+
+<a href="../../assets/illustrations/13-multi-agent-systems/q13-skills-vs-tools.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q13-skills-vs-tools.webp" alt="Agent Skill 作为可复用做事方法编排多个有输入输出契约的 Tool 执行外部动作" width="100%"></a>
+
+> 🧠 **图解记忆：** Skill 是做事方法，Tool 是执行动作；Skill 可编排多个 Tool 完成目标。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2398,6 +2450,10 @@ result = agent.run("客户张先生反映最近订单发货延迟")
 
 ### Q14: A2A 和 MCP 的协议边界在哪里？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q14-a2a-mcp-boundary.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q14-a2a-mcp-boundary.webp" alt="MCP 负责短粒度工具资源调用 A2A 负责能力发现任务委托长任务状态和产物交付" width="100%"></a>
+
+> 🧠 **图解记忆：** Agent 找工具用 MCP，Agent 找 Agent 用 A2A，别用一个协议硬扛另一层职责。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2499,6 +2555,10 @@ MCP = "Agent 找工具" → 工具发现 + 调用执行 + 结果返回
 ## 八、多Agent职责划分与层级任务分解（Q20）
 
 ### Q15: 如何做职责划分和层级任务分解？
+
+<a href="../../assets/illustrations/13-multi-agent-systems/q15-hierarchical-decomposition.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q15-hierarchical-decomposition.webp" alt="Manager 生成任务 DAG 管理依赖和验收 Executor 执行专业子任务 MCP Tool 完成原子动作" width="100%"></a>
+
+> 🧠 **图解记忆：** Manager 管目标与依赖，Executor 管专业子任务，Tool 管原子动作，层级越清楚越可控。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2672,6 +2732,10 @@ L1 Manager Agent：
 
 ### Q16: 大规模并行 Agent 的收益和瓶颈是什么？
 
+<a href="../../assets/illustrations/13-multi-agent-systems/q16-parallel-agent-bottlenecks.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q16-parallel-agent-bottlenecks.webp" alt="编排器将独立子任务扇出给隔离上下文 Worker 并聚合以及协调共享资源冲突尾延迟瓶颈" width="100%"></a>
+
+> 🧠 **图解记忆：** 并行只加速可独立任务，规模越大越要控制扇出、共享资源和聚合质量。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2786,6 +2850,10 @@ result = k2.6_swarm.research(
 ---
 
 ### Q17: 运行时动态多 Agent 编排如何控制质量、延迟和成本？
+
+<a href="../../assets/illustrations/13-multi-agent-systems/q17-dynamic-orchestration.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q17-dynamic-orchestration.webp" alt="动态编排先评估复杂度与可并行性再受数量 Token 时限预算约束扇出并经 Judge 聚合早停" width="100%"></a>
+
+> 🧠 **图解记忆：** 动态编排不是越多越好，而是在质量收益超过协调成本时有限扇出并及时停止。
 
 **考点：** 多Agent架构、测试时计算扩展、Orchestrator-SubAgent 模式、推理成本控制
 
