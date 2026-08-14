@@ -18,6 +18,10 @@
 
 ### Q1: vLLM、SGLang、TensorRT-LLM 三大推理框架各自定位是什么？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q01-framework-positioning.webp"><img src="../../assets/illustrations/19-inference-frameworks/q01-framework-positioning.webp" alt="推理框架专题第1题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** vLLM 重通用吞吐，SGLang 重前缀与生成程序，TensorRT-LLM 重 NVIDIA 极致优化。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -45,6 +49,10 @@
 </details>
 
 ### Q2: 什么是 PagedAttention？它解决了什么问题？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q02-paged-attention.webp"><img src="../../assets/illustrations/19-inference-frameworks/q02-paged-attention.webp" alt="推理框架专题第2题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** PagedAttention 像虚拟内存，把连续序列映射到离散 KV 块，减少预留与碎片。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -82,6 +90,10 @@ PagedAttention（分页式）：
 </details>
 
 ### Q3: 什么是 RadixAttention？和 PagedAttention 有什么区别？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q03-radix-vs-paged.webp"><img src="../../assets/illustrations/19-inference-frameworks/q03-radix-vs-paged.webp" alt="推理框架专题第3题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** PagedAttention 管 KV 怎么放，RadixAttention 管公共前缀怎么找、怎么复用，两者可以组合。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -128,6 +140,10 @@ RadixAttention 的 KV Cache 结构：
 
 ### Q4: 三大框架的内存管理机制有什么区别？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q04-memory-management.webp"><img src="../../assets/illustrations/19-inference-frameworks/q04-memory-management.webp" alt="推理框架专题第4题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 权重是底座，KV 随并发和长度增长；三框架差异主要在分配、复用和图级规划。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -143,6 +159,10 @@ RadixAttention 的 KV Cache 结构：
 </details>
 
 ### Q5: 什么是连续批处理（Continuous Batching）？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q05-continuous-batching.webp"><img src="../../assets/illustrations/19-inference-frameworks/q05-continuous-batching.webp" alt="推理框架专题第5题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 连续批处理不等整批结束，请求完成即退场，新请求随时补位，让 GPU 少空闲。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -169,6 +189,10 @@ RadixAttention 的 KV Cache 结构：
 </details>
 
 ### Q6: 三大框架的结构化输出能力有什么差异？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q06-structured-output.webp"><img src="../../assets/illustrations/19-inference-frameworks/q06-structured-output.webp" alt="推理框架专题第6题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 约束解码保语法，Schema 校验保结构，业务校验才保证字段含义正确。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -204,6 +228,10 @@ response = sglang.generate(
 
 ### Q7: 三大框架的性能对比数据是什么样的？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q07-performance-comparison.webp"><img src="../../assets/illustrations/19-inference-frameworks/q07-performance-comparison.webp" alt="推理框架专题第7题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 性能数字离不开测试条件；先对齐工作负载，再同时看吞吐、尾延迟和成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -223,6 +251,10 @@ response = sglang.generate(
 </details>
 
 ### Q8: 三大框架的量化支持有什么差异？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q08-quantization-support.webp"><img src="../../assets/illustrations/19-inference-frameworks/q08-quantization-support.webp" alt="推理框架专题第8题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 量化不只压权重，还要看激活和 KV；省显存能否提速取决于内核、硬件与质量。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -251,6 +283,10 @@ response = sglang.generate(
 ## 四、选型与落地实践
 
 ### Q9: 如何根据场景选择推理框架？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q09-framework-selection.webp"><img src="../../assets/illustrations/19-inference-frameworks/q09-framework-selection.webp" alt="推理框架专题第9题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先看硬件与模型能否运行，再看工作负载，最后用真实基准和运维能力定框架。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -287,6 +323,10 @@ response = sglang.generate(
 </details>
 
 ### Q10: 推理框架在生产环境有哪些常见问题？如何解决？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q10-production-troubleshooting.webp"><img src="../../assets/illustrations/19-inference-frameworks/q10-production-troubleshooting.webp" alt="推理框架专题第10题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先分清显存、排队、计算还是依赖故障，再用预算、调度、降级和观测治理。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -334,6 +374,10 @@ llm = LLM(tensor_parallel_size=4)
 
 ### Q11: PagedAttention 为什么能大幅提升吞吐量？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q11-paged-throughput.webp"><img src="../../assets/illustrations/19-inference-frameworks/q11-paged-throughput.webp" alt="推理框架专题第11题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** PagedAttention 不直接加速算子，它用更少浪费换更多并发，再把 GPU 喂得更满。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -355,6 +399,10 @@ llm = LLM(tensor_parallel_size=4)
 </details>
 
 ### Q12: SGLang 的 RadixAttention 在什么场景下优势最大？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q12-radix-best-scenarios.webp"><img src="../../assets/illustrations/19-inference-frameworks/q12-radix-best-scenarios.webp" alt="推理框架专题第12题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 公共前缀越长、命中越频繁，RadixAttention 越值；前缀各不相同就难获益。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -383,6 +431,10 @@ llm = LLM(tensor_parallel_size=4)
 
 ### Q13: TensorRT-LLM 为什么能实现极致性能？它的局限是什么？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q13-tensorrt-performance.webp"><img src="../../assets/illustrations/19-inference-frameworks/q13-tensorrt-performance.webp" alt="推理框架专题第13题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** TensorRT-LLM 用更深的硬件定制换极致性能，也用构建复杂度和灵活性付费。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -405,6 +457,10 @@ llm = LLM(tensor_parallel_size=4)
 </details>
 
 ### Q14: 什么是 Speculative Decoding？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q14-speculative-decoding.webp"><img src="../../assets/illustrations/19-inference-frameworks/q14-speculative-decoding.webp" alt="推理框架专题第14题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 小模型先猜一串，大模型并行验收；草稿猜得准且猜得便宜才真正加速。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -435,6 +491,10 @@ Target Model（大模型70B）：并行验证这4个token
 
 ### Q15: vLLM 和 SGLang 可以一起用吗？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q15-vllm-sglang-layering.webp"><img src="../../assets/illustrations/19-inference-frameworks/q15-vllm-sglang-layering.webp" alt="推理框架专题第15题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** vLLM 与 SGLang 可以组合但要分层，别让两个运行时重复管理同一模型的调度和 KV。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -450,6 +510,10 @@ Target Model（大模型70B）：并行验证这4个token
 </details>
 
 ### Q16: 什么是 PD 分离（Prefill-Decode 分离）？什么时候值得使用？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q16-prefill-decode-disaggregation.webp"><img src="../../assets/illustrations/19-inference-frameworks/q16-prefill-decode-disaggregation.webp" alt="推理框架专题第16题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Prefill 重计算、Decode 重带宽；规模够大且互联够快时，分池才可能产生真实收益。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -515,6 +579,10 @@ class DisaggregatedLLM:
 
 ### Q17: DeepSeek-V3/R1 有哪些与推理效率相关的架构设计？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q17-deepseek-efficiency.webp"><img src="../../assets/illustrations/19-inference-frameworks/q17-deepseek-efficiency.webp" alt="推理框架专题第17题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** MLA 省 KV，MoE 省每 Token 计算，但通信、负载均衡和长输出决定最终成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -566,6 +634,10 @@ v = W_v @ z
 ## 六、推理引擎选型更新
 
 ### Q18: SGLang 和 LMDeploy 如何选择？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q18-sglang-vs-lmdeploy.webp"><img src="../../assets/illustrations/19-inference-frameworks/q18-sglang-vs-lmdeploy.webp" alt="推理框架专题第18题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** SGLang 先看前缀与工作流，LMDeploy 先看模型量化与部署生态，最终以目标环境实测为准。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -624,6 +696,10 @@ def select_inference_engine(workload, hardware):
 
 ### Q19: 为什么不能直接背诵不同推理框架的吞吐和延迟数字？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q19-benchmark-numbers.webp"><img src="../../assets/illustrations/19-inference-frameworks/q19-benchmark-numbers.webp" alt="推理框架专题第19题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 性能数字不是框架属性，而是框架、硬件、模型和工作负载共同产生的实验结果。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -643,6 +719,10 @@ def select_inference_engine(workload, hardware):
 </details>
 
 ### Q20: 如何设计可复现的 LLM 推理框架 Benchmark？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q20-reproducible-benchmark.webp"><img src="../../assets/illustrations/19-inference-frameworks/q20-reproducible-benchmark.webp" alt="推理框架专题第20题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 可复现基准要固定条件、公开负载、区分场景、报告尾延迟，并交付完整复现包。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -721,6 +801,10 @@ curl http://localhost:11434/api/generate -d '{
 
 ### Q21: XInference 和 vLLM 有什么区别？什么场景选 XInference？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q21-xinference-vs-vllm.webp"><img src="../../assets/illustrations/19-inference-frameworks/q21-xinference-vs-vllm.webp" alt="推理框架专题第21题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** XInference 更像多模型管理平台，vLLM 更像高吞吐 LLM 引擎；先判断缺平台还是缺引擎。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -775,6 +859,10 @@ answer = llm.generate("用户问题", context=reranked)
 </details>
 
 ### Q22: HuggingFace TGI 和 vLLM 有什么关系？各自优劣是什么？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q22-tgi-vs-vllm.webp"><img src="../../assets/illustrations/19-inference-frameworks/q22-tgi-vs-vllm.webp" alt="推理框架专题第22题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** TGI 重 Hugging Face 服务生态，vLLM 重高吞吐通用引擎；功能支持和真实负载决定选择。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -837,6 +925,10 @@ docker run -d --gpus all \
 
 ### Q23: llama.cpp 是什么？它有哪些独特优势？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q23-llama-cpp.webp"><img src="../../assets/illustrations/19-inference-frameworks/q23-llama-cpp.webp" alt="推理框架专题第23题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** llama.cpp 把模型带到本地和边缘，用跨平台与量化降低门槛，不以数据中心极限吞吐为目标。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -880,6 +972,10 @@ docker run -d --gpus all \
 </details>
 
 ### Q24: 如何根据场景选择推理框架？完整的选型决策树是什么？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q24-selection-decision-tree.webp"><img src="../../assets/illustrations/19-inference-frameworks/q24-selection-decision-tree.webp" alt="推理框架专题第24题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 框架选型是硬件、模型、负载、SLO 和运维约束的交集，不是一张排行榜。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -940,6 +1036,10 @@ docker run -d --gpus all \
 ## 八、更多推理框架与硬件选型
 
 ### Q25: 除了 vLLM、SGLang 和 TensorRT-LLM，还有哪些推理框架？如何按硬件选型？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q25-hardware-framework-map.webp"><img src="../../assets/illustrations/19-inference-frameworks/q25-hardware-framework-map.webp" alt="推理框架专题第25题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先按硬件缩小候选，再按模型和后端支持筛选，最后用真实负载与运维门槛定案。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1025,6 +1125,10 @@ docker run -d --gpus all \
 
 ### Q26: DFlash 的块扩散解码思路是什么？适用边界有哪些？
 
+<a href="../../assets/illustrations/19-inference-frameworks/q26-dflash-block-diffusion.webp"><img src="../../assets/illustrations/19-inference-frameworks/q26-dflash-block-diffusion.webp" alt="推理框架专题第26题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 自回归逐 Token 决定，块扩散在块内并行反复修正；收益要扣除去噪轮数和适配成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1107,6 +1211,10 @@ llm = LLM(
 ---
 
 ### Q27: 什么是 EAGLE 投机采样？它与传统 Speculative Decoding 有什么区别？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q27-eagle-speculation.webp"><img src="../../assets/illustrations/19-inference-frameworks/q27-eagle-speculation.webp" alt="推理框架专题第27题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 传统 Draft 另起小模型猜 Token，EAGLE 借主模型特征猜未来，但都必须由 Target 验收。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1221,6 +1329,10 @@ llm = LLM(
 ## 九、推理基础设施安全
 
 ### Q28: 推理框架为什么容易受到不安全反序列化攻击？如何防御？
+
+<a href="../../assets/illustrations/19-inference-frameworks/q28-deserialization-security.webp"><img src="../../assets/illustrations/19-inference-frameworks/q28-deserialization-security.webp" alt="推理框架专题第28题核心机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 把模型制品当不可信代码；安全格式、可信来源、隔离加载和最小权限缺一不可。
 
 **背景：**
 
