@@ -18,6 +18,10 @@
 
 ### Q1: 什么是 RAG-Fusion？它解决了传统 RAG 的什么问题？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q01-rag-fusion.webp" width="100%" alt="RAG-Fusion 多查询融合与 RRF 图解">
+
+> 🧠 **图解记忆：** 一问多写、多路召回、RRF 融合再去重；它扩展查询视角，但会增加调用和检索成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -73,6 +77,10 @@ def reciprocal_rank_fusion(results_list, k=60):
 
 ### Q2: 什么是 HyDE（Hypothetical Document Embeddings）？它的原理是什么？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q02-hyde.webp" width="100%" alt="HyDE 假设文档辅助检索图解">
+
+> 🧠 **图解记忆：** 假设文档只负责把查询带到更合适的向量区域，最终答案仍必须由真实检索证据支撑。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -126,6 +134,10 @@ def hyde_retrieve(query, vector_db, llm, k=5):
 </details>
 
 ### Q3: RAG 与 SFT（监督微调）如何选择？什么时候该用 RAG 而不是 SFT？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q03-rag-vs-sft.webp" width="100%" alt="RAG 与 SFT 选型图解">
+
+> 🧠 **图解记忆：** RAG 注入可更新知识，SFT 塑造稳定行为；先判断要改“知道什么”还是“怎么做”。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -187,6 +199,10 @@ class HybridRAGWithSFT:
 ## 二、语义分块与文档处理
 
 ### Q4: 什么是 Semantic Chunking？它和固定分块有什么区别？2026年有什么新发现？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q04-semantic-chunking.webp" width="100%" alt="语义分块与固定分块对比图解">
+
+> 🧠 **图解记忆：** 固定分块按长度切，语义分块按主题边界切；块要既能独立表达，又不能大到混入多个意图。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -251,6 +267,10 @@ Token数量增加
 </details>
 
 ### Q5: 如何解决 RAG 的"丢失中间信息"问题（Lost in the Middle）？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q05-lost-in-middle.webp" width="100%" alt="Lost in the Middle 与长上下文优化图解">
+
+> 🧠 **图解记忆：** 长上下文不是无限记忆；关键证据要少、准、放得对，可用重排、压缩、结构化和分步检索缓解。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -334,6 +354,10 @@ def sliding_window_chunk(text, chunk_size=500, overlap=100):
 
 ### Q6: 什么是 GraphRAG？它和传统向量 RAG 有什么区别？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q06-graphrag-vs-vector.webp" width="100%" alt="GraphRAG 与向量 RAG 对比图解">
+
+> 🧠 **图解记忆：** 向量 RAG 找“像的片段”，GraphRAG 找“有关联的事实链”；简单事实与多跳关系应走不同路径。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -396,6 +420,10 @@ subgraph = {
 </details>
 
 ### Q7: 如何构建知识图谱用于 GraphRAG？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q07-knowledge-graph-construction.webp" width="100%" alt="从文档构建知识图谱流程图">
+
+> 🧠 **图解记忆：** 抽实体、连关系只是开始，还要做消歧、Schema 约束、来源追溯、增量更新和质量评估。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -475,6 +503,10 @@ def query_graph(tx, entity):
 
 ### Q8: 什么是 Rerank？为什么向量检索后还需要重排序？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q08-reranking.webp" width="100%" alt="Bi-encoder 召回与 Cross-encoder 重排图解">
+
+> 🧠 **图解记忆：** Bi-encoder 负责“找得到”，Cross-encoder 负责“排得准”；没召回的证据无法靠重排救回。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -538,6 +570,10 @@ doc2 = "健康饮食与运动减肥的科学方法"       # 向量相似度一�
 </details>
 
 ### Q9: 什么是 LLMLingua？它如何实现 Prompt/上下文压缩？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q09-llmlingua-compression.webp" width="100%" alt="LLMLingua 上下文压缩图解">
+
+> 🧠 **图解记忆：** 压缩目标不是字更少，而是让每个 token 更有证据价值；实体、数字、否定词和引用位置要重点保留。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -606,6 +642,10 @@ compressed = compress_context(original, instruction)
 ## 五、RAG 评估与调优
 
 ### Q10: 如何系统性评估一个 RAG 系统？有哪些关键指标？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q10-rag-evaluation.webp" width="100%" alt="RAG 检索生成系统业务四层评估图解">
+
+> 🧠 **图解记忆：** 先分清检索错还是生成错，再用质量、延迟、成本和业务结果一起验收。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -681,6 +721,10 @@ improved_prompt = """
 </details>
 
 ### Q11: 如何优化 RAG 系统的召回率和准确率？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q11-recall-accuracy-optimization.webp" width="100%" alt="RAG 召回率与准确率链路优化图解">
+
+> 🧠 **图解记忆：** 先让证据进候选，再把正确证据排前，最后约束模型按证据作答；扩大 K 不等于准确率更高。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -772,6 +816,10 @@ def ab_test(query, config_a, config_b):
 
 ### Q12: 什么是self-RAG和CRAG？和传统RAG有什么区别？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q12-self-rag-crag.webp" width="100%" alt="Self-RAG 与 CRAG 反思纠错图解">
+
+> 🧠 **图解记忆：** Self-RAG 反思“要不要查、答案受不受支持”，CRAG 判断“查到的证据能不能用”。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -835,6 +883,10 @@ class CorrectiveRAG:
 
 ### Q13: DeepEval是什么？和RAGAS、TruLens有什么区别？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q13-evaluation-frameworks.webp" width="100%" alt="DeepEval RAGAS TruLens 评测工作流选型图解">
+
+> 🧠 **图解记忆：** 框架只是载体；黄金集、指标定义、人工校准和回归门禁才是稳定的评测底座。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -897,6 +949,10 @@ def select_eval_tool(scenario):
 </details>
 
 ### Q14: 什么是 LLM-as-a-Judge？为什么它是 RAG 评估的未来？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q14-llm-as-judge.webp" width="100%" alt="LLM-as-a-Judge 可靠评估流程图解">
+
+> 🧠 **图解记忆：** 可靠 Judge 需要清晰 Rubric、人工校准、偏差控制和可复现版本；它是近似测量，不是真相。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1009,6 +1065,10 @@ def evaluate_rag_system(query, rag_pipeline):
 
 ### Q15: 什么是state-aware retrieval和agentic retrieval？2026年检索新趋势？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q15-state-aware-agentic-retrieval.webp" width="100%" alt="State-aware 与 Agentic Retrieval 图解">
+
+> 🧠 **图解记忆：** State 决定“带什么上下文”，Agent 决定“下一步去哪查、何时停”。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1086,6 +1146,10 @@ class AgenticRetriever:
 
 ### Q16: 如何做生产环境的RAG监控？有哪些关键指标？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q16-production-monitoring.webp" width="100%" alt="生产 RAG 全链路监控图解">
+
+> 🧠 **图解记忆：** 能监控每一段、能还原一次请求、能把告警落到可行动的根因，才算生产可观测。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1157,6 +1221,10 @@ class RAGDriftMonitor:
 ## 七、检索结果冲突处理
 
 ### Q17: RAG检索出的多个Chunk互相冲突时，Agent如何解决矛盾？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q17-conflict-resolution.webp" width="100%" alt="RAG 冲突证据消解流程图解">
+
+> 🧠 **图解记忆：** 冲突不是噪声；按时间、权威、适用范围和来源解释，无法消解就明确表达不确定性。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1278,6 +1346,10 @@ class ConflictAwareRAG:
 ## 八、企业知识库权限隔离
 
 ### Q18: 如何在RAG系统中实现知识库的权限隔离，防止信息泄露？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q18-permission-isolation.webp" width="100%" alt="企业 RAG 权限预过滤与隔离图解">
+
+> 🧠 **图解记忆：** 权限必须进入检索条件，让模型从一开始就看不到无权访问的原文；事后过滤不够安全。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1436,6 +1508,10 @@ def log_retrieval(user_id, query, retrieved_chunks, response):
 ## 九、RAG 架构演进
 
 ### Q19: 基础 RAG 在哪些场景会失效？企业应如何选择增强方案？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q19-rag-failure-routing.webp" width="100%" alt="RAG 失败场景分型与增强路由图解">
+
+> 🧠 **图解记忆：** 先判断问题需要哪种证据，再选择向量、混合检索、图、SQL、工具或 Agent。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1609,6 +1685,10 @@ RAG 的定位变化：
 
 ### Q20: 2026年RAG有哪些前沿研究方向？LIT-RAGBench、GAM-RAG、Robust RAG等最新成果代表了什么趋势？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q20-rag-research-trends.webp" width="100%" alt="RAG 研究与工程趋势图解">
+
+> 🧠 **图解记忆：** 真正的趋势不是堆复杂度，而是更会选证据、更能发现失败、更容易验证与恢复。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1767,6 +1847,10 @@ GNN-RAG/TRACE/PathRAG：
 
 ### Q21: Sentence Transformers v5.4 的多模态 Embedding 能力是什么？对 RAG 系统有什么影响？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q21-multimodal-embedding.webp" width="100%" alt="多模态 Embedding 图文共享向量空间图解">
+
+> 🧠 **图解记忆：** 共享向量空间负责跨模态“找得到”，OCR、版面解析与重排负责把细节“找得准”。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1858,6 +1942,10 @@ scores = reranker.predict([(query, doc) for doc in documents])
 ## 十二、自愈 RAG：检测与恢复
 
 ### Q22: 什么是自愈 RAG？生产环境如何实现 RAG 的自我检测与自动恢复？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q22-self-healing-rag.webp" width="100%" alt="Self-healing RAG 安全修复闭环图解">
+
+> 🧠 **图解记忆：** 自愈等于可观测、可诊断、可逆修复；每次动作都必须经过验证、灰度和回滚。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2080,6 +2168,10 @@ Query: {query}
 
 ### Q23: 什么是"可防御 RAG（Defensible RAG）"？2026年企业 RAG 面临的五大结构性风险是什么？如何建立生产级 RAG 防御体系？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q23-defensible-rag.webp" width="100%" alt="Defensible RAG 五类风险与五层防线图解">
+
+> 🧠 **图解记忆：** 可防御 RAG 不只答得对，还要证明证据从哪来、谁能看、何时必须拒答。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2220,6 +2312,10 @@ API 网关（统一访问控制）
 ## 十三、混合检索：BM25 + Dense 向量 + RRF 融合
 
 ### Q24: 什么是混合检索？什么时候需要“稀疏 + 密集”双路检索？RRF 如何融合？
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q24-hybrid-retrieval-rrf.webp" width="100%" alt="BM25 Dense 与 RRF 混合检索图解">
+
+> 🧠 **图解记忆：** BM25 找“字面命中”，Dense 找“意思相近”，RRF 用名次贡献把两路候选公平汇合。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2383,6 +2479,10 @@ RRF融合后（综合两者优势）：
 
 ### Q25: Agentic RAG 的自适应路由、幻觉检测、自纠正闭环怎么实现？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q25-agentic-rag-loop.webp" width="100%" alt="Agentic RAG 查验改停证据闭环图解">
+
+> 🧠 **图解记忆：** Agentic RAG 的核心不是多调用，而是每轮都验证答案声明与证据，并知道何时停止。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2536,6 +2636,10 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 
 ### Q26: RAG 上线后用户反馈效果不好，如何系统化排查？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q26-production-troubleshooting.webp" width="100%" alt="生产 RAG 用户差评系统排障图解">
+
+> 🧠 **图解记忆：** 差评是结果信号；切片找范围、Trace 找环节、回放找证据、灰度验证修复。
+
 **面试场景：** 几乎必问的生产题。错误回答："我再调一下参数 / 换个模型试试"——一听就是没排查过，全靠猜。
 
 **核心答案：一套分层排查方法论**
@@ -2567,6 +2671,10 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 
 ### Q27: 如何系统化评估 RAG？换模型/embedding 导致的"跷跷板效应"怎么处理？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q27-evaluation-seesaw.webp" width="100%" alt="RAG 多目标评测跷跷板图解">
+
+> 🧠 **图解记忆：** 先看哪些场景切片变好或变坏，再谈总分；关键场景的硬门槛高于平均提升。
+
 **跷跷板效应：** 换更强的 embedding 模型后，A 类问题变好了，B 类问题反而变差。怎么发现、怎么权衡，是评估题的核心深挖点。
 
 **第一步：建评测体系（没有评测就没有发言权）**
@@ -2592,6 +2700,10 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 
 ### Q28: RAG 项目上线后怎么做灰度发布？
 
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q28-gray-release.webp" width="100%" alt="RAG 小步灰度发布与回滚图解">
+
+> 🧠 **图解记忆：** 灰度不是慢慢上线，而是每一步都有对照、质量门槛、观察窗口和可执行回滚。
+
 **Demo 回答：** "改完代码重新部署" ❌
 **生产级回答：** 灰度不是"慢慢发"，而是可控地验证新策略在真实流量上的表现，同时保留随时回滚的能力。
 
@@ -2614,6 +2726,10 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 - Agent 工具兜底：见 [Agent 基础 Q10](../05-ai-agent-basics/#q10-工具调用的完整流程是什么如何处理失败)。
 
 ### Q29: 你做的 RAG 项目最大挑战是什么？（开放题）
+
+<img src="../../assets/illustrations/20-rag-advanced-optimization/q29-project-challenge.webp" width="100%" alt="RAG 项目难点面试表达框架图解">
+
+> 🧠 **图解记忆：** 挑战题要讲清“如何发现、如何选择、如何验证”，结果必须真实、可追问，并说明失败与边界。
 
 **开放题要点：** 面试官想听真实踩坑经历。要有**具体场景 + 具体动作 + 量化结果 + 反思**，别说"最大挑战是学习新技术"这种空话。
 
