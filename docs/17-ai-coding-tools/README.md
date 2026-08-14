@@ -20,6 +20,10 @@
 
 ### Q1: 2026 年 AI 编程工具市场格局是怎样的？各有什么定位？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q01-tool-landscape.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q01-tool-landscape.webp" alt="AI编程工具专题第1题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 选工具先看形态与边界：IDE 重交互，终端重自动化，云端 Agent 重异步交付。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -46,6 +50,10 @@
 </details>
 
 ### Q2: AI 编程工具的核心能力有哪些？有哪些关键评测指标？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q02-capability-evaluation.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q02-capability-evaluation.webp" alt="AI编程工具专题第2题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 评测不能只看答对率，还要同时验证上下文、执行闭环、可控性、成本与安全。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -87,6 +95,10 @@ Pass@10 = k 次内做对的题数 / 总题数
 ## 二、 Claude Code vs Cursor vs Copilot
 
 ### Q3: 三大AI编程工具的设计哲学和2026年市场格局是什么？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q03-design-philosophies.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q03-design-philosophies.webp" alt="AI编程工具专题第3题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 不同产品的差异不只在模型，更在入口、上下文组织、执行权限和协作方式。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -140,6 +152,10 @@ Pass@10 = k 次内做对的题数 / 总题数
 
 ### Q4: Cursor 的 Composer 和 Tab 功能原理是什么？有哪些使用技巧？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q04-tab-vs-composer.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q04-tab-vs-composer.webp" alt="AI编程工具专题第4题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Tab 适合低摩擦局部补全，Composer 适合跨文件规划修改；任务跨度决定模式。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -182,6 +198,10 @@ Cursor Tab：光标前 + 语义理解 → 预测下一个语义块
 ## 三、 自主 Coding Agent
 
 ### Q5: 什么是自主编程 Agent（类似 Devin）？核心架构是什么？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q05-autonomous-agent-loop.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q05-autonomous-agent-loop.webp" alt="AI编程工具专题第5题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 自主编程 Agent 的闭环是理解任务、制定计划、执行工具、观察结果、测试修复。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -235,6 +255,10 @@ Action: 创建任务列表
 
 ### Q6: CWM（Code World Model）是什么？为什么是 2025 年重要突破？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q06-code-world-model.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q06-code-world-model.webp" alt="AI编程工具专题第6题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** CWM 不只预测下一段代码，还学习代码、运行状态与环境反馈之间的世界模型。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -272,6 +296,10 @@ Action: 创建任务列表
 </details>
 
 ### Q7: FIM（Fill-in-the-Middle）是什么？为什么对代码补全重要？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q07-fim-completion.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q07-fim-completion.webp" alt="AI编程工具专题第7题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** FIM 用前缀和后缀约束中间缺口，让补全同时理解代码两侧语义。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -322,6 +350,10 @@ output = prefix + middle + suffix
 
 ### Q8: SWE-bench 是什么？如何用它评估 AI 编程能力？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q08-swe-bench-flow.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q08-swe-bench-flow.webp" alt="AI编程工具专题第8题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** SWE-bench 的关键是把真实 Issue 交给 Agent，并用仓库测试验证补丁是否真正解决问题。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -368,6 +400,10 @@ output = prefix + middle + suffix
 </details>
 
 ### Q9: SWE-bench Multimodal和Terminal-Bench是什么？2026年有哪些新评测？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q09-benchmark-spectrum.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q09-benchmark-spectrum.webp" alt="AI编程工具专题第9题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 基准各测一段能力：代码修复、终端操作与多模态界面不能用单一分数替代。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -439,6 +475,10 @@ FLTEval/React Native（移动端专属）
 
 ### Q10: 什么是 AI 编程工具的"Agent 模式"？和普通补全有什么区别？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q10-agent-vs-completion.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q10-agent-vs-completion.webp" alt="AI编程工具专题第10题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 普通补全给建议，Agent 模式会规划、改文件、运行命令并依据反馈继续修复。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -499,6 +539,10 @@ claude --dev
 
 ### Q11: 在项目中如何落地 AI 编程工具？有哪些最佳实践？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q11-team-adoption.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q11-team-adoption.webp" alt="AI编程工具专题第11题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 团队落地要先定规则和权限，再用小任务试点，用评审与指标形成可控闭环。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -521,6 +565,10 @@ Step 4: 效果评估 → 量化效率提升
 ## 六、低频拓展：产品与版本案例（Q12-Q49）
 
 ### Q12: IDE、终端与云端 Coding Agent 如何选型？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q12-tool-evolution.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q12-tool-evolution.webp" alt="AI编程工具专题第12题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** IDE、终端和云端 Agent 没有绝对优劣，应按交互频率、自动化程度与风险选型。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -598,6 +646,10 @@ def select_ai_coding_tool(team_context):
 </details>
 
 ### Q13: Coding Agent 的“规划—执行—测试—修复”循环如何工作？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q13-agent-control-loop.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q13-agent-control-loop.webp" alt="AI编程工具专题第13题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Coding Agent 靠规划—执行—测试—修复循环收敛，测试反馈是闭环的方向盘。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -716,6 +768,10 @@ class AIProgrammingAgent:
 
 ### Q14: GitHub Copilot Workspace是什么？2026年有哪些新变化？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q14-issue-to-pr-workspace.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q14-issue-to-pr-workspace.webp" alt="AI编程工具专题第14题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Workspace 把 Issue、上下文、计划、代码和 PR 串成从需求到交付的协作空间。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -780,6 +836,10 @@ vs 单Agent：单Agent处理所有步骤
 ---
 
 ### Q15: Cursor 3 "Glass"有哪些重磅更新？和Claude Code有何区别？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q15-next-gen-ai-ide.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q15-next-gen-ai-ide.webp" alt="AI编程工具专题第15题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 新一代 AI IDE 的价值来自更长上下文、更强 Agent 与更可控的团队协作。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -850,6 +910,10 @@ Self-Hosted（数据不出域）：
 
 ### Q16: Claude Code Week 14（2026年3月30日-4月3日）有哪些新功能？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q16-terminal-agent-governance.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q16-terminal-agent-governance.webp" alt="AI编程工具专题第16题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 终端 Agent 功能越强，越要用审批、沙箱、审计和最小权限约束执行边界。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -909,6 +973,10 @@ claude-code --computer-use
 </details>
 
 ### Q17: Cursor的"Self-Hosted Cloud Agents"是什么？和传统Cursor Agent有什么区别？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q17-self-hosted-agent.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q17-self-hosted-agent.webp" alt="AI编程工具专题第17题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 自托管 Agent 把代码和执行环境留在企业边界内，用运维成本换取控制与合规。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -989,6 +1057,10 @@ Self-Hosted模式（安全可控）：
 
 ### Q18: 2026 年有哪些新兴 AI 编程工具？Windsurf/Trae/通义灵码/CoPaw 各有什么特点？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q18-tool-selection.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q18-tool-selection.webp" alt="AI编程工具专题第18题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 工具选型先看任务形态，再比较模型能力、生态集成、数据边界和总成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1060,6 +1132,10 @@ Self-Hosted模式（安全可控）：
 </details>
 
 ### Q19: Cursor Rules 是什么？如何用 Cursor Rules 做企业级配置？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q19-enterprise-ai-rules.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q19-enterprise-ai-rules.webp" alt="AI编程工具专题第19题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 企业规则应版本化并分层生效，把编码规范、架构边界和安全要求变成可执行上下文。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1150,6 +1226,10 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
 
 ### Q20: 2026年主流AI编程工具的SWE-bench评测结果如何？如何根据场景选型？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q20-benchmark-selection.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q20-benchmark-selection.webp" alt="AI编程工具专题第20题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 基准分数只是起点，最终要用自己的仓库、任务分布和成本约束做场景化验证。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1226,6 +1306,10 @@ Claude Code 完成 → 切回 Cursor（审核+迭代）
 ## 九、Claude Code 核心能力
 
 ### Q21: Claude Code 2026年有哪些重磅新功能？Agent Teams、Scheduled Tasks、Auto Mode 是什么？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q21-agent-automation-platform.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q21-agent-automation-platform.webp" alt="AI编程工具专题第21题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Agent Teams 负责并行协作，定时任务负责持续触发，Auto Mode 负责动态选择执行策略。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1390,6 +1474,10 @@ on_before_commit:
 
 ### Q22: Claude Code 和 Cursor 的真实性能基准是什么？Token 消耗差距从何而来？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q22-token-cost-evaluation.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q22-token-cost-evaluation.webp" alt="AI编程工具专题第22题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Token 多不等于效果好；比较工具要看有效上下文、成功率、重试次数与单位任务成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1464,6 +1552,10 @@ Cursor：
 ## 十一、SWE-bench Multimodal 与 Terminal-Bench
 
 ### Q23: 什么是 SWE-bench Multimodal 和 Terminal-Bench？2026年最新评测数据如何？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q23-multimodal-terminal-bench.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q23-multimodal-terminal-bench.webp" alt="AI编程工具专题第23题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Multimodal 测界面理解，Terminal-Bench 测真实终端操作，两者补足纯代码修复基准。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1615,6 +1707,10 @@ SWE-Rebench: ~55% 真正能跑通
 
 ### Q24: 什么是 Gemini CLI 和 2026 年新兴 CLI 工具？和 Claude Code 有什么区别？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q24-cli-agent-selection.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q24-cli-agent-selection.webp" alt="AI编程工具专题第24题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** CLI Agent 适合脚本化和远程环境，选择时重点看上下文、工具权限、生态与可观测性。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1693,6 +1789,10 @@ Gemini CLI = Google开源的终端AI编程工具（2025年中发布）
 ## 十二、Claude Code 与 Cursor 组合工作流
 
 ### Q25: Claude Code 与 Cursor 如何组合使用？开发者画像选型决策树是什么？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q25-agent-ide-handoff.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q25-agent-ide-handoff.webp" alt="AI编程工具专题第25题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** IDE 负责高频交互，终端 Agent 负责深度执行；清晰交接上下文才能避免重复劳动。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1833,6 +1933,10 @@ echo "# 编码规范\n- 错误用 errors.Wrap\n- 禁用全局变量" >> CLAUDE.m
 ## 十三、主流 AI 编程工具选型
 
 ### Q26: 2026年有哪些主流AI编程工具？Trae、Windsurf、GitHub Copilot Agent Mode 各有什么特点？如何根据场景选择？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q26-tool-form-factors.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q26-tool-form-factors.webp" alt="AI编程工具专题第26题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 工具形态决定工作流：补全提速局部编码，Agent 承担多步任务，云端适合异步并行。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2035,6 +2139,10 @@ echo "# 编码规范\n- 错误用 errors.Wrap\n- 禁用全局变量" >> CLAUDE.m
 
 ### Q27: 2026年AI编程助手市场格局为何说是"三强定型"？JetBrains万人调查揭示了哪些关键数据？Composer 2和Copilot Agent Mode GA意味着什么？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q27-market-workflows.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q27-market-workflows.webp" alt="AI编程工具专题第27题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 市场格局看入口、模型、工作流和生态四层，单一排行榜无法代表真实生产效率。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2222,6 +2330,10 @@ Supermaven Babelfish 代码补全：
 ## 十五、跨会话记忆与团队上下文
 
 ### Q28: Windsurf Cascade的跨会话记忆是如何实现的？Claude Code CLAUDE.md有什么不同？Copilot Spaces和BugBot是什么？四大工具详细定价和选型有什么新变化？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q28-memory-knowledge-review.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q28-memory-knowledge-review.webp" alt="AI编程工具专题第28题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 跨会话记忆要区分稳定规则、项目知识和临时任务，并通过检索与评审控制污染。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2436,6 +2548,10 @@ API Key方式：
 
 ### Q29: Cline是什么？为什么它是开源极客的首选？Amazon Q Developer适合哪些场景？2026年AI编程五大趋势是什么？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q29-open-vs-cloud-agent.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q29-open-vs-cloud-agent.webp" alt="AI编程工具专题第29题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 开源 Agent 赢在可控与可扩展，云服务赢在集成与托管；核心取舍是控制权与维护成本。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2582,6 +2698,10 @@ Amazon Q     AWS专用            Free/$19    有限        VS Code/JetBrains AW
 ## 十七、Claude Code 工具结果与无头运行
 
 ### Q30: Claude Code在2026年4月有哪些重要更新？v2.1.89-91版本新增了哪些生产级功能？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q30-production-agent-runtime.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q30-production-agent-runtime.webp" alt="AI编程工具专题第30题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 生产级 Agent 不只是会写代码，还要有隔离执行、权限审批、回滚、审计和失败恢复。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2740,6 +2860,10 @@ AWS Bedrock = AWS的托管大模型服务
 
 ### Q31: Claude Code v2.1.92有哪些更新？2026年最值得关注的MCP服务器有哪些？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q31-mcp-risk-governance.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q31-mcp-risk-governance.webp" alt="AI编程工具专题第31题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** MCP 扩大工具能力也扩大攻击面，必须校验来源、限制权限并审计每次外部调用。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2838,6 +2962,10 @@ Top 10 MCP Servers（killer-skills.com推荐）：
 
 ### Q32: Anthropic Managed Agents是什么？和Claude Code有什么区别？为什么它是企业级AI编程的重大突破？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q32-managed-vs-self-hosted.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q32-managed-vs-self-hosted.webp" alt="AI编程工具专题第32题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 托管 Agent 降低运维门槛，自托管 Agent 强化数据控制；合规和团队能力决定取舍。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2904,6 +3032,10 @@ Managed Agents Agent Teams：
 ---
 
 ### Q33: OpenAI Agents SDK v0.13.6有哪些更新？为什么它是2026年最值得关注的多框架SDK？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q33-provider-agnostic-sdk.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q33-provider-agnostic-sdk.webp" alt="AI编程工具专题第33题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 跨模型 SDK 应把模型、工具、记忆和追踪解耦，用适配层避免业务逻辑绑定供应商。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2977,6 +3109,10 @@ agent3 = Agent(instructions="处理多语言输入")
 *版本: v2.16 | 更新: 2026-04-13 | by 二狗子 🐕*
 
 ### Q34: 为什么所有主流AI编程基准测试都被"攻破"了？2026年Berkeley论文揭示了什么？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q34-benchmark-reward-hacking.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q34-benchmark-reward-hacking.webp" alt="AI编程工具专题第34题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 基准被攻破可能来自数据泄漏或脚手架过拟合，必须看泛化、复现和真实任务表现。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3082,6 +3218,10 @@ def validate(self, page, chat_messages):
 *版本: v2.17 | 更新: 2026-04-13 | by 二狗子 🐕*
 
 ### Q35: Archon是什么？2026年为什么"AI编程工作流引擎"成为新热点？claude-mem跨会话记忆有哪些最新实践？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q35-workflow-and-memory.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q35-workflow-and-memory.webp" alt="AI编程工具专题第35题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 工作流引擎编排稳定步骤，跨会话记忆保留长期知识；二者结合才能持续复用经验。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3207,6 +3347,10 @@ curl -fsSL https://install.cmem.ai/openclaw.sh | bash
 
 ### Q36: Claude Mythos是什么？为什么Anthropic选择不公开发布？Project Glasswing是什么？2026年AI安全有哪些重大变化？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q36-frontier-capability-governance.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q36-frontier-capability-governance.webp" alt="AI编程工具专题第36题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 前沿能力越强，发布越要经过能力评估、红队、分级权限和持续监控。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3322,6 +3466,10 @@ Mythos（受限访问）
 
 ### Q37: MiniMax M2.7是什么？它和M2.5有什么关系？Self-Evolving Agent Model是什么意思？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q37-self-evolving-agent.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q37-self-evolving-agent.webp" alt="AI编程工具专题第37题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 自进化 Agent 应从成功轨迹提炼技能，但必须经过验证、版本化和可回滚治理。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3379,6 +3527,10 @@ MiniMax 开源的交互式 Web GUI demo，展示 Agent 在浏览器中的实时�
 
 ### Q38: OpenAI Codex 2026年4月推出了哪些企业级更新？和Claude Code/Cursor相比有什么差异？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q38-software-supply-chain.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q38-software-supply-chain.webp" alt="AI编程工具专题第38题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 企业 Coding Agent 要进入软件供应链，接受身份、权限、策略、审计和质量门禁约束。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3427,6 +3579,10 @@ OpenAI 的 macOS 应用签名流程使用了被污染的 Axios v1.14.1（朝鲜�
 ## 二十、AI 编程工具与向量检索集成
 
 ### Q39: Pinecone Plugin for Claude Code 是什么？为什么它是2026年AI应用开发的工作流革命？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q39-vector-memory-rag.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q39-vector-memory-rag.webp" alt="AI编程工具专题第39题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 向量记忆把项目知识检索进上下文，但必须处理权限、时效、去重和错误记忆污染。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3498,6 +3654,10 @@ claude plugin install pinecone
 ## 二十一、可复用的 AI 编程工作流
 
 ### Q40: Claude Code Routines 是什么？为什么它是 2026 年 AI 编程自动化的重大升级？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q40-ai-routines.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q40-ai-routines.webp" alt="AI编程工具专题第40题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Routines 把可重复任务固化成可触发、可观察、可审批的自动化流程。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3589,6 +3749,10 @@ Anthropic 托管执行
 
 ### Q41: HoloTab 是什么？为什么它是浏览器自动化 Agent 的新突破？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q41-browser-routine.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q41-browser-routine.webp" alt="AI编程工具专题第41题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 浏览器 Agent 的突破在于理解页面状态并闭环操作，但要防提示注入和越权点击。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3673,6 +3837,10 @@ Holo3 Model（理解意图 + 规划动作）
 
 ### Q42: GenericAgent是什么？为什么"自进化技能树"是2026年AI Agent架构的新方向？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q42-skill-crystallization.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q42-skill-crystallization.webp" alt="AI编程工具专题第42题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 技能树把成功经验沉淀成可组合能力；自进化的前提是评测、审批和回滚。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3744,6 +3912,10 @@ GenericAgent 是一个**自进化自主 Agent 框架**，核心理念是"不要�
 *版本: v2.22 | 更新: 2026-04-16 | by 二狗子 🐕*
 
 ### Q43: OpenAI Agents SDK v0.14.0 新增了 Sandbox Agent 是什么？和传统 Agent 有什么区别？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q43-sandbox-agent.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q43-sandbox-agent.webp" alt="AI编程工具专题第43题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Sandbox Agent 用隔离环境执行高风险操作，让文件、网络和命令权限变得可控。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -3842,6 +4014,10 @@ print(result.final_output)
 
 ### Q44: AI 能否帮你写 SIMD 汇编代码？2026年 Claude/Grok 在性能优化上的实测对比
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q44-simd-optimization.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q44-simd-optimization.webp" alt="AI编程工具专题第44题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** AI 写 SIMD 要用编译器与基准验证；正确性、可移植性和真实性能缺一不可。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -3914,6 +4090,10 @@ Daniel Lemire（知名性能工程师）在博客中记录了一场"AI 写汇编
 ---
 
 ### Q45: SWE-bench 2026年5月最新榜单有哪些重大变化？为什么"模型性能"和"Agent scaffold质量"同等重要？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q45-model-vs-scaffold.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q45-model-vs-scaffold.webp" alt="AI编程工具专题第45题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 最终成绩由模型与 Agent 脚手架共同决定：模型负责推理，脚手架负责上下文、工具和反馈。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4009,6 +4189,10 @@ Scaffold = Agent 的"操作系统"
 ---
 
 ### Q46: 什么是"AI编程工作流引擎"？2026年为什么 Cursor Rules、Claude Code Routines、Copilot Workspace 成为新热点？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q46-workflow-engine-layers.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q46-workflow-engine-layers.webp" alt="AI编程工具专题第46题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 工作流引擎把规则、触发器、执行步骤和质量门禁串成稳定可复用的交付链。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4123,6 +4307,10 @@ Workspace 生成执行计划：
 
 
 ### Q47: Cursor May 2026有哪些重大更新？为什么Cursor SDK是企业级AI编程的新里程碑？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q47-untrusted-repository.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q47-untrusted-repository.webp" alt="AI编程工具专题第47题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 面对不可信仓库，Agent 必须先隔离、限制网络与密钥，再审查脚本后执行。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4262,6 +4450,10 @@ rules:
 
 ### Q48: Claude Code Cloud Auto-Fix是什么？为什么"PR that fixes itself"是2026年AI编程的重大突破？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q48-cloud-auto-fix.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q48-cloud-auto-fix.webp" alt="AI编程工具专题第48题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 云端自动修复把告警或失败 PR 变成可验证补丁，但必须保留测试、评审和回滚。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4396,6 +4588,10 @@ https://github.com/marketplace/actions/pr-autofix-with-claude-code
 
 ### Q49: Claude Code `ultrareview`是什么？为什么"云端bug-hunting fleet"是2026年AI代码审查的革命性突破？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q49-review-agent-fleet.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q49-review-agent-fleet.webp" alt="AI编程工具专题第49题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 审查 Agent 集群可并行发现不同问题，最终仍需证据去重、风险排序和人工决策。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4506,6 +4702,10 @@ ultrareview：
 
 ### Q50: 企业级 AI 编程如何把规则、技能、子任务和质量门禁固化到工作流？
 
+<a href="../../assets/illustrations/17-ai-coding-tools/q50-enterprise-agent-workflow.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q50-enterprise-agent-workflow.webp" alt="AI编程工具专题第50题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 企业工作流要把规则、技能、子任务和质量门禁分层固化，让 Agent 能力可复制、可治理。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -4579,6 +4779,10 @@ ultrareview：
 ---
 
 ### Q51: 使用 Coding Agent 时，如何控制上下文、Token、延迟和费用？
+
+<a href="../../assets/illustrations/17-ai-coding-tools/q51-agent-cost-control.webp"><img src="../../assets/illustrations/17-ai-coding-tools/q51-agent-cost-control.webp" alt="AI编程工具专题第51题机制与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 成本控制要同时管上下文、模型路由、缓存、并发与终止条件，并以单位成功任务衡量。
 
 <details>
 <summary>💡 答案要点</summary>
