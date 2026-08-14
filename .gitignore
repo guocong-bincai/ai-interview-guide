@@ -3,7 +3,5 @@
 .easycode/
 __pycache__/
 *.py[cod]
-
-# 本地辅助文件，不推送（义父指定 2026-08-14）
-scripts/
-skills/
+/scripts/
+/skills/illustrate-ai-interview-questions/

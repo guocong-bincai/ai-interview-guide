@@ -1,5 +1,7 @@
 # 📌 Python 工程基础
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q3、Q4、Q5、Q6、Q8、Q9、Q10、Q11、Q12。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > 面向 AI 应用后端常见的 Python 并发、数据校验、测试、可靠性和性能诊断问题。
 
 ## 📋 目录
@@ -141,7 +143,7 @@ class AsyncLLMClient:
 
 **面试话术：**
 
-> "asyncio 在 AI 应用中是 필수。我做过一个 RAG 系统，并发处理 100 个用户查询时，同步版本 QPS 只有 15，改成 asyncio + Semaphore 控制并发数后，QPS 提升到 80。核心经验：LLM 调用是 I/O 密集型，asyncio 能把等待时间利用起来；但要加 Semaphore 限流，防止把 API 限流打爆；另外要用 wait_for 加超时，否则一个慢请求会卡住整个事件循环。"
+> "LLM API 调用通常是 I/O 密集型，asyncio 可以让等待网络响应的时间服务其他请求。但异步不等于无限并发：还需要 Semaphore 或连接池限制、超时、取消传播、针对可重试错误的退避，以及下游过载时的背压。收益应在供应商限流和目标流量下压测。"
 
 </details>
 
@@ -203,7 +205,7 @@ print(f"评分: {review.rating}, 适合家庭: {review.suitable_for_family}")
 2. JSON Schema → 注入到 System Prompt（告诉 LLM 输出格式）
 3. LLM 输出 → JSON 字符串
 4. Pydantic 解析 JSON → Pydantic 模型实例（带验证）
-5. 验证失败 → PydanticError（类型安全保证）
+5. 验证失败 → `ValidationError`；业务语义仍需单独校验
 ```
 
 **Pydantic v2 高级特性：**
@@ -212,7 +214,7 @@ print(f"评分: {review.rating}, 适合家庭: {review.suitable_for_family}")
 <summary>展开 Python 代码示例（30 行）</summary>
 
 ```python
-from pydantic import BaseModel, Field, validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
 
 class AgentConfig(BaseModel):
@@ -222,7 +224,8 @@ class AgentConfig(BaseModel):
     temperature: float = Field(default=0.7, ge=0, le=2)
     tools: list[str] = Field(default_factory=list)
     
-    @validator('temperature')
+    @field_validator('temperature')
+    @classmethod
     def validate_temperature(cls, v):
         if v > 1.5:
             print("⚠️ temperature > 1.5 可能导致输出不稳定")
@@ -250,14 +253,14 @@ print(config.model_dump_json())
 
 | 特性 | Pydantic v1 | Pydantic v2 |
 |------|-------------|-------------|
-| 验证时机 | 赋值时验证 | 默认懒验证，性能提升 50x |
+| 验证核心 | Python 实现为主 | 大量核心校验由 Rust `pydantic-core` 执行，具体加速比依 Schema 而定 |
 | BaseModel | `dict()` | `model_dump()` |
 | 序列化 | `dict()` / `json()` | `model_dump()` / `model_dump_json()` |
 | 验证器 | `@validator` | `@field_validator` / `@model_validator` |
 
 **面试话术：**
 
-> "Pydantic v2 是 LLM 应用的结构化输出标配。核心原理是'Schema 驱动 + 类型验证'：先把 Pydantic 模型转成 JSON Schema 注入 Prompt，LLM 按格式输出，Pyda 不 管输出对不对，只管按 Schema 解析，解析失败会抛异常。我在项目中封装了一个 `LLMOutput` 泛型类，传入 Pydantic 模型就能拿到类型安全的输出，省去了大量手动解析 JSON 的代码。V2 的懒验证让解析性能比 V1 快 50 倍。"
+> "Pydantic v2 适合把 LLM 输出解析为带类型约束的对象。可以把模型导出为 JSON Schema 交给支持结构化输出的模型或推理引擎，再用 Pydantic 校验返回值；若供应商只支持文本输出，则还需自己提示、提取和重试。校验通过只表示结构与字段约束满足，不代表内容事实正确。V2 的性能改进主要来自 Rust 实现的 `pydantic-core`，具体提升要按实际 Schema 测。"
 
 </details>
 
@@ -446,7 +449,7 @@ async def safe_chat(prompt: str) -> str:
 
 **面试话术：**
 
-> "LLM 重试不是'失败了重来'那么简单。核心是三件事：指数退避（避免打爆限流）、抖动（避免多实例同步重试）、熔断（避免雪崩）。我做生产级 LLM 客户端的标准封装：装饰器加 `@async_retry`，自动识别 429/500 错误，重试间隔从 1.5s 开始指数增长，最大等 60s，抖动 ±50%。同时加熔断器，连续失败 5 次就暂停 60s，防止所有请求都打到已经熔断的服务上。这个组合让我的 LLM 调用成功率从 97% 提升到 99.9%。"
+> "LLM 重试不是失败后无条件重来。先区分可重试错误，例如部分 429、超时和临时 5xx，再使用带抖动的指数退避，避免多实例同步重试；设置总时限和最大次数，并配合并发限制、熔断与可观测性。工具调用等有副作用的操作还要使用幂等键或去重，具体参数应根据供应商响应头和业务 SLO 调整。"
 
 </details>
 
@@ -762,7 +765,7 @@ with EmbeddingWorkerPool("BAAI/bge-large") as pool:
 
 **面试话术：**
 
-> "GIL 对 AI 应用的影响取决于你的任务是 I/O 密集还是 CPU 密集。LLM API 调用是 I/O 等待，asyncio 就够用，GIL 不影响；但 embedding 模型推理、tokenizer 后处理是 CPU 密集，多线程会被 GIL 卡住，必须用 ProcessPoolExecutor。我的经验：数据预处理和 embedding 用多进程，LLM 调用用 asyncio，GPU 推理单进程就够了——CPU 和 GPU 任务分开调度，不要混在一起。"
+> "GIL 的影响取决于代码是否执行 Python 字节码。网络 I/O 常适合 asyncio；纯 Python 的 CPU 密集任务可考虑多进程；但 NumPy、tokenizer、推理库等原生扩展可能释放 GIL，GPU 工作也主要在设备端，因此不能一概而论。先用 profiler 定位 Python CPU、原生算子、数据搬运还是 GPU 瓶颈，再在线程、多进程、异步和批处理之间选择。"
 
 </details>
 

@@ -60,10 +60,6 @@ Sustituye todas las métricas de ejemplo por evidencia de tu propio trabajo. El 
 
 Lee la [política de calidad del contenido](CONTENT_QUALITY.md) antes de modificar preguntas. Las mejoras de traducción son bienvenidas. Hasta que exista una traducción completa con mantenimiento continuo, el banco chino será la fuente oficial.
 
-```bash
-python3 scripts/content_audit.py
-```
-
 Abre un [Issue](https://github.com/guocong-bincai/ai-interview-guide/issues) para informar de un problema o envía un [Pull Request](https://github.com/guocong-bincai/ai-interview-guide/pulls) con una corrección.
 
 ## Licencia

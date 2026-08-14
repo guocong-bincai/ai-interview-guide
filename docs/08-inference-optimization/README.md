@@ -1,5 +1,7 @@
 # ⚡ LLM 推理优化面试题
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q2、Q3、Q5、Q6、Q7、Q8、Q9、Q10、Q11、Q13、Q16。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐⭐⭐
 > **更新：** 2026-03-05
 > **考点：** KV Cache、量化、推理加速、部署优化
@@ -334,7 +336,7 @@ class KVCacheQuantizer:
 | 混合（K=INT8, V=INT4） | 60% | +2% | -1% |
 
 **面试话术：**
-> "KV Cache 量化是推理优化的关键。我在项目中用 per-channel INT8 量化，显存节省 50%，精度损失不到 1%。核心是处理好异常值，用分组/分通道量化代替全局量化。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "KV Cache 量化是推理优化的关键。我在项目中用 per-channel INT8 量化，显存节省 50%，精度损失不到 1%。核心是处理好异常值，用分组/分通道量化代替全局量化。"
 
 </details>
 
@@ -562,7 +564,7 @@ if page.ref_count > 1:
 | INT4（AWQ） | 45.8% | -1.0% |
 
 **面试话术：**
-> "量化是推理优化的核心。FP8 需要新硬件但精度好，INT8 兼容性好，INT4 压缩率高。我在项目中用 INT8 PTQ，显存降了 50%，准确率只降 1%。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "量化是推理优化的核心。FP8 需要新硬件但精度好，INT8 兼容性好，INT4 压缩率高。我在项目中用 INT8 PTQ，显存降了 50%，准确率只降 1%。"
 
 </details>
 
@@ -665,7 +667,7 @@ for channel in range(num_channels):
 | AWQ | 46.2% | 20min | 95 tok/s |
 
 **面试话术：**
-> "GPTQ 是数学派，追求最优解，量化慢但精度高。AWQ 是工程派，找重要权重保护，量化快推理也快。我在项目中用 AWQ，20 分钟量化完成，精度损失不到 1%。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "GPTQ 是数学派，追求最优解，量化慢但精度高。AWQ 是工程派，找重要权重保护，量化快推理也快。我在项目中用 AWQ，20 分钟量化完成，精度损失不到 1%。"
 
 </details>
 
@@ -1089,7 +1091,7 @@ outputs = llm.generate(prompts, sampling_params)
 ```
 
 **面试话术:**
-> "vLLM的核心创新是PagedAttention——把操作系统的虚拟内存思想应用到KV Cache管理。传统方案要预分配整块内存,浪费50%显存。vLLM按需分页分配,显存利用率提升到90%,吞吐量提升2.4倍。我们生产环境用vLLM部署Llama-70B,8卡A100能稳定跑200 QPS。"
+> "vLLM 的代表性机制是 PagedAttention：用块表把逻辑 KV 块映射到可非连续的物理块，按需分配，以减少碎片和按最大长度预留造成的浪费。它能为连续批处理容纳更多序列，但吞吐和显存收益依模型、长度分布、并发、块大小及版本而变，必须在目标硬件上压测。"
 
 </details>
 
@@ -1365,7 +1367,7 @@ main, medusa = model(prompt)
 | **批量推理** | ❌不推荐 | 用Continuous Batching更好 |
 
 **面试话术:**
-> "投机采样用小模型快速生成5个候选token,大模型一次并行验证,接受就跳过,拒绝就用大模型预测。实测LLaMA-70B+7B组合,γ=5时接受率68%,TPOT从180ms降到68ms,加速2.6倍。适合代码生成等结构化任务,闲聊等高随机性场景效果一般。进阶版Medusa用单模型+多预测头,避免部署两个模型。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "投机采样用小模型快速生成5个候选token,大模型一次并行验证,接受就跳过,拒绝就用大模型预测。实测LLaMA-70B+7B组合,γ=5时接受率68%,TPOT从180ms降到68ms,加速2.6倍。适合代码生成等结构化任务,闲聊等高随机性场景效果一般。进阶版Medusa用单模型+多预测头,避免部署两个模型。"
 
 </details>
 
@@ -1640,13 +1642,13 @@ outputs = llm.generate(prompts, sampling_params)
 # 1. 设置合理的max_num_seqs
 # 太小: 吞吐量低
 # 太大: OOM
-max_num_seqs = GPU_memory_GB * 8  # 经验公式
+max_num_seqs = 128  # 示例起点；需按模型、序列长度分布和显存压测调整
 
 # 2. 结合Prefix Caching
 # 共享System Prompt的KV Cache
 llm = LLM(
     model="...",
-    enable_prefix_caching=True  # 节省60%显存
+    enable_prefix_caching=True  # 共享前缀比例高时可能受益，需实测命中率和开销
 )
 
 # 3. 监控指标
@@ -1657,7 +1659,7 @@ print(f"等待队列长度: {metrics.waiting_queue_size}")
 ```
 
 **面试话术:**
-> "Continuous Batching解决静态批处理的GPU空闲问题,一个请求完成立即补充新的,配合PagedAttention动态管理KV Cache。实测vLLM在A100上吞吐量从12 req/s提升到245 req/s,20倍提升,GPU利用率从45%到95%。关键是按token级别调度而非请求级别,短请求不用等长请求。生产环境必备,ChatGPT/Claude底层都用这个。"
+> "Continuous Batching 让已完成序列及时退出、等待请求动态加入，避免整个静态批次被最长请求拖住；再配合分页 KV Cache 管理，可以提高有效并发。实际收益取决于请求到达率、长短分布、调度配置和硬件，应同时比较吞吐、TTFT、TPOT 与 P95/P99，不能用单个公开系统或一组固定倍数作通用结论。"
 
 </details>
 
@@ -1679,7 +1681,7 @@ print(f"等待队列长度: {metrics.waiting_queue_size}")
 
 提高批量大小通常增加吞吐，但可能恶化 TTFT；Chunked Prefill 能减少长 Prefill 对其他请求的阻塞，但会增加调度复杂度；量化可以减少显存和带宽，却可能带来质量回退。优化目标应写成带约束的问题，例如“在任务成功率不下降且 P95 TTFT 小于目标值时最大化 output tok/s”。
 
-跨框架横评和完整 Benchmark 方法见 [推理框架 Q17-Q18](../19-inference-frameworks/#十推理框架基准测试方法)。
+跨框架横评和完整 Benchmark 方法见 [推理框架 Q19-Q20](../19-inference-frameworks/#七推理框架基准测试方法)。
 
 </details>
 
@@ -1850,7 +1852,7 @@ Prefill延迟(16K):      2.3s              0.4s
 
 **面试话术：**
 
-> "Prefix Caching 是 2026 年长上下文推理的'必备优化'。核心思想是'相同的前缀只算一次'。举个例子：客服场景 1000 个用户问同一份合同的不同问题，没有 Prefix Caching，5000 字的合同内容要计算 1000 次；有了 Prefix Caching，只需计算 1 次，结果复用 1000 次。我的实践经验是：SGLang 的 RadixAttention 在共享系统指令+RAG 上下文的场景下，Prefill 延迟降低 80%，QPS 提升 4 倍。生产环境选 vLLM 还是 SGLang，主要看前缀共享程度——共享度高选 SGLang，通用场景选 vLLM。"
+> "Prefix Caching 复用完全相同的 token 前缀所对应的 KV Cache，适合共享 system prompt、工具定义或固定文档前缀的请求。收益取决于可复用 token 数、命中率、缓存容量和淘汰开销；动态权限内容还要防止跨租户复用。vLLM、SGLang 等框架都在演进相关能力，不能只凭是否共享前缀直接决定框架。"
 
 </details>
 
@@ -1957,7 +1959,7 @@ KV Cache 优化五大方向：
 
 **面试话术：**
 
-> "2026 年 KV Cache 优化进入'组合拳时代'。Attention Matching（MIT）是今年最重要的压缩突破——50倍无损压缩，靠的不是量化，而是'按注意力重要性选择保留哪些 token'。和 TurboQuant 的量化路线互补，后者压缩 2-4x，两者叠加可以达到更高压缩率。我的实践经验是：法律合同分析场景，原来 16K 上下文就跑不动的，用 Attention Matching + PagedAttention 可以跑到 128K，压缩 50 倍后精度几乎不变。面试时能画出来'五大优化方向图'，说明你对推理优化有系统理解，不是只会调框架。"
+> "KV Cache 优化可分为分页管理、量化、稀疏/淘汰、低秩表示、跨请求复用和分层存储。论文中的高压缩比通常只在特定模型、任务、长度和质量容忍度下成立，不能称为通用‘无损’。评估时要同时报告长上下文任务质量、TTFT/TPOT、吞吐、显存和额外计算开销。"
 
 </details>
 
@@ -1967,7 +1969,7 @@ KV Cache 优化五大方向：
 
 ---
 
-## 十六、vLLM v1 + PD分离架构 + Mooncake 生产部署（Q16）
+## 五、PD 分离架构与 KV Cache 跨节点传输
 
 ### Q15: vLLM v1的PD分离架构是什么？Mooncake + LMCache如何实现KV Cache跨节点传输？生产环境如何部署？
 
@@ -2101,7 +2103,7 @@ python3 -m lmcache.disagg_proxy_server \
 
 **DeepSeek MoE + PD 分离实战数据：**
 
-> "vLLM 官方博客显示，在 H200 上部署 DeepSeek MoE 模型，结合 Wide-EP（Expert Parallel）和 PD 分离，实测达到 2.2k tok/s/H200 的吞吐量。关键优化：Wide-EP 最大化 KV Cache 效率（MLA 架构），Dual-Batch Overlap（DBO）减少通信瓶颈，EPLB（Expert Parallel Load Balancing）解决专家负载不均问题。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "vLLM 官方博客显示，在 H200 上部署 DeepSeek MoE 模型，结合 Wide-EP（Expert Parallel）和 PD 分离，实测达到 2.2k tok/s/H200 的吞吐量。关键优化：Wide-EP 最大化 KV Cache 效率（MLA 架构），Dual-Batch Overlap（DBO）减少通信瓶颈，EPLB（Expert Parallel Load Balancing）解决专家负载不均问题。"
 
 **EAGLE + PD 分离叠加效果：**
 
@@ -2137,7 +2139,7 @@ llm = LLM(
 
 **面试话术：**
 
-> "vLLM v1 的 PD 分离是 2026 年推理架构最重要的方向。核心洞察是：Prefill 是计算密集（矩阵乘法），Decode 是访存密集（KV Cache 读取），两者对 GPU 的需求完全不同，混合部署必然互相拖累。解耦后，Prefill 用 H100 专注计算，Decode 用 A100 专注访存，通过 RDMA 传输 KV Cache。我在实际部署中，配合 Mooncake 的 KV Cache Pool，H200 上单节点跑到 2.2k tok/s，相比传统架构 QPS 提升 3 倍。面试能说清楚 PD 分离的原理和 Mooncake 的角色，说明你对 2026 年推理架构有生产级理解。"
+> "Prefill/Decode 分离利用两阶段资源特征不同：Prefill 通常更偏计算，Decode 通常更受 KV Cache 读取和显存带宽影响。分离可独立扩缩和调度，但新增 KV 传输、网络、路由、故障恢复与负载均衡成本，并非一定优于共置。应按长度分布、并发和 SLO 比较端到端收益。"
 
 **延伸阅读：**
 - vLLM Blog: https://blog.vllm.ai/2025/04/14/large-scale-serving.html

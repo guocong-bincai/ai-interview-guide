@@ -60,10 +60,6 @@ Replace all example metrics with evidence from your own work. Product behavior, 
 
 Read the [content quality policy](CONTENT_QUALITY.md) before adding or changing questions. Translation improvements are welcome, but the Chinese question bank remains the source of truth until a maintained full translation exists.
 
-```bash
-python3 scripts/content_audit.py
-```
-
 Open an [Issue](https://github.com/guocong-bincai/ai-interview-guide/issues) to report a problem or submit a [Pull Request](https://github.com/guocong-bincai/ai-interview-guide/pulls) with a correction.
 
 ## License

@@ -60,10 +60,6 @@ Ganti semua metrik contoh dengan bukti dari pekerjaanmu sendiri. Perilaku produk
 
 Baca [kebijakan kualitas konten](CONTENT_QUALITY.md) sebelum menambah atau mengubah pertanyaan. Perbaikan terjemahan sangat diterima. Hingga tersedia terjemahan lengkap yang dipelihara, bank pertanyaan berbahasa Mandarin tetap menjadi sumber utama.
 
-```bash
-python3 scripts/content_audit.py
-```
-
 Buka [Issue](https://github.com/guocong-bincai/ai-interview-guide/issues) untuk melaporkan masalah atau kirim [Pull Request](https://github.com/guocong-bincai/ai-interview-guide/pulls) dengan perbaikan.
 
 ## Lisensi

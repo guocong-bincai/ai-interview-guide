@@ -1,5 +1,7 @@
 # 🔥 AI 编程工具与自主 Coding Agent 面试题
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q5、Q10、Q7、Q8、Q2、Q11、Q19、Q50、Q51、Q25。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-04-16
 > **考点：** AI 编程工具对比、自主 Coding Agent、CWM、SWE-bench、FIM
@@ -227,7 +229,7 @@ Action: 创建任务列表
 - 意味着 AI 已经能在真实代码库中独立完成大部分开发任务
 
 **面试话术：**
-> "自主编程 Agent 的核心是'规划-执行-反思'循环。我在项目中实现了一个简化版：用户提需求后，Agent 自动分解任务，每步生成代码后运行测试，失败就自我修复。关键是沙箱环境，确保 Agent 的操作不会破坏真实系统。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "自主编程 Agent 的核心是'规划-执行-反思'循环。我在项目中实现了一个简化版：用户提需求后，Agent 自动分解任务，每步生成代码后运行测试，失败就自我修复。关键是沙箱环境，确保 Agent 的操作不会破坏真实系统。"
 
 </details>
 
@@ -516,9 +518,9 @@ Step 4: 效果评估 → 量化效率提升
 
 </details>
 
-## 六、2026年4月最新动态：Cursor AI Agent发布（新增考点）
+## 六、低频拓展：产品与版本案例（Q12-Q49）
 
-### Q12: Cursor全新AI Agent体验 vs Claude Code vs Codex（2026-04-03）
+### Q12: IDE、终端与云端 Coding Agent 如何选型？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -533,7 +535,7 @@ Step 4: 效果评估 → 量化效率提升
 |------|------|----------|----------|
 | **Claude Code** | CLI Agent，深度推理 | 复杂任务自主完成，文件系统操作 | 2025年5月发布，2026年持续迭代 |
 | **Cursor** | AI-First IDE，生态完整 | Tab补全+Composer+全新Agent模式 | 2026-04-03发布革命性AI Agent |
-| **OpenAI Codex** | API级集成 | 企业级定制，ChatGPT集成 | API驱动，深度嵌入OpenAI生态 |
+| **OpenAI Codex** | 跨本地与云端的软件工程 Agent | 读写代码、运行命令、测试与代码审查 | 可通过 App、CLI、IDE 与云任务等形态使用 |
 
 **Cursor全新AI Agent的核心突破：**
 
@@ -595,7 +597,7 @@ def select_ai_coding_tool(team_context):
 
 </details>
 
-### Q13: AI编程工具的Agent模式是什么？和普通补全/生成有何本质区别？
+### Q13: Coding Agent 的“规划—执行—测试—修复”循环如何工作？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -983,7 +985,7 @@ Self-Hosted模式（安全可控）：
 
 ---
 
-## 六、2026 年新兴 AI 编程工具（Q8-Q9）
+## 七、新兴 AI 编程工具
 
 ### Q18: 2026 年有哪些新兴 AI 编程工具？Windsurf/Trae/通义灵码/CoPaw 各有什么特点？
 
@@ -1144,7 +1146,7 @@ Cursor Rules = 项目级 AI 行为规范配置文件，定义 AI 在当前项目
 
 ---
 
-## 七、2026年AI编程工具评测基准与选型决策（Q10）
+## 八、AI 编程工具评测与选型
 
 ### Q20: 2026年主流AI编程工具的SWE-bench评测结果如何？如何根据场景选型？
 
@@ -1221,7 +1223,7 @@ Claude Code 完成 → 切回 Cursor（审核+迭代）
 
 ---
 
-## 八、Claude Code 2026年最新功能详解（Q11）
+## 九、Claude Code 核心能力
 
 ### Q21: Claude Code 2026年有哪些重磅新功能？Agent Teams、Scheduled Tasks、Auto Mode 是什么？
 
@@ -1384,7 +1386,7 @@ on_before_commit:
 
 ---
 
-## 九、Claude Code vs Cursor 性能基准实测：Token效率、上下文窗口、代码质量（Q12）
+## 十、Claude Code 与 Cursor 的可复现对比方法
 
 ### Q22: Claude Code 和 Cursor 的真实性能基准是什么？Token 消耗差距从何而来？
 
@@ -1459,7 +1461,7 @@ Cursor：
 
 ---
 
-## 十、SWE-bench Multimodal 与 Terminal-Bench：2026年AI编程评测新基准（Q21）
+## 十一、SWE-bench Multimodal 与 Terminal-Bench
 
 ### Q23: 什么是 SWE-bench Multimodal 和 Terminal-Bench？2026年最新评测数据如何？
 
@@ -1673,7 +1675,7 @@ Gemini CLI = Google开源的终端AI编程工具（2025年中发布）
 
 **面试话术：**
 
-> "2026年CLI编程工具不只是Claude Code一家独大。Gemini CLI的出现带来了差异化价值：100万token超长上下文，一次性能分析整个项目，特别适合大代码库的场景。我在项目中用它分析过30万行的遗留代码库，传统工具需要逐文件追问，Gemini CLI直接给出全局依赖分析报告。Claude Code在调试和代码质量上依然最强，两者组合使用效果最好。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "2026年CLI编程工具不只是Claude Code一家独大。Gemini CLI的出现带来了差异化价值：100万token超长上下文，一次性能分析整个项目，特别适合大代码库的场景。我在项目中用它分析过30万行的遗留代码库，传统工具需要逐文件追问，Gemini CLI直接给出全局依赖分析报告。Claude Code在调试和代码质量上依然最强，两者组合使用效果最好。"
 
 </details>
 
@@ -1688,7 +1690,7 @@ Gemini CLI = Google开源的终端AI编程工具（2025年中发布）
 
 ---
 
-## 十一、Claude Code 与 Cursor 双工具策略：2026开发者选择框架（Q23）
+## 十二、Claude Code 与 Cursor 组合工作流
 
 ### Q25: Claude Code 与 Cursor 如何组合使用？开发者画像选型决策树是什么？
 
@@ -1828,7 +1830,7 @@ echo "# 编码规范\n- 错误用 errors.Wrap\n- 禁用全局变量" >> CLAUDE.m
 
 ---
 
-## 十二、五大AI编程工具全景对比：2026年开发者选型指南（Q24）
+## 十三、主流 AI 编程工具选型
 
 ### Q26: 2026年有哪些主流AI编程工具？Trae、Windsurf、GitHub Copilot Agent Mode 各有什么特点？如何根据场景选择？
 
@@ -2029,7 +2031,7 @@ echo "# 编码规范\n- 错误用 errors.Wrap\n- 禁用全局变量" >> CLAUDE.m
 
 ---
 
-## 十三、2026年AI编程助手三强格局定型：JetBrains调查数据详解与选型新框架（Q25）
+## 十四、AI 编程助手采用率与选型证据
 
 ### Q27: 2026年AI编程助手市场格局为何说是"三强定型"？JetBrains万人调查揭示了哪些关键数据？Composer 2和Copilot Agent Mode GA意味着什么？
 
@@ -2217,7 +2219,7 @@ Supermaven Babelfish 代码补全：
 
 ---
 
-## 十四、Windsurf Cascade深入机制 vs Copilot Spaces/BugBot：四大工具定位与选型（Q26）
+## 十五、跨会话记忆与团队上下文
 
 ### Q28: Windsurf Cascade的跨会话记忆是如何实现的？Claude Code CLAUDE.md有什么不同？Copilot Spaces和BugBot是什么？四大工具详细定价和选型有什么新变化？
 
@@ -2430,7 +2432,7 @@ API Key方式：
 
 ---
 
-## 十五、Cline与Amazon Q Developer：2026年开源极客与企业AWS专用工具（Q27）
+## 十六、Cline 与 Amazon Q Developer
 
 ### Q29: Cline是什么？为什么它是开源极客的首选？Amazon Q Developer适合哪些场景？2026年AI编程五大趋势是什么？
 
@@ -2577,7 +2579,7 @@ Amazon Q     AWS专用            Free/$19    有限        VS Code/JetBrains AW
 
 ---
 
-## 十六、Claude Code v2.1.89-91（2026年4月）：MCP 500K永续化/插件二进制/Headless Defer（Q28）
+## 十七、Claude Code 工具结果与无头运行
 
 ### Q30: Claude Code在2026年4月有哪些重要更新？v2.1.89-91版本新增了哪些生产级功能？
 
@@ -2734,7 +2736,7 @@ AWS Bedrock = AWS的托管大模型服务
 
 ---
 
-## 十七、Claude Code v2.1.92与Top 10 MCP Servers for AI编程（Q29）
+## 十八、Claude Code 与 MCP 工具生态
 
 ### Q31: Claude Code v2.1.92有哪些更新？2026年最值得关注的MCP服务器有哪些？
 
@@ -2832,7 +2834,7 @@ Top 10 MCP Servers（killer-skills.com推荐）：
 
 ---
 
-## 十八、Anthropic Managed Agents vs OpenAI Agents SDK v0.13.6：2026年4月新发布（Q30-Q31）
+## 十九、托管 Agent 与 Agent SDK
 
 ### Q32: Anthropic Managed Agents是什么？和Claude Code有什么区别？为什么它是企业级AI编程的重大突破？
 
@@ -3422,7 +3424,7 @@ OpenAI 的 macOS 应用签名流程使用了被污染的 Axios v1.14.1（朝鲜�
 - Codex 定价更新：https://openai.com/index/codex-flexible-pricing-for-teams/
 </details>
 
-## 十九、Pinecone Plugin for Claude Code：AI编程工具的向量数据库集成（Q35）
+## 二十、AI 编程工具与向量检索集成
 
 ### Q39: Pinecone Plugin for Claude Code 是什么？为什么它是2026年AI应用开发的工作流革命？
 
@@ -3493,7 +3495,7 @@ claude plugin install pinecone
 
 ---
 
-## 十一、Claude Code Routines：Hacker News 2026年4月热门话题（Q36）
+## 二十一、可复用的 AI 编程工作流
 
 ### Q40: Claude Code Routines 是什么？为什么它是 2026 年 AI 编程自动化的重大升级？
 
@@ -3583,7 +3585,7 @@ Anthropic 托管执行
 
 ---
 
-## 十二、HoloTab：HCompany 2026年4月浏览器 Agent 扩展（Q37）
+## 二十二、浏览器自动化 Agent
 
 ### Q41: HoloTab 是什么？为什么它是浏览器自动化 Agent 的新突破？
 
@@ -4500,7 +4502,9 @@ ultrareview：
 
 ---
 
-### Q50: 企业级 AI 编程如何规范化？Rules/Skills/Subagents/Hooks 四类配置怎么用？
+## 高频工程实践
+
+### Q50: 企业级 AI 编程如何把规则、技能、子任务和质量门禁固化到工作流？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4519,14 +4523,14 @@ ultrareview：
 | **上下文污染** | 检索/分析任务挤占主对话窗口，降低注意力 |
 | **规范不统一** | 不同开发者用 AI 产出代码风格不一致 |
 
-**四类配置（核心答案）：**
+**四类能力（核心答案；具体文件名和触发方式以所用工具当前文档为准）：**
 
-| 配置 | 目录 | 作用 | 触发方式 |
-|------|------|------|----------|
-| **Rules（规则）** | `.trae/rules/` | 编码规范、分层约束 | 每次对话自动注入 context（always-applied） |
-| **Skills（技能）** | `.trae/skills/` | 标准化流程（生成计划、分层校验） | 开发者手动调 `/命令` |
-| **Subagents（子代理）** | `.trae/agents/` | 独立上下文的质量门禁（计划审核、测试合规） | Agent 自动匹配调用 |
-| **Hooks（钩子）** | `.trae/hooks.json` | 提交前规范提醒 | 发送消息时自动触发 |
+| 能力 | 作用 | 适合承载的内容 | 注意点 |
+|------|------|----------------|--------|
+| **Rules（规则）** | 提供持续适用的仓库约束 | 架构边界、测试命令、禁止事项 | 保持简短，避免互相冲突 |
+| **Skills（技能）** | 封装可复用任务流程 | 发布检查、迁移、审计、特定领域步骤 | 按需加载并提供明确输入输出 |
+| **Subtasks / Subagents** | 隔离可并行或高噪声工作 | 搜索、日志分析、独立审查、验证 | 必须有边界、预算和汇总格式 |
+| **Hooks / CI 门禁** | 在生命周期节点机械执行约束 | 格式化、测试、安全扫描、策略检查 | 确定性规则应由代码执行，不只靠模型提醒 |
 
 **核心原则：让 AI 在正确的时机自动执行正确的流程，而不是依赖人每次提醒。**
 
@@ -4565,7 +4569,7 @@ ultrareview：
 3. **子代理独立上下文**：检索/分析任务不污染主对话，让 AI 专注核心任务
 4. **技术债显式标注**：新代码不延续违规模式，存量问题标注逐步改造
 
-**跨工具兼容：** Trae 用 `.trae/`，Claude Code 用 `.claude/`（CLAUDE.md + commands + agents），Cursor 用 `.cursor/rules`——原理相通，都是"规则文件 + 命令/技能 + 子代理 + 钩子"四件套。
+**跨工具迁移原则：** 先识别规则、按需流程、隔离任务和确定性门禁四种职责，再映射到目标工具当前支持的配置面；不要假设不同产品的目录、触发语义和权限模型完全相同。
 
 **面试话术：**
 > "企业级 AI 编程不是'会用工具'，而是'把团队规范固化成 AI 可执行的约束'。我做的方案是四类配置：Rules 每次对话自动注入分层约束，Skills 提供标准化流程（gen-plan 生成计划、layer-check 校验分层），Subagents 用独立上下文做质量门禁（plan-review 审核计划、test-compliance 检查测试），Hooks 提交前提醒。核心是让 AI 在正确时机自动执行正确流程。分层校验用硬门禁：handler 禁止碰 DB、service 不感知 HTTP，违反直接 BLOCK。这套规范让 AI 产出代码从'能跑'变成'符合团队标准'。"
@@ -4574,7 +4578,7 @@ ultrareview：
 
 ---
 
-### Q51: 用 Claude Code/Cursor 编程 Token 消耗巨大，怎么优化？有哪些实战技巧？
+### Q51: 使用 Coding Agent 时，如何控制上下文、Token、延迟和费用？
 
 <details>
 <summary>💡 答案要点</summary>
@@ -4586,30 +4590,29 @@ ultrareview：
 **先搞懂 Token 花在哪（核心机制）：**
 
 ```
-上下文滚雪球：每次对话都带全部历史，第260条消息比第1条贵1338倍
-  例：同一三词提问，第1条$0.0018 → 第260条$2.41
-输出比输入贵5倍：Sonnet 4.5 输入$3/百万，输出$15/百万
-→ 省 Token = 给上下文减肥 + 减少废话输出
+上下文滚雪球：会话越长，重复携带的历史、工具定义和检索结果越多
+输出通常比输入更贵，但倍率和价格取决于供应商、模型与缓存命中
+→ 优化方向 = 减少无关上下文 + 控制输出 + 用真实 usage 和账单验证
 ```
 
 **七大优化技巧（面试可讲）：**
 
 | # | 技巧 | 效果 |
 |---|------|------|
-| 1 | **精准提示词**：做什么+在哪个文件+具体改什么+用什么方式；加"不需要解释/只改这个文件"限制语 | 单次省70-80% |
-| 2 | **/compact 和 /clear**：任务完成及时压缩/清空，会话不拖沓 | 上下文省50-80% |
-| 3 | **CLAUDE.md 瘦身 + Skills 迁移**：只放高频规则（3000→500 token），低频指令进按需加载的 Skills | 每轮省2000+ token |
-| 4 | **.claudeignore**：排除 node_modules/dist/.git 等，源头防噪声 | 避免数万 token 垃圾读取 |
-| 5 | **MCP 按需开关**：只开当前任务需要的 MCP Server（6个MCP占19200 token≈上下文10%） | MCP token 省50-85% |
-| 6 | **模型分层**：简单用 Haiku（成本1/10），日常 Sonnet，复杂才 Opus；Extended Thinking 按需开 | 简单任务成本降90% |
-| 7 | **子代理拆解**：搜索/信息收集/验证类任务交给独立上下文的子代理，主对话只留精华 | 主对话上下文省60%+ |
+| 1 | **明确任务边界**：说明目标、文件范围、验收条件和禁止改动项 | 少走弯路，减少无效读取与返工 |
+| 2 | **及时结束或压缩会话**：一个目标完成后开启新任务，长任务保留决策摘要 | 避免历史上下文滚雪球 |
+| 3 | **精简持久规则**：只保留每次任务都需要的约束，低频流程按需加载 | 降低每轮固定上下文开销 |
+| 4 | **限制检索范围**：排除构建产物、依赖目录和大体积无关文件 | 避免读取噪声 |
+| 5 | **工具按需启用**：只暴露当前任务需要的 MCP Server 与工具 | 减少工具描述和误调用 |
+| 6 | **模型分层**：用评测结果把检索、小修改、复杂重构分配给合适模型 | 在质量、延迟和费用间取舍 |
+| 7 | **隔离探索任务**：让搜索、日志分析和验证在独立上下文执行，只回传结论与证据 | 保持主任务上下文聚焦 |
 
 **核心认知（面试金句）：**
 
 > 上下文越干净，AI 回答越精准。省钱和提效从来是一件事——省 Token 不是抠门，是让每一分钱花在刀刃上。
 
 **面试话术：**
-> "我用 Claude Code 的 Token 成本控制有七招：精准提示词按'做什么+文件+改什么+方式'写，加'不需要解释'这类限制语能省 70-80%；任务完成及时 /compact 压缩或 /clear 清空，防止上下文滚雪球（260 条消息成本能差 1300 倍）；CLAUDE.md 只放高频规则，低频指令迁到 Skills 按需加载；.claudeignore 排除 node_modules 防垃圾读取；MCP Server 按需开关（6 个 MCP 工具定义占 19000 多 token）；模型分层——改个颜色用 Haiku 不用 Opus；探索类任务扔给子代理，主对话保持干净。综合下来 Token 消耗降 80%。"
+> "控制 Coding Agent 成本不能背固定节省比例。我会先看 usage，区分持久规则、工具描述、仓库检索、对话历史和输出分别占多少；然后通过缩小文件范围、按需启用工具、结束已完成会话、隔离探索任务和模型分层逐项优化，并用相同任务集比较成功率、耗时、Token 与返工次数。"
 
 </details>
 

@@ -1,5 +1,7 @@
 # 🧪 测试 Harness 与 LLM 评测面试题（Test Harness / Mock & Stub / Eval Harness）
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q4、Q5、Q6、Q7、Q8、Q11、Q12、Q13、Q14、Q15。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐
 > **更新：** 2026-08-13
 > **考点：** Test Harness、mock/stub/fake/spy、fixture、flaky 治理、特征测试、契约测试、LLM Eval Harness、评测集建设、灰度评测、Agent 轨迹评测

@@ -1,5 +1,7 @@
 # 🛠️ AI 框架与运维面试题
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q3、Q7、Q8、Q9、Q10、Q13、Q14、Q19、Q20、Q21、Q22。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-04-23
 > **考点：** LangChain、向量数据库、测试评估、部署运维、Dify/Coze/n8n/OpenClaw
@@ -115,7 +117,7 @@ app = graph.compile()
 ```
 
 **面试话术：**
-> "LangChain 适合线性任务流，LangGraph 适合复杂的多轮对话和多 Agent 协作。我在项目中用 LangGraph 实现了内容创作系统：Researcher 搜索→Writer 写作→Reviewer 审核，如果审核不通过就返回 Writer 修改，形成闭环。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "LangChain 适合线性任务流，LangGraph 适合复杂的多轮对话和多 Agent 协作。我在项目中用 LangGraph 实现了内容创作系统：Researcher 搜索→Writer 写作→Reviewer 审核，如果审核不通过就返回 Writer 修改，形成闭环。"
 
 </details>
 
@@ -176,7 +178,7 @@ print(response)
 | **生态** | 较小 | 更大 |
 
 **面试话术：**
-> "LlamaIndex 专注于 RAG，索引和查询更灵活；LangChain 是通用框架，生态更大。我在项目中用 LlamaIndex 做 RAG，因为它支持多阶段查询（先检索摘要，再检索具体段落），检索精度更高。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "LlamaIndex 专注于 RAG，索引和查询更灵活；LangChain 是通用框架，生态更大。我在项目中用 LlamaIndex 做 RAG，因为它支持多阶段查询（先检索摘要，再检索具体段落），检索精度更高。"
 
 </details>
 
@@ -211,7 +213,7 @@ print(response)
 | **离线批量** | IVF（批量构建快） |
 
 **面试话术：**
-> "我在项目中用 HNSW 索引，因为数据量在 50 万条左右，内存充足，追求检索速度。HNSW 的检索延迟在 10ms 以内，比 IVF 快 10 倍。如果数据量增长到千万级，我会考虑 IVF+PQ 的组合。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "我在项目中用 HNSW 索引，因为数据量在 50 万条左右，内存充足，追求检索速度。HNSW 的检索延迟在 10ms 以内，比 IVF 快 10 倍。如果数据量增长到千万级，我会考虑 IVF+PQ 的组合。"
 
 </details>
 
@@ -243,7 +245,7 @@ print(response)
 | **GPU 加速** | 并行计算 | 速度提升 5-10 倍 |
 
 **面试话术：**
-> "我用了组合优化：1）混合检索（向量+BM25）提升召回率；2）Rerank 精选 Top-5，精度提升 15%；3）HNSW 索引加速检索，延迟从 100ms 降到 10ms。综合下来，检索精度和速度都满足了生产要求。"
+> "检索优化要先按查询类型建立基线，再分别验证混合检索、rerank 和 ANN 参数。混合检索改善词项与语义互补，rerank 用额外延迟换排序质量，HNSW 调参在召回、延迟和内存间取舍。最终数据只报告本人可复现实验的模型、数据集、硬件和并发条件。"
 
 </details>
 
@@ -289,7 +291,7 @@ results = collection.search(
 | **文档类型** | doc_type | doc_type == "policy" |
 
 **面试话术：**
-> "我在多租户系统中，用 Metadata 实现了数据隔离和权限控制。每个 Chunk 都有 tenant_id、department、access_level 等字段。检索时自动过滤，确保用户只能访问授权的知识。这样不需要物理隔离多个向量库，成本降低了 80%。"
+> "Metadata 过滤可实现逻辑多租户，但必须由服务端从可信身份生成过滤条件，不能接受模型或客户端任意传 tenant_id。还要验证索引前/后过滤语义、缓存键、备份、日志和侧信道；高风险租户是否物理隔离取决于合规与威胁模型，不能只看成本。"
 
 </details>
 
@@ -406,7 +408,7 @@ results = collection.search(
 - [ ] 日志记录（完整请求链路）
 
 **面试话术：**
-> "我部署 AI 应用时，核心是稳定性。LLM API 可能失败，我设计了多 Key 轮询 + 重试 + 降级三层防护。同时用流式输出降低首字延迟，用语义缓存降低成本。监控方面，我追踪每个请求的完整链路，一旦成本或延迟异常就告警。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "我部署 AI 应用时，核心是稳定性。LLM API 可能失败，我设计了多 Key 轮询 + 重试 + 降级三层防护。同时用流式输出降低首字延迟，用语义缓存降低成本。监控方面，我追踪每个请求的完整链路，一旦成本或延迟异常就告警。"
 
 </details>
 
@@ -665,7 +667,7 @@ workflow:
 - **纯知识库:** FastGPT (简单场景)
 
 **面试话术:**
-> "我用Coze快速搭建过客服Bot,5分钟完成传统开发需2天的工作。Coze的优势是可视化工作流+开箱即用的RAG,非常适合快速验证。但生产环境我们用Dify,因为需要本地部署保证数据安全。Coze的插件生态很强,像代码执行、图片生成都是预制的,但灵活性不如代码开发。我会根据场景选择:原型验证用Coze,生产系统用Dify+代码混合。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "我用Coze快速搭建过客服Bot,5分钟完成传统开发需2天的工作。Coze的优势是可视化工作流+开箱即用的RAG,非常适合快速验证。但生产环境我们用Dify,因为需要本地部署保证数据安全。Coze的插件生态很强,像代码执行、图片生成都是预制的,但灵活性不如代码开发。我会根据场景选择:原型验证用Coze,生产系统用Dify+代码混合。"
 
 </details>
 
@@ -1038,7 +1040,7 @@ security:
 ```
 
 **面试话术:**
-> "我本地部署过Dify,用Docker Compose快速启动,生产用K8s 3副本高可用。核心优化4点:1)数据库连接池50+溢出100,并发从100→500QPS;2)Redis缓存LLM响应,命中率30%省600ms;3)Milvus用HNSW索引+分区存储,检索从500ms→50ms快10倍;4)Embedding异步处理,用户等待10秒→100ms。部署后Prometheus+Grafana监控,设置P99<2秒告警。整体系统稳定支撑1000+用户。"
+> "Dify 等平台从单机验证迁移到生产时，要拆清应用服务、队列/Worker、数据库、缓存、向量库、文件存储和外部模型依赖。副本数、连接池、缓存和索引参数都应从压测与 SLO 推导；同时验证幂等、任务重试、滚动升级、备份恢复、租户隔离和可观测性。"
 
 </details>
 
@@ -1810,7 +1812,7 @@ response = client.messages.create(
 
 **面试话术：**
 
-> "Prompt Caching 是 2026 年 API 成本优化的最大突破，原理很简单：长 Prompt 的前缀（比如系统指令+RAG 上下文）每次请求都重复，用 API 内部缓存把这部分 token 成本打 75 折。我在项目中用它配合语义缓存——语义缓存处理完全相同的问题（命中率约 40%），Prompt Caching 处理长上下文的重复前缀（额外节省 50%+）。两者叠加，单次请求成本从 $0.27 降到 $0.05，效果量化后给面试官看，很加分。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "Prompt Caching 是 2026 年 API 成本优化的最大突破，原理很简单：长 Prompt 的前缀（比如系统指令+RAG 上下文）每次请求都重复，用 API 内部缓存把这部分 token 成本打 75 折。我在项目中用它配合语义缓存——语义缓存处理完全相同的问题（命中率约 40%），Prompt Caching 处理长上下文的重复前缀（额外节省 50%+）。两者叠加，单次请求成本从 $0.27 降到 $0.05，效果量化后给面试官看，很加分。"
 
 </details>
 
@@ -1901,7 +1903,7 @@ Step 3: 输出
 
 **面试话术：**
 
-> "DSPy 解决的是'Prompt 工程不可复用'的根本问题。我的经验是：先用传统方式快速验证（1-2 天），确认任务可行后用 DSPy 编译优化（半天到 1 天），最终 Prompt 质量比手工调的高 20-30%。更重要的是，模型升级时不需要重新调 Prompt——重新编译就行。我用 DSPy 做 RAG 优化，编译后的系统在 GPT-4o 和 Claude 3.5 上都能达到 >90% 的质量基准，省去了大量手工适配工作。"
+> "DSPy 把 LM 程序的签名、模块和基于数据的优化过程显式化，适合有代表性训练/验证集和明确指标的任务。它不保证优于手工 Prompt，也不消除模型升级后的回归；更换模型、数据或指标后仍需重新优化并验证过拟合、成本和延迟。"
 
 </details>
 
@@ -2059,25 +2061,26 @@ app = graph.compile()
 
 ---
 
-### Q19: OpenAI Assistant API 是什么？Thread/Run/File Search/Code Interpreter 怎么用？
+### Q19: OpenAI Responses API 如何管理会话和工具？它与旧 Assistants API 有什么关系？
 
 <a href="../../assets/illustrations/12-frameworks-tools/q19-stateful-assistant-api.webp"><img src="../../assets/illustrations/12-frameworks-tools/q19-stateful-assistant-api.webp" alt="状态化 Assistant API 中 Assistant Thread Run File Search 和 Code Interpreter 的对象职责与执行状态机" width="100%"></a>
 
-> 🧠 **图解记忆：** Assistant 定义能力，Thread 保存对话，Run 驱动一次执行，工具在 Run 中按需参与。
+> ⚠️ **时效说明（2026-08）：** Assistants API 已弃用，并计划于 2026-08-26 下线。新项目应使用 Responses API + Conversations API；下面的 Assistant / Thread / Run 内容只用于维护和迁移旧系统。参见 [OpenAI 官方迁移说明](https://developers.openai.com/api/docs/guides/migrate-to-responses#assistants-api)。
+
+> 🧠 **图解记忆：** 旧系统用 Assistant、Thread、Run；新系统用 Response 承载模型与工具调用，用 Conversation 或应用数据库管理连续会话。
 <details>
 <summary>💡 答案要点</summary>
 
-**Assistant API vs Messages API 的核心区别：**
+**当前选型：**
 
-| 维度 | Messages API（直接调用） | Assistant API（状态管理） |
+| 维度 | Responses API（新项目） | Assistants API（旧项目迁移） |
 |------|------------------------|--------------------------|
-| **状态管理** | 开发者自己维护对话历史 | OpenAI 自动管理 Thread |
-| **工具支持** | 手动实现 Function Calling | 原生支持 File Search/Code Interpreter |
-| **适用场景** | 简单对话、一次性调用 | 复杂多轮、带工具的 Agent |
-| **复杂度** | 低 | 中 |
-| **成本** | 低（只付模型调用费） | 略高（Assistant 对象有维护成本） |
+| **状态管理** | Conversation、previous response 或应用自管状态 | Thread |
+| **工具支持** | 内置工具与自定义函数工具 | File Search、Code Interpreter、函数工具 |
+| **适用场景** | 新的多轮、工具调用和 Agent 应用 | 仅维护存量集成 |
+| **生命周期** | OpenAI 当前推荐方向 | 已弃用，计划 2026-08-26 下线 |
 
-**Assistant API 四大核心概念：**
+**旧 Assistants API 四大核心概念（仅用于迁移识别）：**
 
 <details>
 <summary>展开 Python 代码示例（37 行）</summary>
@@ -2124,7 +2127,7 @@ messages = client.beta.threads.messages.list(thread_id=thread.id)
 
 </details>
 
-**File Search（知识检索）的用法：**
+**旧 API 的 File Search 用法（迁移参考）：**
 
 ```python
 # 上传文档到 Vector Store
@@ -2150,7 +2153,7 @@ assistant = client.beta.assistants.create(
 # 运行时，Assistant 自动判断是否需要检索知识库
 ```
 
-**Code Interpreter（代码执行）的用法：**
+**旧 API 的 Code Interpreter 用法（迁移参考）：**
 
 <details>
 <summary>展开 Python 代码示例（31 行）</summary>
@@ -2210,24 +2213,21 @@ queued → in_progress → requires_action → completed
 - 每次 Run 都是一次完整的"思考-执行"循环
 ```
 
-**Messages API vs Assistant API 选型决策树：**
+**新项目选型决策树：**
 
 ```
-是否需要状态管理？
-├── 否 → Messages API（简单、便宜）
-└── 是 →
-    ├── 是否需要工具（File Search/Code Interpreter）？
-    │   ├── 否 → Assistant API（只管 Thread）
-    │   └── 是 → Assistant API（原生工具支持）
-    │
-    └── 是否需要多 Agent 协作？
-        ├── 否 → Assistant API
-        └── 是 → 自己用 Messages API + LangChain/LangGraph
+新项目是否使用 OpenAI 模型或内置工具？
+├── 是 → 优先 Responses API
+│   ├── 需要平台管理连续会话 → 配合 Conversations API
+│   └── 需要自主管理数据 → 应用数据库保存状态并显式传入上下文
+└── 存量 Assistants API → 盘点 Assistant/Thread/Run/Tool 映射，迁移后做回归测试
+
+复杂多 Agent 编排仍需在应用层或 Agent SDK / 工作流框架中设计状态、权限、重试与可观测性。
 ```
 
 **面试话术：**
 
-> "Assistant API 是 OpenAI 的'一站式 Agent 构建方案'，核心价值是把'状态管理'和'工具调用'从应用层下沉到 API 层。我用 Assistant API 做企业知识库问答：把合同库绑到 File Search，财务数据绑到 Code Interpreter，一个 Assistant 对象搞定检索+计算+回答。但要注意——Assistant API 的工具调用是'声明式'的，复杂的多 Agent 协作场景还是得用 LangGraph 自己搭。我的经验是：简单多轮对话+工具用 Assistant API 省事，复杂编排用 Messages API+LangGraph 更灵活。"
+> "新项目应以 Responses API 为主：它统一承载模型输出和工具调用，连续会话可交给 Conversations API 或由应用自己持久化。Assistants API 的 Assistant、Thread、Run 只作为迁移知识掌握；面试时要能说清状态归属、工具副作用、幂等重试和迁移回归测试。"
 
 </details>
 
@@ -2236,7 +2236,7 @@ queued → in_progress → requires_action → completed
 
 | 日期 | 更新内容 |
 |------|----------|
-| 2026-04-25 | 新增 Q13 OpenAI Assistant API（Thread/Run/File Search/Code Interpreter） |
+| 2026-08-14 | 更新 OpenAI API 题：新项目使用 Responses API，Assistants API 进入迁移期 |
 | 2026-04-24 | 新增 Q12 DSPy（声明式 LLM 编程范式） |
 | 2026-04-09 | 新增 Q11 Dify/Coze/n8n/OpenClaw 四平台对比 |
 | 2026-03-02 | 新增 10 道框架与运维面试题 |
@@ -2253,7 +2253,7 @@ queued → in_progress → requires_action → completed
 
 ---
 
-## 十五、LangGraph 生产监控 + Time-Travel 调试 + Checkpointing 架构（Q15）
+## 五、LangGraph 生产调试与状态管理
 
 ### Q20: LangGraph 生产监控怎么做？Time-Travel 调试、Checkpointing、Human-in-the-Loop 中断是如何实现的？LangSmith 如何配合？
 
@@ -2486,7 +2486,7 @@ if results["answer_quality"] < 0.8:
 
 ---
 
-## 十六、2026年 Agent 框架选型深度指南：LangGraph vs Claude Agent SDK vs CrewAI vs AutoGen（Q16）
+## 六、Agent 框架选型
 
 ### Q21: 2026年七大生产级Agent框架深度对比：LangGraph、Claude Agent SDK、CrewAI、AutoGen/AG2、Semantic Kernel、LlamaIndex Agents、Pydantic AI 如何选型？
 

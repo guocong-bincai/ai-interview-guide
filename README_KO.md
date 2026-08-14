@@ -60,10 +60,6 @@
 
 질문을 추가하거나 수정하기 전에 [콘텐츠 품질 정책](CONTENT_QUALITY.md)을 확인하세요. 번역 개선도 환영합니다. 유지 관리되는 전체 번역본이 마련되기 전까지 중국어 질문 은행을 기준본으로 사용합니다.
 
-```bash
-python3 scripts/content_audit.py
-```
-
 문제는 [Issue](https://github.com/guocong-bincai/ai-interview-guide/issues)에 보고하고, 수정 사항은 [Pull Request](https://github.com/guocong-bincai/ai-interview-guide/pulls)로 보내 주세요.
 
 ## 라이선스

@@ -1,5 +1,7 @@
 # 🏗️ Transformer架构与注意力机制面试题
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q3、Q4、Q5、Q11、Q12、Q13、Q15、Q17。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-08-14
 > **考点：** Transformer、Self-Attention、BERT、GPT、位置编码
@@ -230,7 +232,7 @@ V = X @ W_V  # (batch_size, seq_len, d_v)
 scores = Q @ K.T  # (batch_size, seq_len, seq_len)
 # 例如：(1, 5, 5)
 
-# 缩放（防止梯度消失）
+# 缩放（避免点积随维度增大，使 Softmax 过度饱和）
 scores = scores / math.sqrt(d_k)
 
 # 应用mask（可选，Decoder用）
@@ -311,7 +313,7 @@ output = attention_weights @ V
 ```
 
 **面试话术：**
-> "Self-Attention通过 Q、K、V 三个矩阵计算。先用 QK^T 算相似度，除以√d_k 防止梯度消失，然后Softmax归一化得到权重，最后加权求和V得到输出。核心是让每个token都能直接关注其他所有token。"
+> "Self-Attention 先用 QK^T 计算相关性，再除以 √d_k，避免维度增大时点积过大导致 Softmax 饱和；随后归一化权重并对 V 加权求和。"
 
 </details>
 
@@ -527,7 +529,7 @@ x = embedding(input_ids) + pe[: input_ids.size(1)]
 **优势：**
 
 1. **确定性**：位置固定，不需要学习
-2. **外推性**：可以处理比训练时更长的序列
+2. **可生成任意位置的编码**：公式能计算训练长度之外的位置，但模型在更长序列上的有效能力仍需实测
 3. **周期性**：不同位置间有规律的相对关系
 
 **相对位置关系：**
@@ -556,8 +558,8 @@ x = embedding(input_ids) + pe[: input_ids.size(1)]
 
 | 方案 | 优点 | 缺点 | 应用 |
 |------|------|------|------|
-| **Sinusoidal** | 确定性，外推好 | 固定，不可学习 | Transformer |
-| **Learned** | 可学习，灵活 | 不能外推 | BERT |
+| **Sinusoidal** | 确定性，可计算更长位置 | 训练长度外效果无保证 | Transformer |
+| **Learned** | 可学习，灵活 | 超出已训练位置通常需要扩展并继续训练 | BERT |
 | **RoPE** | 相对位置，旋转 | 实现复杂 | LLaMA |
 | **ALiBi** | 注意力偏置 | 需要重训练 | BLOOM |
 
@@ -579,12 +581,12 @@ def apply_rotary_emb(q, k, cos, sin):
 
 # 优势：
 #   - 相对位置编码
-#   - 外推性更好
-#   - 长文本性能优
+#   - 便于表达相对位置信息
+#   - 长度扩展仍需要缩放策略并通过目标任务验证
 ```
 
 **面试话术：**
-> "Transformer 用 sin/cos 函数注入位置信息。优点是确定性、可外推、能表示相对位置。现代模型如 LLaMA 用 RoPE 改进，在注意力计算时旋转 Q 和 K，长文本性能更好。"
+> "Transformer 需要额外注入位置信息。Sin/Cos 编码无训练参数且能计算任意位置；RoPE 通过旋转 Q、K 让注意力分数自然携带相对位置信息。两者在训练长度外都不能只凭公式宣称有效，必须做长上下文评测。"
 
 </details>
 
@@ -1060,7 +1062,7 @@ scores = torch.matmul(Q_multi, K_multi.transpose(-2, -1))
 # shape: (batch, 8, 3, 3)
 # 3×3矩阵: 每个token对所有token的注意力分数
 
-# 缩放 (防止梯度消失)
+# 缩放（避免点积过大导致 Softmax 饱和）
 scores = scores / math.sqrt(d_k)  # 除以√64 = 8
 
 # Softmax归一化
@@ -1137,14 +1139,13 @@ output = weights @ V
 
 ### 为什么需要位置编码?
 
-**问题: Attention是排列不变的**
+**问题：不含位置编码的 Self-Attention 对输入置换是等变的，无法单独区分词序**
 ```python
-# 不同顺序,Attention输出相同!
+# 改变输入顺序会相应改变输出位置，但不会自动知道“第几个 token”的语义
 input1 = ["狗", "咬", "人"]
 input2 = ["人", "咬", "狗"]
 
-# Self-Attention(input1) ≈ Self-Attention(input2)
-# 因为只看相似度,不看顺序
+# 若忽略输出位置的同样置换，计算结构本身不含绝对顺序信息
 ```
 
 **解决: 加入位置信息**
@@ -1273,7 +1274,7 @@ K_rot = rotate(K, position)
 | 公式/概念 | 说明 |
 |----------|------|
 | **Attention(Q,K,V)** | softmax(QK^T/√d_k)V |
-| **缩放因子** | √d_k，防止梯度消失 |
+| **缩放因子** | √d_k，避免点积过大使 Softmax 饱和 |
 | **Causal Mask** | 上三角mask，生成时只看之前 |
 | **Cross-Attention** | Q来自Decoder，K/V来自Encoder |
 
@@ -1291,14 +1292,14 @@ K_rot = rotate(K, position)
 | 技巧 | 效果 |
 |------|------|
 | **Warmup** | 稳定训练，先升后降学习率 |
-| **Label Smoothing** | 防过拟合，+0.2 BLEU |
-| **Gradient Clipping** | 防梯度爆炸，clip=1.0 |
-| **Mixed Precision** | 加速2-3倍，节省50%显存 |
+| **Label Smoothing** | 缓解过度自信；是否有效需按任务验证 |
+| **Gradient Clipping** | 限制梯度范数；阈值是超参数 |
+| **Mixed Precision** | 降低显存/带宽并利用低精度算力；收益依硬件与算子而定 |
 | **Gradient Accumulation** | 模拟大batch，不增显存 |
 
-## 六、2026新架构：Transformer + SSM 混合模型（Mamba）
+## 六、进阶架构：Transformer + SSM 混合模型（Mamba）
 
-### Q10: 什么是SSM（状态空间模型）？2026年Transformer+SSM混合架构为什么是重要趋势？
+### Q10: 什么是 SSM（状态空间模型）？它与 Transformer 混合时解决什么问题？
 
 <p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q10-transformer-ssm.webp"><img src="../../assets/illustrations/04-transformer-architecture/q10-transformer-ssm.webp" width="760" alt="Transformer 与 SSM 混合架构动漫知识图：Transformer 擅长全局关系但注意力成本随长度平方增长，SSM 以选择性状态做线性序列建模，混合层发挥二者互补能力"></a></p>
 <p align="center"><sub>🧠 图解记忆：注意力负责全局交互，SSM 负责线性长程状态；点击图片可查看原图。</sub></p>
@@ -1306,9 +1307,9 @@ K_rot = rotate(K, position)
 <details>
 <summary>💡 答案要点</summary>
 
-**为什么2026年面试开始问这个：**
+**为什么值得了解：**
 
-2026年，Google Gemini 2、Anthropic Claude 3.5、Meta Llama 4都在部分层中引入了SSM（Mamba-like）模块。这不是"取代Transformer"，而是"让擅长的人做擅长的事"。面试官想知道你是否理解这种混合架构的动机和原理。
+SSM、Mamba 及注意力/SSM 混合架构是长序列建模的重要研究方向。不要把未公开的闭源模型内部结构当作已确认事实；面试重点应放在计算复杂度、状态压缩、并行训练和信息检索能力的取舍。
 
 ---
 
@@ -1336,7 +1337,7 @@ SSM将序列建模视为一个"状态转移系统"：
 | **长序列处理** | 显存瓶颈 | 天然支持长序列 |
 | **并行训练** | 容易（矩阵运算） | 需要并行算法优化 |
 | **推理速度** | 慢（需要完整注意力） | 快（固定状态转移） |
-| **可解释性** | 难（注意力权重分散） | 强（状态轨迹可追踪） |
+| **信息访问方式** | 可直接做 token 间内容寻址 | 历史被压入状态，随机回看能力受结构影响 |
 
 ---
 
@@ -1371,27 +1372,28 @@ Mamba（选择性）：h_t = A(x_t)h_{t-1} + B(x_t)x_t  ← 输入决定参数
 │  → 瓶颈：表达复杂推理关系不如Transformer        │
 ├─────────────────────────────────────────────────┤
 │  混合结果：                                      │
-│  → O(n) 显存处理长序列（vs 纯Transformer O(n²)） │
-│  → 复杂推理任务不降级                           │
-│  → 推理速度更快（SSM层推理是常量时间）          │
+│  → 降低部分长序列层的计算或状态成本              │
+│  → 保留若干注意力层的内容寻址能力                │
+│  → 效果、吞吐和延迟仍需按模型与硬件验证          │
 └─────────────────────────────────────────────────┘
 ```
 
 ---
 
-**2026年实际应用案例：**
+**判断一个混合架构时要问：**
 
-| 模型 | 混合策略 | 效果 |
-|------|----------|------|
-| **Gemini 2** | Transformer + SSM模块交替堆叠 | 长上下文(1M token)成本降低60% |
-| **Claude 3.5** | SSM用于局部注意力替代 | 推理速度提升2倍 |
-| **Llama 4** | MoE + SSM混合专家 | 激活参数减少40% |
+| 问题 | 原因 |
+|------|------|
+| 哪些层使用注意力、哪些层使用 SSM？ | 决定全局内容寻址与线性扫描的比例 |
+| 训练阶段能否并行扫描？ | 理论复杂度不等于硬件实际吞吐 |
+| 推理要保存哪些状态？ | 决定长上下文显存和每 token 带宽 |
+| 在检索、复制、长程依赖任务上表现如何？ | 固定大小状态可能形成信息瓶颈 |
 
 ---
 
 **面试话术：**
 
-> "我理解SSM不是Transformer的竞争对手，而是互补。Transformer的O(n²)注意力在长序列上显存爆炸，SSM的O(n)线性 recurrence解决了这个问题，但表达复杂推理关系又不如Transformer。2026年的主流做法是'混合架构'——用Transformer层处理需要全局注意力的复杂推理，用SSM层处理长程依赖和信息压缩。打个比方，Transformer像是全局视野的CEO，SSM像是专注细节的专员，两者配合效率最高。"
+> "SSM 通过递推状态在线性扫描中压缩历史，避免每层都构造完整的两两注意力；注意力则擅长按内容直接访问上下文。混合架构希望兼顾二者，但不能据此保证质量不降或速度必然更快。我会看层配比、状态大小、训练并行算法，并在长程检索与目标硬件上验证。"
 
 ---
 
@@ -1570,7 +1572,7 @@ FlashAttention 的 HBM 访问次数:
 
 ---
 
-### Q16: MoE（Mixture of Experts）架构原理？为什么 2026 年大模型普遍采用稀疏 MoE？
+### Q16: MoE（Mixture of Experts）的原理、收益和工程代价是什么？
 
 <details>
 <summary>💡 答案要点</summary>

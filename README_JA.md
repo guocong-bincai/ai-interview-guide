@@ -60,10 +60,6 @@
 
 問題を追加・修正する前に、[コンテンツ品質基準](CONTENT_QUALITY.md)を確認してください。翻訳の改善も歓迎します。完全な翻訳版が継続管理されるまでは、中国語版を正本とします。
 
-```bash
-python3 scripts/content_audit.py
-```
-
 問題の報告は [Issue](https://github.com/guocong-bincai/ai-interview-guide/issues)、修正の提案は [Pull Request](https://github.com/guocong-bincai/ai-interview-guide/pulls) からお願いします。
 
 ## ライセンス

@@ -133,7 +133,7 @@
 - **面试前快速查漏**：直接进入 [面试题来源整理](docs/18-big-tech-interview-questions/)，再回到薄弱专题。
 - **准备项目深挖**：重点练习 [项目经验](docs/27-project-experience/) 与 [AI 系统设计](docs/25-system-design-ai/)。
 - **准备 FDE 岗位**：进入 [FDE 专题](docs/26-forward-deployed-engineer/)，练习开放问题拆解、客户交付与生产 AI 系统。
-- **参与内容维护**：阅读 [内容质量规范](CONTENT_QUALITY.md) 与 [面试题插画生产规范](ILLUSTRATION_GUIDE.md)，运行 `python3 scripts/content_audit.py`。
+- **参与内容维护**：阅读 [内容质量规范](CONTENT_QUALITY.md) 与 [面试题插画生产规范](ILLUSTRATION_GUIDE.md)，并按规范人工检查链接、题号、标题和来源。
 
 每道题建议练成三个回答版本：
 
@@ -347,9 +347,7 @@ flowchart LR
 
 本项目坚持“**题目质量优先于数量**”。新增或修改题目前，请先阅读 [内容质量规范](CONTENT_QUALITY.md)。本仓库不接受无来源的精确效果数字、虚构的一线面试标签或第一人称项目战绩。
 
-```bash
-python3 scripts/content_audit.py
-```
+提交前请按规范人工检查失效链接、页内锚点、题号、重复标题和来源。
 
 发现错误，欢迎提交 [Issue](https://github.com/guocong-bincai/ai-interview-guide/issues)；想补充考点或优化答案，欢迎提交 [Pull Request](https://github.com/guocong-bincai/ai-interview-guide/pulls)。
 

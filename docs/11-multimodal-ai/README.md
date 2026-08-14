@@ -1,5 +1,7 @@
 # 🎨 多模态大模型面试题
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q3、Q7、Q8、Q9、Q10、Q14、Q15。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐⭐
 > **更新：** 2026-04-15
 > **考点：** CLIP、BLIP、多模态理解、图文生成、Gemma 4、端侧部署
@@ -10,8 +12,8 @@
 2. [CLIP模型](#二clip模型)
 3. [BLIP模型](#三blip模型)
 4. [应用实战](#四应用实战)
-5. [速记卡片](#五速记卡片)
-6. [Gemma 4](#六gemma-4google-deepmind-2026年4月重磅发布)
+5. [Gemma 4 架构案例](#五gemma-4-架构案例)
+6. [速记卡片](#六速记卡片)
 
 ## 一、多模态基础
 
@@ -151,7 +153,7 @@ CLIP 结果：
 | BLIP-2 | 82.4% | 144.5 | 85.9% |
 
 **面试话术：**
-> "多模态评估要看多个维度。检索任务看 R@K，问答看准确率，字幕看 CIDEr。我在项目中用 CLIP Score 评估文生图质量，结合人工抽检确保效果。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "多模态评估要看多个维度。检索任务看 R@K，问答看准确率，字幕看 CIDEr。我在项目中用 CLIP Score 评估文生图质量，结合人工抽检确保效果。"
 
 </details>
 
@@ -1296,7 +1298,7 @@ print(result[0]["generated_text"])
 ```
 
 **面试话术:**
-> "LLaVA用CLIP提取视觉特征,经过2层MLP投影到LLaMA的embedding空间,拼接文本token后输入LLM生成答案。训练分两阶段:先60万图文对对齐特征,再15万指令数据微调对话能力。关键是投影层设计,我们用MLP平衡性能和效率,比Q-Former快10倍但效果只差2%。部署时用LoRA微调LLM节省70%显存,冻结CLIP加速训练。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "LLaVA用CLIP提取视觉特征,经过2层MLP投影到LLaMA的embedding空间,拼接文本token后输入LLM生成答案。训练分两阶段:先60万图文对对齐特征,再15万指令数据微调对话能力。关键是投影层设计,我们用MLP平衡性能和效率,比Q-Former快10倍但效果只差2%。部署时用LoRA微调LLM节省70%显存,冻结CLIP加速训练。"
 
 </details>
 
@@ -1649,9 +1651,9 @@ embeddings = clip_model.get_text_features(texts)  # 批量快10倍
 
 ---
 
-## 六、Gemma 4：Google DeepMind 2026年4月重磅发布
+## 五、Gemma 4 架构案例
 
-### Q11: Gemma 4是什么？有哪些架构创新？为什么是端侧多模态的重大突破？
+### Q11: Gemma 4 的架构如何权衡端侧多模态能力、内存与延迟？
 
 <a href="../../assets/illustrations/11-multimodal-ai/q11-edge-multimodal-architecture.webp"><img src="../../assets/illustrations/11-multimodal-ai/q11-edge-multimodal-architecture.webp" alt="端侧多模态模型通过高效表示、MoE 稀疏激活和 KV 复用平衡能力、延迟与内存" width="100%"></a>
 
@@ -1747,7 +1749,7 @@ Gemma 4：layer 1(E1) → layer 2(E2) → ... → layer n(En)（每层独立embe
 
 ---
 
-## 五、速记卡片
+## 六、速记卡片
 
 ### 多模态核心概念
 
@@ -1780,7 +1782,7 @@ Gemma 4：layer 1(E1) → layer 2(E2) → ... → layer n(En)（每层独立embe
 
 ---
 
-## 高频追问：AI 生图方向（一面/二面真题）
+## 七、生成模型与评估高频追问
 
 ### Q12: 生图子 Agent 用的什么模型？原理是什么？
 
@@ -1929,7 +1931,7 @@ class ImageDiversityStrategy:
 ```
 
 **面试话术：**
-> "我们用混合策略：结构化的多样性（风格、角度、光线）用预设规则枚举，成本低且可控；语义层面的差异化（同一主题不同叙事视角）用 LLM 生成 Prompt 变体。判断规则是：如果多样性需求可以用参数描述，就用规则；如果需要理解语义意图，就用 LLM。生产中 80% 场景规则就够了。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "我们用混合策略：结构化的多样性（风格、角度、光线）用预设规则枚举，成本低且可控；语义层面的差异化（同一主题不同叙事视角）用 LLM 生成 Prompt 变体。判断规则是：如果多样性需求可以用参数描述，就用规则；如果需要理解语义意图，就用 LLM。生产中 80% 场景规则就够了。"
 
 </details>
 
@@ -2030,7 +2032,7 @@ class ImageQualityEvaluator:
 ```
 
 **面试话术：**
-> "我们用三层评估：定量层用 CLIP Score 衡量图文语义相似度（>0.25 为合格）和 FID 衡量整体分布质量；定性层用 GPT-4V 作为 LLM Judge 多维打分（语义、质量、细节）；线上层用用户行为数据（重新生成率）作为最终指标。CLIP Score 可以完全自动化，成本低，我们在每次模型更新时都会跑全量评估。"
+> "生图评估应组合语义一致性、视觉质量、文本可读性、安全性和线上行为。CLIP Score 与 FID 只能衡量部分代理指标，阈值必须用本业务数据校准；视觉模型 Judge 也会有位置、风格和模型同源偏差，因此需要盲测人工抽检与失败案例集。"
 
 </details>
 
@@ -2063,7 +2065,7 @@ class ImageQualityEvaluator:
 
 ---
 
-## 七、Vision-Language Agent 评估：MMLU-Pro、MathVista、ChartQA、DocVQA（Q17）
+## 八、Vision-Language Agent 评估
 
 ### Q15: 如何系统评估 Vision-Language Agent？MMLU-Pro、MathVista、ChartQA、DocVQA 等基准测试各测什么？2026年有哪些新方向？
 
@@ -2271,7 +2273,7 @@ def evaluate_docvqa(documents, questions):
 
 ---
 
-## 五、2026年全模态模型新突破：Qwen3.5-Omni 与 NVIDIA Nemotron 3 Nano Omni（Q18）
+## 九、全模态模型案例
 
 ### Q16: Qwen3.5-Omni 是什么？Thinker-Talker 架构和 Hybrid-Attention MoE 有何创新？为什么"全模态"是2026年的重要方向？
 
@@ -2452,7 +2454,7 @@ scenarios = {
 
 </details>
 
-### Q18: Gemini 3.5 Flash 是什么？为什么它是2026年Google I/O最重要的发布之一？
+### Q18: 如何用模型路由设计低延迟多模态 Agent？
 
 <a href="../../assets/illustrations/11-multimodal-ai/q18-fast-agent-model-routing.webp"><img src="../../assets/illustrations/11-multimodal-ai/q18-fast-agent-model-routing.webp" alt="快速 Agent 模型承担高频主流程并将少数复杂步骤路由给强模型" width="100%"></a>
 
@@ -2461,88 +2463,25 @@ scenarios = {
 <details>
 <summary>💡 答案要点</summary>
 
-**背景：2026年5月19日 Google I/O 大会**
+**为什么需要路由：**
 
-Google 在 I/O 2026 发布了 Gemini 3.5 Flash，这是 Gemini Flash 系列首次搭载完整的 agentic 行动能力，被官方定位为"frontier intelligence + native agentic action"的结合体。
+多模态 Agent 往往包含感知、意图判断、工具选择、工具执行和结果生成，多次模型调用会把单次延迟和成本累加。合理做法不是默认全部调用最强模型，而是按步骤风险和难度路由。
 
----
+| 步骤 | 常见策略 | 不能省略的保护 |
+|------|----------|----------------|
+| VAD、OCR、分类、简单抽取 | 专用模型或低延迟模型 | 置信度、输入质量检测 |
+| 普通对话与工具参数生成 | 快模型承担主流程 | Schema 校验、权限和超时 |
+| 复杂视觉推理或高风险决策 | 路由到更强模型或人工 | 证据、复核、审计日志 |
+| 连续音视频 | 流式/增量处理 | 背压、打断、帧采样和状态同步 |
 
-**Gemini 3.5 Flash 核心突破：**
+**路由依据：**
 
-| 维度 | 详情 |
-|------|------|
-| **定位** | 首个结合前沿智能 + 原生 Agentic 行动能力的 Flash 模型 |
-| **速度** | 比同类前沿模型快 4 倍（4x speed of rival frontier models） |
-| **基准** | 在 Coding、Agentic、Multimodal 三个维度超越 Gemini 3.1 Pro |
-| **Agent 能力** | 原生 computer use、tool search、内置 agentic 工作流 |
-| **上下文** | 继承 Gemini 系列超大上下文（1M+ token） |
-
----
-
-**为什么重要？（面试核心观点）**
-
-**1. Flash 系列的战略转变**
-> 过去 Flash = "轻量、便宜、适合简单任务"
-> 现在 Flash = "frontier-level intelligence + native agentic action"
-> 
-> Google 把原来只有 Ultra/Gemini Pro 才有的 agentic 能力下放到了 Flash，意味着**低成本也能做复杂 Agent 任务**。这对 AI 应用开发的影响巨大——以前要花 $12/M 输入才能跑的 Agent 工作流，现在 $0.1/M 就能跑。
-
-**2. 4x 速度是关键产品优势**
-```python
-# 以前：用 Gemini 3.1 Pro 做 Agent 工作流
-""" 速度慢、成本高，但效果好 """
-cost_per_1k_tokens = 0.00125  # $1.25/M
-latency = "high"  # 因为要多次 tool calls
-
-# 现在：用 Gemini 3.5 Flash 做 Agent 工作流
-""" 速度 4x，成本同档，但 agentic 能力更强 """
-cost_per_1k_tokens = 0.000125  # $0.125/M（估算）
-latency = "low"  # 4x 加速
-agentic_capability = "built-in"  # 原生支持
-```
-
-4x 加速对实时 Agent 场景（客服机器人、自动驾驶指令、实时助手）意义重大——延迟从"感知明显"变成"无感"。
-
-
-**3. Google 的 Agent 战略布局**
-```
-Google I/O 2026 Agent 全家桶：
-  Gemini 3.5 Flash → 高速 Agent 主力（价格敏感场景）
-  Google Flow → Agent 构建平台（无代码/低代码）
-  Android XR Glasses → Agent 硬件载体（语音 + 视觉 + 空间计算）
-  Gemini Live → 实时对话 Agent（手机端）
-```
-这是 Google 第一次把 Agent 能力当成 I/O 的核心卖点，对标的不再是 ChatGPT，而是 OpenAI 的 Agent 产品线。
-
----
-
-**与竞争产品的对比：**
-
-| 模型 | Agentic 能力 | 速度 | 价格 | 上下文 |
-|------|-------------|------|------|--------|
-| **Gemini 3.5 Flash** | ✅ 原生 | ⭐⭐⭐⭐⭐ 4x | 低 | 1M+ |
-| GPT-5.4 | ✅ 强 | ⭐⭐⭐⭐ | 高 | 1M |
-| Claude Sonnet 4.6 | ✅ 强 | ⭐⭐⭐⭐ | 中 | 200K |
-| Gemini 3.1 Pro | ✅ 有 | ⭐⭐⭐ | 中 | 1M |
-
-
----
-
+- 输入模态、长度、分辨率和实时性要求；
+- 任务复杂度、模型置信信号与历史失败模式；
+- 决策风险、可逆性和是否允许人工接管；
+- 模型在自有数据上的质量、TTFT、端到端 P95/P99 与单任务成本。
 
 **面试话术：**
-> "Gemini 3.5 Flash 的发布对 AI 应用开发工程师意味着什么？三点：①成本重构——以前 Agent 工作流必须用 GPT-4o 级别的模型，现在 Gemini 3.5 Flash 4x 加速 + 低成本就能实现，创业公司和个人开发者也能做复杂 Agent 应用；②速度即产品——4x 加速让实时 Agent 从不可能变成可能，比如语音助手、实时客服、自动驾驶指令这类对延迟敏感的场景；③Flash 系列不再'low-end'——Google 把 Flash 从'轻量替代品'升级成'frontier 级别能力下放'，这预示了 2026 年模型层的重要趋势：'好模型 + 低成本 + 原生 Agent 能力'会成为标配。"
+> "低延迟多模态 Agent 的关键是端到端预算和分层路由。先把感知、决策、工具和生成各阶段的耗时拆开，让专用或快速模型处理高频低风险步骤，复杂或高风险样本升级到强模型或人工。路由器要有可解释规则、质量回归集和降级路径，并用真实会话测任务成功率、打断响应、P95/P99 和成本，而不是直接照搬厂商给出的单模型速度倍数。"
 
 </details>
-
-*版本: v3.126 | 更新: 2026-06-01 | by 二狗子 🐕*
-
----
-
-## 📚 数据更新（v3.126 - 2026-06-01）
-
-
-| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
-|------|------|----------|--------|------|
-| 🆕 | [🎨 多模态应用（新增Q20）](./) | Q20 Gemini 3.5 Flash（Google I/O 2026）：首个结合前沿智能+原生Agentic能力的Flash模型、4x速度超越Gemini 3.1 Pro、Coding/Agentic/Multimodal三维度基准测试、Google Agent全家桶布局 | 🔥🔥🔥🔥🔥 | +1 |
-
-*版本: v3.126 | 更新: 2026-06-01 | by 二狗子 🐕*

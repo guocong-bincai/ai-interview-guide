@@ -1,5 +1,7 @@
 # 🔥 MCP（Model Context Protocol）协议与工具系统面试题
 
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q3、Q5、Q6、Q9、Q11、Q12、Q15、Q18、Q22、Q25、Q27、Q30、Q33、Q34、Q36。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+
 > **难度：** ⭐⭐⭐⭐⭐
 > **更新：** 2026-04-16
 > **考点：** MCP协议架构、Server开发、Client集成、安全机制、企业级部署、vs Function Calling
@@ -22,7 +24,7 @@
 
 ## 一、MCP基础概念
 
-### Q1: 什么是MCP（Model Context Protocol）？为什么它是2026年AI开发者的必备技能？
+### Q1: 什么是 MCP（Model Context Protocol）？它解决什么集成问题？
 
 <a href="../../assets/illustrations/14-mcp-skill-systems/q01-mcp-unified-connection.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q01-mcp-unified-connection.webp" alt="MCP统一连接模型、工具与数据图解" width="100%"></a>
 
@@ -1939,7 +1941,7 @@ Agent安全：
 - 有实际安全加固经验（如：在项目中加入 MCP 鉴权、审计日志）
 
 
-### Q17: SEP-1686 Tasks 原语是什么？为什么它是2026年MCP最重要的企业级更新？
+### Q17: MCP Tasks 的调用后取结果模式解决什么问题？当前规范状态如何核验？
 
 <a href="../../assets/illustrations/14-mcp-skill-systems/q17-mcp-tasks.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q17-mcp-tasks.webp" alt="MCP异步长任务状态结果取消与清理生命周期图解" width="100%"></a>
 
@@ -1950,7 +1952,7 @@ Agent安全：
 
 **背景问题：长任务处理的困境**
 
-MCP 传统工具调用是"即发即忘"模式——调用工具，等待结果，完成。但现实中有大量 **长时间运行的任务**：
+普通 MCP 工具调用是一次请求—响应；可以报告进度，但调用方通常仍要等待最终响应。现实中还有大量需要“先提交、后取结果”的 **长时间运行任务**：
 - 药物分子分析（数小时）
 - 代码迁移（分钟到小时）
 - 测试套件执行（数千个测试用例）
@@ -1969,7 +1971,7 @@ tool `get_result(job_id)`: 获取结果
 2. Agent 可能不会正确轮询
 3. 每个 MCP Server 自己实现这套约定，不通用
 
-**SEP-1686 Tasks 的核心解决方案：**
+**Tasks 提案的核心解决方案：**
 
 > "引入 **task primitive** 和 **task ID**，客户端可以主动查询任务状态和结果，有效期由服务器定义（可长达数天）。"
 
@@ -1977,7 +1979,7 @@ tool `get_result(job_id)`: 获取结果
 
 | 概念 | 说明 |
 |------|------|
-| **Task** | MCP 协议原生的长时间任务抽象 |
+| **Task** | 面向长时间工作流的协议化任务抽象 |
 | **Task ID** | 任务的唯一标识符，客户端可用它查询状态和获取结果 |
 | **call-now, fetch-later** | 发起任务时不阻塞，后续主动拉取结果 |
 
@@ -2002,11 +2004,11 @@ tool `get_result(job_id)`: 获取结果
 │     → tools/call 返回 { taskId: "task_abc123" }         │
 │                                                          │
 │  2. 查询状态（客户端主动）                               │
-│     → tasks/getStatus { taskId: "task_abc123" }         │
+│     → tasks/get { taskId: "task_abc123" }               │
 │     ← { status: "processing", 进度: "45%" }            │
 │                                                          │
 │  3. 获取结果（任务完成后）                               │
-│     → tasks/getResult { taskId: "task_abc123" }        │
+│     → tasks/result { taskId: "task_abc123" }            │
 │     ← { status: "completed", result: {...} }           │
 │                                                          │
 │  4. 删除任务（清理资源）                                 │
@@ -2014,7 +2016,7 @@ tool `get_result(job_id)`: 获取结果
 └─────────────────────────────────────────────────────────┘
 ```
 
-**企业级应用场景（来自 Amazon 真实案例）：**
+**适合评估的企业场景：**
 
 | 场景 | 挑战 | Tasks 解决方案 |
 |------|------|----------------|
@@ -2024,7 +2026,7 @@ tool `get_result(job_id)`: 获取结果
 | **测试执行** | 数千测试用例，小时级别 | 流式日志 + 最终结果 |
 | **深度研究** | 多轮搜索推理 | 后台运行 + 完成通知 |
 
-**代码示例（Python MCP SDK）：**
+**伪代码（不要当作当前 Python SDK 的固定接口）：**
 
 ```python
 # 发起一个长时间任务（不阻塞）
@@ -2041,20 +2043,27 @@ print(result.status)   # "processing"
 # 客户端主动轮询状态
 import time
 while result.status == "processing":
-    status = client.tasks.get_status(result.task_id)
+    status = client.request("tasks/get", {"taskId": result.task_id})
     print(f"进度: {status.progress}%")
     time.sleep(30)
 
 # 获取最终结果（任务完成后）
 if result.status == "completed":
-    final_result = client.tasks.get_result(result.task_id)
+    final_result = client.request("tasks/result", {"taskId": result.task_id})
     print(final_result.data)
 
 # 清理资源
-client.tasks.delete(result.task_id)
+client.request("tasks/delete", {"taskId": result.task_id})
 ```
 
-**为什么这是 2026 年 MCP 最重要的更新：**
+**规范状态与面试边界：**
+
+- SEP-1686 描述了 Tasks 的状态机和 `tasks/get`、`tasks/result`、`tasks/list`、`tasks/delete` 等消息；
+- Tasks 是否位于核心规范、独立扩展或某个 SDK 的实验命名空间会随发布版本变化，必须同时检查目标协议版本、SDK 文档和初始化 capabilities；
+- 不支持 Tasks 时，仍可在业务层使用 `start/status/result` 工具约定，但任务 ID、租户隔离、过期清理、轮询退避和幂等必须由应用治理；
+- 因此面试重点应是长任务生命周期与兼容性设计，而不是背一段可能尚未由所用 SDK 实现的代码。
+
+**为什么值得关注：**
 
 1. **解决企业级刚需**：长时间任务（分钟到天）是企业 AI 的核心场景
 2. **标准化工作流集成**：AWS Step Functions、Google Workflows、CI/CD 都可以用 MCP 包装
@@ -2062,13 +2071,7 @@ client.tasks.delete(result.task_id)
 4. **客户端主导**：Host Application 控制轮询，而不是让 Agent 自己管理（避免 hallucination）
 
 **面试话术：**
-> "SEP-1686 Tasks 是 MCP 协议从'玩具'到'企业级'的分水岭。传统工具调用适合秒级任务，但企业场景（代码迁移、测试执行、研究分析）都是分钟到小时级别。
-> 
-> 之前大家的 workaround 是把一个工具拆成 start/get_status/get_result 三个工具，但这是 convention-based，不通用，而且 Agent 可能 hallucinate job_id。
-> 
-> Tasks 原语让 MCP 原生支持长任务：发起后不阻塞，客户端用 task_id 主动查询状态和结果。亚马逊内部已经有 six 大真实案例（医疗、企业自动化、代码迁移、测试、深度研究、多Agent通信）在用这个。
-> 
-> 这也是为什么 2026 年我会在面试中说：'MCP 不只是让 AI 调工具，它是企业级 AI 工作流的标准协议。'"
+> "Tasks 解决的是 call-now、fetch-later：长任务先返回 task ID，再查询状态和结果。设计时我会重点回答状态机、幂等、租户隔离、结果保留期、取消、轮询退避和不支持扩展时的降级。由于 Tasks 的核心规范、扩展和 SDK 支持仍可能不同，落地前必须核对目标版本，不能只凭 SEP 名称假设客户端已经实现。"
 
 </details>
 
@@ -2467,7 +2470,7 @@ XAA 正在解决"一个配置，多个 AI 应用共用"的问题：
 ```
 
 **面试话术：**
-> "企业 MCP 部署有四大 gap：审计日志（当前无标准，我们用 Gateway 层补）、企业认证（DPoP 和 Workload Identity Federation 正在推进，解决静态密钥问题）、网关模式（Session/Authorization 传播需要协议定义）、配置可移植性（XAA 项目在解决跨 Client 共享配置）。这些都是 2026 年的重点方向，面试时如果问到'企业 MCP 挑战'，这四个点是加分项。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "企业 MCP 部署有四大 gap：审计日志（当前无标准，我们用 Gateway 层补）、企业认证（DPoP 和 Workload Identity Federation 正在推进，解决静态密钥问题）、网关模式（Session/Authorization 传播需要协议定义）、配置可移植性（XAA 项目在解决跨 Client 共享配置）。这些都是 2026 年的重点方向，面试时如果问到'企业 MCP 挑战'，这四个点是加分项。"
 
 </details>
 
@@ -3378,7 +3381,7 @@ result = await agent.execute_composite_task([
 
 
 ---
-## 八、2026年MCP面试新趋势：高频陷阱题与反套路指南
+## 十一、MCP 边界与常见误区
 
 ### Q27: 什么情况下不应该用MCP？MCP的边界在哪里？
 
@@ -3805,7 +3808,7 @@ AUDIT_RETENTION_DAYS=90
 
 ---
 
-## 九、CoSAI Agentic Identity 与 2026 AI Agent 安全新框架（Q19）
+## 十二、Agent 身份与持续授权
 
 ### Q31: 什么是 CoSAI Agentic Identity Framework？2026年5月发布的"签名Agent清单+持续授权"解决了什么问题？
 
@@ -3903,7 +3906,7 @@ AUDIT_RETENTION_DAYS=90
 
 **面试话术：**
 
-> "2026年 RSAC 最热的话题之一是'如何把 Zero Trust 从人扩展到 Agent'。CoSAI 的 Agentic Identity Framework 给出了答案：签名Agent清单解决'你是谁'的问题，持续授权解决'你现在能做什么'的问题，代操作令牌解决'谁让你做的'的问题。这套框架的核心洞察是——凭证验证≠意图验证。工具拿到有效token不代表'这个操作应该发生'。我们在 2025 年底的 MCP 事故里看到了这个问题的后果：42,000 个 OpenClaw 实例暴露，根源就是'认证过了就默认所有操作都合法'。2026 年企业级 MCP 部署，这套框架是必过的检查项。"
+> **示例表达（仅在能用本人经历或可复现实验佐证时使用）：** "2026年 RSAC 最热的话题之一是'如何把 Zero Trust 从人扩展到 Agent'。CoSAI 的 Agentic Identity Framework 给出了答案：签名Agent清单解决'你是谁'的问题，持续授权解决'你现在能做什么'的问题，代操作令牌解决'谁让你做的'的问题。这套框架的核心洞察是——凭证验证≠意图验证。工具拿到有效token不代表'这个操作应该发生'。我们在 2025 年底的 MCP 事故里看到了这个问题的后果：42,000 个 OpenClaw 实例暴露，根源就是'认证过了就默认所有操作都合法'。2026 年企业级 MCP 部署，这套框架是必过的检查项。"
 
 **延伸阅读：**
 - CoSAI Agentic Identity Paper: https://www.coalitionforsecureai.org/
@@ -4150,7 +4153,7 @@ evaluation_dimensions = {
 
 ---
 
-### Q34: MCP "Tool Poisoning"和"Agent Zero"是什么？2026年5月披露的三个Critical CVE（CVE-2026-30624/30617/33224）为何让整个MCP生态告急？
+### Q34: MCP Tool Poisoning 与服务端漏洞会形成怎样的攻击链？如何防御？
 
 <a href="../../assets/illustrations/14-mcp-skill-systems/q34-tool-poisoning.webp"><img src="../../assets/illustrations/14-mcp-skill-systems/q34-tool-poisoning.webp" alt="MCP工具描述投毒第三方Server供应链风险与防御图解" width="100%"></a>
 
