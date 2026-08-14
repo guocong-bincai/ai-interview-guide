@@ -120,7 +120,12 @@
   <a href="docs/12-frameworks-tools/">12 框架工具</a> ·
   <a href="docs/13-multi-agent-systems/">13 多 Agent</a> ·
   <a href="docs/14-mcp-skill-systems/">14 MCP / Skills</a> ·
-  <a href="docs/15-advanced-topics/">15 进阶专题</a>
+  <a href="docs/15-advanced-topics/">15 进阶专题</a><br>
+  <a href="docs/16-resume-interview-tips/">16 简历与面试</a> ·
+  <a href="docs/17-ai-coding-tools/">17 AI 编程工具</a> ·
+  <a href="docs/18-big-tech-interview-questions/">18 大厂面试题</a> ·
+  <a href="docs/19-inference-frameworks/">19 推理框架</a> ·
+  <a href="docs/20-rag-advanced-optimization/">20 RAG 高级优化</a>
 </p>
 
 <a id="quick-start" name="quick-start"></a>
