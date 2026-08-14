@@ -29,8 +29,14 @@
 
 #### 1. LLM基础篇
 
+##### 字节 Q1：Transformer 自注意力机制如何工作？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q01-byte-self-attention.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q01-byte-self-attention.webp" alt="Transformer自注意力从QKV映射到加权汇总的完整机制图解" width="100%"></a>
+
+> 🧠 **图解记忆：** Q 找相关 K，再按权重汇总 V；多头注意力让模型同时观察不同关系。
+
 <details>
-<summary>💡 Q1: Transformer自注意力机制详解</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 请详细解释Transformer模型中的self-attention机制是如何工作的？为什么它比RNN更适合处理长序列？
 
@@ -97,8 +103,14 @@ print(weights.shape)  # (1, 5, 5) - 注意力矩阵
 
 </details>
 
+##### 字节 Q2：位置编码为什么必要？绝对位置、RoPE、ALiBi 有何区别？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q02-byte-positional-encoding.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q02-byte-positional-encoding.webp" alt="绝对位置编码RoPE和ALiBi机制与外推能力对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 绝对位置做加法，RoPE 旋转 Q/K，ALiBi 在注意力分数里给远距离扣分。
+
 <details>
-<summary>💡 Q2: 位置编码(Positional Encoding)实现</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 什么是位置编码？为什么Transformer必需它？请列举至少两种实现方式并对比。
 
@@ -203,8 +215,14 @@ def apply_rotary_pos_emb(q, k, cos, sin):
 
 </details>
 
+##### 字节 Q3：MHA、MQA、GQA 有什么区别？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q03-byte-mha-mqa-gqa.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q03-byte-mha-mqa-gqa.webp" alt="MHA独立KVMQA全共享GQA分组共享及KVCache取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** MHA 各用各的，MQA 全部共享，GQA 分组共享，在质量和 KV Cache 成本间折中。
+
 <details>
-<summary>💡 Q3: MHA vs MQA vs GQA对比</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 请解释Multi-Head Attention (MHA)、Multi-Query Attention (MQA)、Grouped-Query Attention (GQA)的区别。
 
@@ -359,8 +377,14 @@ class GroupedQueryAttention(nn.Module):
 
 #### 2. RAG系统篇
 
+##### 字节 Q4：如何设计完整的生产级 RAG 流程？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q04-byte-rag-flow.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q04-byte-rag-flow.webp" alt="生产级RAG离线知识加工在线检索重排生成评估完整流程图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 离线建好可检索知识，在线先找准、再排好，最后基于证据生成并持续评估。
+
 <details>
-<summary>💡 Q4: RAG完整流程设计</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 设计一个完整的RAG系统,从数据准备到最终生成,详细描述每个步骤。
 
@@ -523,8 +547,14 @@ print(f"引用了{len(result['sources'])}个文档")
 
 #### 3. Agent实战篇
 
+##### 字节 Q5：如何用 ReAct 实现代码审查 Agent？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q05-byte-react-code-review.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q05-byte-react-code-review.webp" alt="ReAct代码审查Agent使用工具取证并输出结构化问题的循环图解" width="100%"></a>
+
+> 🧠 **图解记忆：** ReAct 不是边想边猜，而是用工具取证，再按代码与测试证据完成审查。
+
 <details>
-<summary>💡 Q5: ReAct框架实现代码审查Agent</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 用ReAct框架实现一个代码审查Agent,能自动发现代码问题并给出修复建议。
 
@@ -759,8 +789,14 @@ def get_user(user_id):
 
 #### 1. 通义千问应用
 
+##### 阿里 Q1：如何用通义千问构建生产级客服 Agent？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q06-alibaba-qwen-customer-agent.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q06-alibaba-qwen-customer-agent.webp" alt="通义千问客服Agent意图路由知识检索受控工具和人工兜底架构图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 客服 Agent = 意图路由 + 知识检索 + 受控工具 + 人工兜底，业务权限留在服务层。
+
 <details>
-<summary>💡 阿里 Q1：如何用通义千问构建客服 Agent？</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 设计一个基于通义千问的智能客服系统,包含知识库检索、订单查询、情感分析等功能。
 
@@ -930,8 +966,14 @@ for query in queries:
 
 #### 2. A2A多智能体协作
 
+##### 阿里 Q2：A2A 与普通 Agent 调用有什么区别？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q07-alibaba-a2a-collaboration.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q07-alibaba-a2a-collaboration.webp" alt="普通Agent工具调用与A2A自治智能体协议协作对比图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 普通调用把 Agent 当工具，A2A 让自治 Agent 用协议发现能力、协商任务和同步状态。
+
 <details>
-<summary>💡 阿里 Q2：A2A 与普通 Agent 调用有什么区别？</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 解释A2A(Agent-to-Agent)框架,它与传统单Agent或多Agent框架有何不同?
 
@@ -1161,8 +1203,14 @@ print(result)
 
 ### 高频面试题
 
+##### 美团 Q1：大模型应用常见问题如何排查和缓解？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q08-meituan-llm-troubleshooting.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q08-meituan-llm-troubleshooting.webp" alt="大模型应用幻觉延迟成本与安全问题证据驱动排查图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先按链路定位证据，再对症缓解，最后用同一评测集验证改动是否真实有效。
+
 <details>
-<summary>💡 美团 Q1：大模型应用常见问题如何排查和缓解？</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 列举LLM在实际应用中的主要问题,并针对每个问题给出解决方案。
 
@@ -1376,8 +1424,14 @@ class RobustLLMSystem:
 
 ### 高频面试题
 
+##### 百度 Q1：大模型为什么会重复生成？如何治理？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q09-baidu-repetition-governance.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q09-baidu-repetition-governance.webp" alt="大模型重复生成概率回路原因与提示解码运行时分层治理图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 重复是概率回路越滚越强；提示定边界、解码加约束、运行时检测，且要防止惩罚过强。
+
 <details>
-<summary>💡 百度 Q1：大模型重复生成的机制与治理</summary>
+<summary>💡 答案要点</summary>
 
 **题目:** 为什么LLM会出现复读机现象(重复生成相同内容)?如何从模型原理和工程实践两方面解决?
 
@@ -1751,7 +1805,11 @@ class AntiRepetitionGenerator:
 **面试官开场问题：**
 > "自我介绍 + 挑一个你认为最有技术含量的 AI 项目详细讲"
 
-**问题1：讲一下你做过的 RAG 项目？用了哪些优化手段？**
+### 腾讯 Q1：如何讲清一个做过的 RAG 项目及优化手段？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q10-tencent-rag-project.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q10-tencent-rag-project.webp" alt="RAG项目从业务问题基线实验指标到业务结果的面试证据链图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 讲 RAG 不背组件，要讲问题、实验、指标、取舍与业务结果的证据链，只用能证明的数据。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1777,7 +1835,11 @@ R（结果）：用户问题准确率从 65% 提升到 89%，日均减少客服 
 
 </details>
 
-**问题2：多 Agent 系统中，Agent 之间怎么通信？遇到冲突怎么办？**
+### 腾讯 Q2：多 Agent 系统中如何通信？遇到冲突怎么办？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q11-tencent-agent-conflict.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q11-tencent-agent-conflict.webp" alt="多Agent中心调度与A2A通信以及资源结果状态冲突治理图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先统一消息与状态，再按资源、结果、数据三类冲突分别治理；本质仍是分布式一致性问题。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1826,7 +1888,11 @@ class Agent:
 
 </details>
 
-**问题3：线上 RAG 系统出问题了，响应很慢，怎么排查？**
+### 腾讯 Q3：线上 RAG 响应很慢，如何系统排查？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q12-tencent-rag-latency.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q12-tencent-rag-latency.webp" alt="RAG总延迟拆分检索排队TTFT和解码并按证据排查图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先把总延迟拆成检索、排队、首 Token 和解码，再按 Trace 证据优化最慢的一段。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -1902,6 +1968,10 @@ answer = llm.generate(prompt)
 
 ### 腾讯 Q4：微信内 AI 应用的技术挑战与架构设计
 
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q13-tencent-wechat-ai.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q13-tencent-wechat-ai.webp" alt="微信AI应用身份隐私弹性路由受控工具和多端一致架构图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 微信 AI 先守身份与私域边界，再做弹性路由、受控工具和多端一致；高风险操作必须二次确认。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1974,6 +2044,10 @@ WECHAT_AI_CONFIG = {
 </details>
 
 ### 腾讯 Q5：向量数据库在业务中的选型决策
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q14-tencent-vector-db.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q14-tencent-vector-db.webp" alt="向量数据库按数据查询约束与真实负载比较召回延迟成本的选型图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 向量库没有万能第一，先定数据与查询约束，再用真实负载比较召回、延迟和总成本。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2068,6 +2142,10 @@ class TencentVectorSearch:
 </details>
 
 ### 腾讯 Q6：多模型并存场景下的成本管控方案
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q15-tencent-multi-model-cost.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q15-tencent-multi-model-cost.webp" alt="多模型按需路由动态升级缓存压缩与质量延迟安全底线成本治理图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先缓存和分流，低置信度再升级；节省成本不能突破质量、延迟与安全底线。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2251,6 +2329,10 @@ def generate_cost_report():
 
 ### 字节 Q6：模型 API 从接入到生产部署要解决哪些问题？
 
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q16-byte-api-production.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q16-byte-api-production.webp" alt="模型API统一网关鉴权可靠性降级观测与成本治理生产架构图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 接 API 不等于能上线，生产要补齐鉴权、可靠性、降级、观测与成本治理。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2382,6 +2464,10 @@ doubao_gateway:
 </details>
 
 ### 字节 Q7：短视频内容理解系统如何设计？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q17-byte-video-understanding.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q17-byte-video-understanding.webp" alt="短视频视觉语音字幕音频分轨提取时间对齐融合与多任务输出图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先分轨提取，再按时间对齐融合；实时轻量路径保底，离线重型路径完成深度理解。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -2516,6 +2602,10 @@ CONTENT_FEATURES = {
 </details>
 
 ### 字节 Q8：模型监控体系如何设计指标与告警？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q18-byte-monitoring-alerting.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q18-byte-monitoring-alerting.webp" alt="模型监控从系统服务质量到业务安全四层指标与可行动告警闭环图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 监控要从资源看到业务，告警必须可行动，发布要靠离线—灰度—线上闭环。
 
 <details>
 <summary>💡 答案要点</summary>
