@@ -57,7 +57,7 @@
     </td>
     <td width="50%" valign="top">
       <h3>🧪 内容可以持续校验</h3>
-      <p>593 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
+      <p>597 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
     </td>
   </tr>
 </table>
@@ -228,7 +228,7 @@ flowchart LR
 
 ## 📚 题库导航
 
-共 **28 个专题、593 道题**。点击分类展开完整目录。
+共 **28 个专题、597 道题**。点击分类展开完整目录。
 
 <details open>
 <summary><b>🧠 基础与模型</b> · 6 个专题 / 141 道题</summary>
@@ -254,7 +254,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🤖 Agent 与协议</b> · 5 个专题 / 125 道题</summary>
+<summary><b>🤖 Agent 与协议</b> · 5 个专题 / 126 道题</summary>
 <br>
 
 - [05 · Agent 基础](docs/05-ai-agent-basics/) — 工具调用、状态、记忆、循环与人工确认
@@ -266,7 +266,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 134 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 136 道题</summary>
 <br>
 
 - [09 · 安全与评估](docs/09-ai-safety-evaluation/) — 内容安全、Prompt 注入、隐私、红队和评测
@@ -291,7 +291,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>💼 面试准备</b> · 3 个专题 / 27 道结构化训练题</summary>
+<summary><b>💼 面试准备</b> · 3 个专题 / 28 道结构化训练题</summary>
 <br>
 
 - [16 · 简历与面试技巧](docs/16-resume-interview-tips/) — 简历、项目表达、行为面试与追问

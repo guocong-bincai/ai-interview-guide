@@ -8,7 +8,7 @@
 
 1. [Test Harness 基础认知](#一test-harness-基础认知)
 2. [Test Harness 工程实践 10 问](#二test-harness-工程实践-10-问q1-q10)
-3. [LLM 评测 Harness](#三llm-评测-harnessq11-q15)
+3. [LLM 评测 Harness](#三llm-评测-harnessq11-q16)
 4. [加分话术与简历写法](#四加分话术与简历写法)
 
 ## 一、Test Harness 基础认知
@@ -227,7 +227,7 @@ func TestCalculatePrice(t *testing.T) {
 
 **边界思维：** 正常值、边界值、异常值、空值都要覆盖——说出这几个词，面试官就知道你写过真测试。
 
-## 三、LLM 评测 Harness（Q11-Q15）
+## 三、LLM 评测 Harness（Q11-Q16）
 
 > 面 AI 后端 / RAG / Agent 岗，这部分才是拉开差距的地方。传统 harness 测的是"代码逻辑对不对"，LLM 评测 harness 测的是"模型输出好不好"——后者没有确定的正确答案，问题维度完全不同。
 
@@ -340,6 +340,79 @@ func TestCalculatePrice(t *testing.T) {
 
 > 关联主答案：Agent 评估指标与 A/B 测试见 [23 · Agent 可观测性 Q7](../23-agent-observability/)。
 
+---
+
+### Q16: Harness 作为 Agent 的"安全沙箱"怎么理解？权限管控和自动化评测如何落地？（2026 高频）
+
+> 面 Agent 岗最容易被追问的一题：Agent 有工具调用能力后，Harness 就不只是"测试台"了，它还承担"安全边界"职责。能讲清"安全沙箱 = 权限管控 + 自动化评测"双重定位的候选人，直接和只会写单测的人拉开差距。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**一句话本质：**
+
+> Agent Harness = 安全沙箱（约束 Agent 能做什么）+ 评测台（验证 Agent 做得好不好）。前者管权限边界，后者管质量边界，两者共用同一套"工具调用可观测"基础设施。
+
+**为什么 Agent 比传统服务更需要沙箱：**
+
+```
+传统服务：输入 → 固定代码路径 → 输出（行为可穷举、可审计）
+Agent：输入 → LLM 自主决策 → 调用任意工具 → 副作用（行为不可穷举）
+
+风险：LLM 可能被 prompt injection 劫持、可能选错工具、可能用错参数
+→ 必须把 Agent 的行为空间框在沙箱里，而不是事后追责
+```
+
+**权限管控四件套（回答必带）：**
+
+| 手段 | 做法 | 拦截对象 |
+|------|------|----------|
+| **工具白名单** | Agent 只能调用注册过的工具，未注册一律拒绝 | 模型自己发明/拼接工具调用 |
+| **最小权限** | 每个工具声明所需 scope，读的不能写、写的不能删 | 越权操作（OWASP MCP02 Scope Creep） |
+| **沙箱隔离** | 危险工具（bash/文件写/网络请求）跑在容器/子进程/受限环境，限制网络出口 | 注入指令触发的破坏性操作 |
+| **HITL + 审计** | 高风险操作（转账、删除、外发）必须人工审批；全链路结构化日志可回放 | 不可逆副作用 + 事后无法溯源 |
+
+```python
+# 沙箱化工具调用伪代码
+class AgentHarness:
+    def call_tool(self, agent_id, tool_name, args):
+        # 1. 白名单校验
+        if tool_name not in self.tool_registry:
+            raise ToolNotAllowed(tool_name)
+        # 2. 权限校验（scope 最小化）
+        scope = self.tool_registry[tool_name].required_scope
+        if not self.has_scope(agent_id, scope):
+            raise PermissionDenied(tool_name)
+        # 3. 危险操作人审
+        if self.tool_registry[tool_name].needs_approval(args):
+            return self.request_human_approval(agent_id, tool_name, args)
+        # 4. 沙箱执行 + 结构化日志（供评测回放）
+        with self.sandbox(tool_name) as box:
+            result = box.execute(tool_name, args)
+        self.audit.append(agent_id, tool_name, args, result)
+        return result
+```
+
+**自动化评测怎么和沙箱结合（闭环）：**
+
+```
+评测集（含期望的工具调用序列）
+   → 沙箱内跑 Agent
+   → 对比实际轨迹 vs 期望轨迹（工具选对没、参数传对没、有没有多余调用）
+   → 触发规则：越权尝试（未授权工具被调用）直接判失败 + 告警
+   → 回归报告，红了就回滚
+```
+
+**两个加分视角：**
+
+1. **红队化**：把"恶意输入/注入样本"也纳入评测集，沙箱评测 = 功能回归 + 安全回归一起跑（呼应 OWASP Agent Top 10 的 Prompt Injection）。
+2. **成本上限**：沙箱同时约束 token/调用次数预算，防"成本攻击"（Agent09）——每个会话设调用次数和金额上限，超限熔断。
+
+**面试话术：**
+> "我理解的 Harness 在 Agent 场景下是双重定位：安全沙箱 + 评测台。安全上做四件事——工具白名单、最小权限 scope、危险操作容器隔离、高风险动作人工审批加审计；评测上把期望的工具调用序列写进用例，沙箱里跑完对比实际轨迹，越权尝试直接判失败。安全评测和功能评测共用同一套日志，红队注入样本也进评测集，这样每次改动跑一遍就等于安全回归。"
+
+</details>
+
 ## 四、加分话术与简历写法
 
 **面试答题万能框架（所有 harness 题通用）：**
@@ -366,6 +439,7 @@ func TestCalculatePrice(t *testing.T) {
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-08-14 | 新增 Q16 Agent 安全沙箱 Harness（权限管控四件套 + 评测闭环 + 红队化） |
 | 2026-08-13 | 新增模块：Test Harness 与 LLM 评测 Harness 15 题，已按仓库规范重写 |
 
 ---
