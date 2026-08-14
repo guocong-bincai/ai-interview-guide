@@ -149,6 +149,10 @@
 
 ### Q: 什么情况下会发生内存逃逸？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q15-go-escape-analysis.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q15-go-escape-analysis.webp" alt="Go编译器根据对象生命周期和引用流向决定栈分配或堆逃逸的机制图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 当引用可能越过当前栈帧时，编译器可能把对象放到堆上；先用逃逸分析定位热点，再做针对性优化。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -209,6 +213,10 @@ go build -gcflags="-m" main.go
 </details>
 
 ### Q: Go 切片的底层原理是什么？修改切片元素会修改底层数组吗？
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q16-go-slice-backing-array.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q16-go-slice-backing-array.webp" alt="Go切片描述符共享底层数组以及append扩容前后引用变化图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 切片复制的是指针、长度和容量描述符；修改是否相互可见，取决于两个切片是否仍共享同一底层数组。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -272,6 +280,10 @@ func addItem(s *[]int) {
 </details>
 
 ### Q: MySQL 索引失效的场景有哪些？
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q17-mysql-index-plan.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q17-mysql-index-plan.webp" alt="MySQL谓词不可索引与优化器成本选择导致未走索引的诊断图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 索引没走先检查联合索引顺序、函数运算、类型转换和通配符，再用 EXPLAIN 验证优化器实际选择。
 
 <details>
 <summary>💡 答案要点</summary>

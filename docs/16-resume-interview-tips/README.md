@@ -24,6 +24,10 @@
 
 ### Q1: AI 应用工程师简历应该突出什么？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q01-resume-evidence-chain.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q01-resume-evidence-chain.webp" alt="AI应用工程师简历从业务问题到技术行动和量化结果的证据链图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 简历不是技术栈清单，要用业务问题、关键行动和量化结果证明项目深度与工程能力。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -61,6 +65,10 @@
 ---
 
 ### Q2: 如何描述 AI 项目经验？
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q02-project-star.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q02-project-star.webp" alt="使用STAR法则描述AI项目背景任务行动结果与工程取舍图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 用背景和任务定义问题，在行动中讲清选型、优化与兜底，再用质量、延迟、成本和业务指标闭环。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -105,6 +113,10 @@
 
 ### Q3: AI 应用工程师面试一般考什么？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q03-interview-loop.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q03-interview-loop.webp" alt="AI应用工程师从技术初筛到项目系统设计编码和综合面的面试流程图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 基础知识是入口，项目深挖和系统设计决定深度，可靠编码与综合能力完成闭环。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -142,6 +154,10 @@
 ---
 
 ### Q4: 如何准备系统设计题？
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q04-system-design-method.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q04-system-design-method.webp" alt="AI系统设计从需求约束到架构取舍监控降级和回滚的方法图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先澄清规模、目标和边界，再画关键链路并权衡质量、延迟与成本，最后补验证和兜底。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -221,6 +237,10 @@
 
 ### Q5: AI 应用工程师薪资水平？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q05-compensation-negotiation.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q05-compensation-negotiation.webp" alt="AI岗位依据市场口径项目价值和总包结构进行谈薪的决策图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 薪资会随城市、级别和市场变化，先核对同类岗位口径，再用可验证项目价值讨论整体总包。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -255,6 +275,10 @@
 ## 🚀 职业规划
 
 ### Q6: AI 应用工程师的职业发展路径？
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q06-career-growth.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q06-career-growth.webp" alt="AI应用工程师从单点功能到生产项目架构和业务影响力的成长路径图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 职业成长不是会更多工具，而是持续扩大问题规模、系统责任和影响范围，并交付可验证结果。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -306,6 +330,10 @@ AI 工程师 → AI Team Lead → AI 技术经理 → CTO
 
 ### Q7: 你为什么要转 AI？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q07-switch-to-ai.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q07-switch-to-ai.webp" alt="转型AI时连接真实动机可迁移能力行动证据与岗位匹配的回答图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先说明长期动机，再把旧经验映射到新问题，用项目和学习证据证明自己已经开始行动。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -341,6 +369,10 @@ AI 应用开发是 AI 技术落地的关键，我希望在这个方向深耕。
 
 ### Q8: 你对 AI 发展有什么看法？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q08-ai-trend-answer.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q08-ai-trend-answer.webp" alt="从AI发展现状约束趋势和个人行动形成平衡观点的回答图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先讲可核验的现状和落地边界，再判断 Agent、多模态等趋势，最后落到自己的能力建设与行动。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -369,6 +401,10 @@ AI 应用开发是 AI 技术落地的关键，我希望在这个方向深耕。
 </details>
 
 ### Q9: 如何用 STAR 法则量化描述 RAG 系统项目？（含模板）
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q09-rag-metrics-star.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q09-rag-metrics-star.webp" alt="RAG项目用STAR串联检索生成性能成本指标及评测口径图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 项目数字必须同时说明指标口径、基线、测试集和统计条件，才经得住面试官继续追问。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -434,6 +470,10 @@ AI Agent 独立解决率 73%，人工介入率从 85% → 27%，客服团队人�
 
 ### Q10: 被问"没有 AI 项目经验怎么办"，如何回答？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q10-no-ai-experience.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q10-no-ai-experience.webp" alt="没有生产AI经验时坦诚差距迁移能力展示证据并制定补齐计划的回答图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 不包装 Demo 为生产经验，坦诚差距后用可迁移工程能力、行动证据和清晰上手计划证明交付潜力。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -478,6 +518,10 @@ AI Agent 独立解决率 73%，人工介入率从 85% → 27%，客服团队人�
 
 ### Q11: 技术总监面：如何回答"AI 未来会取代程序员吗"？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q11-ai-replace-programmers.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q11-ai-replace-programmers.webp" alt="AI自动化部分编程任务同时提升需求架构判断和协作价值的辩证图解" width="100%"></a>
+
+> 🧠 **图解记忆：** AI 更可能替代部分重复任务并重构工作方式，能驾驭 AI、理解需求并承担复杂系统责任的人价值更高。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -517,6 +561,10 @@ AI 无法取代的是：系统设计、需求理解、跨团队沟通、复杂�
 </details>
 
 ### Q12: 如何准备白板编程题？（AI 应用工程师版本）
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q12-whiteboard-coding.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q12-whiteboard-coding.webp" alt="AI白板编程从澄清边界到主链路可靠性取舍和测试的作答流程图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 先确认输入输出和边界，再画接口与数据流、写最小主链路，最后用超时、重试、回退和测试体现工程深度。
 
 <details>
 <summary>💡 答案要点</summary>
@@ -615,6 +663,10 @@ def rag_pipeline(query: str, top_k: int = 5):
 
 ### Q13: 行为面试高频题：说说你最失败的一个技术决策？
 
+<a href="../../assets/illustrations/16-resume-interview-tips/q13-failed-decision.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q13-failed-decision.webp" alt="失败技术决策从承担责任到根因复盘流程改进和验证的回答图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 好答案要承担自己的判断，说明影响和根因，并证明 POC、评审、灰度与回滚流程已经因此改变。
+
 <details>
 <summary>💡 答案要点</summary>
 
@@ -691,6 +743,10 @@ def rag_pipeline(query: str, top_k: int = 5):
 ---
 
 ### Q14: AI Agent 后端岗 JD 怎么拆解？转型 AI 开发要补哪些能力？
+
+<a href="../../assets/illustrations/16-resume-interview-tips/q14-jd-capability-map.webp"><img src="../../assets/illustrations/16-resume-interview-tips/q14-jd-capability-map.webp" alt="AI Agent后端岗位的后端基础AI工程化进阶能力与稳定性治理能力图解" width="100%"></a>
+
+> 🧠 **图解记忆：** 后端基本功是入场券，RAG 与 Agent 工程化形成差异化，最终要用可量化的生产结果证明胜任。
 
 <details>
 <summary>💡 答案要点</summary>
