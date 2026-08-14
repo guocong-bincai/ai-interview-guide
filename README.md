@@ -103,7 +103,7 @@
   </tr>
 </table>
 
-<p align="center"><b>01–15 共 15 个核心专题、347 道题，现已全部完成逐题配图。</b></p>
+<p align="center"><b>01–20 共 20 个核心专题、490 道题，现已全部完成逐题配图。</b></p>
 
 <p align="center">
   <a href="docs/01-basic-concepts/">01 LLM 基础</a> ·
