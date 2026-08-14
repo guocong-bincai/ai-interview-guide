@@ -1,4 +1,0 @@
-interface:
-  display_name: "AI 面试题图解"
-  short_description: "将完整技术问答转为可复述、可审计的动漫知识插画卡片"
-  default_prompt: "Use $illustrate-ai-interview-questions to create and embed a memory-focused illustration for each selected interview question."
