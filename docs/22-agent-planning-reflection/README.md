@@ -18,6 +18,13 @@
 
 ### Q1: Copilot 和 Agent 的核心区别是什么？为什么需要规划和反思？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q01-copilot-vs-agent.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q01-copilot-vs-agent.webp" width="760" alt="22 模块 Q1 教学图：Copilot 和 Agent 的核心区别是什么？为什么需要规划和反思？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：为什么 Agent 需要规划和反思；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -49,6 +56,13 @@ LLM 本质是"下一个 Token 预测器"——概率性、无记忆、自主性�
 
 ### Q2: 什么是 Chain（链）和 Loop（环）的架构差异？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q02-chain-vs-loop.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q02-chain-vs-loop.webp" width="760" alt="22 模块 Q2 教学图：什么是 Chain（链）和 Loop（环）的架构差异？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Chain vs Loop 对比；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -92,6 +106,13 @@ Loop（Agent 架构）：
 
 ### Q3: ReAct 模式的核心原理是什么？它的三个致命缺陷是什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q03-react-limitations.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q03-react-limitations.webp" width="760" alt="22 模块 Q3 教学图：ReAct 模式的核心原理是什么？它的三个致命缺陷是什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：ReAct = Reason + Act（边想边做）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -126,6 +147,13 @@ Loop（Agent 架构）：
 
 ### Q4: 什么是 Plan-and-Solve？它和 ReAct 的核心区别是什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q04-plan-and-solve.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q04-plan-and-solve.webp" width="760" alt="22 模块 Q4 教学图：什么是 Plan-and-Solve？它和 ReAct 的核心区别是什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Plan-and-Solve = 先规划，再执行（解耦）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -162,6 +190,13 @@ Plan-and-Solve（先规划后执行）：
 
 ### Q5: 什么是 REWOO？它有哪些核心优势？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q05-rewoo.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q05-rewoo.webp" width="760" alt="22 模块 Q5 教学图：什么是 REWOO？它有哪些核心优势？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：REWOO = Reasoning Without Observation（不用观察的推理）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -196,6 +231,13 @@ REWOO：
 
 ### Q6: 什么是动态重规划？什么时候需要触发重规划？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q06-dynamic-replanning.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q06-dynamic-replanning.webp" width="760" alt="22 模块 Q6 教学图：什么是动态重规划？什么时候需要触发重规划？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：动态重规划 = 执行过程中发现计划失效，实时更新计划；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -231,6 +273,13 @@ def execute_with_replanning(goal):
 
 ### Q7: 什么是 Generator-Evaluator 架构？为什么需要反思？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q07-generator-evaluator.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q07-generator-evaluator.webp" width="760" alt="22 模块 Q7 教学图：什么是 Generator-Evaluator 架构？为什么需要反思？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Generator-Evaluator = 生成器-评估器 循环；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -266,6 +315,13 @@ def execute_with_replanning(goal):
 
 ### Q8: Reflexion 和普通反思有什么区别？它的记忆机制是什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q08-reflexion-memory.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q08-reflexion-memory.webp" width="760" alt="22 模块 Q8 教学图：Reflexion 和普通反思有什么区别？它的记忆机制是什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Reflexion = 带记忆的反思（跨任务学习）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -298,6 +354,13 @@ Reflexion（跨任务记忆）：
 
 ### Q9: 什么是 LATS？它和 Reflexion 有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q09-lats.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q09-lats.webp" width="760" alt="22 模块 Q9 教学图：什么是 LATS？它和 Reflexion 有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：LATS = Language Agent Tree Search（语言 Agent 树搜索）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -340,6 +403,13 @@ LATS 树结构：
 
 ### Q10: 如何设计一个具备"反思"能力的生产级 Agent？有哪些关键工程问题？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q10-production-reflection-agent.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q10-production-reflection-agent.webp" width="760" alt="22 模块 Q10 教学图：如何设计具备反思能力的生产级 Agent？有哪些关键工程问题？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Evaluator 本身也是 LLM，可能误判；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -378,6 +448,13 @@ LATS 树结构：
 
 ### Q11: Voyager 是什么？为什么"终身学习Agent"是2026年的重要突破？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q11-voyager-skill-library.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q11-voyager-skill-library.webp" width="760" alt="22 模块 Q11 教学图：Voyager 是什么？为什么终身学习 Agent 是 2026 年的重要突破？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Voyager = Minecraft 世界里的"终身学习 Agent"；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -436,6 +513,13 @@ Voyager：每次任务从技能库开始
 
 ### Q12: AutoGen v3 和 CrewAI 有什么区别？多 Agent 协作的"指挥官模式"是什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q12-autogen-crewai.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q12-autogen-crewai.webp" width="760" alt="22 模块 Q12 教学图：AutoGen v3 和 CrewAI 有什么区别？多 Agent 协作的指挥官模式是什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：AutoGen v3 = Microsoft 的多 Agent 框架（2026年最新）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -525,6 +609,13 @@ CrewAI 风格的"指挥官模式"：
 
 ### Q13: 什么是 Agent Memory 架构？Flat Vector、Episodic、Graph、Hybrid 四种架构各适合什么场景？2026年 Mem0/Zep/Letta/LOCOMO 有哪些新进展？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q13-agent-memory-architectures.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q13-agent-memory-architectures.webp" width="760" alt="22 模块 Q13 教学图：什么是 Agent Memory 架构？Flat Vector、Episodic、Graph、Hybrid 四种架构各适合什么场景？2026年 Mem0/Zep/Letta/LOCOMO 有哪些新进展？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：为什么 Agent 需要 Memory；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -732,6 +823,13 @@ Mem0 发布了论文《Building Production-Ready AI Agents with Scalable Long-Te
 
 ### Q14: ExACT 是什么？为什么"测试时计算扩展"是 2026 年 Agent 推理的核心方向？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q14-exact-test-time-compute.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q14-exact-test-time-compute.webp" width="760" alt="22 模块 Q14 教学图：ExACT 是什么？为什么测试时计算扩展是 2026 年 Agent 推理的核心方向？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：背景：训练时扩展 vs 测试时扩展；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -827,6 +925,13 @@ Exploratory Learning（ExACT 新范式）：
 
 ### Q15: 什么是 Tree of Thoughts（ToT）？它和 CoT、ReAct 有什么区别？什么时候树搜索得不偿失？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/22-agent-planning-reflection/q15-tree-of-thoughts.webp">
+    <img src="../../assets/illustrations/22-agent-planning-reflection/q15-tree-of-thoughts.webp" width="760" alt="22 模块 Q15 教学图：什么是 Tree of Thoughts（ToT）？它和 CoT、ReAct 有什么区别？什么时候树搜索得不偿失？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：ToT vs ReAct 核心区别；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 

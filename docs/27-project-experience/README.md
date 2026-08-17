@@ -23,6 +23,13 @@
 
 ### Q1: "请介绍一下你做过的RAG系统项目"
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q01-rag-project-story.webp">
+    <img src="../../assets/illustrations/27-project-experience/q01-rag-project-story.webp" width="760" alt="项目经验模块 Q1 教学图：完整讲述 RAG 系统项目">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：用基线、关键取舍和量化结果证明 RAG 项目价值；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 STAR回答模板</summary>
 
@@ -201,6 +208,13 @@ cache = RedisSemanticCache(
 
 ### Q2: "RAG系统中遇到的召回率低问题,怎么解决的?"
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q02-rag-low-recall.webp">
+    <img src="../../assets/illustrations/27-project-experience/q02-rag-low-recall.webp" width="760" alt="项目经验模块 Q2 教学图：定位并解决 RAG 召回率低问题">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先找正确证据在哪一层丢失，再修改对应环节；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -395,6 +409,13 @@ top5 = sorted(
 
 ### Q3: "介绍一下你做过的AI Agent项目"
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q03-agent-project-story.webp">
+    <img src="../../assets/illustrations/27-project-experience/q03-agent-project-story.webp" width="760" alt="项目经验模块 Q3 教学图：完整讲述 AI Agent 项目">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Agent 项目的价值在于可控地完成任务，而不是展示会思考；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 STAR回答模板</summary>
 
@@ -617,6 +638,13 @@ def execute_tool_with_retry(tool, params, max_retries=3):
 
 ### Q4: "你的项目如何降低成本的?具体优化了什么?"
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q04-ai-cost-optimization.webp">
+    <img src="../../assets/illustrations/27-project-experience/q04-ai-cost-optimization.webp" width="760" alt="项目经验模块 Q4 教学图：按成功任务优化 AI 系统成本">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：围绕每个成功任务优化总成本，而不是只盯单次模型价格；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 STAR回答模板</summary>
 
@@ -965,6 +993,13 @@ class SmartCache:
 
 ### Q5: "新产品上线,没有数据怎么办?如何冷启动?"
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q05-cold-start-data-flywheel.webp">
+    <img src="../../assets/illustrations/27-project-experience/q05-cold-start-data-flywheel.webp" width="760" alt="项目经验模块 Q5 教学图：用最小数据飞轮解决冷启动">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先用专家先验启动，再用可验证的真实反馈滚动变好；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 STAR回答模板</summary>
 
@@ -1473,6 +1508,13 @@ def handle_new_user(user):
 
 ### Q6: 如果让你设计一个企业级AI客服系统，你会怎么设计？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q06-enterprise-customer-service.webp">
+    <img src="../../assets/illustrations/27-project-experience/q06-enterprise-customer-service.webp" width="760" alt="27 模块 Q6 教学图：如果让你设计一个企业级AI客服系统，你会怎么设计？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：客服系统先分流，再基于证据回答，最后以人工接管兜底；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点（STAR框架）</summary>
 
@@ -1544,6 +1586,13 @@ class ConversationMemory:
 
 ### Q7: 你如何设计一个多模态RAG系统（图文检索）？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q07-multimodal-rag.webp">
+    <img src="../../assets/illustrations/27-project-experience/q07-multimodal-rag.webp" width="760" alt="27 模块 Q7 教学图：你如何设计一个多模态RAG系统（图文检索）？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：多模态 RAG 要统一检索语义，同时保留可定位的原始证据；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1621,6 +1670,13 @@ class MultimodalRAG:
 
 ### Q8: 如何设计一个企业级AI Agent平台（类似Coze/Dify）？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q08-agent-platform.webp">
+    <img src="../../assets/illustrations/27-project-experience/q08-agent-platform.webp" width="760" alt="27 模块 Q8 教学图：如何设计一个企业级AI Agent平台（类似Coze/Dify）？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：控制面管规则，执行面跑任务，观测与审计贯穿全程；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1713,6 +1769,13 @@ workflow:
 
 ### Q9: 你的 RAG 知识库是如何实现文档解析和内容提取的？PDF、Word、HTML 等不同格式如何处理？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q09-document-parsing.webp">
+    <img src="../../assets/illustrations/27-project-experience/q09-document-parsing.webp" width="760" alt="27 模块 Q9 教学图：你的 RAG 知识库是如何实现文档解析和内容提取的？PDF、Word、HTML 等不同格式如何处理？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：解析结果要结构正确、位置可追溯、质量可度量；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1829,6 +1892,13 @@ def extract_tables_with_camelot(pdf_path: str) -> list[str]:
 
 ### Q10: RAG 知识库如何处理文档更新和版本管理？用户修改了文档后，索引如何同步？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q10-rag-document-versioning.webp">
+    <img src="../../assets/illustrations/27-project-experience/q10-rag-document-versioning.webp" width="760" alt="27 模块 Q10 教学图：RAG 知识库如何处理文档更新和版本管理？用户修改了文档后，索引如何同步？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：用不可变版本构建，验证后原子切换，删除则全链路传播；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1986,6 +2056,13 @@ class KnowledgeBaseWatcher(FileSystemEventHandler):
 
 ### Q11: 讲一次 AI 功能上线失败或效果回退，你如何复盘？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q11-ai-failure-postmortem.webp">
+    <img src="../../assets/illustrations/27-project-experience/q11-ai-failure-postmortem.webp" width="760" alt="27 模块 Q11 教学图：讲一次 AI 功能上线失败或效果回退，你如何复盘？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：复盘终点不是解释事故，而是验证系统不会以同样方式失败；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2003,6 +2080,13 @@ class KnowledgeBaseWatcher(FileSystemEventHandler):
 
 ### Q12: 如何证明一个 AI 项目真的产生了业务价值？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q12-ai-business-value.webp">
+    <img src="../../assets/illustrations/27-project-experience/q12-ai-business-value.webp" width="760" alt="27 模块 Q12 教学图：如何证明一个 AI 项目真的产生了业务价值？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：价值必须相对基线、可归因，并扣除交付与运营成本；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2016,6 +2100,13 @@ class KnowledgeBaseWatcher(FileSystemEventHandler):
 
 ### Q13: 项目中什么时候应该不用 LLM，或者从 Agent 降级为 Workflow？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q13-when-not-to-use-llm.webp">
+    <img src="../../assets/illustrations/27-project-experience/q13-when-not-to-use-llm.webp" width="760" alt="27 模块 Q13 教学图：项目中什么时候应该不用 LLM，或者从 Agent 降级为 Workflow？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：从最简单可控方案起步，只有动态决策缺口才引入 Agent；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2029,6 +2120,13 @@ class KnowledgeBaseWatcher(FileSystemEventHandler):
 
 ### Q14: 垂直行业 AI 项目（如律所）从 0 到 1 搭 MVP，怎么抓大放小？哪些模块先行？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/27-project-experience/q14-vertical-ai-mvp.webp">
+    <img src="../../assets/illustrations/27-project-experience/q14-vertical-ai-mvp.webp" width="760" alt="27 模块 Q14 教学图：垂直行业 AI 项目（如律所）从 0 到 1 搭 MVP，怎么抓大放小？哪些模块先行？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：垂直 MVP 要用最小闭环验证真实工作流中的可持续价值；点击图片可查看原图。</sub></p>
 > 2026 年项目深挖高频题：面试官想听的不是“我用了 LangChain”，而是你面对一个资源有限的垂直行业场景，怎么选场景、拆模块、控风险。用“律所 AI”当例子讲通用方法，能同时体现行业理解 + 工程取舍。
 
 <details>

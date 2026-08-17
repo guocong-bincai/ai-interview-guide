@@ -41,6 +41,13 @@
 
 ### Q1: 如何建立 Agent 的可观测性体系？有哪些核心指标？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q01-observability-system.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q01-observability-system.webp" width="760" alt="23 模块 Q1 教学图：如何建立 Agent 的可观测性体系？有哪些核心指标？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：用 Trace ID 串联任务、模型和工具，再以日志、链路与指标共同解释结果；点击图片可查看原图。</sub></p>
 **核心指标分类：**
 
 | 类别 | 指标 | 采集方式 |
@@ -133,6 +140,13 @@ class ObservableAgent:
 ---
 
 ### Q2: 如何用 LangSmith 做 Agent 调试？有哪些高级用法？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q02-langsmith-debugging.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q02-langsmith-debugging.webp" width="760" alt="23 模块 Q2 教学图：如何用 LangSmith 做 Agent 调试？有哪些高级用法？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先用 Trace 定位单次链路，再用数据集与评测对比版本回归；点击图片可查看原图。</sub></p>
 **LangSmith 核心功能：**
 
 <details>
@@ -215,6 +229,13 @@ def compare_prompt_versions(prompt_v1: str, prompt_v2: str, test_set: list):
 ---
 
 ### Q3: 如何监控 Agent 的 Token 消耗和成本？有哪些优化策略？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q03-token-cost-governance.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q03-token-cost-governance.webp" width="760" alt="23 模块 Q3 教学图：如何监控 Agent 的 Token 消耗和成本？有哪些优化策略？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：成本先按租户、任务、模型与步骤归因，再优化缓存、路由、上下文和调用次数；点击图片可查看原图。</sub></p>
 **成本监控架构：**
 
 <details>
@@ -332,6 +353,13 @@ class SemanticCache:
 ---
 
 ### Q4: 如何检测 Agent 的行为异常？循环、幻觉、死循环如何发现？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q04-agent-anomaly-detection.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q04-agent-anomaly-detection.webp" width="760" alt="23 模块 Q4 教学图：如何检测 Agent 的行为异常？循环、幻觉、死循环如何发现？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：重复状态、预算耗尽、上下文膨胀和证据缺失都应转成可观测异常信号；点击图片可查看原图。</sub></p>
 **异常检测架构：**
 
 <details>
@@ -420,6 +448,13 @@ async def agent_run(query: str):
 ---
 
 ### Q5: 如何用 Arize Phoenix 做开源可观测性？和 LangSmith 有什么区别？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q05-phoenix-vs-langsmith.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q05-phoenix-vs-langsmith.webp" width="760" alt="23 模块 Q5 教学图：如何用 Arize Phoenix 做开源可观测性？和 LangSmith 有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Phoenix 适合用开放追踪串联检索分析、实验评测和生产问题定位；点击图片可查看原图。</sub></p>
 **Arize Phoenix 核心用法：**
 
 <details>
@@ -488,6 +523,13 @@ eval_df = run_evaluation(
 ---
 
 ### Q6: 如何设计 Agent 的 SLA 和告警规则？有哪些关键阈值？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q06-agent-sla-alerts.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q06-agent-sla-alerts.webp" width="760" alt="23 模块 Q6 教学图：如何设计 Agent 的 SLA 和告警规则？有哪些关键阈值？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：SLO 从用户任务定义成功、可用性和延迟，告警再围绕预算消耗分层触发；点击图片可查看原图。</sub></p>
 **SLA 设计：**
 
 <details>
@@ -583,6 +625,13 @@ groups:
 ---
 
 ### Q7: 如何做 Agent 的 A/B 测试？有哪些评估指标？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q07-agent-ab-testing.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q07-agent-ab-testing.webp" width="760" alt="23 模块 Q7 教学图：如何做 Agent 的 A/B 测试？有哪些评估指标？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：随机分流同类任务，固定版本与观测口径，用质量、延迟、成本和安全共同决策；点击图片可查看原图。</sub></p>
 **Agent A/B 测试架构：**
 
 <details>
@@ -691,6 +740,13 @@ if analysis["statistical_significance"]["significant"]:
 
 ### Q8: Agent 可观测性和传统微服务可观测性有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q08-agent-vs-service-observability.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q08-agent-vs-service-observability.webp" width="760" alt="23 模块 Q8 教学图：Agent 可观测性和传统微服务可观测性有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：传统微服务看请求，Agent 还要看规划、工具、状态和非确定性决策轨迹；点击图片可查看原图。</sub></p>
 **核心区别：**
 
 | 维度 | 传统微服务 | Agent 可观测性 |
@@ -769,6 +825,13 @@ tool_tree = build_tool_call_tree(run.tool_calls)
 ## 六、Voice Agent 评估新框架：EVA（Q9）
 
 ### Q9: EVA 框架是什么？为什么"Accuracy-Experience Tradeoff"是 Voice Agent 评估的核心发现？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q09-eva-voice-evaluation.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q09-eva-voice-evaluation.webp" width="760" alt="23 模块 Q9 教学图：EVA 框架是什么？为什么准确性与体验取舍是 Voice Agent 评估的核心发现？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：语音评测不能只看准确率，还要把时延、打断和对话体验纳入同一取舍；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -839,6 +902,13 @@ ServiceNow 2026年3月发布的 EVA，首次同时评估任务完成 + 对话体
 ## 七、Agent 可观测性平台选型
 
 ### Q10: Opik、Maxim AI、Latitude 三大2026新锐平台各有什么特点？如何选型？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q10-observability-platform-selection.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q10-observability-platform-selection.webp" width="760" alt="23 模块 Q10 教学图：Opik、Maxim AI、Latitude 三大2026新锐平台各有什么特点？如何选型？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：平台选型要对齐部署方式、追踪开放性、评测能力、团队工作流和总成本；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -929,6 +999,13 @@ Latitude方案：发现异常 → 直接创建Issue → 自动关联Agent执行�
 </details>
 
 ### Q11: 为什么说"Agent可观测性≠传统LLM监控"？Agent轨迹追踪有哪些独特挑战？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q11-agent-trajectory-tracing.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q11-agent-trajectory-tracing.webp" width="760" alt="23 模块 Q11 教学图：为什么 Agent 可观测性不等于传统 LLM 监控？轨迹追踪有哪些独特挑战？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Agent失败出现在多步骤因果链中，而非单次调用层；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1045,6 +1122,13 @@ ReAct Loop中的状态管理问题：
 </details>
 
 ### Q12: OpenTelemetry 在 Agent 系统中的完整接入实战
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q12-opentelemetry-agent.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q12-opentelemetry-agent.webp" width="760" alt="23 模块 Q12 教学图：OpenTelemetry 在 Agent 系统中的完整接入实战">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：用统一 Span 语义跨模型、工具和服务传播上下文，才能获得端到端可追溯性；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1200,6 +1284,13 @@ service:
 </details>
 
 ### Q13: Grafana Dashboard 设计：Agent 监控面板关键指标
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q13-grafana-agent-dashboard.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q13-grafana-agent-dashboard.webp" width="760" alt="23 模块 Q13 教学图：Grafana Dashboard 设计：Agent 监控面板关键指标">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：面板从业务结果下钻到模型、工具和成本，并让每个异常都能回到具体 Trace；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1328,6 +1419,13 @@ groups:
 </details>
 
 ### Q14: 多 Agent 系统的分布式追踪：TraceID 传递与关联
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q14-multi-agent-trace-propagation.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q14-multi-agent-trace-propagation.webp" width="760" alt="23 模块 Q14 教学图：多 Agent 系统的分布式追踪：TraceID 传递与关联">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Trace 上下文既要穿过同步 HTTP，也要随消息元数据跨越异步边界；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1449,6 +1547,13 @@ CREATE TABLE agent_task_children (
 </details>
 
 ### Q15: 生产环境 Agent 成本超支告警：预算控制最佳实践
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q15-agent-budget-control.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q15-agent-budget-control.webp" width="760" alt="23 模块 Q15 教学图：生产环境 Agent 成本超支告警：预算控制最佳实践">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：预算控制要先可归因，再用分层阈值告警，并为异常增长准备降级与止损动作；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1602,6 +1707,13 @@ class AgentBudgetController:
 
 
 ### Q16: SLA 违约复盘模板：从告警到根因分析的完整流程
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q16-sla-postmortem.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q16-sla-postmortem.webp" width="760" alt="23 模块 Q16 教学图：SLA 违约复盘模板：从告警到根因分析的完整流程">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：违约复盘从影响和时间线出发，跨数据、模型、工具与流程找根因，再验证纠正措施；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1762,6 +1874,13 @@ ORDER BY num_segments DESC;
 </details>
 
 ### Q17: Agent 日志结构化设计：如何让日志可搜索、可分析？
+
+<p align="center">
+  <a href="../../assets/illustrations/23-agent-observability/q17-structured-agent-logs.webp">
+    <img src="../../assets/illustrations/23-agent-observability/q17-structured-agent-logs.webp" width="760" alt="23 模块 Q17 教学图：Agent 日志结构化设计：如何让日志可搜索、可分析？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：统一事件字段、Trace 关联、输入输出摘要与错误分类，日志才可搜索、聚合和审计；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
