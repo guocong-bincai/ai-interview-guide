@@ -22,6 +22,13 @@
 
 ### Q1: 什么是多模态Agent？和单模态Agent有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q01-multimodal-agent.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q01-multimodal-agent.webp" width="760" alt="21 模块 Q1 教学图：什么是多模态Agent？和单模态Agent有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：多模态Agent = 能感知和理解多种模态（文本、图像、视频、音频）并采取行动的Agent；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -70,6 +77,13 @@
 
 ### Q2: 2026年主流多模态模型有哪些？各自特点是什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q02-model-selection.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q02-model-selection.webp" width="760" alt="21 模块 Q2 教学图：2026年主流多模态模型有哪些？各自特点是什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：2026年多模态模型格局；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -121,6 +135,13 @@ def select_multimodal_model(scenario):
 
 ### Q3: 视觉语言模型的核心架构是怎样的？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q03-vlm-architectures.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q03-vlm-architectures.webp" width="760" alt="21 模块 Q3 教学图：视觉语言模型的核心架构是怎样的？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：范式1：Cross-Attention架构（LLM as Controller）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -177,6 +198,13 @@ def select_multimodal_model(scenario):
 
 ### Q4: 什么是Perceiver Resampler？和线性投影比有什么优势？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q04-perceiver-resampler.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q04-perceiver-resampler.webp" width="760" alt="21 模块 Q4 教学图：什么是Perceiver Resampler？和线性投影比有什么优势？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：图像经过ViT后产生大量token（如14×14=196个）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -231,6 +259,13 @@ class PerceiverResampler(nn.Module):
 
 ### Q5: 多模态Agent如何处理多图输入？和单图有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q05-multi-image-fusion.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q05-multi-image-fusion.webp" width="760" alt="21 模块 Q5 教学图：多模态Agent如何处理多图输入？和单图有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：策略1：图像拼接（早期方案）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -296,6 +331,13 @@ def detect_ui_changes(before_img, after_img, spec):
 
 ### Q6: 如何设计视觉Agent的工具集？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q06-visual-agent-tools.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q06-visual-agent-tools.webp" width="760" alt="21 模块 Q6 教学图：如何设计视觉Agent的工具集？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：视觉Agent完整示例：Bug修复Agent；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -414,6 +456,13 @@ class VisualBugFixAgent:
 
 ### Q7: GPT-4V如何实现视觉理解？和纯文本LLM有什么本质区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q07-vision-to-llm.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q07-vision-to-llm.webp" width="760" alt="21 模块 Q7 教学图：GPT-4V如何实现视觉理解？和纯文本LLM有什么本质区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：GPT-4V的视觉理解流程；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -470,6 +519,13 @@ Step 4: LLM推理
 
 ### Q8: 如何设计一个发票识别+报销Agent？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q08-invoice-agent.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q08-invoice-agent.webp" width="760" alt="21 模块 Q8 教学图：如何设计一个发票识别+报销Agent？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：发票Agent的常见挑战；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -570,6 +626,13 @@ class InvoiceProcessingAgent:
 
 ### Q9: 多模态RAG和传统RAG有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q09-multimodal-rag.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q09-multimodal-rag.webp" width="760" alt="21 模块 Q9 教学图：多模态RAG和传统RAG有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：多模态文档解析Pipeline；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -647,6 +710,13 @@ def parse_multimodal_doc(pdf_path):
 
 ### Q10: 视频理解Agent的核心技术是什么？如何处理长视频？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q10-long-video-understanding.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q10-long-video-understanding.webp" width="760" alt="21 模块 Q10 教学图：视频理解Agent的核心技术是什么？如何处理长视频？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：视频Agent的典型应用；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -738,6 +808,13 @@ def process_long_video(video_path, max_frames=32):
 
 ### Q11: 如何设计一个企业级多模态Agent系统？架构是怎样的？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q11-enterprise-multimodal-agent.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q11-enterprise-multimodal-agent.webp" width="760" alt="21 模块 Q11 教学图：如何设计一个企业级多模态Agent系统？架构是怎样的？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：企业级多模态Agent架构；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -861,6 +938,13 @@ class ContentModerationAgent:
 
 ### Q12: NVIDIA Nemotron 3是什么？对多模态Agent生态有何影响？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q12-nemotron-agent-family.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q12-nemotron-agent-family.webp" width="760" alt="21 模块 Q12 教学图：NVIDIA Nemotron 3是什么？对多模态Agent生态有何影响？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Nemotron 3 = NVIDIA在GTC 2026发布的统一Agent模型系列；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -937,6 +1021,13 @@ class VoiceAgent:
 
 ### Q13: Qwen3-VL有哪些核心突破？和GPT-4V/Gemini 2.5 Pro如何对比？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q13-qwen3-vl-breakthroughs.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q13-qwen3-vl-breakthroughs.webp" width="760" alt="21 模块 Q13 教学图：Qwen3-VL有哪些核心突破？和GPT-4V/Gemini 2.5 Pro如何对比？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Qwen3-VL发布时间线；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1057,6 +1148,13 @@ response = qwen3_vl.chat(interleaved_content)
 
 ### Q14: 什么是GUI Agent？为什么2026年"Computer Use"成为多模态Agent的核心战场？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q14-gui-agent-loop.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q14-gui-agent-loop.webp" width="760" alt="21 模块 Q14 教学图：什么是 GUI Agent？为什么 2026 年 Computer Use 成为多模态 Agent 的核心战场？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：GUI Agent（图形界面智能体）是能够控制真实图形界面的AI系统——点击按钮、输入文本、拖拽元素、读取屏幕内容；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1181,6 +1279,13 @@ def computer_use_agent(task: str):
 
 ### Q15: Mobile-Agent-v3和AppAgent有什么区别？移动端GUI Agent有哪些独特挑战？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q15-mobile-gui-agent.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q15-mobile-gui-agent.webp" width="760" alt="21 模块 Q15 教学图：Mobile-Agent-v3和AppAgent有什么区别？移动端GUI Agent有哪些独特挑战？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：移动端GUI Agent的特殊性；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 

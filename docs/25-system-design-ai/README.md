@@ -34,6 +34,13 @@
 
 ### Q1: 设计一个百万 DAU 的 AI 客服系统（核心高频考题）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q01-million-dau-customer-service.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q01-million-dau-customer-service.webp" width="760" alt="25 模块 Q1 教学图：设计一个百万 DAU 的 AI 客服系统（核心高频考题）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先按意图与风险分流，再用证据和工具完成任务，并以置信度门控人工接管；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -226,6 +233,13 @@ class SessionManager:
 
 ### Q2: 设计企业知识库 RAG 平台（多租户 + 权限隔离）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q02-multitenant-rag-platform.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q02-multitenant-rag-platform.webp" width="760" alt="25 模块 Q2 教学图：设计企业知识库 RAG 平台（多租户 + 权限隔离）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：租户隔离和文档权限必须在检索前执行，答案引用也要可追溯到授权证据；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -423,6 +437,13 @@ class SensitiveDataFilter:
 
 ### Q3: 设计一个 LLM API 网关（限流 + 路由 + 计费）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q03-llm-api-gateway.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q03-llm-api-gateway.webp" width="760" alt="25 模块 Q3 教学图：设计一个 LLM API 网关（限流 + 路由 + 计费）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：网关统一鉴权、配额、路由和计费，并用降级与观测守住模型依赖的不确定性；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -689,6 +710,13 @@ class BillingService:
 
 ### Q4: 如何设计 AI 任务队列系统（避免超时、保证顺序）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q04-ai-task-queue.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q04-ai-task-queue.webp" width="760" alt="25 模块 Q4 教学图：如何设计 AI 任务队列系统（避免超时、保证顺序）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：任务状态要持久化，消费要幂等，重试有上限，失败进入死信并可恢复；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -959,6 +987,13 @@ class TimeoutHandler:
 
 ### Q5: 设计一个 AI 内容审核系统（实时 + 离线双链路）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q05-content-moderation-dual-path.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q05-content-moderation-dual-path.webp" width="760" alt="25 模块 Q5 教学图：设计一个 AI 内容审核系统（实时 + 离线双链路）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：实时链路快速拦截，离线链路深度复核，两者共享策略与反馈；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1267,6 +1302,13 @@ class HumanReviewQueue:
 
 ### Q6: 设计一个 LLM/RAG 评测平台
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q06-evaluation-platform.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q06-evaluation-platform.webp" width="760" alt="25 模块 Q6 教学图：设计一个 LLM/RAG 评测平台">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：核心对象包括 Dataset、Example、Experiment、Run、Trace、Evaluator 和 Annotation；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1287,6 +1329,13 @@ class HumanReviewQueue:
 
 ### Q7: 设计一个大规模企业文档摄取与索引平台
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q07-document-ingestion-platform.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q07-document-ingestion-platform.webp" width="760" alt="25 模块 Q7 教学图：设计一个大规模企业文档摄取与索引平台">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：将上传、病毒扫描、解析/OCR、标准化、分块、Embedding、索引和质量校验拆成可重试阶段；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1300,6 +1349,13 @@ class HumanReviewQueue:
 
 ### Q8: 设计一个实时语音 Agent
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q08-realtime-voice-agent.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q08-realtime-voice-agent.webp" width="760" alt="25 模块 Q8 教学图：设计一个实时语音 Agent">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：链路包括音频接入、VAD、流式 ASR、对话/工具、流式 TTS 和打断控制；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1315,6 +1371,13 @@ class HumanReviewQueue:
 
 ### Q9: AI 应用的四层架构（Agent + 工具层 + 数据层 + Harness）如何协同？怎么选型？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q09-four-layer-ai-architecture.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q09-four-layer-ai-architecture.webp" width="760" alt="25 模块 Q9 教学图：AI 应用的四层架构（Agent + 工具层 + 数据层 + Harness）如何协同？怎么选型？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Agent 管决策，工具管确定性动作，数据层管事实，Harness 负责约束与验证；点击图片可查看原图。</sub></p>
 > 2026 年面试高频架构题：面试官拿"你做的 AI 项目架构分几层、为什么这么分"来考察系统思维。社区流行的说法是"四层架构"，但这是经验总结、不是官方标准——能给出分层、还能说清每层什么时候可以砍，才是高分回答。
 
 <details>
@@ -1388,6 +1451,13 @@ Agent 有写操作/外发能力 → Harness 必须上：权限 + 人审 + 审计
 
 ### Q10: Agent 实时推理成本怎么控制？万级 QPS 的数据变更如何用大模型处理？（高级区分题）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/25-system-design-ai/q10-realtime-inference-cost.webp">
+    <img src="../../assets/illustrations/25-system-design-ai/q10-realtime-inference-cost.webp" width="760" alt="25 模块 Q10 教学图：Agent 实时推理成本怎么控制？万级 QPS 的数据变更如何用大模型处理？（高级区分题）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：高频变更先规则过滤、聚合去重和异步批处理，只把高价值不确定样本交给大模型；点击图片可查看原图。</sub></p>
 > 2026 年 AI Agent 岗最能刷人的题：面试官问的不是“你怎么调 RAG”，而是“万级 QPS 的写入变更，你不可能每条都调一次大模型吧？推理成本怎么控？”。这题考的是工程化落地能力——高级工程师和初级工程师的分水岭。
 
 <details>

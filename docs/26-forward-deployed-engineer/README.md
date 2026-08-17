@@ -37,6 +37,13 @@
 
 ### Q1: FDE 与后端工程师、解决方案架构师和咨询顾问有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q01-fde-role-boundary.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q01-fde-role-boundary.webp" width="760" alt="26 模块 Q1 教学图：FDE 与后端工程师、解决方案架构师和咨询顾问有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：FDE 是以客户业务结果为目标、仍然直接写生产代码的工程岗位；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -63,6 +70,13 @@ FDE 是以客户业务结果为目标、仍然直接写生产代码的工程岗�
 
 ### Q2: 为什么想做 FDE，而不是纯产品研发或纯解决方案岗位？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q02-fde-motivation.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q02-fde-motivation.webp" width="760" alt="26 模块 Q2 教学图：为什么想做 FDE，而不是纯产品研发或纯解决方案岗位？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：回答应证明岗位匹配，而不是说“FDE 更热门”；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -79,6 +93,13 @@ FDE 是以客户业务结果为目标、仍然直接写生产代码的工程岗�
 
 ### Q3: 客户第一次会议只说“我们想用大模型降本”，你会问什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q03-discovery-questions.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q03-discovery-questions.webp" width="760" alt="26 模块 Q3 教学图：客户第一次会议只说“我们想用大模型降本”，你会问什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先理解当前流程，不要直接推荐 Agent 或 RAG；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -99,6 +120,13 @@ FDE 是以客户业务结果为目标、仍然直接写生产代码的工程岗�
 
 ### Q4: 如何从多个候选场景中选择第一个 AI 试点？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q04-ai-pilot-selection.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q04-ai-pilot-selection.webp" width="760" alt="26 模块 Q4 教学图：如何从多个候选场景中选择第一个 AI 试点？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：可用一个透明的评分表，而不是选择“看起来最炫”的场景；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -120,6 +148,13 @@ FDE 是以客户业务结果为目标、仍然直接写生产代码的工程岗�
 
 ### Q5: 你如何定义 POC 成功，避免“Demo 很惊艳，上线没人用”？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q05-poc-success.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q05-poc-success.webp" width="760" alt="26 模块 Q5 教学图：你如何定义 POC 成功，避免“Demo 很惊艳，上线没人用”？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：业务结果：处理时间、一次解决率、人工接管量或其他相对当前基线的变化；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -136,6 +171,13 @@ FDE 是以客户业务结果为目标、仍然直接写生产代码的工程岗�
 
 ### Q6: 业务负责人、最终用户和安全团队的诉求互相冲突，怎么推进？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q06-stakeholder-conflict.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q06-stakeholder-conflict.webp" width="760" alt="26 模块 Q6 教学图：业务负责人、最终用户和安全团队的诉求互相冲突，怎么推进？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先把“意见冲突”转换成可见的约束和决策权；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -157,6 +199,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q7: 面对“我们的售后工单太慢”这类开放问题，你如何做 decomposition？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q07-problem-decomposition.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q07-problem-decomposition.webp" width="760" alt="26 模块 Q7 教学图：面对“我们的售后工单太慢”这类开放问题，你如何做 decomposition？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：不要从技术组件开始，先建立问题树；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -179,6 +228,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q8: 什么时候选择 Prompt、RAG、微调或 Agent？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q08-prompt-rag-finetune-agent.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q08-prompt-rag-finetune-agent.webp" width="760" alt="26 模块 Q8 教学图：什么时候选择 Prompt、RAG、微调或 Agent？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先按失败原因选择最小方案；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -195,6 +251,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q9: 客户需求应该做配置、客户扩展、核心产品能力，还是拒绝？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q09-feature-boundary.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q09-feature-boundary.webp" width="760" alt="26 模块 Q9 教学图：客户需求应该做配置、客户扩展、核心产品能力，还是拒绝？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：判断时还要考虑数据隔离、升级兼容、测试归属、故障域和谁长期维护；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -213,6 +276,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q10: 设计一个部署在客户 VPC、能访问内部知识和工单系统的企业 AI 助手。
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q10-vpc-enterprise-assistant.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q10-vpc-enterprise-assistant.webp" width="760" alt="26 模块 Q10 教学图：设计一个部署在客户 VPC、能访问内部知识和工单系统的企业 AI 助手。">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先确认用户、读写动作、数据分类、身份源、模型托管方式、峰值与恢复目标；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -243,6 +313,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q11: 如何把两周原型推进到可维护的生产系统？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q11-prototype-to-production.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q11-prototype-to-production.webp" width="760" alt="26 模块 Q11 教学图：如何把两周原型推进到可维护的生产系统？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：原型验证的是价值假设，生产化要补齐运行责任；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -262,6 +339,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q12: 客户数据来自多个旧系统，字段冲突、缺失且语义不一致，怎么处理？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q12-legacy-data-normalization.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q12-legacy-data-normalization.webp" width="760" alt="26 模块 Q12 教学图：客户数据来自多个旧系统，字段冲突、缺失且语义不一致，怎么处理？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：把数据问题当作产品问题，而不是只写 ETL；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -284,6 +368,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q13: 如何为客户的 AI 工作流设计评测体系？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q13-customer-ai-evaluation.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q13-customer-ai-evaluation.webp" width="760" alt="26 模块 Q13 教学图：如何为客户的 AI 工作流设计评测体系？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：评测应从业务任务向下拆，而不是只看模型平均分；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -301,6 +392,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q14: 多租户 RAG 怎样保证文档权限不会泄漏？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q14-multitenant-rag-permissions.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q14-multitenant-rag-permissions.webp" width="760" alt="26 模块 Q14 教学图：多租户 RAG 怎样保证文档权限不会泄漏？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：权限必须在检索阶段强制执行，不能检索后再让模型“不要引用”；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -320,6 +418,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q15: 高风险 Agent 如何控制幻觉和错误操作？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q15-high-risk-agent-controls.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q15-high-risk-agent-controls.webp" width="760" alt="26 模块 Q15 教学图：高风险 Agent 如何控制幻觉和错误操作？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：不要承诺“消除幻觉”，应限制模型能造成的影响；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -339,6 +444,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q16: 客户同时要求更高质量、更低延迟和更低成本，怎么取舍？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q16-quality-latency-cost.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q16-quality-latency-cost.webp" width="760" alt="26 模块 Q16 教学图：客户同时要求更高质量、更低延迟和更低成本，怎么取舍？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先把三个目标变成带优先级的约束，例如关键任务的最低质量门槛、用户可接受的 P95 和单任务成本上限；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -352,6 +464,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q17: 上线后应该怎样观测和定位 AI 系统问题？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q17-production-observability.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q17-production-observability.webp" width="760" alt="26 模块 Q17 教学图：上线后应该怎样观测和定位 AI 系统问题？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：需要把一次用户任务关联成端到端 Trace：请求分类 → 检索 → 模型 → 工具 → 最终状态 → 用户反馈；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -371,6 +490,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q18: 模型或 Prompt 升级时，如何避免客户效果回退？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q18-model-upgrade-regression.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q18-model-upgrade-regression.webp" width="760" alt="26 模块 Q18 教学图：模型或 Prompt 升级时，如何避免客户效果回退？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：把模型、Prompt、工具定义、检索配置和安全策略都视为版本化依赖；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -384,6 +510,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q19: 客户要求本地或混合云部署，你会重点确认什么？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q19-onprem-hybrid-cloud.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q19-onprem-hybrid-cloud.webp" width="760" alt="26 模块 Q19 教学图：客户要求本地或混合云部署，你会重点确认什么？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：网络：是否隔离、允许哪些出口、代理和证书如何管理；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -405,6 +538,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q20: 如何在短时间内理解一个陌生代码库并完成修改？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q20-understand-codebase.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q20-understand-codebase.webp" width="760" alt="26 模块 Q20 教学图：如何在短时间内理解一个陌生代码库并完成修改？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先建立执行路径，而不是从第一行开始读；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -423,6 +563,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q21: 客户正在旁边等待，生产集成突然失败，你如何排查？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q21-production-debugging.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q21-production-debugging.webp" width="760" alt="26 模块 Q21 教学图：客户正在旁边等待，生产集成突然失败，你如何排查？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：确认影响范围、开始时间、近期变更和数据安全风险；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -441,6 +588,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q22: 实现过程中客户不断改变需求，你会怎样处理？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q22-changing-requirements.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q22-changing-requirements.webp" width="760" alt="26 模块 Q22 教学图：实现过程中客户不断改变需求，你会怎样处理？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先区分三种变化：对原需求的澄清、外部约束变化、真正新增范围；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -454,6 +608,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q23: 设计并实现一个接收重复事件的数据摄取接口，怎样保证结果可靠？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q23-idempotent-event-ingestion.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q23-idempotent-event-ingestion.webp" width="760" alt="26 模块 Q23 教学图：设计并实现一个接收重复事件的数据摄取接口，怎样保证结果可靠？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先澄清事件是否有稳定 ID、是否允许乱序、更新语义、吞吐、保留期和下游一致性要求；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -474,6 +635,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q24: 编写企业 API 同步器时，如何处理分页、限流和部分失败？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q24-enterprise-api-sync.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q24-enterprise-api-sync.webp" width="760" alt="26 模块 Q24 教学图：编写企业 API 同步器时，如何处理分页、限流和部分失败？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：使用服务端 cursor，不假设页码在同步期间稳定；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -494,6 +662,13 @@ FDE 不应绕过安全团队，也不应把所有分歧无限上升。好的回�
 
 ### Q25: 如何用 SQL 快速验证客户说的“最近活跃用户下降”？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q25-sql-active-users.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q25-sql-active-users.webp" width="760" alt="26 模块 Q25 教学图：如何用 SQL 快速验证客户说的“最近活跃用户下降”？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：不要直接写查询；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -523,6 +698,13 @@ ORDER BY 1;
 
 ### Q26: 如何平衡一次性客户定制与可复用平台能力？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q26-customization-vs-platform.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q26-customization-vs-platform.webp" width="760" alt="26 模块 Q26 教学图：如何平衡一次性客户定制与可复用平台能力？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：使用“先隔离、再验证、后晋升”的策略；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -539,6 +721,13 @@ ORDER BY 1;
 
 ### Q27: 销售已经向客户承诺了一个你认为无法按期安全交付的功能，怎么办？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q27-unsafe-sales-commitment.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q27-unsafe-sales-commitment.webp" width="760" alt="26 模块 Q27 教学图：销售已经向客户承诺了一个你认为无法按期安全交付的功能，怎么办？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先私下与销售核对承诺原文、客户真正目标、日期来源和商业影响，不在客户会议上互相否定；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -552,6 +741,13 @@ ORDER BY 1;
 
 ### Q28: 技术指标达标但用户采用率低，你会怎么办？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q28-low-adoption.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q28-low-adoption.webp" width="760" alt="26 模块 Q28 教学图：技术指标达标但用户采用率低，你会怎么办？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先观察真实工作流和漏斗：谁被邀请、谁首次成功、在哪一步退出、是否回到旧工具；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -565,6 +761,13 @@ ORDER BY 1;
 
 ### Q29: 如何向业务高管解释模型能力和风险，而不堆技术术语？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q29-executive-ai-communication.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q29-executive-ai-communication.webp" width="760" alt="26 模块 Q29 教学图：如何向业务高管解释模型能力和风险，而不堆技术术语？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：采用“决策—证据—风险—下一步”的结构；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -582,6 +785,13 @@ ORDER BY 1;
 
 ### Q30: 请讲一个你在模糊、高压项目中承担端到端责任的经历。
 
+
+<p align="center">
+  <a href="../../assets/illustrations/26-forward-deployed-engineer/q30-end-to-end-ownership.webp">
+    <img src="../../assets/illustrations/26-forward-deployed-engineer/q30-end-to-end-ownership.webp" width="760" alt="26 模块 Q30 教学图：请讲一个你在模糊、高压项目中承担端到端责任的经历。">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：使用 STAR，但重点放在判断过程；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 

@@ -57,7 +57,7 @@
     </td>
     <td width="50%" valign="top">
       <h3>🧪 内容可以持续校验</h3>
-      <p>599 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
+      <p>619 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
     </td>
   </tr>
 </table>
@@ -103,7 +103,7 @@
   </tr>
 </table>
 
-<p align="center"><b>01–20 共 20 个核心专题、490 道题，现已全部完成逐题配图。</b></p>
+<p align="center"><b>01–28 共 28 个专题、619 道题，现已全部完成逐题配图。</b></p>
 
 <p align="center">
   <a href="docs/01-basic-concepts/">01 LLM 基础</a> ·
@@ -125,7 +125,15 @@
   <a href="docs/17-ai-coding-tools/">17 AI 编程工具</a> ·
   <a href="docs/18-big-tech-interview-questions/">18 大厂面试题</a> ·
   <a href="docs/19-inference-frameworks/">19 推理框架</a> ·
-  <a href="docs/20-rag-advanced-optimization/">20 RAG 高级优化</a>
+  <a href="docs/20-rag-advanced-optimization/">20 RAG 高级优化</a><br>
+  <a href="docs/21-multimodal-agents/">21 多模态 Agent</a> ·
+  <a href="docs/22-agent-planning-reflection/">22 规划与反思</a> ·
+  <a href="docs/23-agent-observability/">23 Agent 可观测性</a> ·
+  <a href="docs/24-python-engineering/">24 Python 工程</a><br>
+  <a href="docs/25-system-design-ai/">25 AI 系统设计</a> ·
+  <a href="docs/26-forward-deployed-engineer/">26 FDE</a> ·
+  <a href="docs/27-project-experience/">27 项目经验</a> ·
+  <a href="docs/28-test-harness-evaluation/">28 测试 Harness</a>
 </p>
 
 <a id="quick-start" name="quick-start"></a>
@@ -233,10 +241,10 @@ flowchart LR
 
 ## 📚 题库导航
 
-共 **28 个专题、599 道题**。点击分类展开完整目录。
+共 **28 个专题、619 道题**。点击分类展开完整目录。
 
 <details open>
-<summary><b>🧠 基础与模型</b> · 6 个专题 / 141 道题</summary>
+<summary><b>🧠 基础与模型</b> · 6 个专题 / 142 道题</summary>
 <br>
 
 - [01 · LLM 基础](docs/01-basic-concepts/) — Token、解码、Embedding、训练阶段、模型结构基础
@@ -249,7 +257,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🔎 RAG 与检索</b> · 3 个专题 / 62 道题</summary>
+<summary><b>🔎 RAG 与检索</b> · 3 个专题 / 64 道题</summary>
 <br>
 
 - [03 · RAG 系统](docs/03-rag-system/) — 文档处理、检索、生成与常见问题
@@ -259,7 +267,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🤖 Agent 与协议</b> · 5 个专题 / 127 道题</summary>
+<summary><b>🤖 Agent 与协议</b> · 5 个专题 / 128 道题</summary>
 <br>
 
 - [05 · Agent 基础](docs/05-ai-agent-basics/) — 工具调用、状态、记忆、循环与人工确认
@@ -271,7 +279,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 137 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 134 道题</summary>
 <br>
 
 - [09 · 安全与评估](docs/09-ai-safety-evaluation/) — 内容安全、Prompt 注入、隐私、红队和评测
@@ -285,7 +293,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🔭 多模态与前沿方向</b> · 4 个专题 / 99 道题</summary>
+<summary><b>🔭 多模态与前沿方向</b> · 4 个专题 / 102 道题</summary>
 <br>
 
 - [11 · 多模态 AI](docs/11-multimodal-ai/) — 图像、音频、视频与多模态检索
@@ -296,7 +304,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>💼 面试准备</b> · 3 个专题 / 28 道结构化训练题</summary>
+<summary><b>💼 面试准备</b> · 3 个专题 / 49 道结构化训练题</summary>
 <br>
 
 - [16 · 简历与面试技巧](docs/16-resume-interview-tips/) — 简历、项目表达、行为面试与追问

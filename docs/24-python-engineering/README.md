@@ -34,6 +34,13 @@
 
 ### Q1: Python `asyncio` / `async-await` 在 AI 应用中的最佳实践？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q01-asyncio-best-practices.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q01-asyncio-best-practices.webp" width="760" alt="24 模块 Q1 教学图：Python asyncio / async-await 在 AI 应用中的最佳实践？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：为什么 AI 应用需要 asyncio；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -153,6 +160,13 @@ class AsyncLLMClient:
 
 ### Q2: Pydantic v2 在 LLM 结构化输出中的用法与原理？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q02-pydantic-structured-output.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q02-pydantic-structured-output.webp" width="760" alt="24 模块 Q2 教学图：Pydantic v2 在 LLM 结构化输出中的用法与原理？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：为什么 LLM 需要 Pydantic；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -270,6 +284,13 @@ print(config.model_dump_json())
 
 ### Q3: 如何用 Python 实现健壮的 LLM 重试机制（含指数退避）？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q03-llm-retry-backoff.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q03-llm-retry-backoff.webp" width="760" alt="24 模块 Q3 教学图：如何用 Python 实现健壮的 LLM 重试机制（含指数退避）？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：为什么 LLM 调用需要重试；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -459,6 +480,13 @@ async def safe_chat(prompt: str) -> str:
 
 ### Q4: FastAPI 如何实现流式 SSE 接口？和 WebSocket 有何区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q04-sse-vs-websocket.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q04-sse-vs-websocket.webp" width="760" alt="24 模块 Q4 教学图：FastAPI 如何实现流式 SSE 接口？和 WebSocket 有何区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：SSE vs WebSocket 核心区别；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -626,6 +654,13 @@ async def websocket_chat(websocket: WebSocket):
 
 ### Q5: Python GIL 对 AI 应用的影响？如何用多进程规避？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q05-python-gil-concurrency.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q05-python-gil-concurrency.webp" width="760" alt="24 模块 Q5 教学图：Python GIL 对 AI 应用的影响？如何用多进程规避？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Global Interpreter Lock（全局解释器锁）；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -775,6 +810,13 @@ with EmbeddingWorkerPool("BAAI/bge-large") as pool:
 
 ### Q6: 如何用 pytest + Mock 测试一个 LLM 应用？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q06-pytest-llm-testing.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q06-pytest-llm-testing.webp" width="760" alt="24 模块 Q6 教学图：如何用 pytest + Mock 测试一个 LLM 应用？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：LLM API 调用有两个问题；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1003,6 +1045,13 @@ def test_llm_quality_regression():
 
 ### Q7: Python 内存管理与 AI 应用的 OOM 问题如何排查？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q07-python-oom-diagnosis.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q07-python-oom-diagnosis.webp" width="760" alt="24 模块 Q7 教学图：Python 内存管理与 AI 应用的 OOM 问题如何排查？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：AI 应用的 OOM 四大场景；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1178,6 +1227,13 @@ def monitor_gpu_memory():
 
 ### Q8: 如何用 `asyncio` + `httpx` 批量并发调用 LLM API？生产级的错误处理、重试、超时、并发控制怎么做？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q08-httpx-concurrent-llm.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q08-httpx-concurrent-llm.webp" width="760" alt="24 模块 Q8 教学图：如何用 asyncio + httpx 批量并发调用 LLM API？生产级的错误处理、重试、超时、并发控制怎么做？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：为什么需要 asyncio + httpx；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1381,6 +1437,13 @@ async def main():
 
 ### Q9: asyncio 中如何正确处理超时、取消和背压？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q09-asyncio-timeout-cancel-backpressure.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q09-asyncio-timeout-cancel-backpressure.webp" width="760" alt="24 模块 Q9 教学图：asyncio 中如何正确处理超时、取消和背压？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：超时是调用方的时间预算，取消需要沿任务树传播，背压用于限制系统接受工作的速度；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1394,6 +1457,13 @@ async def main():
 
 ### Q10: 如何用 Protocol 和依赖注入让 LLM 客户端可测试、可替换？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q10-protocol-dependency-injection.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q10-protocol-dependency-injection.webp" width="760" alt="24 模块 Q10 教学图：如何用 Protocol 和依赖注入让 LLM 客户端可测试、可替换？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：业务层依赖一个窄接口，例如 generate(request) - response，而不是直接依赖某家 SDK；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1407,6 +1477,13 @@ async def main():
 
 ### Q11: AI 服务的配置、密钥和结构化日志应该怎么设计？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q11-config-secrets-logs.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q11-config-secrets-logs.webp" width="760" alt="24 模块 Q11 教学图：AI 服务的配置、密钥和结构化日志应该怎么设计？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：配置按环境加载并在启动时校验；密钥来自 Secret Manager 或环境注入，不能写入仓库或打印；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1420,6 +1497,13 @@ async def main():
 
 ### Q12: 如何定位 Python AI 服务的内存增长和事件循环阻塞？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/24-python-engineering/q12-python-memory-event-loop.webp">
+    <img src="../../assets/illustrations/24-python-engineering/q12-python-memory-event-loop.webp" width="760" alt="24 模块 Q12 教学图：如何定位 Python AI 服务的内存增长和事件循环阻塞？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先区分 Python 堆、原生库/GPU、连接池和缓存；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
 

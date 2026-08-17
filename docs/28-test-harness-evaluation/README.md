@@ -44,6 +44,13 @@
 
 ### Q1: 什么是 test harness？和测试脚本有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q01-test-harness.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q01-test-harness.webp" width="760" alt="28 模块 Q1 教学图：什么是 test harness？和测试脚本有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Harness 把环境、执行和证据固化成可重复系统；点击图片可查看原图。</sub></p>
 **❌ 错误回答：** 就是写测试的代码。
 
 **✅ 参考要点：**
@@ -59,6 +66,13 @@
 
 ### Q2: 如何设计一个可重复运行的 harness？（系统设计题）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q02-repeatable-harness.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q02-repeatable-harness.webp" width="760" alt="28 模块 Q2 教学图：如何设计一个可重复运行的 harness？（系统设计题）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：锁输入、锁环境、控非确定性，才能得到可比较结果；点击图片可查看原图。</sub></p>
 按这四条答基本满分：
 
 1. **确定性：** 固定随机种子、固定时区、固定 locale，禁止依赖"当前时间"做断言（用注入的 Clock）；
@@ -75,6 +89,13 @@
 
 ### Q3: fixture 的生命周期和作用域怎么控制？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q03-fixture-lifecycle.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q03-fixture-lifecycle.webp" width="760" alt="28 模块 Q3 教学图：fixture 的生命周期和作用域怎么控制？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Fixture 默认取最小作用域，只有昂贵且安全只读时才扩大共享；点击图片可查看原图。</sub></p>
 **生命周期：** setup（准备）→ 执行 → teardown（清理）。
 
 - pytest 用 `yield` 实现"执行前准备 + 执行后清理"（yield 前是 setup，yield 后是 teardown）；
@@ -92,6 +113,13 @@
 
 ### Q4: mock、stub、fake、spy 的区别？什么时候用哪个？（必考）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q04-test-doubles.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q04-test-doubles.webp" width="760" alt="28 模块 Q4 教学图：mock、stub、fake、spy 的区别？什么时候用哪个？（必考）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先明确要控制返回、替代实现还是观察交互，再选择测试替身；点击图片可查看原图。</sub></p>
 > 就是开场那道题，必须能脱口而出。
 
 | 替身 | 行为 | 典型用途 |
@@ -115,6 +143,13 @@
 
 ### Q5: 测试里依赖数据库/网络/时间/文件，怎么隔离？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q05-dependency-isolation.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q05-dependency-isolation.webp" width="760" alt="28 模块 Q5 教学图：测试里依赖数据库/网络/时间/文件，怎么隔离？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：把外部依赖收口成端口，测试注入可控适配器；点击图片可查看原图。</sub></p>
 | 外部依赖 | 隔离手段 |
 |----------|----------|
 | 数据库 | 内存库（SQLite `:memory:` / H2）+ 测试容器（Testcontainers）跑真实引擎 |
@@ -131,6 +166,13 @@
 
 ### Q6: 测试经常随机挂（flaky），怎么治理？（高频追问，体现工程经验）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q06-flaky-test-governance.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q06-flaky-test-governance.webp" width="760" alt="28 模块 Q6 教学图：测试经常随机挂（flaky），怎么治理？（高频追问，体现工程经验）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Flaky 是系统缺陷，必须可追踪、可归因并限期消除；点击图片可查看原图。</sub></p>
 1. **先复现：** 记录失败时的完整上下文（seed、数据、顺序）；
 2. **找根因：** 90% 是共享状态污染（全局变量、静态单例、缓存未清理）、时序依赖（sleep、异步没等）、外部依赖抖动；
 3. **三板斧：** 隔离数据、注入时钟、替身代替真实网络；
@@ -145,6 +187,13 @@
 
 ### Q7: 接手一堆没有测试的老代码，怎么补 harness？（考察落地能力）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q07-legacy-code-harness.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q07-legacy-code-harness.webp" width="760" alt="28 模块 Q7 教学图：接手一堆没有测试的老代码，怎么补 harness？（考察落地能力）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先用特征测试建立保护缝，再沿接缝小步重构；点击图片可查看原图。</sub></p>
 1. **从入口层（接口/控制器）开始，** 先做"冒烟 harness"保证能跑；
 2. **用特征测试（characterization test）：** 记录当前行为，断言"行为不变"，重构时兜底——不知道对不对，先锁住"不变得更糟"；
 3. **先补最高风险路径（支付、鉴权、核心算法），** 不要追求全覆盖；
@@ -158,6 +207,13 @@
 
 ### Q8: 集成测试的 harness 怎么设计？真实依赖还是替身？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q08-integration-test-harness.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q08-integration-test-harness.webp" width="760" alt="28 模块 Q8 教学图：集成测试的 harness 怎么设计？真实依赖还是替身？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：关键边界用真实依赖，其余用可靠替身，分层获得速度与信心；点击图片可查看原图。</sub></p>
 **原则：** 越接近真实越好，但用成本平衡。
 
 **分层做法：**
@@ -178,6 +234,13 @@
 
 ### Q9: 怎么衡量一个 harness 本身好不好？（考察质量意识）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q09-harness-quality.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q09-harness-quality.webp" width="760" alt="28 模块 Q9 教学图：怎么衡量一个 harness 本身好不好？（考察质量意识）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：好 Harness 以低成本给出稳定、可信且可行动的反馈；点击图片可查看原图。</sub></p>
 **三个核心指标：**
 
 | 指标 | 目标（示例/常见经验值） | 说明 |
@@ -194,6 +257,13 @@
 
 ### Q10: 参数化测试和数据驱动怎么落地？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q10-parameterized-testing.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q10-parameterized-testing.webp" width="760" alt="28 模块 Q10 教学图：参数化测试和数据驱动怎么落地？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：参数表描述变化，测试函数只表达稳定行为；点击图片可查看原图。</sub></p>
 **目的：** 同一段逻辑，多组输入输出，一组用例。
 
 **落地方式：**
@@ -265,6 +335,13 @@ func TestCalculatePrice(t *testing.T) {
 
 ### Q11: 你的 RAG 项目效果怎么评测？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q11-rag-eval-harness.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q11-rag-eval-harness.webp" width="760" alt="28 模块 Q11 教学图：你的 RAG 项目效果怎么评测？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先评证据有没有找对，再评答案是否基于证据说对；点击图片可查看原图。</sub></p>
 **先分两层：** 检索层（top-k 命中率、召回率）+ 生成层（忠实度、相关性）。
 
 **工具点名：** RAGAS 四个指标 + 自己标注的评测集。
@@ -280,6 +357,13 @@ func TestCalculatePrice(t *testing.T) {
 
 ### Q12: 离线评测和线上评测有什么区别？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q12-offline-vs-online-eval.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q12-offline-vs-online-eval.webp" width="760" alt="28 模块 Q12 教学图：离线评测和线上评测有什么区别？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：离线守住回归，线上验证价值，真实失败再反哺离线集；点击图片可查看原图。</sub></p>
 | 维度 | 离线评测 | 线上评测 |
 |------|----------|----------|
 | 速度/成本 | 快、便宜、可重复 | 慢、贵、真实 |
@@ -295,6 +379,13 @@ func TestCalculatePrice(t *testing.T) {
 
 ### Q13: 怎么建评测集？怎么防止评测集被"背题"（过拟合/数据泄漏）？
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q13-eval-set-leakage.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q13-eval-set-leakage.webp" width="760" alt="28 模块 Q13 教学图：如何建设评测集并防止过拟合与数据泄漏？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：按来源和时间隔离，保留盲测集，并持续审计污染；点击图片可查看原图。</sub></p>
 **防背题四招：**
 1. 开发集和测试集严格分开，测试集只在最终验证时用一次；
 2. 定期从线上抽新问题加入测试集，让评测集"长新题"；
@@ -307,6 +398,13 @@ func TestCalculatePrice(t *testing.T) {
 
 ### Q14: 离线评测分高，线上效果却变差了，怎么排查？（经典"评测跷跷板"）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q14-eval-seesaw.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q14-eval-seesaw.webp" width="760" alt="28 模块 Q14 教学图：离线评测高分但线上效果变差时如何排查评测跷跷板？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：先对齐线上输入、运行链路和业务目标，再解释评测跷跷板；点击图片可查看原图。</sub></p>
 > "跷跷板效应"的系统化处理见 [20 · RAG 高级优化 Q27](../20-rag-advanced-optimization/)，本节给排查清单。
 
 **排查顺序：**
@@ -320,6 +418,13 @@ func TestCalculatePrice(t *testing.T) {
 
 ### Q15: Agent 类应用（会调工具的）怎么评测？（最前沿，答出来直接拉开差距）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q15-agent-trajectory-eval.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q15-agent-trajectory-eval.webp" width="760" alt="28 模块 Q15 教学图：Agent 类应用（会调工具的）怎么评测？（最前沿，答出来直接拉开差距）">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：Agent 既要评结果，也要评轨迹、成本与真实世界副作用；点击图片可查看原图。</sub></p>
 **不能只看最终答案，要看轨迹：** 工具调对了没、参数传对了没、失败后有没有兜底。
 
 **评测维度：** 工具调用准确率、多轮任务完成率、兜底成功率、成本。
@@ -346,6 +451,13 @@ func TestCalculatePrice(t *testing.T) {
 
 ### Q16: Harness 作为 Agent 的"安全沙箱"怎么理解？权限管控和自动化评测如何落地？（2026 高频）
 
+
+<p align="center">
+  <a href="../../assets/illustrations/28-test-harness-evaluation/q16-agent-safety-harness.webp">
+    <img src="../../assets/illustrations/28-test-harness-evaluation/q16-agent-safety-harness.webp" width="760" alt="28 模块 Q16 教学图：Harness 如何作为 Agent 安全沙箱落地权限管控与自动化评测？">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：用沙箱限制行动，用验证器评结果，用审计支持复现；点击图片可查看原图。</sub></p>
 > 面 Agent 岗最容易被追问的一题：Agent 有工具调用能力后，Harness 就不只是"测试台"了，它还承担"安全边界"职责。能讲清"安全沙箱 = 权限管控 + 自动化评测"双重定位的候选人，直接和只会写单测的人拉开差距。
 
 <details>
