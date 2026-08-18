@@ -2,8 +2,8 @@
 
 > **面试优先顺序（通用 AI 应用开发岗位）**：各公司基础原理、RAG/Agent 项目深挖、系统排障与成本治理题。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
-> **来源说明:** 根据公开社区面经整理，目前多数题目缺少可核验的岗位、轮次、日期和原始链接，因此不能全部视为已证实的公司真题。
-> **更新:** 2026-03-10
+> **来源说明:** 根据公开社区面经整理，目前多数题目缺少可核验的岗位、轮次、日期和原始链接，因此不能全部视为已证实的公司真题。第七节保留了原始图文链接，但仍属于候选人的公开自述，并非企业官方题库。
+> **更新:** 2026-08-18
 > **使用方式:** 将公司标签视为分类线索，优先学习稳定考点；不要据此推断某家公司一定会问。
 
 ## 📋 目录
@@ -14,6 +14,7 @@
 4. [百度](#四百度)
 5. [通用准备建议](#五通用准备建议)
 6. [腾讯](#六腾讯-ai-应用工程师常见考点)
+7. [石头科技 AI Agent 工程题（公开面经精编）](#七石头科技-ai-agent-工程题公开面经精编)
 
 ---
 
@@ -2813,5 +2814,211 @@ dashboard:
 
 **面试话术：**
 > "我的模型监控体系分四层：① 基础设施层（延迟/吞吐量/错误率）；② 模型质量层（幻觉率/准确率）；③ 业务层（任务完成率/用户满意度）；④ 安全层（敏感词/注入攻击）。告警规则按Severity分级：P1服务不可用立即通知，SRE 5分钟内响应；P2延迟过高15分钟响应；P3质量下降1小时响应。最重要的是成本告警——我设置预计日成本>80%阈值自动通知，防止月底账单爆表。"
+
+</details>
+
+---
+
+## 七、石头科技 AI Agent 工程题（公开面经精编）
+
+> **来源与可信度：** 以下考点识别自程序员峰哥于 2026-08-16 发布的[《石头科技 AI Agent 三轮拷打》图文面经](https://v.douyin.com/PkM8o21Lg4k/)。它是候选人的公开面试复盘，能够证明“有人这样复盘过”，但未经企业官方核验，不代表固定题库或招聘承诺。
+
+原帖包含自我介绍、HR 问题以及大量已有专题覆盖的 RAG、ReAct、异步并发、MCP、重排和可观测性问题。本节不机械搬运，只保留新增价值最高的工程题，并按复现频率与迁移价值排序：
+
+| 优先级 | 本节处理 | 原帖中的代表考点 |
+|---|---|---|
+| 高频 | 新增 2 道主答案 | LangGraph 状态恢复、Harness Replay |
+| 中高频 | 新增 2 道系统设计 | 智能硬件 Agent、Java 与 Python Agent 服务治理 |
+| 已有主答案 | 不重复作答 | RAG 全链路、RRF、Rerank、Embedding、ReAct、MCP、工具重试、Prompt Injection |
+| 不纳入题库 | 仅作为面试流程参考 | 自我介绍、离职原因、薪资和到岗时间等 HR 问题 |
+
+### 石头科技 Q1：LangGraph State、Checkpoint 与 thread_id 如何设计？中断后怎样准确恢复？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q19-stone-langgraph-state-checkpoint.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q19-stone-langgraph-state-checkpoint.webp" alt="LangGraph共享状态、Checkpoint时间线与断点恢复图解" width="760"></a>
+
+> 🧠 **图解记忆：** State 管节点协作，Checkpoint 管执行恢复，`thread_id` 管一条执行线；跨会话长期记忆要另存 Store 或业务数据库。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：** State 是节点间的显式数据契约；Checkpoint 是图在每个步骤后的状态快照；`thread_id` 是一条会话或任务执行线的持久化标识。只把下游节点、恢复、审计真正需要的数据放进共享 State，节点内部临时变量留在节点内；并行节点可能同时写同一字段时必须定义 reducer。恢复时由服务端完成用户与 `thread_id` 的授权映射，再用同一 `thread_id`，必要时指定 `checkpoint_id` 继续执行。外部写操作还要有幂等键，因为状态恢复不等于撤销或去重现实世界的副作用。
+
+**State 应该放什么？**
+
+| 数据类型 | 是否进入共享 State | 示例 |
+|---|---|---|
+| 下游节点需要的稳定事实 | 是 | 标准化意图、检索文档 ID、工具结果摘要 |
+| 决策与恢复需要的控制字段 | 是 | 当前阶段、重试次数、待确认动作、错误码 |
+| 仅供单节点计算的临时值 | 否 | HTTP 客户端、局部张量、中间解析对象 |
+| 密钥和完整敏感载荷 | 通常否 | API Key、完整身份证号；只存引用或脱敏值 |
+
+State 要有版本化 schema。消息列表等追加型字段用 reducer 合并；状态机阶段、最终决策等单值字段通常显式覆盖。并行分支写同一字段时，如果没有合并规则，就会产生冲突或不确定结果。
+
+```text
+(tenant_id, user_id, conversation_id)
+              │ 服务端鉴权与映射
+              ▼
+          thread_id
+              │
+  step 1 ─ checkpoint A ─ step 2 ─ checkpoint B ─ interrupt
+                                    │
+                                    └─ 用同一 thread_id / checkpoint_id 恢复
+```
+
+- `thread_id` 表示执行线程，不应直接等于可猜测的用户 ID，也不能相信客户端自报的租户字段。
+- 开发环境可用内存 saver；生产环境要选择持久化 saver，并设置租户隔离、加密、TTL、备份和清理策略。
+- Checkpoint 记录该步骤的 State、下一节点和任务信息，适合断点续跑、人工审批和时间旅行。
+- 跨线程的用户偏好或长期记忆不属于 Checkpoint，应写入 LangGraph Store、向量库或业务数据库。
+
+**恢复边界：** Checkpoint 只能恢复图状态，不能自动回滚已经发送的邮件、扣款或创建的工单。所有有副作用的工具都应使用业务幂等键，例如 `run_id + node_id + action_version`；恢复前先查询动作是否已成功，再决定跳过、补偿还是重试。长任务还应记录 Prompt、模型、工具 schema 和代码版本，否则旧快照在新版本图上可能无法安全恢复。
+
+**验证方式：** 在每个可能中断的节点后注入故障，检查相同 `thread_id` 能否恢复；并验证并行 reducer、越权读取、重复写工具、版本升级和 checkpoint 过期五类情况。
+
+**常见追问：**
+
+1. 两个并行节点同时更新 `messages` 时 reducer 怎么写？
+2. Checkpoint 与跨会话长期记忆有什么区别？
+3. 工作流升级后如何兼容旧 State schema？
+4. 为什么恢复成功仍可能重复创建工单？
+
+**已有主答案：** [LangGraph 的 Checkpoint、时间旅行和 Human-in-the-loop](../12-frameworks-tools/#q20-langgraph-生产监控怎么做time-travel-调试checkpointinghuman-in-the-loop-中断是如何实现的langsmith-如何配合)
+
+**参考：** [LangGraph Persistence](https://docs.langchain.com/oss/python/langgraph/persistence) · [LangGraph Time Travel](https://docs.langchain.com/oss/python/langgraph/use-time-travel)
+
+</details>
+
+### 石头科技 Q2：Agent Harness 的 Replay 为什么不能简单重调真实接口？它和 Checkpoint 恢复有什么区别？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q20-stone-harness-replay.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q20-stone-harness-replay.webp" alt="Agent Harness可重复回放与Checkpoint恢复边界图解" width="760"></a>
+
+> 🧠 **图解记忆：** Checkpoint 为恢复而重执行，Replay 为评测而冻结变量；涉及外部副作用时，优先录制、替身、沙箱和幂等，不能直接重放生产写操作。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：** Checkpoint Replay 解决“任务从哪里继续”，它通常会重执行 checkpoint 之后的节点，真实 API 也可能再次被调用；Harness Replay 解决“这个版本是否比上个版本好”，要求输入、配置和外部观察尽量可复现。评测回放应记录工具请求与结果，用 fake、record/replay 或沙箱替代生产依赖，写工具默认 dry-run，并固定数据集、Prompt、模型、工具 schema 和 evaluator 版本。二者都叫 replay，但目标、可重复性和副作用边界完全不同。
+
+| 维度 | Checkpoint 恢复 / 时间旅行 | Harness Replay / 回归评测 |
+|---|---|---|
+| 目标 | 恢复任务、调试某条执行线 | 比较版本、复现 badcase、防回归 |
+| 起点 | 某个状态快照 | 固定样本、Trace 或数据集版本 |
+| 外部调用 | 后续节点可能重新调用 | 默认使用录制结果、替身或沙箱 |
+| 结果要求 | 业务上可继续 | 同条件下可比较、可解释 |
+| 写副作用 | 靠幂等与补偿保护 | 禁止直连生产写操作 |
+
+```text
+生产 Badcase → 脱敏 Trace → 版本化数据集 → 冻结工具观察
+       → 候选 Agent Replay → 规则 + LLM Judge → 与基线比较 → 小流量灰度
+```
+
+建议区分三种执行模式：
+
+- **Pure Replay：** 所有外部结果固定，适合 Prompt、路由和策略回归。
+- **Shadow Replay：** 允许只读调用最新知识或检索服务，但输出不影响用户，用于观察环境漂移。
+- **Live Canary：** 极小流量调用真实依赖，必须有预算、权限、熔断和人工停止开关。
+
+Replay 资产至少包含输入、期望约束、原始 Trace、工具请求/响应摘要、Prompt/模型/知识库/代码版本，以及允许变化的字段。评测不能只看最终文本，还要检查轨迹：是否选对工具、参数是否合法、是否越权、重试是否失控、成本与延迟是否越界。
+
+**验证方式：** 同一数据集连续回放两次，确认核心评分稳定；故意更换 Prompt 或工具 schema，确认报告能定位差异；向写工具注入测试请求，确认只进入沙箱或被 dry-run 拦截。
+
+**常见追问：**
+
+1. 天气、库存等实时结果必须变化时，如何兼顾真实性与可复现？
+2. 哪些字段适合断言，哪些字段只能做语义评估？
+3. LLM Judge 自己不稳定，如何校准？
+4. Replay 数据如何从线上 Trace 脱敏并进入回归集？
+
+**已有主答案：** [如何评估 Agent 的决策轨迹](../28-test-harness-evaluation/#q15-agent-类应用会调工具的怎么评测最前沿答出来直接拉开差距) · [Harness 如何成为 Agent 的安全与评估基础设施](../28-test-harness-evaluation/#q16-harness-作为-agent-的安全沙箱怎么理解权限管控和自动化评测如何落地2026-高频)
+
+**参考：** [LangGraph Time Travel](https://docs.langchain.com/oss/python/langgraph/use-time-travel) · [LangSmith Evaluation](https://docs.langchain.com/langsmith/evaluation)
+
+</details>
+
+### 石头科技 Q3：如何从零设计一个智能硬件助手 Agent？以扫地机状态查询、售后问答和工单创建为例
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q21-stone-hardware-agent-design.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q21-stone-hardware-agent-design.webp" alt="智能硬件助手Agent三条业务路径与安全底座图解" width="760"></a>
+
+> 🧠 **图解记忆：** 状态查询读设备事实，售后问答读有引用的知识，创建工单走授权、确认和幂等；LLM 负责理解与编排，不负责制造业务事实。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：** 我不会让一个自由 Agent 直连全部系统，而会先按风险把能力拆成三条路径：设备状态是确定性只读工具；说明书与售后问答走带版本和引用的 RAG；创建工单是高风险写操作，必须校验用户与设备关系、补齐槽位、展示确认页并用幂等键提交。LLM 只做意图识别、澄清、工具编排和结果表达，设备数字孪生、知识库与工单系统才是事实来源。三条路径共享鉴权、策略、Trace、超时和降级底座。
+
+```text
+App / 客服入口
+      │ 身份、租户、设备绑定、会话
+      ▼
+意图 + 风险路由器
+  ├─ 设备状态 ─→ Device Twin / IoT API ─→ 状态 + 数据时间
+  ├─ 售后问答 ─→ Query Rewrite → RAG ─→ 答案 + 文档引用
+  └─ 创建工单 ─→ 槽位校验 → 用户确认 → 幂等写入 → 工单号
+
+横切能力：权限策略 · 内容安全 · Harness · Trace · 限流 · 降级
+```
+
+| 路径 | 权威事实源 | 主要风险 | 必备保护 |
+|---|---|---|---|
+| 设备状态 | IoT / 设备数字孪生 | 旧状态被当成实时状态 | 返回采集时间、离线标志与刷新动作 |
+| 说明书/售后 | 版本化知识库 | 型号错配、无依据回答 | 型号和固件过滤、引用、低置信度转人工 |
+| 创建工单 | CRM / 工单系统 | 越权、重复写、错误地址 | 设备归属校验、确认、幂等键、审计与补偿 |
+
+路由不要只依赖一次 LLM 分类。先用设备绑定、登录状态和操作风险做硬约束，再让模型判断意图；低置信度时澄清而不是猜。组合意图可以用显式工作流，例如“先查故障码，再检索解决方法，仍未解决才建议建单”。
+
+**降级策略：** IoT 不可用时明确“暂时无法获取实时状态”，不能用模型补造；RAG 低置信度时展示相关文档或转人工；工单服务超时先查询幂等键对应结果，禁止直接重复提交。
+
+**评测与观测：** 分路径统计意图混淆矩阵、设备工具成功率、知识引用正确率、工单一次成功与重复率、转人工率、TTFT、总延迟和单会话成本。用真实但脱敏的设备状态、故障码和售后对话构造离线集，再做沙箱工具回放。
+
+**常见追问：**
+
+1. 用户同时绑定多台设备，型号与设备 ID 如何消歧？
+2. 设备离线时怎样避免模型给出虚假的实时状态？
+3. 工单提交超时后，如何判断应该查询还是重试？
+4. 新固件发布后，知识库和工具 schema 如何灰度升级？
+
+**相关专题：** [AI 场景系统设计](../25-system-design-ai/) · [RAG 系统](../03-rag-system/) · [Agent 安全评估](../09-ai-safety-evaluation/)
+
+</details>
+
+### 石头科技 Q4：Java 主站如何稳定接入 Python Agent 服务？鉴权、SSE、超时熔断和可观测性放在哪层？
+
+<a href="../../assets/illustrations/18-big-tech-interview-questions/q22-stone-java-python-agent-service.webp"><img src="../../assets/illustrations/18-big-tech-interview-questions/q22-stone-java-python-agent-service.webp" alt="Java网关与Python Agent服务职责、流式协议和全链路治理图解" width="760"></a>
+
+> 🧠 **图解记忆：** Java 守入口与业务身份，Python 管模型编排与工具执行；Trace、取消和超时预算必须贯通两端，写操作靠幂等而不是盲目重试。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：** Java 主站或网关负责用户鉴权、租户与会话绑定、限流、灰度和面向客户端的 SSE 生命周期；Python Agent 服务负责图编排、模型调用、工具策略和节点级 Trace。两端通过有版本的内部协议连接，并传递 `trace_id`、`run_id`、`thread_id`、超时预算和取消信号。SSE 断连要向下游传播取消，避免模型继续烧 Token；重试只默认用于幂等读请求，写工具必须带业务幂等键。熔断和降级在调用方保护主站，Python 侧还要对模型与每个工具分别限流、超时和隔离。
+
+```text
+客户端 ←─ SSE ─→ Java 网关 ── HTTP/SSE 或 gRPC ─→ Python Agent
+                  │                                │
+          鉴权/租户/限流/灰度                 编排/模型/工具/Harness
+                  └──── trace_id · deadline · cancel ────┘
+```
+
+| 能力 | Java 主站 / 网关 | Python Agent 服务 |
+|---|---|---|
+| 身份与权限 | 校验登录态、租户、设备/资源归属，签发内部身份 | 只接受可信内部身份，并对工具 scope 二次校验 |
+| 流式连接 | 管理客户端 SSE、心跳、断连和背压 | 产生结构化事件：token、tool、error、done |
+| 超时与熔断 | 设置整条请求 deadline，熔断 Agent 依赖并返回降级结果 | 把预算拆给模型和工具，取消未完成任务 |
+| 可观测性 | 入口 QPS、状态码、TTFT、断连率 | 节点耗时、Token、工具错误、重试和轨迹 |
+| 灰度 | 按用户/租户选择 Agent 版本 | 记录 Prompt、模型、图和工具 schema 版本 |
+
+内部事件协议不要只传裸文本，至少包含 `event_id`、`type`、`sequence`、`trace_id` 和载荷。Java 根据 `sequence` 保序转发；如果需要断线续传，用 `Last-Event-ID` 或应用层游标恢复，但要明确哪些事件可以重放。
+
+超时应拆成连接超时、首 Token 时间、Token 间隔超时和总 deadline。客户端断开后，Java 取消 Python 请求，Python 再取消模型流和未完成工具。只在未开始产生副作用且错误可恢复时重试；创建工单等写操作使用稳定幂等键，并在超时后先查询结果。
+
+**验证方式：** 做四类故障演练：模型首 Token 超时、客户端中途断开、下游工具慢或错误、Agent 服务整体不可用。验证取消传播、连接释放、熔断恢复、幂等写和两端 Trace 是否能用同一 `trace_id` 串起来。
+
+**常见追问：**
+
+1. SSE 与 WebSocket 在 Agent 流式返回场景如何选择？
+2. Java 重试导致 Python 创建两次工单，根因和修复是什么？
+3. 客户端断开后为什么 GPU 仍在生成，取消信号丢在哪一层？
+4. 如何同时观测 TTFT、ITL 和完整任务耗时？
+
+**已有主答案：** [FastAPI SSE 与 WebSocket](../24-python-engineering/#q4-fastapi-如何实现流式-sse-接口和-websocket-有何区别) · [生产级异步批量调用 LLM API](../24-python-engineering/#q8-如何用-asyncio-httpx-批量并发调用-llm-api生产级的错误处理重试超时并发控制怎么做)
 
 </details>

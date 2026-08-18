@@ -11,7 +11,7 @@
 1. [Test Harness 基础认知](#一test-harness-基础认知)
 2. [Test Harness 工程实践 10 问](#二test-harness-工程实践-10-问q1-q10)
 3. [LLM 评测 Harness](#三llm-评测-harnessq11-q16)
-4. [Agent 运行治理与回归评测（Q17-Q19）](#四agent-运行治理与回归评测q17-q19)
+4. [Agent 运行治理与回归评测](#四agent-运行治理与回归评测q17-q19)
 5. [加分话术与简历写法](#五加分话术与简历写法)
 
 ## 一、Test Harness 基础认知
