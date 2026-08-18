@@ -1652,6 +1652,7 @@ AI/ML类：
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
+| 2026-08-18 | v3.120 | 新增 Q38 MCP 跨语言工具总线（mcp-go 封装 Go 业务工具，Python 统一注册调用）；Q39 Skill 三段式封装（输入/处理/输出契约 + 版本管理 + 回归评测） |
 | 2026-08-14 | v3.119 | 新增 Q37 RAG vs Skill 选型（RAG管知识/Skill管流程，选型决策树与混合场景） |
 | 2026-04-21 | v3.74 | 新增 Q20 MCP Sampling原语；Q21 MCP Client类型（Internal/External）与 Sampling 回调机制；Q22 MCP授权流程（PRM/OAuth2.1/DPoP三件套）；Q23 MCP Server Card（AI自动发现/能力评估/标准化）；Q24 MCP Triggers/Events（事件驱动Agent）；Q25 MCP Registry（Server分发/私有Registry）；Q26 Skills Over MCP（动态能力发现/自动组合） |
 | 2026-04-21 | v3.73 | 新增 Q20 MCP Sampling原语（Agentic行为核心） |
@@ -4549,6 +4550,181 @@ Skill 的对比优势：
 
 **面试话术：**
 > "RAG 和 Skill 是两种不同的能力注入：RAG 注入知识，解决'模型不知道'；Skill 注入流程，解决'模型做不好'。RAG 长线价值高，知识会越积累越厚，但洗数据周期长，文档解析、切分、评测每一环都是坑；Skill 上线快、确定性强、可复用，适合把 SOP 封装成标准能力。我的选型原则是：事实靠 RAG，流程靠 Skill，结构化数据直接查库。客服这种混合场景就是 Skill 编排 + RAG 喂知识 + SQL 查数据，各司其职。"
+
+</details>
+
+### Q38: Go 侧用 mcp-go 封装业务工具、Python 侧统一注册调用，MCP 如何成为跨语言工具总线？
+
+> 企业级 AI 应用最常见的问题之一：Agent 要调业务接口，但业务系统是 Go/Java，AI 编排是 Python，两边怎么接？MCP 的答案：Go 侧把业务能力封装成 MCP Server，Python 侧统一发现和调用——MCP 就是那条跨语言工具总线。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**问题背景：**
+
+```
+业务系统（Go）                      AI 编排（Python）
+├─ 客户/案件/合同/任务等业务接口      ├─ 模型生态（OpenAI/本地模型）
+├─ 数据与规则（MySQL）              ├─ Skill / Agent 编排（LangGraph）
+└─ 权限与审计                       └─ 评测与运行时
+
+问题：Python Agent 怎么安全、规范地调 Go 的业务能力？
+❌ 直接连 MySQL → 权限失控、耦合、没有协议约束
+❌ 手写 REST 客户端 → 每个接口一套文档/校验/错误处理，Agent 无法自动发现
+✅ MCP Server（Go 侧封装）+ MCP Client（Python 侧）→ 标准协议、自动发现、权限可控
+```
+
+**为什么 MCP 能当跨语言总线：**
+
+1. **协议语言无关**：MCP 基于 JSON-RPC，Go/Python/任何语言都能实现，不绑定技术栈；
+2. **工具自动发现**：Client 通过 `list_tools` 拿到工具的 name、description、JSON Schema 参数定义，Agent 不用看文档就能知道怎么调；
+3. **参数强约束**：输入输出都有 Schema，参数校验在协议层完成，非法调用直接拒绝；
+4. **权限可控**：Go 侧在工具入口做鉴权（谁可以调什么工具、什么数据范围），Python 侧拿到的是一组受限的工具，而不是整个数据库。
+
+**Go 侧封装示例（mcp-go 伪代码）：**
+
+```go
+// 用 mcp-go 把业务能力封装成 MCP 工具
+import (
+    "github.com/mark3labs/mcp-go/server"
+    "github.com/mark3labs/mcp-go/mcp"
+)
+
+// 1. 定义工具：名称、描述、参数 Schema
+createCaseTool := mcp.NewTool("create_case",
+    mcp.WithDescription("创建案件，返回案件ID"),
+    mcp.WithString("client_id", mcp.Required(), mcp.Description("客户ID")),
+    mcp.WithString("case_type", mcp.Required(), mcp.Description("案件类型")),
+)
+
+// 2. 注册处理器：参数校验 → 权限检查 → 调业务 service → 返回结构化结果
+srv := server.NewMCPServer("legal-tools", "1.0.0")
+srv.AddTool(createCaseTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+    // 鉴权：从上下文拿 agent 身份，校验是否有 create_case 权限
+    // 幂等：req.Params.Arguments 里的 request_id 查重
+    caseID, err := biz.CreateCase(ctx, args)
+    if err != nil {
+        // 结构化错误返回：错误码 + 是否可重试，供 LLM 判断
+        return mcp.NewToolResultError(fmt.Sprintf("E_BIZ_%d:%s", err.Code, err.Msg)), nil
+    }
+    return mcp.NewToolResultJSON(map[string]string{"case_id": caseID}), nil
+})
+```
+
+**Python 侧统一注册和调用（伪代码）：**
+
+```python
+# Agent 启动时发现所有工具，注册进 LangGraph 的工具列表
+from mcp import ClientSession, StdioServerParameters
+
+async def register_go_tools():
+    # 连接 Go 侧 MCP Server（stdio 或 streamable http）
+    session = await ClientSession(...)
+    tools = await session.list_tools()   # 自动发现：客户/案件/合同/任务等
+    for t in tools:
+        registry[t.name] = {"schema": t.inputSchema, "call": session.call_tool}
+    return registry
+```
+
+**完整链路（一次请求）：**
+
+```
+用户提问 → Python Agent 规划（LangGraph）
+  → 决定调用 create_case 工具 → 经 Go 侧 MCP Server 鉴权
+  → Go 业务 service 执行（MySQL 事务）→ 结构化结果回传
+  → Agent 继续编排 / 组装回复 → 全程日志进审计
+```
+
+**面试话术：**
+> "我的混合架构里，Go 负责稳定业务，Python 负责 AI 编排，MCP 是那条跨语言工具总线。Go 侧用 mcp-go 把客户、案件、合同、任务这些业务能力封装成 MCP Server，工具带 JSON Schema 参数约束和鉴权；Python 侧启动时 list_tools 自动发现，Agent 按 Schema 调用。相比手写 REST 客户端，MCP 的好处是协议标准化、工具可自动发现、参数强校验、权限在 Go 侧可控——AI 团队不用碰业务库，业务团队不用碰模型代码，两边通过协议解耦。"
+
+</details>
+
+### Q39: 什么是 AI 应用的 Skill？三段式结构（输入定义/处理与工具调用/结构化输出）怎么设计？版本管理和回归评测怎么做？
+
+> Skill 是 2026 年面试高频词：它把 Prompt 从"一段话"升级成"一个可版本化、可评测的能力单元"。面试官爱问的是：Skill 和普通 Prompt 到底差在哪？三段式结构怎么落地？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Skill 定义：**
+
+Skill（技能）是把 **Prompt 模板 + 处理流程 + 工具调用 + 输出契约** 封装成一个可复用、可版本化、可评测的能力单元。它不是一段 Prompt，而是一套可执行的 SOP。
+
+**Skill vs 普通 Prompt（核心对比）：**
+
+| 维度 | 普通 Prompt | Skill |
+|------|-------------|-------|
+| 形态 | 一段文本 | 代码/配置 + 输入输出契约 |
+| 复用 | 复制粘贴，改一处全乱 | 注册即用，跨场景复用 |
+| 版本 | 没有版本概念 | 发版、回滚、灰度 |
+| 评测 | 凭感觉 | 回归样例集，改动可验证 |
+| 异常 | 模型自由发挥 | 显式异常处理 + 兜底 |
+
+**三段式结构（标准做法）：**
+
+```
+┌─────────────────────────────────────────┐
+│ 1. 输入定义（Input Schema）               │
+│    参数、类型、必填、校验规则              │
+│    → 决定"这个 Skill 接受什么"            │
+├─────────────────────────────────────────┤
+│ 2. 处理与工具调用（Processing）           │
+│    Prompt 模板 + 工具调用 + 异常处理      │
+│    → 决定"怎么执行"                      │
+├─────────────────────────────────────────┤
+│ 3. 结构化输出（Output Schema）            │
+│    JSON Schema、字段约束、置信度          │
+│    → 决定"产出什么，下游怎么消费"        │
+└─────────────────────────────────────────┘
+```
+
+**示例：合同风险识别 Skill**
+
+```json
+{
+  "skill": "contract_risk_review",
+  "version": "1.3.0",
+  "input": {
+    "type": "object",
+    "required": ["contract_id"],
+    "properties": {
+      "contract_id": {"type": "string"},
+      "focus": {"type": "array", "items": {"type": "string"}}
+    }
+  },
+  "processing": {
+    "prompt_template": "你是资深法务，分析以下合同条款...",
+    "tools": ["get_contract", "search_precedent"],
+    "fallback": "工具失败时返回降级结果并标记 REVIEW_REQUIRED"
+  },
+  "output": {
+    "type": "object",
+    "required": ["risks", "confidence"],
+    "properties": {
+      "risks": {"type": "array", "items": {"type": "object"}},
+      "confidence": {"type": "number"}
+    }
+  }
+}
+```
+
+**版本管理（像代码一样管 Skill）：**
+
+- 每次改动发新版本号（语义化版本），记录变更说明；
+- 线上 Agent 显式声明使用的 Skill 版本，可整体回滚；
+- 同一 Skill 新旧版本可并行跑灰度对比。
+
+**回归评测（Skill 能"证明没退化"的关键）：**
+
+- 每个 Skill 配套 **不少于 20 条可回归评测样例**（输入 → 期望输出/期望工具序列）；
+- 改动后全量跑回归：输出结构校验通过率、工具调用准确率、关键场景得分；
+- 红了就回滚，不带着退化上线。
+
+**职责边界：** 一个 Skill 只做一件事，Skill 之间不互相调用（组合靠 Agent 编排），避免循环依赖和上下文污染。
+
+**面试话术：**
+> "Skill 是把 Prompt 升级成工程资产：输入定义、处理流程、结构化输出三段式，外加版本管理和回归评测。它和普通 Prompt 最大的区别是确定性——输入输出有契约，可以单测、可以 mock、可以发版回滚。我做的合同风险识别 Skill，每个 Skill 配 20+ 条回归样例，改一次跑一遍，输出结构校验通过率和工具调用准确率不降才允许上线。一句话：Prompt 是草稿，Skill 是交付物。"
 
 </details>
 

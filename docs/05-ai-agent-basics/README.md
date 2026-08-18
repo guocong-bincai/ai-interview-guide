@@ -4983,6 +4983,81 @@ metadata 常驻、廉价（100 token/个）
 
 </details>
 
+### Q45: LangGraph 如何实现失败重试、中断恢复和人工介入（human-in-the-loop）？（2026 高频追问）
+
+> LangGraph 基础题谁都会答，拉开差距的是追问：节点挂了怎么办？会话中断了怎么续？高风险操作谁来把关？答案就三个能力——重试、checkpoint 恢复、interrupt 人工介入。
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心认知：** 生产级 Agent 不能"跑完就完"，要能容错、能续跑、能让人把关。LangGraph 的三个关键能力：
+
+```
+失败重试 → 节点执行失败时怎么处理（重试策略 / 兜底分支）
+中断恢复 → 进程挂了/会话断了，状态怎么保住、怎么续跑（checkpoint）
+人工介入 → 高风险步骤暂停等人工确认，再决定继续还是修改（interrupt）
+```
+
+**1. 失败重试（节点级容错）：**
+
+- 单个节点失败 → 按策略重试（次数、指数退避）；
+- 重试仍失败 → 条件边走到兜底节点（降级回复 / 转人工 / 标记 REVIEW_REQUIRED）；
+- 关键：重试要幂等——节点里有工具调用时，重复执行不能产生副作用（结合 request_id 去重）。
+
+**2. 中断恢复（checkpoint 持久化）：**
+
+```python
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import StateGraph
+
+# 编译时挂 checkpointer：每个节点执行后自动保存状态快照
+checkpointer = MemorySaver()
+graph = workflow.compile(checkpointer=checkpointer)
+
+# 恢复：同一 thread_id 的会话可以从断点继续
+result = graph.invoke(
+    {"messages": [...]}, 
+    config={"configurable": {"thread_id": "case-001"}}
+)
+```
+
+- 状态快照保存到内存 / Redis / 数据库（生产用持久化存储）；
+- 进程重启、请求超时、用户离开后回来，都能从最近断点续跑；
+- 每个断点 = 一次执行轨迹快照，天然支持审计回放。
+
+**3. 人工介入（human-in-the-loop）：**
+
+```python
+# 在需要把关的节点调用 interrupt，暂停执行，等人类输入
+def review_node(state):
+    if state["risk_level"] == "high":
+        decision = interrupt({"action": "confirm_case_submit", "summary": state["summary"]})
+        if decision == "reject":
+            return {"status": "rejected"}
+    return {"status": "approved"}
+
+# 人类审核后，用 Command(resume=...) 继续执行
+from langgraph.types import Command
+graph.invoke(Command(resume="approve"), config={"configurable": {"thread_id": "case-001"}})
+```
+
+**典型业务场景（结合项目讲最有说服力）：**
+
+- **律师办案助手**：AI 生成文书初稿 → 人工复核（interrupt）→ 确认/修改后归档；
+- **合同处理**：风险条款识别后，修改建议需要人工确认才能生效；
+- **高风险操作**：转账、删除、外发——先暂停，人工审批通过才执行。
+
+**设计原则：**
+
+- 中断点越少越好：每多一个人工节点，链路就多一道延迟，只在"错了代价大"的步骤介入；
+- 人工介入要有超时：超时未审核走默认策略（挂起 / 转其他处理人）；
+- 介入记录进审计：谁审的、审了什么、原始建议是什么，全部留痕。
+
+**面试话术：**
+> "LangGraph 的生产级能力我讲三个：重试、恢复、人工介入。重试是节点级容错，重试失败走兜底分支，但工具调用必须幂等；恢复靠 checkpointer 状态快照，每个节点执行完就存一次，进程挂了用 thread_id 从断点续跑，快照同时就是执行轨迹；人工介入用 interrupt 暂停高风险步骤，人类确认后 Command(resume) 继续。我用在律师文书场景——AI 生成初稿后 interrupt 等人复核，确认才归档，审核记录全进审计。设计上中断点宁少勿多，只在错了代价大的地方介入。"
+
+</details>
+
 ---
 
-*版本: v3.1 | 更新: 2026-08-14 | 新增 Q44 上下文四象限框架（素材角度：真实面经专栏，已按仓库规范重写补充）*
+*版本: v3.2 | 更新: 2026-08-18 | 新增 Q45 LangGraph 重试/中断恢复/人工介入（素材角度：企业级 AI 应用工程链路，已按仓库规范重写补充）*

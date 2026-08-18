@@ -57,7 +57,7 @@
     </td>
     <td width="50%" valign="top">
       <h3>🧪 内容可以持续校验</h3>
-      <p>619 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
+      <p>627 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
     </td>
   </tr>
 </table>
@@ -241,7 +241,7 @@ flowchart LR
 
 ## 📚 题库导航
 
-共 **28 个专题、619 道题**。点击分类展开完整目录。
+共 **28 个专题、627 道题**。点击分类展开完整目录。
 
 <details open>
 <summary><b>🧠 基础与模型</b> · 6 个专题 / 142 道题</summary>
@@ -267,7 +267,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🤖 Agent 与协议</b> · 5 个专题 / 128 道题</summary>
+<summary><b>🤖 Agent 与协议</b> · 5 个专题 / 132 道题</summary>
 <br>
 
 - [05 · Agent 基础](docs/05-ai-agent-basics/) — 工具调用、状态、记忆、循环与人工确认
@@ -279,7 +279,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 134 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 138 道题</summary>
 <br>
 
 - [09 · 安全与评估](docs/09-ai-safety-evaluation/) — 内容安全、Prompt 注入、隐私、红队和评测
