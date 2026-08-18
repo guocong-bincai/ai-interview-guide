@@ -1899,7 +1899,7 @@ INT4: 每个权重 0.5 字节 → 7B 模型 ≈ 3.5GB（再减半）
 
 ---
 
----
+
 
 ## 34. Transformer 中的 Attention 机制是什么？为什么它是 LLM 的核心？（必考）
 
@@ -2820,6 +2820,303 @@ Top-A（Absolute threshold sampling）是比 Top-P 更精细的控制方法：
 
 ---
 
+
+---
+
+## 46. 什么是合成数据（Synthetic Data）？为什么现在大模型训练越来越依赖它？（高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q46-synthetic-data.webp"><img src="../../assets/illustrations/01-basic-concepts/q46-synthetic-data.webp" width="100%" alt="合成数据动漫知识图：真实人类文本日益稀缺，模型通过自指令生成、教师学生蒸馏和偏好对构建等方式产生标注数据，形成自我强化的训练飞轮，同时带来数据污染与分布偏移风险"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：从人喂模型到模型自己制造训练燃料——合成数据是双刃剑。</sub></p>
+
+### 背景（面试必答题）
+
+```
+2023 年：LLM 预训练依赖互联网爬取的数万亿 Token 人类文本
+2025 年后：高质量人类语料接近枯竭
+      → 合成数据（模型用自己的输出来生成训练数据）成为主流训练范式
+```
+
+### 三种主流合成数据生成方法
+
+#### 方法 1：Self-Instruct（自指令）⭐
+
+```python
+# 核心流程：让一个大模型用少量种子示例自动生成大量指令-回答对
+seed_tasks = [
+    {"instruction": "将以下句子翻译成英文", "input": "你好世界", "output": "Hello World"},
+    {"instruction": "总结以下段落", "input": "...长文本...", "output": "...摘要..."},
+]
+
+# 使用 teacher model 生成更多任务
+def generate_tasks(seed_tasks, model, num_per_seed=10):
+    all_tasks = []
+    for seed in seed_tasks:
+        prompt = f"基于以下示例，生成 {num_per_seed} 个类似的任务。\n\n"
+        prompt += f"示例: instruction={seed['instruction']}, input={seed['input']}"
+        response = model.generate(prompt)
+        # 解析 response 中的新任务
+        new_tasks = parse_generated_tasks(response)
+        all_tasks.extend(new_tasks)
+    return all_tasks
+```
+
+**优点：** 零成本、覆盖面广
+**缺点：** 可能放大模型偏差，需要人工校验或过滤
+
+#### 方法 2：教师-学生蒸馏（Teacher-Student Distillation）⭐⭐
+
+```python
+# 大模型（教师）用小数据集标注 → 小模型（学生）学习这些标注
+teacher_model = load("gpt-4")  # 高质量但贵
+student_model = load("qwen2.5-7b")  # 快速且便宜
+
+# 步骤 1: 教师模型为每个样本生成高质量回答
+annotations = []
+for question in unlabeled_questions:
+    answer = teacher_model.generate(question)  # 质量高
+    annotations.append({"question": question, "answer": answer})
+
+# 步骤 2: 用标注数据训练学生模型
+student_model.sft(annotations, epochs=3)
+# 学生模型获得接近教师的能力，但推理速度快 10x、成本低 100x
+```
+
+**工业应用：** LLaMA、BLOOM、Yi 等开源模型都有大量合成数据参与训练
+
+#### 方法 3：偏好对构建（Preference Pairs）⭐⭐⭐
+
+```python
+# 用于 RLHF/DPO 的训练：同一 prompt 生成多个回答，排序选出好/坏的回答
+prompts = [...]  # 一批 prompt
+responses = {}  # 每个 prompt 生成 N 个回答
+
+for prompt in prompts:
+    responses[prompt] = [model.generate(prompt) for _ in range(N)]
+    # 方式 A: 用另一个打分模型评估并排序
+    scores = rater.evaluate_all(responses[prompt])
+    preferred = max(responses[prompt], key=lambda x: scores[x])
+    rejected = min(responses[prompt], key=lambda x: scores[x])
+    
+    # 方式 B: 用规则筛选（长度、格式、安全等）
+    preferred = filter_by_rule(responses[prompt])
+    rejected = exclude_responds(responses[prompt])
+
+# 生成的 (prompt, preferred, rejected) 三组数据用于 DPO 训练
+dpo_dataset = build_preference_dataset(prompts, responses, preferred, rejected)
+```
+
+**2025-2026 趋势：** DeepSeek R1 的 GRPO、RLVR（Verifiable Rewards）等都是合成数据的极端形式——不需要任何人工标注。
+
+### 风险与争议（面试加分点）
+
+| 风险 | 说明 |
+|------|------|
+| **数据污染 / 模型坍缩** | 模型在"自己的产出的产出"上训练 → 能力退化、多样性下降 |
+| **分布偏移** | 合成数据偏向模型的"舒适区"，覆盖盲区不足 |
+| **评估混淆** | 模型在自己的合成测试集上表现好 ≠ 真正能力提升 |
+| **版权 / 隐私** | 用有版权的人类文本来生成合成数据再卖出去，法律灰色地带 |
+
+### 工程最佳实践
+
+1. **混合策略**：合成数据 + 人工精选数据组合使用（如 70:30），避免纯合成数据
+2. **严格过滤**：建立多层过滤器（困惑度、重复检测、安全分类器）
+3. **外部验证**：永远用独立于合成过程的真实评测集验证能力
+
+**面试话术：**
+> "合成数据本质上是把'高质量人类标注'的需求从人力转移到模型自身。Self-Instruct 解决了指令覆盖问题，教师蒸馏解决了质量对齐问题，偏好对构建解决了行为对齐问题。但它的核心风险是模型在'自己产出的数据'上训练可能导致能力退化——所以工业界通常混合使用合成数据和人工数据，并保持独立的验证集。2026 年的趋势是更少的标注工人、更多的合成数据迭代，但关键在于每次迭代的评估必须严格。"
+
+---
+
+## 47. 什么是 Function Calling（函数调用）？它是如何工作的？为什么重要？（应用开发第一性原理）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q47-function-calling.webp"><img src="../../assets/illustrations/01-basic-concepts/q47-function-calling.webp" width="100%" alt="Function Calling动漫知识图：应用层声明工具 schema，用户请求经模型判断是否需要调用工具、生成参数，再由应用执行并返回结果供模型综合回答"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：模型不直接查数据库或调 API——它先决定要不要做，再做就生成结构化调用，应用负责执行并把结果告诉模型。</sub></p>
+
+### 一句话定义
+
+**Function Calling = 让 LLM 输出结构化的 JSON 来描述"调用哪个函数、带什么参数"**，从而打通大模型与现实世界的操作接口。
+
+### 完整工作流（面试手撕级）
+
+```
+用户："帮我查北京今天的天气"
+                    ↓
+[Step 1] 应用层声明可用函数（tool/function schema）
+{
+  "name": "get_weather",
+  "description": "查询指定城市的实时天气",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "city": {"type": "string", "description": "城市名称"},
+      "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]}
+    },
+    "required": ["city"]
+  }
+}
+                    ↓
+[Step 2] 模型收到消息 + tool definitions，判断：
+  - 是否需要调用工具？ → ✅ 需要
+  - 调用哪个函数？     → get_weather
+  - 参数是什么？       → city="北京", unit="celsius"
+  - 输出：
+    {
+      "message": null,
+      "tool_calls": [
+        {"id": "call_123", "type": "function",
+         "function": {"name": "get_weather",
+                      "arguments": "{\"city\": \"北京\", \"unit\": \"celsius\"}"}}
+      ]
+    }
+                    ↓
+[Step 3] 应用层接收 tool_calls，执行函数调用
+result = get_weather(city="北京", unit="celsius")
+# 返回: {"temperature": 22, "condition": "晴", "humidity": 45}
+                    ↓
+[Step 4] 应用将结果回传给模型
+assistant_message = model.chat(messages + [{"role": "tool", "content": result_json}])
+                    ↓
+[Step 5] 模型根据工具结果生成最终自然语言回复
+"北京今天晴，气温22°C，湿度45%，体感舒适哦！"
+```
+
+### 为什么重要？（三大理由，面试必答）
+
+| 理由 | 说明 |
+|------|------|
+| **1. 打破封闭边界** | 模型只能"说"不能"做"——Function Calling 给它接入搜索、数据库、API 的手脚 |
+| **2. 结构化交互** | 相比让模型从自由文本中"提取"参数，JSON 结构化输出可靠性大幅优于 Prompt 工程 |
+| **3. 动态扩展能力** | 不用重新训练/微调模型就能增加新功能：加一个函数定义 = 多一项能力 |
+
+### 两种调用模式对比
+
+| 维度 | Autonomous（自动模式） | Chained（链式模式） |
+|------|-----------------------|--------------------|
+| **工作方式** | 模型一次性调用多个工具后直接出答案 | 每调用一个工具后等待结果，再来一轮 |
+| **适合场景** | 多个独立查询并行执行 | 需要前一步结果来决定下一步（顺序依赖） |
+| **延迟** | 低（并行） | 较高（串行等待） |
+| **实现难度** | 简单 | 复杂（需管理对话状态机） |
+
+### 工程陷阱（面试高频追问）
+
+| 陷阱 | 解决方案 |
+|------|----------|
+| **参数类型漂移** | 模型可能输出字符串而非数字，需加类型转换层 |
+| **幻觉参数** | 模型编造不存在的字段名，必须配合 Schema Validation |
+| **函数命名不一致** | 不同厂商 API 格式不同（OpenAI vs Anthropic vs OpenRouter），建议抽象一层统一适配 |
+| **无限循环** | 模型反复调用同一函数，需设置最大调用次数限制 |
+| **权限控制** | 不是所有函数都应暴露给模型——敏感操作（删除/转账）需鉴权层 |
+
+### 代码示例（生产级 Function Calling 封装）
+
+```python
+class SafeToolExecutor:
+    def __init__(self, tools: list[dict]):
+        self.tools = {t["name"]: t for t in tools}
+        self.max_calls_per_turn = 5
+    
+    async def handle_tool_call(self, message: dict) -> list[dict]:
+        """处理 tool_calls，安全执行并返回结果"""
+        results = []
+        call_count = 0
+        
+        for tc in message.get("tool_calls", []):
+            if call_count >= self.max_calls_per_turn:
+                break
+            call_count += 1
+            
+            func_name = tc["function"]["name"]
+            func_def = self.tools.get(func_name)
+            
+            if not func_def:
+                results.append({"role": "tool", "tool_call_id": tc["id"],
+                              "content": f"Error: function '{func_name}' not found"})
+                continue
+            
+            try:
+                args = json.loads(tc["function"]["arguments"])
+                # 🔒 Schema Validation — 防止参数注入
+                validated = validate_schema(args, func_def["parameters"])
+                result = await execute_func_safely(func_name, validated)
+                results.append({"role": "tool", "tool_call_id": tc["id"], "content": json.dumps(result)})
+            except Exception as e:
+                results.append({"role": "tool", "tool_call_id": tc["id"],
+                              "content": f"Execution error: {str(e)}"})
+        
+        return results
+```
+
+**面试话术：**
+> "Function Calling 是让模型从'聊天机器人'变成'智能体'的关键桥接技术。它的工作流很清晰：声明工具 schema → 模型判断是否调用 → 生成结构化 JSON → 应用执行 → 结果回传 → 综合回答。核心优势是不需要微调模型就能扩展功能。但工程上有不少坑：参数类型漂移、无限循环、权限控制——我在项目里封装了一个 SafeToolExecutor，做了 Schema Validation、调用次数上限和错误降级。"
+
+---
+
+## 48. 为什么 Transformer 不只是 Decoder-only？Encoder-Decoder（T5/BART）架构有什么独特价值？（进阶必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q48-encoder-decoder.webp"><img src="../../assets/illustrations/01-basic-concepts/q48-encoder-decoder.webp" width="100%" alt="编码器-解码器架构动漫知识图：编码侧双向捕捉全量上下文语义表示，解码侧单向逐 token 生成目标序列，交叉注意力桥接两段信息流动"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：Encoder 理解一切（左右都看），Decoder 专注产出（只看左），两者之间有座桥梁叫 Cross-Attention。</sub></p>
+
+### Decoder-only vs Encoder-Decoder（面试高频对比题）
+
+| 维度 | Decoder-only（GPT系列） | Encoder-Decoder（T5/BART/T5） | Encoder-only（BERT） |
+|------|------------------------|-------------------------------|---------------------|
+| **注意力掩码** | Causal Mask（因果/单向） | Encoder：无限制；Decoder：Causal Mask | Bidirectional（双向） |
+| **输入→输出关系** | 输入即输出的前缀（续写模式） | 输入编码后→独立生成（翻译/摘要模式） | 仅输入，无生成输出 |
+| **适用任务** | 文本生成、对话、角色扮演 | 翻译、摘要、改写、Seq-to-Seq | 分类、抽取、NER、匹配 |
+| **典型模型** | GPT-4、LLaMA、Qwen、DeepSeek | T5、BART、mBART、NLLB | BERT、RoBERTa、DeBERTa |
+| **推理模式** | 自回归逐个 token | 自回归逐个 token | 无推理过程 |
+
+### Encoder-Decoder 的核心设计思想
+
+```
+Encoder-Decoder 的直觉：输入和输出是"两个不同的空间"
+
+Encoder（理解端）：
+  输入: "ChatGPT is amazing"
+  双向 Attention 完全理解这句话的所有词之间的语义关系
+  输出: 一组隐藏状态表示 "这句话的含义"
+          ↓
+Cross-Attention（桥梁）：
+  Decoder 每一步生成 token 时，都能回头看 Encoder 的全部输出
+          ↓
+Decoder（表达端）：
+  输入: "<start>" → 逐步生成 → "<end>"
+  单向 Attention + Cross-Attention 确保只看到已生成的部分 + 完整源句含义
+  输出: "ChatGPT 太棒了"
+```
+
+### 为什么 Encoder-Decoder 在某些任务上仍然不可替代？
+
+| 场景 | 为什么用 E-D 更好 | Decoder-only 的问题 |
+|------|------------------|-------------------|
+| **机器翻译** | 输入语言和输出语言可能差异巨大（中英 vs 英日），需要中间表示解耦 | Decoder-only 需要端到端映射，跨语言泛化更困难 |
+| **文本摘要** | 输入可能数千字，输出几百字——压缩比极高，需要独立的"阅读"和"写作"模块 | Decoder-only 压缩效率低，容易忽略关键信息 |
+| **文本改写/编辑** | 需要保留原意但改变表达方式——Encoder 精确读取原文，Decoder 重写 | Decoder-only 难以精准定位需要改动的部分 |
+| **表格/公式转自然语言** | 结构化输入→自然语言输出，两个模态的 gap 很大 | Decoder-only 难以跨越这么大的模态差 |
+
+### 为什么 Decoder-only 赢了？（2023-2026 的行业趋势）
+
+虽然 Encoder-Decoder 在特定任务上有理论优势，但行业已经大规模转向 Decoder-only，原因是：
+
+1. **规模经济**：同一个 Decoder-only 模型可以做几乎所有任务（翻译、摘要、分类、问答）——只需要改变 Prompt
+2. **训练简化**：只用一个目标（next-token prediction），无需设计多个预训练损失函数
+3. **生态统一**：RLHF、Prompt Engineering、In-Context Learning 等对齐和应用技术全部围绕 Decoder-only 体系发展
+4. **部署一致**：生产系统只需维护一套推理基础设施
+
+**但是！** Encoder-Decoder 仍在以下场景保持竞争力：
+- 专用翻译服务（NLLB、opus-mt）
+- 低资源语言的 Seq-to-Seq 任务
+- 需要极致输入输出的任务（短摘要、实体抽取）
+
+**面试话术：**
+> "Encoder-Decoder 的设计哲学是"读写分离"——Encoder 充分理解输入（双向 Attention），Decoder 专注生成输出（单向 + Cross-Attention），中间的 Cross-Attention 负责桥接信息。它在翻译、摘要等 Seq-to-Seq 任务上有天然的表达能力优势。但 2023 年以来的趋势是：同样规模的 Decoder-only 模型通过更好的 Prompt 工程和 Few-shot 能力，能够覆盖 Encoder-Decoder 的大部分应用场景，再加上统一的训练目标和生态优势，使得大多数团队选择只维护 Decoder-only 模型。不过在一些专业领域（低资源翻译、极致压缩摘要），Encoder-Decoder 仍有独特价值。"
+
+
+---
+
 ## 📝 速记卡片
 
 ### LLM基础概念
@@ -2867,7 +3164,18 @@ Top-A（Absolute threshold sampling）是比 Top-P 更精细的控制方法：
 | **GQA/MQA** | GQA按组共享KV头(如Llama3 8GQA);比MQA质量好,比MHA省显存16倍;工业界首选 |
 | **Continuous Batching** | 迭代级动态调度;请求完成立即释放slot;配合PagedAttention吞吐提升20×+;vLLM事实标准 |
 | **ALiBi vs RoPE** | ALiBi线性偏置外推强、RoPE旋转编码精度高;混合架构是2025趋势 |
-| **Logit Bias & Top-A** | Bias直接改raw logits指数级影响;Top-A自适应绝对阈值;温度/候选集/惩罚/ Bias组合拳全覆盖 |
+   | **合成数据** | Self-Instruct、教师蒸馏、偏好对构建——模型制造训练燃料，混合人工+合成避免坍缩 |
+   | **Function Calling** | JSON结构化声明工具→模型判断调用→生成参数→应用执行→结果回传——打通AI与现实世界 |
+   | **Encoder-Decoder** | T5/BART架构：Encoder理解(双向)+Decoder产出(单向)+Cross-Attention桥接；翻译摘要仍不可替代 |
+   | **Logit Bias & Top-A** | Bias直接改raw logits指数级影响;Top-A自适应绝对阈值;温度/候选集/惩罚/ Bias组合拳全覆盖 |
+   | **合成数据** | Self-Instruct、教师蒸馏、偏好对构建——模型制造训练燃料，混合人工+合成避免坍缩 |
+   | **Function Calling** | JSON结构化声明工具→模型判断调用→生成参数→应用执行→结果回传——打通AI与现实世界 |
+   | **Encoder-Decoder** | T5/BART架构：Encoder理解(双向)+Decoder产出(单向)+Cross-Attention桥接；翻译摘要仍不可替代 |
+   | **Logit Bias & Top-A** | Bias直接改raw logits指数级影响;Top-A自适应绝对阈值;温度/候选集/惩罚/ Bias组合拳全覆盖 |
+   | **合成数据** | Self-Instruct、教师蒸馏、偏好对构建——模型制造训练燃料，混合人工+合成避免坍缩 |
+   | **Function Calling** | JSON结构化声明工具→模型判断调用→生成参数→应用执行→结果回传——打通AI与现实世界 |
+   | **Encoder-Decoder** | T5/BART架构：Encoder理解(双向)+Decoder产出(单向)+Cross-Attention桥接；翻译摘要仍不可替代 |
+   | **Logit Bias & Top-A** | Bias直接改raw logits指数级影响;Top-A自适应绝对阈值;温度/候选集/惩罚/ Bias组合拳全覆盖 |
 
 ### 分词算法
 
@@ -2892,7 +3200,7 @@ Top-A（Absolute threshold sampling）是比 Top-P 更精细的控制方法：
 
 ---
 
-*版本: v3.129 | 更新: 2026-08-13 | by 二狗子 🐕*
+*版本: v3.130 | 更新: 2026-08-19 | by 二狗子 🐕*
 
 
 ---
@@ -2901,12 +3209,15 @@ Top-A（Absolute threshold sampling）是比 Top-P 更精细的控制方法：
 
 | 序号 | 模块 | 新增内容 | 高频度 | 题数 |
 |------|------|----------|--------|------|
+| 🆕 | [🤖 合成数据](./) | Q46 合成数据三法(Self-Instruct/教师蒸馏/偏好对):模型自主生产训练数据,工业界70:30混合策略防坍缩 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔧 Function Calling](./) | Q47 函数调用五步工作流(schema声明→模型判断→JSON参数→应用执行→结果回传),工程陷阱(类型漂移/无限循环)全覆盖 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🏗️ Encoder-Decoder](./) | Q48 编码器解码器架构(T5/BART):Encoder理解(双向)+Decoder产出(单向)+Cross-Attention;翻译摘要仍不可替代 | 🔥🔥🔥🔥 | +1 |
 | 🆕 | [💡 FlashAttention](./) | Q41 FlashAttention I/O感知设计：SRAM分块+在线Softmax递推+重计算；显存O(n²)→O(n)，训练提速1.5~2×，FA-2再提25% | 🔥🔥🔥🔥🔥 | +1 |
 | 🆕 | [⚡ GQA/MQA](./) | Q42 MHA→MQA→GQA演进：KV头共享策略权衡，Llama3 8GQA省16倍显存质量无损，支持up-training | 🔥🔥🔥🔥🔥 | +1 |
 | 🆕 | [🔄 Continuous Batching](./) | Q43 迭代级动态调度：请求完成立即释放slot，配合PagedAttention吞吐提升20×+，chunked prefill防长prompt阻塞 | 🔥🔥🔥🔥🔥 | +1 |
 | 🆕 | [📍 ALiBi vs RoPE](./) | Q44 ALiBi线性偏置外推强、RoPE旋转编码精度高，YaRN混合架构2025趋势，FlashInfer支持ALiBi kernel | 🔥🔥🔥🔥 | +1 |
 | 🆕 | [🎛️ Logit Bias & Top-A](./) | Q45 生成控制工具链：Logit Bias指数级修改raw logits，Top-A自适应绝对阈值，温度/候选集/惩罚/Bias组合拳 | 🔥🔥🔥🔥 | +1 |
 
-**总计新增：5 道题**
+**本次更新：+3 道题（Q46、Q47、Q48）**
 
-*版本: v3.128 | 更新: 2026-07-02*
+*版本: v3.129 | 更新: 2026-08-13*
