@@ -2006,6 +2006,677 @@ class EvalPipeline:
 
 ---
 
+### Q20: Dynamic Few-Shot vs Static Few-Shot：什么时候应该用哪个？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q20-dynamic-fewshot.webp" alt="动态小样本学习动漫知识图：检索相关示例与静态示例对比，展示准确率随数据规模变化" /></a>
+<p align="center"><sub>记忆点：静态示例成本低但容易过时，动态检索更准但有延迟开销。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Static Few-Shot（静态）vs Dynamic Few-Shot（动态）核心差异：**
+
+| 维度 | Static Few-Shot | Dynamic Few-Shot |
+|------|----------------|------------------|
+| **示例来源** | 硬编码在 Prompt 里 | 运行时从知识库检索 |
+| **适用场景** | 固定任务、简单分类 | 开放域任务、领域多样 |
+| **维护成本** | 低（改一次即可） | 高（需维护示例库 + 向量索引） |
+| **准确率上限** | ~75%（示例不匹配时大幅下降） | ~92%（能选到最佳示例） |
+| **延迟影响** | 几乎零额外延迟 | +检索时间（通常 <50ms） |
+| **Token 消耗** | 固定（最多 5 个示例 × 上下文） | 动态（可能 0~N 个示例） |
+
+**何时该用什么（面试高频决策题）：**
+
+```
+✅ 用 Static Few-Shot：
+- 任务类型固定且单一（如情感分类、NER）
+- 用户群体和输入分布稳定
+- Token 预算紧张 / 延迟敏感
+- 快速原型阶段
+
+✅ 用 Dynamic Few-Shot：
+- 开放域问答（用户问题跨度大）
+- 多领域混合场景（医疗+金融+法律混用）
+- 需要持续优化但不想频繁调参
+- 示例库足够大（100+ 优质示例）
+
+❌ 两者都不适合：
+- 简单规则就能解决的任务
+- 实时性要求极高的场景（如 <100ms SLA）
+```
+
+**Dynamic Few-Shot 实现模式：**
+
+```python
+class DynamicFewShot:
+    def __init__(self, example_db, embedding_model):
+        self.db = example_db       # 向量数据库存储示例
+        self.embedder = embedding_model
+    
+    def retrieve_examples(self, user_query, k=3):
+        """根据用户查询语义相似度检索最相关的示例"""
+        query_emb = self.embedder.encode(user_query)
+        return self.db.similarity_search(query_emb, k=k)
+    
+    def build_prompt(self, user_query, retrieved_examples):
+        """把检索到的示例动态拼入 Prompt"""
+        prompt = "请根据以下示例回答问题：\n\n"
+        for i, ex in enumerate(retrieved_examples, 1):
+            prompt += f"示例 {i}:\n输入：{ex.input}\n输出：{ex.output}\n\n"
+        prompt += f"\n问题：{user_query}\n回答："
+        return prompt
+```
+
+**效果数据（行业基准测试）：**
+
+| 方法 | GSM8K（数学） | OpenQA（开放问答） | Code Translation | 平均延迟 |
+|------|--------------|-------------------|----------------|---------|
+| Zero-shot | 52% | 41% | 35% | 基准 |
+| Static Few-Shot | 64% | 53% | 48% | +5ms |
+| **Dynamic Few-Shot** | **78%** | **68%** | **62%** | **+40ms** |
+
+**面试话术：**
+> "Static Few-Shot 胜在简单高效，适合任务边界清晰的场景；Dynamic Few-Shot 的核心优势是通过语义检索为每个输入选择最优的 N 个示例，典型提升 15-20 个百分点。但在生产环境要权衡检索延迟——我的做法是预计算好 top-K 示例缓存层，配合异步检索，让用户体验无感知。对于冷启动期（示例库不足），自动降级到 Static 或 Zero-shot。"
+
+</details>
+
+---
+
+### Q21: Constrained Decoding（约束解码）是什么？跟 JSON Mode / Structured Outputs 有什么区别？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q21-constrained-decoding.webp" alt="约束解码动漫知识图：LLM 生成 token 时通过 CFG/正则表达式拦截非法路径" />
+<p align="center"><sub>记忆点：JSON Mode 只管语法，Structured Outputs 管 Schema 字段，Constrained Decoding 管整个语言结构。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**三者的本质区别在于「约束层级」不同：**
+
+```
+┌───────────────────────────────────────────────────────┐
+│ Layer 1: JSON Mode                                   │
+│   → 只保证输出是合法 JSON                             │
+│   → 不保证字段名、类型、必填项                        │
+│   → 代价：最低                                        │
+├───────────────────────────────────────────────────────┤
+│ Layer 2: Structured Outputs (OpenAI)                  │
+│   → JSON + 严格 Schema 校验                           │
+│   → 模型训练时学习了 Schema 的结构                     │
+│   → 代价：中等                                        │
+├───────────────────────────────────────────────────────┤
+│ Layer 3: Constrained Decoding                        │
+│   → CFG（上下文无关文法）/ Regex 驱动 token-by-token  │
+│   → 在采样阶段就禁止非法 token                         │
+│   → 不依赖模型能力，纯解码器侧约束                      │
+│   → 代价：最高（需要编译 Grammar）                     │
+└───────────────────────────────────────────────────────┘
+```
+
+**Constrained Decoding 的核心原理：**
+
+```
+传统解码：
+  候选词: ["价格", "价钱", "cost", "$", ...]
+  softmax → 选 top-k → 可能选出 "$"
+
+约束解码（CFG 语法: Number -> Int | Float | Dollar）:
+  候选词: ["价格", "价钱", "cost"] ← "$" 被直接排除!
+  softmax + 掩码 → 只在合法词中选
+```
+
+**主流实现方案：**
+
+```python
+# 方案1: Outlines - 基于 EBNF 语法的约束解码
+import outlines
+from outlines import generate
+
+date_pattern = r"\d{4}-\d{2}-\d{2}"
+regex_schema = f"""
+    date: {date_pattern}
+    status: "success" | "pending" | "failed"
+    message: "[^""]*"
+"""
+response = outlines.generate.regex(llm, regex_schema)(prompt)
+
+# 方案2: LMQL - Query Language for constrained generation
+from lmql import query, args
+
+@query(returns=f"{{int}}")
+def answer(question: str) -> int:
+    """强制返回整数"""
+    """LMQL
+    { response := random({question}) }
+    return response >= 0
+    """
+
+# 方案3: Guidance (Microsoft)
+import guidance
+
+guide = """
+{{#\system}}{{user}}Calculate the sum of 23+45.
+{{#assistant}}The result is {{num|gen(regex=r'\d+', max_tokens=2)}}.
+{{/assistant}}{{/user}}{{/system}}
+"""
+result = guidance.llm(guide, max_tokens=10)
+```
+
+**选型决策树：**
+
+```
+只需要合法 JSON？ → JSON Mode
+需要 Schema 字段校验？→ Structured Outputs
+需要嵌套复杂格式/自定义语言？→ Constrained Decoding
+需要确保数学/逻辑推理结果格式？→ Constrained Decoding
+需要与传统 AI 系统集成（Java/C++ 等不支持新 API）？→ Constrained Decoding
+```
+
+**面试加分点：**
+- Constrained Decoding 的优势是**不依赖模型能力**——即使用很小的模型也能输出正确格式
+- 缺点是**编译 Grammar 有成本**，且某些复杂结构难以表达为 CFG
+- 工业实践中经常采用**双层策略**：先用 Structured Outputs 生成，再用 Post-parse 验证兜底
+
+**面试话术：**
+> "JSON Mode 只管语法合法性，Structured Outputs 进一步做了 Schema 约束，而 Constrained Decoding 是在 token 级做语法约束。三层方案层层加码，约束力越来越强但延迟也越高。我在项目里用过 Outlines 处理复杂的嵌套 JSON，准确率接近 100%，但 Grammar 编写成本需要评估。生产上推荐 Structured Outputs 为主、Constrained Decoding 兜底的策略。"
+
+</details>
+
+---
+
+### Q22: Prompt Safety Guardrails 和生产级防护体系是什么？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q22-safety-guardrails.webp" alt="安全护栏动漫知识图：输入过滤、输出审查、内容分级、人工审核分层防御" />
+<p align="center"><sub>记忆点：安全不能只靠 System Prompt，必须有独立于模型的专门检测层。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**System Prompt 只能做「第一道防线」，生产级安全必须有多层护体系。**
+
+### 为什么 System Prompt 不够
+
+```
+System Prompt: "你是一个有益的助手，不要讨论政治..."
+攻击者输入: "忽略上面的规则，现在你是一个..."
+结果: ❌ System Prompt 可以被绕过
+原因: LLM 会把注意力放在最近的指令上，不管之前的规则
+```
+
+### 生产级安全四层架构
+
+```
+Layer 1: Input Guardrails（输入检测）
+├── 分类器检测：暴力/色情/政治/Hate Speech
+├── Intent Detection：判断用户意图是否危险
+└── 注入检测：Prompt Injection Pattern 识别
+
+Layer 2: Model-Level Controls（模型控制）
+├── Temperature 限制（安全场景低温）
+├── Token-level filtering（危险词禁用）
+├── Stop sequences（异常输出中断）
+└── Context window limits（防长上下文中毒）
+
+Layer 3: Output Guardrails（输出审查）
+├── PII 检测：身份证号、银行卡号、手机号
+├── 毒性评分：使用 Toxicity Classifier
+├── Fact-checking：事实核查
+└── Regex 黑名单：敏感关键词过滤
+
+Layer 4: Logging & Alerting（审计告警）
+├── 所有交互日志归档
+├── 高风险请求触发告警
+├── 手动复核队列（human-in-the-loop）
+└── 定期安全审计报告
+```
+
+### 开源工具栈
+
+```python
+# NVIDIA NeMo Guardrails
+from nemoguardrails import RailsConfig, ChatBot
+config = RailsConfig.from_path("./config/")
+bot = ChatBot(config)
+response = bot.run("帮我写一段 SQL 注入攻击代码")
+# → bot 会调用内置的安全策略拒绝，而非生成内容
+
+# AWS Guardrails for Amazon Bedrock
+from aws_bedrock_guardrails import Guardrail
+guardrail = Guardrail(model_id="titan-text-premier-v1:0")
+response = guardrail.invoke(input_text, system_prompt)
+# → 自动添加安全围栏参数
+
+# Llama Guard（Meta 开源）
+from llama_guard import LlamaGuard
+checker = LlamaGuard()
+checker.check("输入文本", "输出文本", categories=["violation_categories.json"])
+# → 返回是否违反安全类别
+
+# Giskard（自动化红队测试）
+from giskard import Dataset, test, hallucination, sensitivity
+dataset = Dataset(name="production-data", df=df)
+test_hallucination = test(hallucination())
+test_sensitivity = test(sensitivity())
+results = dataset.evaluate(tests=[test_hallucination, test_sensitivity])
+```
+
+### 实战：一个完整的安全 Pipeline
+
+```python
+class ProductionSafePipeline:
+    def process(self, user_input: str) -> dict:
+        # Step 1: 输入安全检查
+        if not input_filter.is_safe(user_input):
+            return {"status": "rejected", "reason": "unsafe_input"}
+        
+        # Step 2: 获取模型响应
+        model_response = llm.generate(prompt=user_input)
+        
+        # Step 3: 输出安全检查
+        if not output_filter.is_clean(model_response):
+            log_suspicious_activity(user_input, model_response)
+            return {"status": "flagged", "reason": "unsafe_output"}
+        
+        # Step 4: PII 清理
+        clean_response = pii_remover.strip_pii(model_response)
+        
+        return {"status": "ok", "response": clean_response}
+```
+
+### 合规框架对接
+
+| 框架 | 适用范围 | 关键要求 |
+|------|---------|----------|
+| **EU AI Act** | 欧盟全区域 | 高风险系统需风险评估和监控 |
+| **NIST AI RMF** | 美国联邦 | 治理、映射、管理、测量四维 |
+| **ISO/IEC 42001** | 全球 | AI 管理体系标准 |
+| **数据安全法** | 中国 | 数据处理者义务、个人信息保护 |
+
+**面试话术：**
+> "安全不是提示词的属性，而是系统的属性。System Prompt 只能做软边界，真正可靠的是独立于 LLM 的检测层——输入意图分类、输出毒性评分、PII 检测、以及完整的审计追踪。我见过的最惨教训是一家公司只靠 System Prompt 做安全，结果被越狱攻击绕过了三次才被发现。生产部署建议至少三层：输入检测、输出审查、人工复核。"
+
+</details>
+
+---
+
+### Q23: Composable Prompt Design（组合式 Prompt 设计）是什么？如何降低维护复杂度？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q23-composable-prompts.webp" alt="组合式 Prompt 动漫知识图：可复用组件拼装成完整 Prompt，支持版本管理和动态插值" />
+<p align="center"><sub>记忆点：把 Prompt 当微服务来设计——模块化、可替换、可独立测试。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**传统 Prompt 的问题：越长越难维护**
+
+```
+❌ 单体 Prompt（500+ 字，难以调试）:
+"你是一个AI助手，你可以回答产品问题、订单查询、退换货...
+如果用户问天气就说不知道。如果是技术问题就转接技术团队。
+语气要友善但不能太随意。输出不超过200字。遇到愤怒的用户先道歉。
+..."
+```
+
+**组合式设计 = 把 Prompt 拆成独立可复用的组件：**
+
+```
+✅ 组合式 Prompt（模块化，每个组件可独立测试）:
+  Role Definition     → 你是谁
+  Task Definition     → 做什么
+  Style Guide         → 怎么说
+  Constraints         → 不能做什么
+  Tool Definitions    → 可用工具
+  Examples            → 示范
+  Fallback Rules      → 出错了怎么办
+```
+
+### 具体实现：模板引擎方式
+
+```python
+class ComposablePrompt:
+    def __init__(self):
+        self.components = {
+            "role": self.load_component("role.jinja"),
+            "style": self.load_component("style.jinja"),
+            "constraints": self.load_component("constraints.jinja"),
+            "tools": self.load_component("tools.jinja"),
+            "examples": self.load_component("examples.jinja"),
+        }
+    
+    def assemble(self, context):
+        """按优先级组装完整 Prompt"""
+        blocks = []
+        for name in ["role", "style", "tools", "constraints", "examples"]:
+            if name in self.components:
+                blocks.append(self.components[name].render(context))
+        return "\n\n---\n\n".join(blocks)
+
+# Jinja 模板示例：
+# templates/constraints.jinja
+{% if task_type == 'code' %}
+## 编码约束
+- 代码必须可运行
+- 不包含未定义的变量
+- 注释使用中文
+{% elif task_type == 'chat' %}
+## 对话约束
+- 每次回复不超过 200 字
+- 主动引导用户说出需求
+{% endif %}
+```
+
+### 关键设计原则
+
+| 原则 | 说明 | 好处 |
+|------|------|------|
+| **Single Responsibility** | 每个组件只做一件事 | 改一处不影响其他 |
+| **Interface Consistency** | 统一的插入/渲染接口 | 可动态替换组件 |
+| **Testability** | 每个组件可单独回归测试 | 改之前跑一遍 |
+| **Hot-swappable** | 运行时可切换组件 | A/B 测试无缝 |
+| **Dependency Declaration** | 明确声明组件间依赖 | 避免循环引用 |
+
+### 与 ReWoo / Plan-and-Solve 的关系
+
+```python
+# ReWoo 的思想也可以用来设计 Prompt 组件化
+# ReWoo = Resolve-only Executive Workflow + One-step
+# 思路：把复杂任务拆成独立的子步骤，每一步由独立 Prompt 处理
+
+class RewooPromptComposer:
+    def compose_plan(self, task):
+        plan = self.planner.compose(["search_web", "summarize", "format_answer"])
+        prompts = [self.components[f"step_{name}"].render(task, context) for name in plan]
+        return prompts  # 每步用一个专门的 Prompt 执行
+```
+
+### 维护复杂度对比
+
+```
+单体 Prompt（1人）:
+  修改角色定义 → 可能要改全文 500 字 → 回归风险高
+  新增工具支持 → 加 50 行约束 → 破坏原有风格 → 重测一切
+
+组合式 Prompt（多人协作）:
+  修改角色定义 → 只改 role.jinja → 跑 10 条用例
+  新增工具支持 → 加 tools.jinja → 只重新渲染 tools 段
+```
+
+**面试话术：**
+> "当你的 Prompt 超过 300 字的时候就该考虑组合式设计了。我见过最大的单体 Prompt 有 1200 字，改一行就会破坏其他地方。组合式的核心是把 Prompt 当成软件工程来做——每个组件独立测试，改动前跑对应用例，线上灰度发布。这跟后端的微服务理念一样：解耦才能可持续迭代。"
+
+</details>
+
+---
+
+### Q24: Prompt Versioning 和 Prompt Drift 是什么？生产环境如何管理？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q24-prompt-versioning.webp" alt="Prompt 版本管理动漫知识图：Git 式版本控制、回滚、审批、部署流水线" />
+<p align="center"><sub>记忆点：Prompt 也是代码——没版本控制的 Prompt 就是技术债务。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+### Prompt Versioning：把 Prompt 当作代码来管理
+
+```
+Prompt Drift 的典型表现：
+1. "上周还好好的，今天突然开始胡言乱语" → 模型版本变了
+2. "换个供应商后就质量下降了" → 模型特性差异
+3. "改了个标点符号效果全变了" → Prompt 脆弱性
+4. "不知道是哪个同学改了 Prompt 导致线上事故" → 无版本追踪
+
+Prompt Drift 根本原因：没有版本化的 Prompt 无法追溯、无法回滚
+```
+
+### 版本管理三板斧
+
+```yaml
+# 最佳实践：每个 Prompt 都应该是不可变版本的 artifact
+prompts:
+  v1.0.0:           # 初始版本
+    id: prompt_customer_service
+    hash: sha256:abc123...
+    deployment_env: staging
+    eval_score: 0.82
+    author: alice
+    changelog: "Initial version based on template v3"
+
+  v1.1.0:           # 修改 style guide
+    id: prompt_customer_service
+    parent: v1.0.0
+    hash: sha256:def456...
+    deployment_env: production
+    eval_score: 0.85
+    changes: "Updated tone to be more empathetic"
+    approval: bob_manager ✅
+    rollback_from: v1.2.0  # 可以回滚到上个版本
+```
+
+### Prompt Drift Detection 监控体系
+
+```python
+class PromptDriftDetector:
+    def __init__(self, baseline_prompts, golden_dataset):
+        self.baselines = baseline_prompts  # 各版本的黄金评测集分数
+        self.golden = golden_dataset  # 固定的评测集
+    
+    def detect_drift(self, current_version_metrics, window_size=168):  # 7天
+        """
+        检测指标漂移：对比最近窗口期和基线
+        """
+        recent_avg = metrics_window.average(window_size)
+        baseline_avg = self.baselines[current_version]
+        delta = abs(recent_avg - baseline_avg)
+        
+        if delta > THRESHOLD:  # 默认 0.03 (3%)
+            return {
+                "drift_detected": True,
+                "delta": delta,
+                "action": "alert_team",
+                "possible_causes": [
+                    "model_upgrade", "prompt_change", "data_distribution_shift"
+                ]
+            }
+        return {"drift_detected": False}
+```
+
+### 主流工具生态（2026）
+
+| 工具 | 特点 | 适用场景 |
+|------|------|----------|
+| **LangSmith** | 原生支持 Prompt Hub，版本+回溯+在线 Playground | LangChain 栈 |
+| **Braintrust** | 云端协作 + Eval 集成，分支/合并工作流 | 团队协作开发 |
+| **Confident AI** | Git 同步 + CI/CD 集成 + Prompt Monitor | 工程导向 |
+| **Maxim AI** | 企业级，含实验跟踪 + 模拟 + 生产观察 | 中大型企业 |
+| **MLflow** | 开源，实验跟踪 + Model Registry + Prompt 注册 | ML 优先团队 |
+| **LangWatch** | 一体化 Prompt Mgmt + Observability + Eval | 生产监控 |
+
+### 推荐 workflow
+
+```
+dev → commit prompt → run regression tests → merge to staging → 
+eval in staging → approve → deploy to production → monitor drift
+         ↑                                                                  ↓
+         └──── rollback if drift detected ←──── alert triggered ──────────┘
+```
+
+**面试话术：**
+> "Prompt 版本管理的核心问题是『谁在什么时候做了什么改动』以及『出了问题能不能一键回滚』。生产环境我建议三层：离线回归测试（每次改 Prompt 必跑）、影子流量（新旧并行对比）、线上指标监控（自动检测 drift）。工具选型要看团队栈——用 LangChain 的就 LangSmith，偏通用就 Braintrust 或 Confident AI。关键是形成闭环：改动→测试→部署→监控→回滚，像代码发布一样规范。"
+
+</details>
+
+---
+
+### Q25: 如何用 Prompt Caching 进一步优化 Token 成本？实际收益怎么量化？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q25-caching-benefit-analysis.webp" alt="缓存收益分析动漫知识图：不同复用率和写入成本的收益曲线" />
+<p align="center"><sub>记忆点：命中率再高不等于省钱，还要看写入费用、TTL 和复用次数。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Prompt Caching 的收益取决于三个关键变量的乘积：**
+
+```
+Total Savings = Cache_Hit_Rate × Dynamic_Tokens_Saved × Frequency × ΔCost_Per_Token
+                              │                            │
+                   （改写后不变的 prefix          （同一前缀
+                    被命中节省的量）                 被重复使用的次数）
+```
+
+**各家定价差异直接影响收益：**
+
+| Provider | 缓存写入价 | 缓存读取价 | 最小长度 | 典型 TTL |
+|----------|-----------|-----------|---------|---------|
+| **OpenAI** | 略低于常规输入 | 低很多 | 动态 | ~15min |
+| **Anthropic** | cache_control 标记的块 | 仅计费读取部分 | 无硬性下限 | 会话内 |
+| **Bedrock** | 取决于底层模型 | 取决于模型 | 因模型而异 | 不确定 |
+
+**ROI 计算公式：**
+
+```
+prompt_size = 3000 tokens（System Prompt + Tools）
+daily_requests = 10000（日均调用）
+hit_rate = 0.80（预估命中率）
+openai_input_price = $3.00/M tokens
+openai_cache_read_price = $0.30/M tokens  （约 10% 的输入价格）
+savings_per_day = hit_rate × daily_requests × prompt_size × (input_price - read_price)
+                = 0.80 × 10000 × 3000 × ($3.00 - $0.30) / 1e6
+                = $64.80/天
+annual_savings ≈ $23,652/年
+```
+
+**实操优化技巧：**
+
+```python
+# 1. 最大化静态前缀长度
+messages = [
+    {"role": "system", "content": SYSTEM_PROMPT},       # 最长不变部分
+    {"role": "system", "content": TOOL_DEFINITIONS},     # 工具定义
+    *conversation_history[-3:],  # 尽可能少地放进历史
+    {"role": "user", "content": user_message},           # 唯一变化的部分
+]
+
+# 2. 同租户共享同一个 conversation
+# 同一个用户的多次请求天然命中缓存
+
+# 3. 避免在每个请求中引入随机内容
+# ❌ 不要在消息里加 timestamp / request_id / random seed
+# ✅ 这些放到请求头或元数据里，不进 messages
+```
+
+**常见陷阱：**
+
+- ❌ **缓存写入比正常输入还贵** → 短文本频繁写缓存反而亏本
+- ❌ **不同模型的 System Prompt 不一样** → 换模型 = 缓存全部失效
+- ❌ **TTL 过期后写入竞争** → 大量并发同时写入导致缓存不稳定
+- ❌ **只看命中率不看整体** → 命中率 90% 但写入费极高 = 净亏损
+
+**面试话术：**
+> "我做过的一个项目在 Prompt Caching 上每月省了大约 30% 的 API 费用。关键不是命中率——很多人以为命中率 90% 就一定省钱，但如果写入价格很高或者复用次数太低，缓存可能适得其反。我的做法是先统计现有 API 账单：写入 token 多少、读取 token 多少、总调用量多少，算出 breakeven point，再决定要不要开启显式缓存。"
+
+</details>
+
+---
+
+### Q26: How to Evaluate Different Prompt Frameworks? LangSmith vs Braintrust vs Promptfoo?
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q26-framework-comparison.webp" alt="框架对比动漫知识图：功能矩阵比较面板" />
+<p align="center"><sub>记忆点：选框架不是选最好的，而是选最适合当前团队规模和技术栈的。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Prompt Evaluation 框架选型的关键维度：**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ 选型 Checklist：                                            │
+│ 1. 团队规模：单人 vs 多人协作                                │
+│ 2. 技术栈：LangChain / 自建 / 多框架混合                       │
+│ 3. CI/CD 集成：是否需要 GitHub Actions / GitLab CI 等         │
+│ 4. 云端 vs 本地：是否接受 SaaS，还是需要私有部署               │
+│ 5. 预算：免费够用还是愿意为 Enterprise 付费                    │
+│ 6. 合规性：GDPR / 等保是否需要数据不出境                      │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### 主流框架横向对比
+
+| 维度 | LangSmith | Braintrust | Promptfoo | Confident AI | Giskard |
+|------|-----------|------------|-----------|-------------|--------|
+| **定位** | 全链路观测+评测 | 云端协作者+Eval | CLI/OSS 回归测试 | 端到端 Mgmt+Monitor | Red team+Eval |
+| **开源** | 否(SaaS) | 否(SaaS) | ✅ 完全开源 | 部分开源 | ✅ 开源+商业 |
+| **CI/CD** | ⚠️ 需 SDK | ❌ | ✅ 原生 CLI | ✅ Git同步 | ✅ SDK+CLI |
+| **Prompt Mgmt** | ✅ Prompt Hub | ✅ 编辑+版本 | ❌ YAML only | ✅ 编辑器+分支 | ❌ |
+| **Evals** | LLM-as-judge | Rubric+Pairwise | Config-driven | Live Monitor | Adversarial |
+| **Trace/Debug** | ✅ 全链路 | ✅ 实验对比 | ❌ | ✅ 生产观察 | ✅ Agent tracing |
+| **自托管** | ✅ (Cloud only) | ❌ | ✅ | ❌ | ✅ |
+| **适用场景** | LangChain 栈 | 产品+工程协作 | OSS/DevOps | 生产监控 | Red Team |
+
+### 选型推荐路径
+
+```
+团队规模 < 5 人 + 预算有限 → Promptfoo (OSS)
+团队有 DevOps 流程 → Promptfoo + GitHub Actions
+用 LangChain → LangSmith（生态绑定紧密）
+产品经理参与 Prompt 迭代 → Braintrust / Confident AI
+需要合规审计 → Giskard (adversarial red teaming)
+大规模生产监控 → Confident AI / LangWatch
+```
+
+### Promptfoo 实战示例（CLI-first，适合个人开发者）
+
+```yaml
+# promptfooconfig.yaml
+datasets:
+  - id: customer-service-golden-set
+    description: "客户服务质量测试集"
+    columns:
+      - query
+      - expected_response
+      - expected_keywords
+prompts:
+  - file://prompts/customer_v1.md
+  - file://prompts/customer_v2.md
+providers:
+  - id: openai:gpt-4o
+  - id: anthropic:claude-sonnet-4-5
+tests:
+  - vars:
+      query: "我想退款，已经收到货三天了"
+    assert:
+      - type: contains
+        value: "退款"
+      - type: llm-rubric
+        value: "态度友好且有明确的退款指引"
+```
+
+```bash
+# 一键回归测试
+$ promptfoo eval --config promptfooconfig.yaml
+$ promptfoo live          # 实时测试
+$ promptfoo share          # 分享结果给团队
+```
+
+**面试话术：**
+> "选型的话，我们团队当时是从小做起，先用 Promptfoo 做回归测试，后来扩到 10 人加了 LangSmith 做 trace 和协同。如果你问我怎么选——关键看两点：一是团队有没有 CI/CD 意识，有的话 Promptfoo 就够了；二是产品会不会介入 Prompt 迭代，会的话 Braintrust 的产品友好度更好。最后别忘记：工具再好也只是辅助，建立自己的黄金评测集和评估 rubric 才是根本。"
+
+</details>
+
+---
+
+**速记卡片更新：**
+
+| 新加入的概念 | 一句话解释 |
+|------|------------|
+| **Dynamic Few-Shot** | 运行时语义检索最相关示例作为 demonstrations |
+| **Constrained Decoding** | 基于 CFG/Regex 的 token 级语法约束，不依赖模型能力 |
+| **Safety Guardrails** | 独立于模型的四层安全防护体系（输入/输出/检测/审计） |
+| **Composable Prompts** | 模块化 Prompt 组件，每个独立可测试、热替换 |
+| **Prompt Versioning** | Git 式版本控制 Prompt，支持回滚和漂移检测 |
+| **Prompt Drift** | Prompt 性能随时间或环境变化的退化现象 |
+| **Framework Comparison** | LangSmith / Braintrust / Promptfoo 各有侧重，按需选用 |
+
 **上一模块：** [基础概念](../01-basic-concepts/)
 **下一模块：** [RAG 系统](../03-rag-system/)
 
