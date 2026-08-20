@@ -329,6 +329,10 @@ flowchart LR
 > [!NOTE]
 > 打赏完全自愿，不会解锁额外内容。不方便打赏也没关系，点一个 **Star**、分享项目或提交真实面试反馈，都是很大的支持。
 
+## 📈 项目统计
+
+[![Star History](https://star-history.dera.page/svg?repos=guocong-bincai/ai-interview-guide&type=Date)](https://star-history.dera.page/#guocong-bincai/ai-interview-guide&type=Date)
+
 <details>
 <summary><b>🥤 请作者喝杯奶茶（微信 / 支付宝）</b></summary>
 <br>
