@@ -3,7 +3,7 @@
 > **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q3、Q4、Q5、Q11、Q12、Q13、Q15、Q17。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-08-14
+> **更新：** 2026-08-21
 > **考点：** Transformer、Self-Attention、BERT、GPT、位置编码
 
 ## 📋 目录
@@ -2053,14 +2053,315 @@ MLA 缺点:
 
 </details>
 
-## 📝 更新记录
 
-| 日期 | 更新内容 |
-|------|----------|
+| 日期 | 版本 | 更新内容 |
+|------|------|----------|
+| 2026-08-21 | v3.136 | 新增 Q20-Q26（Scaling Laws&Chinchilla、Tokenization/BPE、ALiBi详解、Sliding Window Attention、Causal Decoder-Only主导原因、LayerNorm vs RMSNorm、训练Loss Curve诊断）7 道 |
 | 2026-08-14 | v3.135 | 新增 Q15-Q19（FlashAttention、MoE稀疏架构、PagedAttention/KV Cache管理、SwiGLU门控机制、MLA低秩注意力）5 道 |
 | 2026-04-13 | 新增 Q10 Transformer+SSM混合架构（Mamba核心原理、2026年主流模型混合策略） |
 | 2026-03-05 | 新增 Transformer 架构与注意力机制面试题 7 道 |
 
+
+---
+
+### Q20: Scaling Laws 是什么？Chinchilla 的 "compute-optimal" 意味着什么？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q20-scaling-laws.webp" alt="Scaling Laws 动漫知识图：损失随参数、数据量、算力以幂律下降，Chinchilla 给出固定算力下参数量与token数的最优配比"></a></p>
+<p align="center"><sub>🧠 图解记忆：算力和模型一起放大，损失按幂律下降；别只堆参数不喂数据。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Scaling Laws = 模型能力随规模变化的经验规律**
+
+Loss(N, D, C) ~ a + b * N^(-alpha) + c * D^(-beta)
+
+其中：N=参数量, D=训练 token 数, C=FLOPs~6*N*D*L
+关键结论：alpha > beta → 增加数据比增加参数更有效降低 Loss
+
+**Chinchilla 的核心发现（面试必考）：**
+传统做法：给定算力→选大模型→有限数据训练（欠训练）
+Chinchilla：给定算力→适中N+足够大的D，最优配比~20个token/参数
+Chinchilla 70B 训练 1.4T tokens（20:1），超过 PaLM 62B
+
+| 偏离方向 | 表现 | 解释 |
+|----------|------|------|
+| N太大D太小 | Loss平台期明显 | 有容量但没见过足够模式 |
+| N太小D太大 | 后期Loss几乎不降 | 已达表示能力天花板 |
+| 偏离 < 2x optimal | 影响可控 | 数据质量优先 |
+| 偏离 > 5x optimal | 显著低于预期 | 必须重新分配 |
+
+注意事项：MoE需修正(active vs total params)、inference-aware scaling考虑延迟后最优偏小、高质量文本接近耗尽时需合成数据。
+
+**面试话术：**
+> "Scaling Laws 告诉我们损失呈幂律下降。Chinchilla 量化了'欠训练'现象——之前的团队给太多参数却喂太少数据。对固定算力预算，最优方案是让参数量和token数同步增长，约20:1比例。我们应该造小一点但吃饱的模型。"
+
+</details>
+
+---
+
+### Q21: Tokenization 方法有哪些？BPE、WordPiece、SentencePiece 有什么区别？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q21-tokenization.webp" alt="Tokenization方法对比：字级无OOV但冗长，词级高效但有OOV，子词取折中"></a></p>
+<p align="center"><sub>🧠 图解记忆：字符不怕没见过的词，但句子太长塞不下上下文。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**三种主流方法的本质区别：**
+- Character Level: r-u-n-n-i-n-g (7tokens, no OOV, long seq)
+- Word Level: running (1token, high OOV, short seq)
+- Subword Level: run+ing (2tokens, low OOV, medium seq)
+
+**1. BPE（Byte-Pair Encoding）：**
+初始化词汇表→统计相邻pair频率→合并最高频pair→重复直到目标vocab size。
+Byte-level BPE从UTF-8 byte起步，任何Unicode文本都不会OOV。
+代表模型：GPT-2/3/4 (tiktoken), RoBERTa
+
+**2. WordPiece：**
+合并能使语言模型likelihood提升最多的pair→max likelihood。
+代表模型：BERT、DistilBERT（vocab:30K，用##标记连续子词）
+
+**3. SentencePiece：**
+tokenizer框架而非算法。内部实现Unigram（首选）、BPE等。将标点视为普通字符。
+Unigram LM思路：从大候选集迭代去掉最低概率20%直到等于目标大小。
+代表模型：T5、LaMDA、PaLM、Gemini系列
+
+**Vocab Size选择权衡：**
+| Vocab Size | 优点 | 缺点 | 典型应用 |
+|-----------|------|------|---------||
+| 32K (LLaMA) | 容纳更多token | 罕见词被拆散 | LLaMA家族 |
+| 50K (GPT-2) | 中英混合好 | 显存略增 | GPT-2/3 |
+| 100K (GPT-4) | 复杂词直接映射 | 更大embedding | GPT-4 |
+
+**多语言挑战：** CJK一个汉字占3bytes→序列膨胀2-3x→浪费KV Cache。
+应对：①为每种语言单独训练tokenizer ②扩大vocab size
+
+**面试加分项：** BPE is adaptive computation、tiktoken O(1)查找、CJK序列膨胀问题
+
+**面试话术：**
+> "Tokenization的本质是在OOV风险和序列长度之间找平衡。BPE通过迭代合并高频pair构建子词vocab。Byte-level BPE从根本上消除了OOV。但CJK语言会遇到序列膨胀（一个汉字变3-5个byte token）。目前主流模型多在32K-100K之间选取vocab size。"
+
+</details>
+
+---
+
+### Q22: ALiBi（Attention with Linear Biases）的工作原理？为什么它能零样本外推？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q22-alibi.webp" alt="ALiBi动漫知识图：无需位置编码即注入线性距离惩罚，每个头斜率不同可外推更长序列"></a></p>
+<p align="center"><sub>🧠 图解记忆：不在embedding加位置信息，直接在attention score上加距离罚分。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心思想：不用位置编码，用线性衰减代替**
+
+Sinusoidal/Learned PE把位置加法注入token；RoPE旋转Q/K让dot携带相对位置；ALiBi直接修改注意力分数。
+
+ALiBi注意力：softmax(QK^T/sqrt(d) + m_h * |pos_i - pos_j|)
+m_h < 0是每个head的负斜率系数（最近的头衰减最陡看最近邻居，远的头衰减最缓看远距离）。
+
+公式：m_h = -8^{-4h/d}
+
+**为什么能零样本外推？**
+Bias只依赖RELATIVE position（pos_i-pos_j），不依赖ABSOLUTE position！训练时pos在[train_len]范围，推理时在[infer_len]范围，任意两个token间的relative distance和bias值都保持不变→不需要微调就能处理更长序列。
+
+| 特性 | ALiBi | RoPE(+NTK/YaRN) | Sinusoidal | Learned |
+|------|-------|--------------------|------------|----------|
+| Zero-shot外推 | 原生支持 | 需缩放技巧 | 差 | 无定义 |
+| 微调后外推极限 | ~8-16x | ~32x+(YaRN) | ~2x | N/A |
+| 额外参数 | 0 | 0 | 0 | 需学习 |
+| 短上下文 | 略弱于RoPE | 优秀 | 中等 | 优秀 |
+| 代表模型 | MPT,BLOOM | LLaMA,Mistral | 原始Transformer | BERT |
+| 复杂度 | 极低 | 中 | 低 | 低 |
+
+局限性：缺乏绝对位置感知、短上下文略逊RoPE、强locality prior对跨极远距离精确对齐不利。
+
+**面试加分项：** 写出斜率公式m_h=-8^{-4h/d}、ROPE+YaRN外推超ALiBi（32x+vs8-16x）
+
+**面试话术：**
+> "ALiBi完全不改动token embedding，而是在注意力分数上直接加与距离成正比的负偏置。因为偏置只依赖相对距离而非绝对位置，所以可以直接处理比训练时长更久的序列——zero-shot外推。代价是缺少绝对位置感，短上下文略逊RoPE。2026年更多长上下文模型选了RoPE+YaRN组合获得更强外推能力。"
+
+</details>
+
+---
+
+### Q23: Sliding Window Attention（滑动窗口注意力）是什么？它解决了什么问题？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q23-sliding-window.webp" alt="滑动窗口注意力动漫知识图：限制关注窗口内前驱token配合周期性全局层避免二次计算"></a></p>
+<p align="center"><sub>🧠 图解记忆：注意力不再是全局两两交互，而是限制在滑动窗口内，节省计算且支持超长序列。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Sliding Window Attention = 限制每个token只能关注前后固定窗口内的token**
+
+标准Self-Attention的问题（长序列L很大时）：
+- 计算量O(L²×d)、显存O(L²)、KV Cache O(L×d)
+- L=128K时注意力矩阵=1.6×10^10 entries≈32GB仅FP16存储
+
+Sliding Window解决方案：O(L×window_size×d)→从O(L²)降到O(L)
+
+**现代实践：交错滑动窗口+全局层**
+纯滑动窗口缺陷：感受野永远受限。解决：交替使用SW层和全局层。
+
+GEMMA2模式（4B/9B）：Layer1-SW(4K)→Layer2-Global→Layer3-SW→Layer4-Global→每两层一次全局交互。
+Mistral3系列：Layer1-5-SW(4K)→Layer6-Global→Layer7-11-SW→Layer12-Global→5:1比率。
+
+| 方案 | 复杂度 | 表达能力 | 代表模型 |
+|------|--------|----------|----------|
+| Full Attention | O(L²) | 最强 | 小序列场景 |
+| Sliding Window | O(L×W) | 中等，需全局辅助 | Gemma2,Mistral3 |
+| N-Tile/Strided | O(L) | 层越多感受野越大 | Longformer |
+| SSM/Mamba | O(L) | 互补路线 | Mamba,Jamba |
+
+优势：长序列推理成本低、硬件友好。
+劣势：无法不经全局层做端到端长程跳跃。
+
+**面试加分项：** 解释为什么纯SW不够需要全局层、Gemma2奇偶层交替vs Mistral3的5:1分组
+
+**面试话术：**
+> "Sliding Window是一种稀疏注意力——每个token只看前后固定数量的前驱token。这让复杂度从O(L²)降到O(L×W)，大幅节省了计算和KV Cache。但纯SW感受野永远受限，所以主流做法是每隔若干层插一个全局attention层，比如GEMMA2是奇偶层交替，Mistral3是5层SW后跟1层全局。这样既能控制计算量又保持长程建模能力。"
+
+</details>
+
+---
+
+### Q24: 为什么 2026 年的主流 LLM 全部转向 Causal Decoder-Only 架构？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q24-decoder-only-dominance.webp" alt="Decoder-Only统治趋势：统一架构通吃所有任务"></a></p>
+<p align="center"><sub>🧠 图解记忆：单一架构通吃所有任务，统一比分裂更高效。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**架构演化简史：**
+```
+2017: Encoder-Decoder → 机器翻译
+  +-- Encoder-only (BERT,2018) → NLU称霸
+  +-- Decoder-only (GPT,2018) → 文本生成
+2020: GPT-3展示scaled-up Decoder-only超越BERT
+2022-至今: Decoder-Only全面接管
+  LLaMA→Mistral→Qwen→Gemma→Yi→全Decoder-only
+```
+
+**五大核心原因：**
+
+1. **统一架构=统一训练**：同一个模型一个prompt覆盖分类/摘要/QA/对话，只需维护一套参数
+2. **自回归训练的免费并行信号**：一次forward就获所有位置的监督信号，不需要MLM特殊mask或NSP第二句话任务
+3. **In-Context Learning天然载体**：causal mask决定了单向推进模式，非常适合few-shot learning
+4. **推理效率优势（流式输出）**：Pre-fill并行计算KV Cache，Decode串行逐token生成速度快
+5. **多模态扩展兼容性**：所有模态拼成一条序列用同一decoder处理，GPT-4o/Claude/Gemini都走这条路
+
+**面试加分项：** GPT-3是Decoder-only超越BERT转折点、理解多模态融合的统一性优势
+
+**面试话术：**
+> "Decoder-Only之所以成为绝对主流，核心原因是统一——同一个模型用同一个预训练目标覆盖所有任务。加上in-context learning天然适合因果解码、流式体验好、多模态需要一个统一的序列容器，三个优势叠加导致行业加速converged到decoder-only。"
+
+</details>
+
+---
+
+### Q25: LayerNorm 和 RMSNorm 有什么区别？为什么现代 LLM 普遍改用 RMSNorm？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q25-layer_norm_vs_rmsnorm.webp" alt="LayerNorm与RMSNorm对比：前者减均值加仿射变换，后者只除均方根省去了均值计算"></a></p>
+<p align="center"><sub>🧠 图解记忆：LayerNorm做完整的标准化，RMSNorm去掉均值只留尺度归一化。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心区别：是否减去均值**
+
+LayerNorm(Ba et al.2016): mu=mean(x), sigma2=var(x)
+  LayerNorm(x)=gamma*(x-mu)/sqrt(sigma2+eps)+beta
+
+RMSNorm(Zhang&Sennrich,2019):
+  RMS(x)=sqrt(mean(x^2)+eps)
+  RMSNorm(x)=gamma*x/RMS(x)
+
+LayerNorm: mean subtraction+可学习bias beta
+RMSNorm:   无mean subtraction+无可学习bias beta，只保留scale gamma
+
+**为什么去掉均值反而够用？**
+Mean centering对梯度流动贡献很小，Scale normalization才是关键。去掉mean后训练稳定性和收敛速度几乎不变，用15%计算节省换95%+效果。
+
+**计算效率：** LayerNorm约5x元素操作，RMSNorm约3x→节省40%元素操作，实际收益10-15%运行时间。
+
+**Adoption Timeline:**
+2019提出→Gopher首次采用→2022+:LLaMA,Mistral,Gemma,Qwen,Yi全部RMSNorm
+
+**QK-Norm的使用场景：**
+不同于LayerNorm/RMSNorm（对整个hidden state归一化），QK-Norm只在attention内部对Q和K向量做归一化以稳定注意力分数。代表：Qwen系列默认启用。
+
+**什么时候还用LayerNorm？**
+传统NLP任务(BERT)、迁移已有预训练检查点时、教育场景。但在从头训练的新模型上，2026年几乎没有理由选LayerNorm了。
+
+**面试加分项：** RMSNorm被LLaMA/Mistral/Gemma全系列采用、了解QK-Norm与Pre-LN正交
+
+**面试话术：**
+> "RMSNorm和LayerNorm的核心区别是RMSNorm不去减均值也不加偏置。实践中归一化的核心作用是控制尺度而减均值收益有限。RMSNorm省去约40%的元素操作推理加速10-15%，无数实验验证不会牺牲质量。从LLaMA到Mistral到所有主流2024-2026模型都用了RMSNorm替代LayerNorm。"
+
+</details>
+
+---
+
+### Q26: Transformer 的训练过程中 Loss Curve 会出现哪些典型阶段？如何诊断？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q26-loss-curve.webp" alt="训练Loss曲线动漫知识图：Loss经历快速下降、平台期、相变骤降、细粒探索等形态，每一步对应能力跃迁"></a></p>
+<p align="center"><sub>🧠 图解记忆：Loss曲线不只是单调下降——平台期后可能有相变骤降。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**四个典型阶段：**
+
+```
+Log Loss
+  |
+  | H              Phase 4: Fine exploration(loss波动很小)
+  |  HH        __ _ _ _ _ _ _ _ _ _ _
+  |   HHH    __
+  |    HHH   _                  Phase 3: Phase transition(骤降0.1-0.3nats)
+  |     HHH  | plateau
+  |      HHH |
+  |       HHH| 
+  |        HHH__
+  |         HHH|
+  |          HHH___ jump
+  |           HHH____
+  |            HHH    Phase 2: Plateau(缓慢阶梯状下降)
+  |             HHH
+  |              HH               Phase 1: Rapid descent(急速下降2-4nats)
+  |               H
+  +-------------------------------------> Training Steps
+```
+
+**Phase 1: Rapid Descent（快速下降期）**
+Step 0~10K，Loss急速下降2-4 nats。模型学token prob基本分布，高频ngram被记住。不降则查LR和数据。
+
+**Phase 2: Plateau（平台期）**
+Step 10K~数十万步，Loss缓慢阶梯状下降。学语法结构和常见短语。**不要恐慌——这是预期的。**
+
+**Phase 3: Phase Transition（相变/骤降）**
+中后期几十万到百万步，出现明显阶梯式下降(drop 0.1-0.3 nats)。Emergence现象——逻辑推理、数学等新能力突然涌现。
+
+**Phase 4: Fine Exploration（细粒探索期）**
+接近训练结束，Loss波动±0.01nats逼近渐近线。Train≈Val→正则化良好。
+
+**常见异常及对策：**
+| 现象 | 可能原因 | 对策 |
+|------|---------|------|
+| Loss不降 | LR太小/梯度消失/数据损坏 | 检查LR/gradient clipping |
+| Loss震荡 | LR太大/batch太小 | 降LR或增大batch |
+| Train>>Val | Overfitting | 加强dropout |
+| 多次骤降 | 数据mix变化 | 正常现象 |
+
+**面试加分项：** 画出四阶段loss curve、phase transition与emergent capabilities关系
+
+**面试话术：**
+> "LLM的训练loss曲线不是简单单调下降，它有四个阶段：快速下降、平台期、相变骤降、细粒探索。最关键的是phase transition——loss会在某个点突然掉一大截，对应从零散知识到系统理解的飞跃。最重要的是不要因为平台期恐慌，那只是暴风雨前的宁静。"
+
+</details>
 
 ---
 
@@ -2073,4 +2374,4 @@ MLA 缺点:
 
 ---
 
-*版本: v3.135 | 更新: 2026-08-14 | by 二狗子 🐕*
+*版本: v3.136 | 更新: 2026-08-21 | by 二狗子 🐕*
