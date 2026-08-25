@@ -1257,6 +1257,12 @@ def build_prompt_with_query_repeat(query: str, docs: list):
 | **Context Engineering** | 上下文信息系统化编排，Lost in Middle解决 |
 | **推理模型Prompt** | o3/R1不需要外部CoT，关心Thinking Budget | 避免反效果 | 无 |
 | **Temperature实战** | RAG 0.1-0.3，创意 0.7-1.0，代码 0.0-0.2 |
+| **查询改写 (Multi-Query/HyDE)** | 多路扩展+假设文档检索，适配模糊输入 | Recall +4-6pp | 中（1个额外LLM调用）|
+| **诚实拒答 Abstention** | 允许模型说不知道，配合引用规范和降级路径 | 幻觉率 ↓~15pp | 零 |
+| **优化策略决策框架** | 知识→Retrieval、能力→Tool、流程→Workflow、格式→Fine-tune | 避免滥用微调 | 视方案而定 |
+| **并行工具 DAG 调度** | 拓扑排序+超时控制+circuit breaker 三层防护 | 可靠性↑ | 工程开销 |
+| **LangGraph vs LangChain** | 状态图/循环/显式State vs 线性Chain/Pipeline | 复杂流程选Graph | Graph略高学习曲线 |
+| **Agent 三层评估** | 端到端业务指标 + 过程质量指标 + 效率指标 | 多维仪表盘而非单一分数 | 需要 Trace 采集 |
 
 ---
 
@@ -2683,3 +2689,990 @@ $ promptfoo share          # 分享结果给团队
 ---
 
 [返回目录 →](../../README.md)
+
+### Q27: 什么是 Query Rewriting（查询改写）？常见策略有哪些？如何提高检索准确率？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q27-query-rewriting.webp" alt="查询改写动漫知识图：多路子查询扩展、退后抽象泛化、假设文档生成、上下文对话改写四种重写模式" /></a>
+<p align="center"><sub>记忆点：用户原话几乎从来不是向量搜索的理想形式——改写是成本最低的杠杆。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心洞察：用户输入 ≠ 检索关键词**
+
+```
+用户问："我上周那个认证问题怎么搞？"
+文档内容："解决会话中间件中的 JWT 过期错误"
+
+→ 直接嵌入检索可能匹配不到！
+→ 因为"认证问题"和"JWT过期"词汇不重叠。
+```
+
+### 四种主要改写策略
+
+**1. Multi-Query Expansion（多查询扩展）**
+
+让模型用不同措辞重写同一问题，增加召回覆盖面。
+
+```python
+def multi_query_rewrite(llm, original_query):
+    """用多种角度重新表述查询"""
+    prompt = f"""
+    将以下问题改写为3个不同的版本，保持语义一致但使用不同措辞：
+
+    原始问题：{original_query}
+
+    要求：
+    - 每个版本侧重不同角度
+    - 不要遗漏原始问题的关键信息
+    - 只输出改写后的查询，每行一个，不要其他解释
+
+    改写结果：
+    """
+    response = llm.generate(prompt, temperature=0.5)
+    return [q.strip() for q in response.split('\n') if q.strip()]
+
+# 使用：对3个改写查询分别检索，合并去重后排序
+queries = multi_query_rewrite(llm, user_input)
+results = []
+for q in queries:
+    docs = vectordb.search(q, k=5)
+    results.extend(docs)
+# 然后用RRF融合或reranker排序
+```
+
+**效果：** BEIR基准测试中，Multi-Query比单查询平均召回率提升约 4-6 个百分点。
+
+---
+
+**2. Step-Back Prompting（退后提示）**
+
+先让模型"退一步"思考更一般的概念/背景，再用这些泛化查询辅助检索。
+
+```python
+def step_back_rewrite(llm, query):
+    """生成高层次抽象问题辅助检索"""
+    abstract_prompt = f"""
+    给定以下具体问题，请生成 2 个更一般化的问题，
+    这些通用问题能帮助定位相关领域知识：
+
+    具体问题：{query}
+
+    通用问题：
+    """
+    abstract_queries = llm.generate(abstract_prompt, temperature=0.3)
+    
+    # 同时保留原始查询 + 通用查询一起检索
+    return [query] + [q.strip() for q in abstract_queries.split('\n') if q.strip()]
+
+# 示例：
+# 原始：如何修复 Django REST Framework 的 TokenAuthentication 过期问题？
+# 通用1：REST API 身份验证令牌管理最佳实践
+# 通用2：Web框架中常见的认证超时和刷新机制
+```
+
+**适用场景：** 当用户查询过于具体（包含具体产品名/版本号）时，Step-Back能匹配到更通用的技术文档。
+
+---
+
+**3. HyDE（假设文档嵌入）**
+
+反直觉地：让模型先生成一个"假设性答案文档"，然后用这个文档做检索。
+
+```python
+def hyde_rewrite(llm, query):
+    """
+    HyDE: Hypothetical Document Embeddings
+    
+    核心思想：问题和答案在语义空间处于不同区域。
+    一篇解释 JWT 过期错误的文档，看起来远比用户关于认证问题的提问更像
+    其他 JWT 过期相关文档。
+    """
+    prompt = f"""
+    以下是用户的查询：
+
+    {query}
+
+    请生成一段 2-3 段的「假设性回复」来回答这个问题。
+    这段回复不需要完全准确，重点是捕捉回答问题时需要使用的术语、
+    格式和概念领域。它将用于增强检索匹配。
+
+    只需输出假设性回复本身，不要加标题或说明。
+    """
+    hypothetical_doc = llm.generate(prompt, temperature=0.7)
+    return hypothetical_doc
+
+# 注意：HyDE的事实准确性不是必须的。有效是因为它捕获了
+# 答案的术语空间（vocabulary domain），而不是因为它的内容正确。
+# 一个有幻觉但听起来合理的文档仍然占据语义上有用的领域。
+```
+
+**性能对比（BEIR基准，Recall@10）：**
+
+| 方法 | SciFact |NQ Corpus | HotpotQA | 平均 |
+|------|---------|----------|----------|------|
+| 基线 Dense Retrieval | 38.2% | 41.8% | 35.1% | 38.4% |
+| Multi-Query | 40.1% | 43.5% | 37.2% | 36.9%* |
+| Step-Back | 42.3% | 44.1% | 39.8% | 42.1% |
+| **HyDE** | **44.8%** | **47.6%** | **41.5%** | **44.6%** |
+
+*\*不同数据集表现不同，总体平均提升约 4-6 个百分点*
+
+---
+
+**4. Conversational Rewrite（对话上下文改写）**
+
+在多轮对话中，用户的简短追问需要结合历史上下文才能被准确检索。
+
+```python
+def conversational_rewrite(llm, current_query, history_summary):
+    """将当前追问还原为独立完整查询"""
+    prompt = f"""
+    以下为对话上下文摘要：
+    {history_summary}
+
+    用户当前的问题是："{current_query}"
+
+    请将当前问题改写为一个独立的、包含所有必要上下文的完整查询，
+    使其可以在没有对话历史的情况下被理解。
+
+    改写后的查询：
+    """
+    standalone_query = llm.generate(prompt, temperature=0)
+    return standalone_query
+
+# 示例：
+# 历史：讨论过Django的TokenAuth过期问题
+# 当前："那SessionAuth呢？"
+# 改写："Django REST Framework 中 SessionAuthentication 的配置与用法"
+```
+
+### 生产环境推荐方案
+
+```python
+class AdaptiveQueryRewriter:
+    """自适应查询改写器：只在必要时触发改写"""
+    
+    def __init__(self, llm, embedder, similarity_threshold=0.75):
+        self.llm = llm
+        self.embedder = embedder
+        self.threshold = similarity_threshold  # 相似度阈值
+    
+    def rewrite(self, query, history=None):
+        """根据基线检索质量决定是否需要改写"""
+        
+        # Step 1: 先用原始查询做一次快速检索
+        baseline_docs = self.vectordb.search(query, k=1)
+        if baseline_docs:
+            baseline_score = baseline_docs[0].score
+        
+        # Step 2: 如果基线检索质量好（高置信度），跳过改写
+        if baseline_score > self.threshold:
+            return [query], "baseline_skip"
+        
+        # Step 3: 否则启用多路改写策略
+        strategies = ["multi", "hyde"]
+        if history:
+            strategies.append("conversational")
+        
+        rewritten = [query]
+        for strat in strategies:
+            if strat == "multi":
+                rewritten.extend(self.multi_rewrite(query))
+            elif strat == "hyde":
+                rewritten.append(self.hyde_rewrite(query))
+            elif strat == "conversational" and history:
+                rewritten.append(self.conversational_rewrite(query, history))
+        
+        return list(dict.fromkeys(rewritten)), "adaptive_rewrite"  # 去重保序
+
+# 优势：只在检索质量差时才调用LLM改写，控制额外延迟
+```
+
+### 面试加分回答
+
+> "我的经验是：大多数团队过度关注嵌入模型和分块策略，却忽视了查询改写这个最高杠杆点。因为用户以自然语言提问——模糊、口语化、含省略——这和向量索引的结构天生不匹配。我在生产系统中采用了'自适应改写'策略：先用原始查询做一检索评估置信度，低于阈值才触发改写；改写上混合Multi-Query+HyDE，用较小模型跑改写过程，控制延迟在50ms以内。实测检索召回率提升8-12%，且只对15-20%的低置信度查询增加了额外开销。"
+
+**参考：** 
+- HyDE: *Embedding-based Retrieval with Hypothetical Documents* https://arxiv.org/abs/2212.10496
+- TianPan: *你的RAG系统缺少的查询改写层* https://tianpan.co/zh/blog/2026-04-16-rag-query-rewrite-layer
+
+</details>
+
+---
+
+### Q28: 当模型不知道答案时，如何通过 Prompt 设计引导它「诚实拒绝」而非编造？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q28-honest-abstention.webp" alt="诚实拒答动漫知识图：通过证据锚定、不确定性声明、引用规范和降级路径降低编造概率" />
+<p align="center"><sub>记忆点：允许说"不知道"是生产环境最便宜的防幻觉手段，关键是要配套引用规范和降级策略。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心矛盾：模型天然想"帮忙" → 越帮越忙（编造）**
+
+```
+用户："公司的年假政策是什么？"
+模型（无约束）："公司实行每年15天带薪年假..." ← ❌ 瞎编！
+模型（有约束）："抱歉，检索到的知识库中没有找到关于年假政策的明确规定。
+建议您咨询人力资源部获取最新规定。" ← ✅ 安全
+```
+
+### 四层防幻觉 Prompt 架构
+
+**Layer 1: 明确知识边界**
+
+```
+System Prompt 中必须包含：
+"你是一个专业客服助手，请严格根据提供的参考资料回答用户问题。
+如果参考资料中没有足够的信息来回答某个问题，请直接告诉用户
+'很抱歉，目前没有找到相关信息'，不要自行推测或补充。"
+```
+
+关键点：
+- 告诉模型**什么不能做**（禁止猜测）
+- 告诉模型**应该怎么做**（说不知道）
+
+**Layer 2: 引用溯源强制**
+
+```
+"对于每一个事实性陈述，请在末尾标注引用的来源片段。
+例如：'[来源: doc_A_第3段]'。
+如果你无法标注来源，则该陈述不应出现在回答中。"
+```
+
+这利用了**Grounding Effect**——模型知道每条结论都要有据可查，自然会减少编造。
+
+**Layer 3: 结构化输出 + 置信度标记**
+
+```json
+{
+  "answer": "根据知识库，病假政策为每年10天带薪病假...",
+  "confidence": "high",
+  "sources": ["doc_B_第5段", "doc_B_第8段"],
+  "unknown_parts": [],
+  "disclaimer": null
+}
+```
+
+```json
+// 当知识不足时
+{
+  "answer": null,
+  "confidence": "low",
+  "sources": [],
+  "unknown_parts": ["具体的病假天数规定"],
+  "disclaimer": "该信息未在我们的知识库中找到，建议咨询相关部门。"
+}
+```
+
+**Layer 4: 渐进式降级（Graceful Degradation）**
+
+```python
+def safe_generate(query, context, llm):
+    """安全的生成管线：按降级顺序尝试"""
+    
+    # 第一层：带约束的正常生成
+    try:
+        response = llm.generate(build_constrained_prompt(query, context))
+        verdict = check_confidence(response, context)
+        if verdict.confidence >= 0.7:
+            return {"status": "ok", "response": response, "verdict": verdict}
+    except Exception:
+        pass
+    
+    # 第二层：要求先列证据再回答
+    try:
+        evidence_first = llm.generate(build_evidence_first_prompt(query, context))
+        # 检查是否成功提取了相关证据
+        evidence_count = count_sources(evidence_first)
+        if evidence_count > 0:
+            return {"status": "ok", "response": evidence_first, "source_count": evidence_count}
+    except Exception:
+        pass
+    
+    # 第三层：降级到转人工/友好拒答
+    fallback = "很抱歉，当前无法从知识库中找到足够信息来回答您的问题。\n" \
+               "建议您：\n" \
+               "1. 换个方式描述您的问题\n" \
+               "2. 直接联系人工客服\n" \
+               "3. 查看FAQ页面"
+    return {"status": "fallback", "response": fallback}
+
+def check_confidence(response, context):
+    """检查回答是否与上下文一致"""
+    # 简单启发式：统计回答中未在上下文中出现的关键名词
+    ...
+```
+
+### 实验数据（研究支撑）
+
+论文 *"Uncertainty-Based Abstention in LLMs Improves Safety and Reduces Hallucinations"* 表明：
+
+| 指标 | 无约束生成 | 鼓励拒答 | 提升 |
+|------|-----------|----------|------|
+| 幻觉率 | 23.7% | 8.2% | ↓ 15.5pp |
+| 有用回答率 | 71.2% | 68.5% | ↓ 2.7pp（可接受）|
+| 用户满意度 | 62% | 74% | ↑ 12pp |
+
+**关键发现**：让用户感到"模型虽然没回答但态度诚实"远比"模型胡乱回答了"更能维持信任。
+
+### 特殊场景处理
+
+**场景A：用户坚持追问**
+```
+用户："你确定吗？肯定能找到吧？"
+
+❌ 错误：继续编造更多信息
+✅ 正确："我非常理解您需要这个信息。经过两次确认，我们的知识库中确实没有相关内容。
+         为了给您提供最准确的信息，我将为您转接人工服务，他们可以直接查询内部系统。"
+```
+
+**场景B：部分信息已知**
+```
+✅ 正确："关于您询问的'年假天数'，知识库中没有找到具体数字的规定。
+         不过，我们找到了以下相关信息：
+         - 请假申请流程（详见X文档）
+         - 假期类型说明（详见Y文档）
+         如果您需要确认具体天数，建议直接联系HR部门。"
+```
+
+**场景C：外部数据源可选**
+```
+✅ 正确："知识库中没有此信息，但我可以帮您查询公开渠道。
+         请稍等..." → 调用搜索工具 → "根据官网最新公告..."
+```
+
+### 面试高分回答
+
+> "防幻觉最基础也最有效的Prompt工程手段就是'鼓励诚实拒答'。我的四层做法是：1）System Prompt中明确知识边界和拒答指令；2）强制要求每一条结论都标注来源，利用 Grounding 效应减少编造；3）结构化输出中加入置信度和未知部分标记，便于下游程序判断是否展示；4）配置渐进式降级——正常生成→证据先行→友好拒答→转人工。实测可以让幻觉率下降约15个百分点，同时对有用回答的影响极小。关键是：宁可少回答，也不要误导。"
+
+</details>
+
+---
+
+### Q29: 如何判断一个问题该用 Prompt Tuning、Retrieval、Tool Calling 还是 Fine-tuning 来解决？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q29-optimization-strategy.webp" alt="优化策略决策树动漫知识图：知识缺口选检索、能力缺口选工具、流程复杂选工作流、模式固化选微调" />
+<p align="center"><sub>记忆点：Prompt只是任务表达，真正解决问题要选对工具栈层级。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**高频面试陷阱题：候选人第一反应永远是"微调"**
+
+面试官想听的是你有清晰的决策框架，而不是把微调当万能药。
+
+### 四维度决策矩阵
+
+```
+                                    解决方案选择
+                                         │
+                    ┌────────────────────┼────────────────────┐
+                    │                    │                    │
+           问题是知识缺失？         需要执行操作？           需要复杂逻辑？
+             → Retrieval            → Tool Calling          │
+                                            │                │
+                                   能否分解为步骤？         → 综合策略
+                                       │
+                               ┌───────┴───────┐
+                               │               │
+                           可标准化模板？    持续学习需求？
+                              → Fine-tuning      → Fine-tuning
+```
+
+### 详细决策指南
+
+**① Retrieval（检索增强）**
+
+适合场景：**知识缺失型问题**
+- 企业规章制度、产品信息、政策法规
+- 频繁更新的数据（每天/每周变动）
+- 私有数据（不在预训练语料中的内容）
+
+```python
+# 判定信号：
+# - 用户经常问"XX产品的价格是多少？"
+# - 数据每月都在变
+# - 需要从PDF/数据库/AWS S3中找答案
+
+# 方案：RAG
+answer = rag_pipeline.query(user_query)
+```
+
+**什么时候不用 Retrieval：** 纯计算、纯推理、格式转换类任务。
+
+---
+
+**② Tool Calling / Function Calling（工具调用）**
+
+适合场景：**能力缺失型问题**
+- 查询实时天气、股票价格
+- 发送邮件、创建日历事件
+- 执行数据库查询、API调用
+- 访问外部服务（Slack消息、GitHub PR）
+
+```python
+# 判定信号：
+# - 模型需要"做"某件事，而不仅仅是"说"某件事
+# - 需要访问实时数据或外部系统
+
+tools = [get_weather_tool, create_calendar_event_tool, run_sql_tool]
+response = agent.execute_with_tools(user_query, tools)
+```
+
+**什么时候不用 Tool Calling：** 不需要交互的操作、纯文本处理、创意写作。
+
+---
+
+**③ Workflow / Prompt Chaining（工作流编排）**
+
+适合场景：**流程复杂型问题**
+- 需要先判断意图，再根据不同分支执行不同操作
+- 多步骤审批流程
+- 条件逻辑复杂的业务流程
+- 需要多模型协作的任务
+
+```python
+# 判定信号：
+# - "先做什么，再做什麼，取决于結果xxx再yyy"
+# - 涉及状态机或多步决策
+
+workflow = SequentialWorkflow([
+    IntentClassifier(),       # 第一步：判断意图
+    RouteToDepartment(),      # 第二步：分发到对应部门
+    GenerateResponse(),       # 第三步：生成回复
+    QualityCheck(),           # 第四步：质量审核
+])
+```
+
+**什么时候不用 Workflow：** 单次问答、不需要状态流转的场景。
+
+---
+
+**④ Fine-tuning（微调）**
+
+适合场景：**模式固化型问题**
+- 统一的输出格式/风格（如特定JSON结构、报告模板）
+- 特定领域的术语理解和表达
+- 品牌调性/语气的一致性
+- 高频分类/标签任务的稳定输出
+
+```python
+# 判定信号：
+# - 同样的Prompt在不同模型版本间输出不稳定
+# - 需要数千条干净标注数据
+# - 格式一致性是关键诉求
+# - 批量处理大量相似任务（cost justify training）
+
+model = FineTune(
+    base_model="gpt-4o-mini",
+    instruction_data="formatted_output_examples.jsonl",
+    validation_split=0.1
+)
+```
+
+### ⚠️ Fine-tuning 的局限性（面试必考）
+
+| 局限 | 说明 |
+|------|------|
+| **不解决知识问题** | 微调不会让模型"学会"新知识，只会改变输出风格/格式 |
+| **每次模型升级需重新训练** | 模型版本变了就要重新跑一遍SFT |
+| **数据门槛高** | 至少需要数千条高质量标注数据才有明显收益 |
+| **迭代周期长** | 从数据准备到训练到部署可能需要数天到数周 |
+| **不适合在线调整** | 改一条规则要重新训练，不如改一行Prompt快 |
+
+**面试金句：**
+> "Fine-tuning 适合格式统一、语气一致、分类稳定的场景。如果你的问题是'模型不懂我们公司的内部政策'，答案是 Retrievale —— 给模型看政策文档就行，不用微调。如果你在犹豫要不要微调，说明你需要更多数据，或者问题其实可以用更好的 Prompt + RAG 解决。"
+
+### 实际项目案例（加分项）
+
+```
+项目：AI客服系统
+问题：客户经常问"这个功能怎么用？"
+
+初版方案（纯 Prompt）：❌ 模型经常给出过时或不完整的答案
+
+第一轮迭代（加 Retrieval）：✅ 从知识库检索产品手册
+   效果：准确率从 45% → 78%
+
+第二轮迭代（加 Tool Calling）：✅ 支持查订单状态、预约演示
+   效果：用户满意度从 72% → 85%
+
+第三轮迭代（Fine-tuning）：❌ 花费两周训练，效果几乎没有提升
+   原因：问题是知识时效性，不是风格不一致
+
+最终方案：RAG + Tool Calling + 精炼Prompt ≈ 最优解
+```
+
+### 面试回答模板
+
+> "我的决策框架是从三个维度切入：1）这是知识问题还是能力问题？2）数据更新频率如何？3）操作复杂度怎样？具体选择上，知识缺失优先用 Retrieval（尤其是动态数据），需要交互操作用 Tool Calling，流程复杂用 Workflow 编排，只有格式/语气/分类等模式固定且有大量标注数据的场景才考虑 Fine-tuning。我见过最多的错误是把 Fine-tuning 当银弹——实际上 80% 的'模型不行'问题，换个 Prompt 结构或加上 RAG 就解决了。"
+
+</details>
+
+---
+
+### Q30: 多个工具并行调用时，如何处理依赖关系、超时控制和异常熔断？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q30-parallel-tools.webp" alt="并行工具调用动漫知识图：DAG依赖调度、超时熔断、结构化错误反馈三层工程防护" />
+<p align="center"><sub>记忆点：并行不是简单地并发——依赖关系要先拓扑排序，超时熔断要在最外层兜底。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**并行工具调用是Agent工程中最大的坑之一**——看似简单，实际涉及依赖管理、超时控制、异常处理和状态同步四个维度。
+
+### 维度一：依赖关系管理（DAG拓扑排序）
+
+```
+没有依赖的工具：B 依赖 A 的输出 → 必须串行执行
+有依赖的工具：A 和 B 互不影响 → 可以并行执行
+
+典型例子：
+查询用户信息 → 查询订单列表 → （这两者可以并行，因为互不依赖）
+     │                                    │
+     └───── 汇总用户+订单 → 个性化推荐 ←──── 两者都完成后才能执行
+```
+
+```python
+import asyncio
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, field
+from enum import Enum
+
+class ToolDependency:
+    """定义工具间的依赖关系"""
+    def __init__(self, name: str, depends_on: List[str] = None):
+        self.name = name
+        self.depends_on = depends_on or []
+
+class ExecutionResult(Enum):
+    SUCCESS = "success"
+    TIMEOUT = "timeout"
+    ERROR = "error"
+    SKIPPED = "skipped"
+
+@dataclass
+class ToolExecutionState:
+    name: str
+    result: Any = None
+    status: ExecutionResult = ExecutionResult.SUCCESS
+    error_message: Optional[str] = None
+
+async def topological_sort(tools: List[Dict]) -> List[List[Dict]]:
+    """
+    将工具按依赖关系分层，同层可以并行执行
+    返回：[[layer0_tools], [layer1_tools], ...]
+    """
+    tool_map = {t['name']: t for t in tools}
+    layers = []
+    executed = set()
+    
+    while len(executed) < len(tools):
+        # 找出所有依赖已执行的工具
+        ready = []
+        for tool in tools:
+            if tool['name'] not in executed:
+                deps = tool.get('depends_on', [])
+                if all(d in executed for d in deps):
+                    ready.append(tool)
+        
+        if not ready:
+            raise ValueError(f"检测到循环依赖：剩余工具 {[t['name'] for t in tools if t['name'] not in executed]}")
+        
+        layers.append(ready)
+        executed.update(t['name'] for t in ready)
+    
+    return layers
+
+# 使用示例：
+# tools = [
+#     {"name": "get_user_info", "depends_on": []},
+#     {"name": "get_order_list", "depends_on": []},      # ← 与 get_user_info 并行
+#     {"name": "calculate_discount", "depends_on": ["get_user_info", "get_order_list"]},
+#     {"name": "send_notification", "depends_on": ["calculate_discount"]}
+# ]
+# layers = [[get_user_info, get_order_list], [calculate_discount], [send_notification]]
+```
+
+### 维度二：超时控制
+
+```python
+async def execute_tool_with_timeout(
+    tool_name: str, 
+    tool_fn, 
+    args: dict, 
+    timeout_seconds: float = 10.0
+) -> ToolExecutionState:
+    """带超时的工具执行"""
+    try:
+        result = await asyncio.wait_for(
+            tool_fn(**args), 
+            timeout=timeout_seconds
+        )
+        return ToolExecutionState(name=tool_name, result=result)
+    except asyncio.TimeoutError:
+        return ToolExecutionState(
+            name=tool_name, 
+            status=ExecutionResult.TIMEOUT,
+            error_message=f"工具 '{tool_name}' 超过 {timeout_seconds}s 未响应"
+        )
+    except Exception as e:
+        return ToolExecutionState(
+            name=tool_name,
+            status=ExecutionResult.ERROR,
+            error_message=str(e)
+        )
+```
+
+### 维度三：异常熔断（Circuit Breaker）
+
+```python
+from collections import deque
+from datetime import datetime, timedelta
+
+class CircuitBreaker:
+    """
+    熔断器：防止同一个工具连续失败导致无限重试
+    
+    状态机：CLOSED（正常）→ OPEN（熔断）→ HALF_OPEN（试探恢复）
+    """
+    def __init__(self, failure_threshold=3, recovery_timeout=30):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        self.failures = deque(maxlen=failure_threshold)
+        self.state = "CLOSED"  # CLOSED | OPEN | HALF_OPEN
+        self.last_failure_time = None
+    
+    def record_failure(self):
+        now = datetime.now()
+        self.failures.append(now)
+        self.last_failure_time = now
+        
+        if len(self.failures) >= self.failure_threshold:
+            if self.state != "OPEN":
+                self.state = "OPEN"
+                return True  # 触发熔断！
+        return False
+    
+    def record_success(self):
+        self.failures.clear()
+        self.state = "CLOSED"
+    
+    def allow_request(self) -> bool:
+        if self.state == "CLOSED":
+            return True
+        if self.state == "OPEN":
+            if self.last_failure_time and (
+                datetime.now() - self.last_failure_time > 
+                timedelta(seconds=self.recovery_timeout)
+            ):
+                self.state = "HALF_OPEN"
+                return True  # 允许一次试探请求
+            return False
+        return True  # HALF_OPEN 允许试探
+
+# 集成到并行执行管线中
+breakers = {}  # tool_name -> CircuitBreaker
+
+async def execute_parallel_safe(tools_batch: List[Dict]):
+    tasks = []
+    for tool in tools_batch:
+        breaker_key = tool['name']
+        if breaker_key not in breakers:
+            breakers[breaker_key] = CircuitBreaker(failure_threshold=3, recovery_timeout=60)
+        
+        if not breakers[breaker_key].allow_request():
+            tasks.append(asyncio.create_task(
+                asyncio.sleep(0)  # 占位，实际结果会被跳过
+            ))
+            continue
+        
+        task = execute_tool_with_timeout(
+            tool['name'], 
+            tool['fn'], 
+            tool['args'], 
+            timeout_seconds=tool.get('timeout', 10)
+        )
+        tasks.append(asyncio.create_task(task))
+    
+    # 收集结果
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return results
+```
+
+### 维度四：结构化错误反馈给模型
+
+```python
+def format_tool_results(exe_results: List[ToolExecutionState]) -> str:
+    """
+    将工具执行结果格式化为模型可读的上下文
+    包含成功结果 + 结构化错误信息
+    """
+    parts = []
+    successes = 0
+    errors = 0
+    
+    for r in exe_results:
+        if r.status == ExecutionResult.SUCCESS:
+            parts.append(f"[成功] {r.name}: {format_output(r.result)}")
+            successes += 1
+        elif r.status == ExecutionResult.TIMEOUT:
+            parts.append(f"[超时] {r.name}: {r.error_message}")
+            errors += 1
+        elif r.status == ExecutionResult.ERROR:
+            parts.append(f"[错误] {r.name}: {r.error_message}")
+            errors += 1
+    
+    summary = f"\n汇总：{successes}个成功，{errors}个失败/超时"
+    return "\n".join(parts) + summary
+
+# 返回给模型的格式示例：
+# [成功] get_user_info: {"user_id": "u_123", "tier": "premium"}
+# [成功] get_order_list: [{"order_id": "o_456", "status": "shipped"}]
+# [超时] get_shipping_estimate: 工具 'get_shipping_estimate' 超过 10s 未响应
+# 
+# 汇总：2个成功，1个失败/超时
+```
+
+### 面试满分回答
+
+> "并行工具调用的难点不是并发本身，而是三个工程问题：1）依赖关系——需要用DAG拓扑排序确定哪些可以并行、哪些必须等待上游完成，避免时序bug；2）超时控制——每个工具调用必须有硬超时（默认7-10秒），超时后立即中断并返回结构化错误，不能让一个慢工具拖垮整个对话；3）异常熔断——当同一工具连续失败时自动熔断，防止'调用→失败→重试→再失败'的死循环，熔断后进入回退路径（比如降级到非实时接口或转人工）。生产环境的最佳实践是在ReAct循环的每一层都加这些保障，而不是只靠模型本身的容错能力。"
+
+</details>
+
+---
+
+### Q31: LangGraph 和 LangChain 的核心区别是什么？什么时候应该用哪个？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q31-langgraph-vs-langchain.webp" alt="LangGraph vs LangChain动漫知识图：线性链式流程 vs 显式状态图循环，展示各自适用边界" />
+<p align="center"><sub>记忆点：LangChain管抽象和组件拼装，LangGraph管状态和循环——前者适合流水线，后者适合复杂有状态流程。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+### 本质区别：流水线思维 vs 状态机思维
+
+```
+LangChain：
+  Input → Chain A → Chain B → Chain C → Output
+  （线性、单向、每一步都是确定的）
+  
+LangGraph：
+  Input → [Node A] ──yes──→ [Node B] ──retry?──→ [Node A]
+              │                                 │
+              no                                yes
+              ↓                                 ↓
+          [Node C]                        [Node B]
+              ↓                              
+          Output                          
+  （非线性、有分支、有循环、有状态）
+```
+
+### 核心差异对照表
+
+| 维度 | LangChain | LangGraph |
+|------|-----------|-----------|
+| **核心抽象** | Chain（链） | Graph（图） |
+| **控制流** | 线性串联 | 有向图（节点+边） |
+| **循环支持** | 需要 hack 实现 | 原生支持 while/if 循环 |
+| **状态管理** | 隐式（中间变量传递） | 显式（State 对象，跨节点持久化） |
+| **错误处理** | 每步 try-catch | 边上的 conditional routing |
+| **调试体验** | 黑盒链条，难定位问题 | 可视化图结构，可单步执行 |
+| **学习曲线** | 较低，几行代码搭出Demo | 较高，需要先建模状态和转移 |
+| **适用场景** | 简单RAG、单一Agent、Pipeline | 多Agent协作、复杂工作流、需要循环重试的流程 |
+
+### 具体场景选择指南
+
+**✅ 用 LangChain 就够了：**
+
+```python
+# 场景1：简单 RAG Pipeline
+from langchain.chains import RetrievalQA
+qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
+result = qa_chain.run("产品介绍怎么写？")
+
+# 场景2：简单的 Agent
+from langchain.agents import initialize_agent
+agent = initialize_agent(tools, llm, agent="zero-shot-react-description")
+result = agent.run("帮我查今天北京的天气")
+
+# 场景3：多步骤但不需要循环
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema.output_parser import StrOutputParser
+prompt = ChatPromptTemplate.from_template("总结以下文章：{article}")
+chain = prompt | llm | StrOutputParser()
+```
+
+**✅ 必须用 LangGraph：**
+
+```python
+# 场景1：需要循环重试的 Agent
+from langgraph.graph import StateGraph, START, END
+
+class AgentState(TypedDict):
+    messages: list
+    retry_count: int
+    has_error: bool
+
+def should_retry(state) -> str:
+    if state["retry_count"] < 3 and state["has_error"]:
+        return "retry"
+    return "final_answer"
+
+graph = StateGraph(AgentState)
+graph.add_node("think", think_node)
+graph.add_node("act", act_node)
+graph.add_node("observe", observe_node)
+graph.add_node("review", review_node)
+
+# 关键：循环边！
+graph.add_conditional_edges(
+    "act", 
+    should_retry, 
+    {"retry": "think", "final_answer": "review"}
+)
+
+# 传统 Chain 做不到这种动态循环！
+```
+
+```
+场景2：多 Agent 协调
+Agent A（规划师）→ 制定计划
+    │
+    ├─→ Agent B（执行器）→ 执行步骤
+    │       │
+    │       └─→ 失败？→ Agent C（修复器）→ 重试
+    │                     │
+    │                     └─→ 仍失败？→ Agent D（上报）→ 终止
+    │
+    └─→ Agent E（质检员）→ 审核结果 → 不满意 → 回到 Agent B
+                                          │
+                                          ✓ → 输出
+
+LangGraph 的状态图天然适合表达这种多路由、多分支、多循环的结构。
+```
+
+### 面试高分回答模板
+
+> "LangChain 和 LangGraph 本质上解决不同层次的问题。LangChain 是一个高层抽象库，帮你快速拼装 Chain、Agent、Memory 等组件，适合写 Demo 和简单 Pipeline——但它的 Chain 模型是线性的，遇到需要循环、条件分支、状态的复杂流程就会非常笨拙。LangGraph 把整个流程建模为有向图，节点是函数（Node），边是转移条件（Edge），State 在每个节点之间显式传递。2026年的Agent项目越来越复杂——多Agent协作、循环重试、异常处理——这些正是 LangGraph 的用武之地。简单来说：简单流程用 LangChain 几行代码搞定，复杂有状态流程上 LangGraph。而且它们可以一起用，LangGraph 里的 Node 内部依然可以用 LangChain 的 Chain。"
+
+</details>
+
+---
+
+### Q32: 如何量化评估一个 AI Agent 的整体性能？不只是 Prompt 级别的评分。
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q32-agent-evaluation.webp" alt="Agent 评估全链路动漫知识图：端到端业务指标 + 中间过程指标 + 成本效率指标的三层评估体系" />
+<p align="center"><sub>记忆点：Agent 是系统工程——只看输入输出不够，还要评过程质量和资源效率。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Agent 评估 ≠ Prompt 评估**。Agent 多了规划、记忆、工具调用等环节，每个环节都可能成为瓶颈。
+
+### 三层评估体系
+
+**第一层：端到端业务指标（End-to-End）**
+```
+- Task Success Rate：任务最终完成的比例
+- Time-to-Completion：从用户发起请求到完成任务的平均时间
+- First Contact Resolution：无需人工介入一次性解决的比率
+- User Satisfaction Score：用户评分/NPS
+- Cost Per Task：每完成一个任务的平均成本
+```
+
+**第二层：过程指标（Process Metrics）**
+```
+Planning（规划质量）：
+  - Plan Validity：生成的计划是否有可执行性
+  - Step Efficiency：完成的步骤是否是最优路径（vs 冗余步骤）
+  
+Memory（记忆有效性）：
+  - Recall Accuracy：召回的历史信息中相关信息的比例
+  - Staleness：历史信息的新鲜度评分
+  
+Tool Usage（工具调用质量）：
+  - Tool Selection Accuracy：选择的工具是否正确
+  - Call Success Rate：工具调用的成功率
+  - Average Latency per Call：平均调用延迟
+  
+Safety（安全性）：
+  - Hallucination Rate：幻觉比例
+  - Unsafe Action Rate：触发安全拦截的次数
+```
+
+**第三层：效率指标（Efficiency Metrics）**
+```
+- Total Tokens per Task：完成任务消耗的总 token 数
+- API Calls per Task：平均 API 调用次数
+- Memory Footprint：峰值内存占用
+- Concurrent Capacity：系统能同时处理的请求数
+```
+
+### 量化评估框架实现
+
+```python
+class AgentEvaluator:
+    def evaluate_single(self, trace: Trace) -> dict:
+        """评估单次Agent执行轨迹"""
+        metrics = {}
+        
+        # 端到端
+        metrics["success"] = self._check_task_completion(trace)
+        metrics["duration_sec"] = trace.end_time - trace.start_time
+        metrics["tokens_used"] = sum(step.tokens for step in trace.steps)
+        metrics["api_calls"] = len([s for s in trace.steps if s.type == "tool_call"])
+        
+        # 规划质量
+        steps = trace.steps
+        metrics["plan_efficiency"] = self._measure_step_efficiency(steps)
+        metrics["dead_loops"] = self._detect_loop(steps)
+        
+        # 工具质量
+        tool_steps = [s for s in steps if s.type == "tool_call"]
+        metrics["tool_accuracy"] = sum(1 for s in tool_steps if s.success) / max(len(tool_steps), 1)
+        metrics["tool_latency_avg"] = np.mean([s.latency for s in tool_steps])
+        
+        # 安全
+        metrics["hallucination_rate"] = self._estimate_hallucination_rate(trace)
+        
+        return metrics
+    
+    def evaluate_batch(self, traces: List[Trace], window_hours=24) -> dict:
+        """批次评估：最近 N 小时的运行"""
+        metrics_by_hour = defaultdict(list)
+        for t in traces:
+            hour = t.start_time.strftime("%Y-%m-%d %H")
+            metrics_by_hour[hour].append(self.evaluate_single(t))
+        
+        # 聚合指标
+        results = {}
+        for hour, batch_metrics in metrics_by_hour.items():
+            results[hour] = {
+                "avg_success": np.mean([m["success"] for m in batch_metrics]),
+                "avg_duration": np.mean([m["duration_sec"] for m in batch_metrics]),
+                "avg_tokens": np.mean([m["tokens_used"] for m in batch_metrics]),
+                "avg_api_calls": np.mean([m["api_calls"] for m in batch_metrics]),
+                "p95_duration": np.percentile([m["duration_sec"] for m in batch_metrics], 95),
+                "total_cost": sum(m["tokens_used"] * cost_per_token for m in batch_metrics),
+            }
+        return results
+
+# 关键：不要用单一分数代表Agent质量，而是多维度仪表盘
+# 就像汽车仪表盘一样，速度、油耗、水温、胎压各有指示
+```
+
+### 面试高频追问应对
+
+**追问1："你怎么定义'任务成功'？"**
+> "这取决于具体场景。客服场景的定义是'用户需求被满足且用户表示满意'；代码生成场景的定义是'代码能通过测试用例并符合安全规范'；数据分析场景的定义是'给出的分析结论与专家判断一致'。关键是要和业务方对齐成功的定义，并在评测集中建立 gold standard 作为比对基准。"
+
+**追问2："怎么检测死循环？"**
+> "最简单的做法是设置最大推理步数上限（比如10步），超过就强制终止。进阶做法是用状态签名检测重复——记录每个节点的输入状态哈希值，如果出现相同状态两次以上就判定为死循环并启动熔断。更高级的做法是让另一个轻量模型定期'巡逻'整个状态，判断进展方向是否正确。"
+
+**追问3："Agent比人做得好吗？怎么证明？"**
+> "我们需要 A/B 实验：同样一批测试用例，Agent 组和人工组各自处理，比较成功率、耗时、成本和用户满意度。但要注意公平性——人的速度会随熟练度提升（学习曲线），所以要设定对照组的时间窗口，确保比较的是同等条件下的表现。通常我们会报告'Agent达到了人类水平的 X%，但成本低 Y%，速度快 Z倍'这样的对比结论。"
+
+</details>
