@@ -57,7 +57,7 @@
     </td>
     <td width="50%" valign="top">
       <h3>🧪 内容可以持续校验</h3>
-      <p>641 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
+      <p>662 道题按 28 个专题组织，并用自动审计检查失效链接、重复题和缺少条件的数据；题目质量优先于单纯堆数量。</p>
     </td>
   </tr>
 </table>
@@ -103,7 +103,7 @@
   </tr>
 </table>
 
-<p align="center"><b>01–28 共 28 个专题、641 道题，现已全部完成逐题配图。</b></p>
+<p align="center"><b>01–28 共 28 个专题、662 道题，现已全部完成逐题配图。</b></p>
 
 <p align="center">
   <a href="docs/01-basic-concepts/">01 LLM 基础</a> ·
@@ -147,6 +147,7 @@
 - **准备项目深挖**：重点练习 [项目经验](docs/27-project-experience/) 与 [AI 系统设计](docs/25-system-design-ai/)。
 - **准备 FDE 岗位**：进入 [FDE 专题](docs/26-forward-deployed-engineer/)，练习开放问题拆解、客户交付与生产 AI 系统。
 - **参与内容维护**：阅读 [内容质量规范](CONTENT_QUALITY.md) 与 [面试题插画生产规范](ILLUSTRATION_GUIDE.md)，并按规范人工检查链接、题号、标题和来源。
+- **继续动手实验**：查看 [《动手学大模型》课件与实验阅读索引](docs/references/dive-into-llms-reading-list.md)，按知识编辑、水印、推理蒸馏、红队与 GUI Agent 路线复现。
 
 每道题建议练成三个回答版本：
 
@@ -241,10 +242,10 @@ flowchart LR
 
 ## 📚 题库导航
 
-共 **28 个专题、641 道题**。点击分类展开完整目录。
+共 **28 个专题、662 道题**。点击分类展开完整目录。
 
 <details open>
-<summary><b>🧠 基础与模型</b> · 6 个专题 / 145 道题</summary>
+<summary><b>🧠 基础与模型</b> · 6 个专题 / 169 道题</summary>
 <br>
 
 - [01 · LLM 基础](docs/01-basic-concepts/) — Token、解码、Embedding、训练阶段、模型结构基础
@@ -279,7 +280,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 138 道题</summary>
+<summary><b>🏗️ 工程与系统设计</b> · 7 个专题 / 141 道题</summary>
 <br>
 
 - [09 · 安全与评估](docs/09-ai-safety-evaluation/) — 内容安全、Prompt 注入、隐私、红队和评测
@@ -293,7 +294,7 @@ flowchart LR
 </details>
 
 <details>
-<summary><b>🔭 多模态与前沿方向</b> · 4 个专题 / 102 道题</summary>
+<summary><b>🔭 多模态与前沿方向</b> · 4 个专题 / 103 道题</summary>
 <br>
 
 - [11 · 多模态 AI](docs/11-multimodal-ai/) — 图像、音频、视频与多模态检索

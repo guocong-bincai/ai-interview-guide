@@ -12,7 +12,7 @@
 
 > Um guia estruturado para vagas de aplicações de IA, RAG, Agents, treinamento e inferência de modelos, FDE, multimodalidade e segurança de IA.
 
-**631 perguntas · 28 tópicos · 7 trilhas por função**
+**662 perguntas · 28 tópicos · 7 trilhas por função**
 
 > [!IMPORTANT]
 > Esta página é uma tradução da apresentação do projeto. O banco completo de perguntas e respostas é mantido atualmente em chinês simplificado. Os links abaixo abrem o conteúdo em chinês.
@@ -25,7 +25,7 @@
 
 ## Aprendizado visual
 
-Os 28 tópicos e as 631 perguntas agora têm uma ilustração didática 16:9 dedicada e clicável. Cada imagem resume mecanismos, fluxos, trade-offs, limites e uma frase de memorização. Os rótulos permanecem em chinês, de acordo com o banco de perguntas original, mas os termos técnicos e o fluxo visual continuam reconhecíveis.
+Os 28 tópicos e as 662 perguntas agora têm uma ilustração didática 16:9 dedicada e clicável. Cada imagem resume mecanismos, fluxos, trade-offs, limites e uma frase de memorização. Os rótulos permanecem em chinês, de acordo com o banco de perguntas original, mas os termos técnicos e o fluxo visual continuam reconhecíveis.
 
 <table>
   <tr>
@@ -40,7 +40,7 @@ Os 28 tópicos e as 631 perguntas agora têm uma ilustração didática 16:9 ded
   </tr>
 </table>
 
-<p align="center"><b>28 tópicos · 631 perguntas · cobertura completa de uma ilustração por pergunta</b></p>
+<p align="center"><b>28 tópicos · 662 perguntas · cobertura completa de uma ilustração por pergunta</b></p>
 
 ## Escolha sua trilha
 

@@ -3,8 +3,8 @@
 > **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q4、Q5、Q7、Q8、Q9、Q10、Q19、Q21、Q22、Q23。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-03-03
-> **考点：** AI 安全、内容合规、评估体系、测试方法、成本优化实战
+> **更新：** 2026-08-25
+> **考点：** AI 安全、内容合规、评估体系、文本水印、自动化红队、测试方法、成本优化实战
 
 ## 📋 目录
 
@@ -13,6 +13,7 @@
 3. [成本优化实战](#三成本优化实战)
 4. [LangGraph 工作流](#langgraph)
 5. [速记卡片](#五速记卡片)
+6. [模型溯源与自动化红队](#十二模型溯源与自动化红队)
 
 ## 一、AI 安全与合规
 
@@ -2097,6 +2098,7 @@ alerts:
 
 | 日期 | 更新内容 |
 |------|----------|
+| 2026-08-25 | 新增 Q25-Q27：文本水印机制与评测、自动化越狱红队 Harness |
 | 2026-04-06 | 新增 Q7 RAGAS vs TruLens vs DeepEval vs UpTrain 对比；新增 Q8 RAG评估Pipeline与迭代优化实战 |
 | 2026-03-03 | 新增 AI 安全与评估面试题 10 道 |
 
@@ -3563,6 +3565,139 @@ class DistillationGuard:
 **延伸阅读：**
 - 东不压桥研究院：模型蒸馏、对抗性蒸馏与蒸馏攻击（2026-08）：https://www.secrss.com/articles/77742
 
+## 十二、模型溯源与自动化红队
+
+### Q25: LLM 文本水印如何嵌入和检测？KGW 与语义水印有什么区别？
+
+<p align="center">
+  <a href="../../assets/illustrations/09-ai-safety-evaluation/q25-text-watermark-mechanism.webp">
+    <img src="../../assets/illustrations/09-ai-safety-evaluation/q25-text-watermark-mechanism.webp" width="760" alt="LLM 文本水印在生成时用密钥调整采样分布并在检测时进行统计验证，以及 KGW、SIR、X-SIR 的对比图">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：文本水印在生成时埋入受密钥控制的统计偏置，检测时重建规则验证；KGW 依赖 token 划分，SIR/X-SIR 强化语义与跨语言鲁棒性；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+文本水印是在生成时用密钥和上下文轻微改变 token 采样分布，让授权检测器能从统计偏差中识别模型生成文本。KGW 一类方法把候选 token 伪随机分为绿名单和红名单并提高绿名单概率，检测时统计绿名单命中是否显著偏高；语义水印则让偏置更多依赖上下文语义，希望在同义改写或翻译后仍保留可检测信号。
+
+```
+密钥 + 上下文 → 生成伪随机偏置 → 调整 logits → 采样文本
+密钥 + 待测文本 → 重建偏置规则 → 统计检验 → 水印置信度
+```
+
+| 方法 | 水印依据 | 优势 | 主要边界 |
+|------|----------|------|----------|
+| **KGW / token 绿名单** | 前文 token 与密钥生成词表划分 | 机制清晰、无需训练检测模型 | 改写、翻译和短文本可能削弱统计信号 |
+| **SIR / 语义水印** | 上下文语义决定 watermark logits | 目标是提升语义保持攻击下的鲁棒性 | 需要额外语义模型，延迟与密钥安全更复杂 |
+| **X-SIR / 跨语言语义水印** | 强化跨语言一致的语义映射 | 针对翻译去水印 | 仍需在语言、领域和攻击强度上实测 |
+
+**关键边界：** 水印输出的是统计证据，不是绝对身份证明。检测结果必须带文本长度、阈值、假阳性率和密钥版本；不能看到一个高分就断言“这一定由某模型生成”。
+
+**参考资料：**
+
+- [A Watermark for Large Language Models](https://arxiv.org/abs/2301.10226)
+- [SIR：A Semantic Invariant Robust Watermark for Large Language Models](https://arxiv.org/abs/2310.06356)
+- [X-SIR：Can Watermarks Survive Translation?](https://arxiv.org/abs/2402.14007)
+- [《动手学大模型》文本水印实验与课件索引](../references/dive-into-llms-reading-list.md#5-模型水印高优先级)
+
+</details>
+
+### Q26: 如何评估文本水印？为什么“能检测出来”还不够？
+
+<p align="center">
+  <a href="../../assets/illustrations/09-ai-safety-evaluation/q26-watermark-evaluation.webp">
+    <img src="../../assets/illustrations/09-ai-safety-evaluation/q26-watermark-evaluation.webp" width="760" alt="文本水印可检测性、文本效用、攻击鲁棒性、安全性和工程代价的评测取舍及水印隐写区别图">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：水印评测要同时证明能检出、少损伤、抗改写翻译且难伪造，并区分来源信号与秘密载荷；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+文本水印至少存在四组相互牵制的目标：**可检测性、文本效用、攻击鲁棒性和安全性**。只报告干净文本上的检测准确率，会掩盖水印损害内容质量、短文本失效或被简单改写移除的问题。
+
+| 维度 | 典型测法 | 容易忽略的问题 |
+|------|----------|----------------|
+| **可检测性** | ROC-AUC、TPR@固定FPR、置信区间 | 阈值必须在独立人类文本上校准 |
+| **文本效用** | 任务正确率、事实一致性、人工偏好、困惑度 | 水印偏置可能改变专名、数字或代码 |
+| **攻击鲁棒性** | 改写、同义替换、翻译、截断、拼接、多轮编辑 | 攻击强度与保留语义程度要同时报告 |
+| **安全性** | 无密钥伪造、密钥轮换、跨用户串扰、检测器泄漏 | 鲁棒不等于不可伪造，也不等于可归因 |
+| **工程代价** | TTFT、每 token 延迟、显存、检测吞吐 | 语义水印可能引入额外模型调用 |
+
+**推荐实验矩阵：**
+
+1. 按文本长度和语言分桶，避免长文本均值掩盖短文本失败；
+2. 人类文本、无水印模型文本和有水印文本三组盲测；
+3. 每种攻击同时报告语义保持度和水印残留，不把“把内容毁掉”算作有效攻击；
+4. 用未参与调参的数据选择阈值，并报告固定假阳性率下的召回；
+5. 检查关键实体、数字、代码和安全拒答是否因采样偏置而改变。
+
+**水印与隐写的区别：** 水印主要携带来源或所有权信号，载荷很小；文本隐写的目标是在自然文本中传递秘密消息，核心取舍是容量、不可感知性和可恢复性。两者都可能操纵 token 选择，但安全目标不同，不能混用同一评测结论。
+
+**参考资料：**
+
+- [X-SIR 论文与跨语言攻击](https://arxiv.org/abs/2402.14007)
+- [《动手学大模型》文本隐写实验与课件索引](../references/dive-into-llms-reading-list.md#7-llm-文本隐写选修)
+
+</details>
+
+### Q27: 如何把零散越狱样本变成可持续运行的自动化红队 Harness？
+
+<p align="center">
+  <a href="../../assets/illustrations/09-ai-safety-evaluation/q27-automated-jailbreak-harness.webp">
+    <img src="../../assets/illustrations/09-ai-safety-evaluation/q27-automated-jailbreak-harness.webp" width="760" alt="授权隔离环境中由 Selector、Mutator、Constraint、目标模型和校准 Evaluator 组成的自动化越狱红队闭环图">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：自动化红队是在授权沙箱中可复现、可校准、受预算约束的评测闭环，不是把攻击 Prompt 堆成清单；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+自动化越狱红队不是堆一批固定 Prompt，而是把测试拆成种子与目标、Selector、Mutator、Constraint、Target 和 Evaluator 的迭代闭环。攻击候选经过变异与约束后请求目标模型，评估结果反馈给选择器，达到预算或停止条件后输出可复现报告。整个过程只能在授权模型和隔离环境中运行。
+
+```
+风险问题 + 攻击种子
+        ↓
+Selector → Mutator → Constraint → Target Model → Evaluator
+    ↑                                           │
+    └──────── 分数、失败类型与新种子 ────────────┘
+```
+
+**Harness 设计要点：**
+
+- **数据分层：** 按风险类别、攻击家族、语言、单轮/多轮和工具权限标注；
+- **防泄漏：** 训练/调参集与隐藏盲测集按攻击家族和语义近重复隔离；
+- **受控变异：** 记录父种子、变异算子、随机种子和预算，保证失败可复现；
+- **评估校准：** 字符串规则只做弱信号，分类器或 LLM Judge 要与人工标注比较；
+- **双边指标：** 同时测攻击成功率、正常请求误拒率、拒答质量、延迟和成本；
+- **安全运行：** 只测授权目标，限制请求、工具、网络和真实副作用，敏感样本受控存储；
+- **回归闭环：** 修复后的失败样本进入版本化回归集，但隐藏集不能暴露给 Prompt 调优。
+
+**Evaluator 是常见薄弱点：** 目标模型可能用隐晦方式提供危险信息，也可能只是在讨论风险。单一 Judge 容易把“提到危险内容”误判为越狱成功，因此要组合结构化规则、独立分类器、人工抽检和评审一致性分析。
+
+**伪代码：**
+
+```python
+# 伪代码：仅描述授权红队评测编排，不包含攻击载荷
+for case in hidden_eval_set:
+    candidates = selector.choose(case.seed_pool)
+    candidates = constraint.filter(mutator.transform(candidates))
+    responses = sandboxed_target.run(candidates, budget=case.budget)
+    scores = calibrated_evaluator.score(responses, policy=case.policy)
+    report.record(case, candidates, responses, scores)
+    selector.update(scores)
+```
+
+**参考资料：**
+
+- [EasyJailbreak 官方仓库（GPL-3.0）](https://github.com/EasyJailbreak/EasyJailbreak)
+- [EasyJailbreak 论文](https://arxiv.org/abs/2403.12171)
+- [《动手学大模型》越狱实验与课件索引](../references/dive-into-llms-reading-list.md#6-越狱攻击与防御评测高优先级)
+
+</details>
+
 
 ---
-*版本: v3.128 | 更新: 2026-08-10 | by 二狗子 🐕*
+*版本: v3.129 | 更新: 2026-08-25 | by 二狗子 🐕*

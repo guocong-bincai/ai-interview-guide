@@ -12,7 +12,7 @@
 
 > Panduan wawancara terstruktur untuk peran aplikasi AI, RAG, Agent, pelatihan dan inferensi model, FDE, multimodal, serta keamanan AI.
 
-**631 pertanyaan · 28 topik · 7 jalur belajar berdasarkan peran**
+**662 pertanyaan · 28 topik · 7 jalur belajar berdasarkan peran**
 
 > [!IMPORTANT]
 > Halaman ini merupakan terjemahan pengantar proyek. Bank pertanyaan dan jawaban lengkap saat ini dikelola dalam bahasa Mandarin Sederhana. Tautan topik di bawah membuka konten berbahasa Mandarin.
@@ -25,7 +25,7 @@
 
 ## Belajar secara visual
 
-Seluruh 28 topik dan 631 pertanyaan kini memiliki ilustrasi pembelajaran 16:9 khusus yang dapat diklik. Setiap gambar merangkum mekanisme, alur, trade-off, batasan, dan kalimat pengingat. Label gambar tetap berbahasa Mandarin sesuai bank soal sumber, tetapi istilah teknis standar dan alur visualnya tetap mudah dikenali.
+Seluruh 28 topik dan 662 pertanyaan kini memiliki ilustrasi pembelajaran 16:9 khusus yang dapat diklik. Setiap gambar merangkum mekanisme, alur, trade-off, batasan, dan kalimat pengingat. Label gambar tetap berbahasa Mandarin sesuai bank soal sumber, tetapi istilah teknis standar dan alur visualnya tetap mudah dikenali.
 
 <table>
   <tr>
@@ -40,7 +40,7 @@ Seluruh 28 topik dan 631 pertanyaan kini memiliki ilustrasi pembelajaran 16:9 kh
   </tr>
 </table>
 
-<p align="center"><b>28 topik · 631 pertanyaan · seluruh pertanyaan memiliki satu ilustrasi khusus</b></p>
+<p align="center"><b>28 topik · 662 pertanyaan · seluruh pertanyaan memiliki satu ilustrasi khusus</b></p>
 
 ## Pilih jalurmu
 

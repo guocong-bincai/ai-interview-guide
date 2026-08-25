@@ -3,8 +3,8 @@
 > **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q3、Q5、Q6、Q8、Q9、Q10、Q11、Q14、Q15。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-04-08
-> **考点：** GPT-4V、Gemini、LLaVA、视觉Agent、Document AI、Video Agent
+> **更新：** 2026-08-25
+> **考点：** GPT-4V、Gemini、LLaVA、视觉Agent、Document AI、Video Agent、GUI Agent 数据与安全接管
 
 ## 📋 目录
 
@@ -15,6 +15,10 @@
 5. [视频理解与时序Agent](#五视频理解与时序agent)
 6. [企业级实战案例](#六企业级实战案例)
 7. [速记卡片](#七速记卡片)
+8. [NVIDIA Nemotron 3](#八nvidia-nemotron-3与gtc-2026多模态agent新突破2026年4月新增)
+9. [Qwen3-VL 架构案例](#九qwen3-vl-架构案例)
+10. [GUI Agent 与 Computer Use](#十gui-agent-与-computer-use)
+11. [GUI Agent 数据与自适应执行](#十一gui-agent-数据与自适应执行)
 
 ---
 
@@ -1363,5 +1367,85 @@ class MobileAgentV3:
 
 **面试话术：**
 > "移动端GUI Agent和桌面端的核心区别是'交互范式'——桌面靠鼠标指针精确点击，移动靠触摸和手势，元素还可能被键盘遮挡。Mobile-Agent-v3的解决方案是用纯视觉端到端处理，避免依赖脆弱的XML结构。我面试时会被问到'怎么解决键盘遮挡'，标准答案是检测键盘状态+动态调整截图区域+等待导航信号。2026年移动端Agent最看好的方向是'系统级Agent'——不是操作单个App，而是像Siri一样跨应用协作完成任务。"
+
+</details>
+
+## 十一、GUI Agent 数据与自适应执行
+
+### Q16: 如何构建 GUI Agent 的训练数据、动作空间和评测闭环？什么时候必须请求人工接管？
+
+<p align="center">
+  <a href="../../assets/illustrations/21-multimodal-agents/q16-gui-agent-data-control.webp">
+    <img src="../../assets/illustrations/21-multimodal-agents/q16-gui-agent-data-control.webp" width="760" alt="GUI Agent 轨迹数据、动作空间、置信风险决策、自动执行与 ASK_USER 人工接管及分层评测图">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：训练样本要对齐截图、历史与下一动作；执行时低置信、歧义或高风险先暂停并请求人工确认，自报置信度不能充当安全边界；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+GUI Agent 的训练样本不是简单的截图问答，而是“任务 + 当前截图/结构化 UI + 历史动作 + 当前步骤 + 下一动作 + 风险与置信度”的轨迹数据。动作空间应小而可执行，坐标要归一化并绑定当前观察；评测既看任务成功，也看元素定位、动作合法性、步骤效率和副作用。遇到低置信度、歧义、高风险写操作或环境异常时，应暂停并请求人工确认。
+
+**建议数据结构：**
+
+```json
+{
+  "task": "在音乐应用中搜索并播放指定歌曲",
+  "observation": {"screenshot": "step_03.png", "screen_size": [1080, 1920]},
+  "history": ["OPEN_APP", "TAP(x=0.50,y=0.08)"],
+  "step": 3,
+  "next_action": {"type": "TYPE", "text": "歌曲名"},
+  "confidence": 0.82,
+  "risk": "low",
+  "requires_confirmation": false
+}
+```
+
+**动作空间设计：**
+
+| 动作 | 关键约束 |
+|------|----------|
+| `TAP(x,y)` | 使用归一化坐标；执行前确认截图版本没有变化 |
+| `TYPE(text)` | 明确目标输入框；敏感信息必须脱敏和授权 |
+| `SWIPE(direction,distance)` | 限制方向和距离；执行后等待页面稳定 |
+| `BACK / HOME / OPEN_APP` | 平台级动作必须加入状态检查 |
+| `ASK_USER(reason)` | 低置信、歧义或高风险操作的正式动作，不是失败兜底 |
+| `STOP(status)` | 成功、不可恢复失败和策略拒绝要区分 |
+
+**训练数据质量：**
+
+- 截图与动作必须严格对齐，删除“动作发生后才截的图”；
+- 坐标归一化不能替代元素语义，最好同时保存目标元素描述或边界框；
+- 加入弹窗、加载、键盘遮挡、页面变化和错误恢复轨迹；
+- 对密码、支付、删除和外发等高风险动作标注确认策略；
+- 按应用、任务模板和界面版本划分训练/测试，防止同页面截图泄漏。
+
+**评测矩阵：**
+
+| 层次 | 指标 |
+|------|------|
+| 感知 | 元素定位准确率、OCR/状态识别正确率 |
+| 单步动作 | 动作类型准确率、坐标命中率、参数合法率 |
+| 轨迹 | 任务成功率、冗余步骤、恢复成功率、平均操作数 |
+| 安全 | 越权率、错误确认率、危险动作拦截率、真实副作用 |
+| 协作 | 该接管时的召回、无须接管时的误打扰率、接管后完成率 |
+
+**人工接管策略：**
+
+OS-Kairos 的重要启发是把 `ASK_USER` 作为可学习的交互决策：Agent 不只是预测下一动作，还要估计当前步骤置信度和风险。置信阈值不能全局固定，应按动作损失校准——播放歌曲和转账付款不应使用同一阈值。遇到界面劫持、截图突变、指令冲突、不可逆写操作或需要新权限时，运行时策略必须强制确认，不能只相信模型自报置信度。
+
+**常见追问：**
+
+1. 分辨率变化后坐标如何迁移？
+2. 纯视觉与 Accessibility Tree/XML 路线如何取舍？
+3. 如何避免 Agent 在页面未加载完成时重复点击？
+4. 自报置信度不校准时，人工接管策略为什么会失效？
+
+**参考资料：**
+
+- [OS-Kairos：Adaptive Interaction for MLLM-Powered GUI Agents](https://arxiv.org/abs/2503.16465)
+- [OS-Kairos 官方仓库](https://github.com/Wuzheng02/OS-Kairos)
+- [《动手学大模型》GUI Agent 实验与课件索引](../references/dive-into-llms-reading-list.md#9-gui-agent-构建高优先级)
 
 </details>

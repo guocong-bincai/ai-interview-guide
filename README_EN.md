@@ -12,7 +12,7 @@
 
 > A structured interview guide for AI application, RAG, Agent, model training and inference, FDE, multimodal, and AI safety roles.
 
-**631 questions · 28 topics · 7 role-based learning paths**
+**662 questions · 28 topics · 7 role-based learning paths**
 
 > [!IMPORTANT]
 > This page is a translated project introduction. The full question bank and answers are currently maintained in Simplified Chinese. Topic links below open the Chinese content; technical terms and code remain broadly readable.
@@ -25,7 +25,7 @@
 
 ## Visual learning
 
-All 28 topics and 631 questions now include a dedicated, clickable 16:9 teaching illustration. The visuals summarize mechanisms, workflows, trade-offs, boundaries, and a retellable memory cue. They currently use Chinese labels, matching the source-of-truth question bank, while standard technical terms remain recognizable.
+All 28 topics and 662 questions now include a dedicated, clickable 16:9 teaching illustration. The visuals summarize mechanisms, workflows, trade-offs, boundaries, and a retellable memory cue. They currently use Chinese labels, matching the source-of-truth question bank, while standard technical terms remain recognizable.
 
 <table>
   <tr>
@@ -40,7 +40,7 @@ All 28 topics and 631 questions now include a dedicated, clickable 16:9 teaching
   </tr>
 </table>
 
-<p align="center"><b>28 topics · 631 questions · complete one-question-one-illustration coverage</b></p>
+<p align="center"><b>28 topics · 662 questions · complete one-question-one-illustration coverage</b></p>
 
 ## Choose your path
 

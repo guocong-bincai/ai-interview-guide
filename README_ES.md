@@ -12,7 +12,7 @@
 
 > Una guía estructurada para puestos de aplicaciones de IA, RAG, agentes, entrenamiento e inferencia de modelos, FDE, multimodalidad y seguridad de IA.
 
-**631 preguntas · 28 temas · 7 rutas profesionales**
+**662 preguntas · 28 temas · 7 rutas profesionales**
 
 > [!IMPORTANT]
 > Esta página es una traducción de la presentación del proyecto. El banco completo de preguntas y respuestas se mantiene actualmente en chino simplificado. Los enlaces siguientes abren el contenido en chino.
@@ -25,7 +25,7 @@
 
 ## Aprendizaje visual
 
-Los 28 temas y las 631 preguntas incluyen ahora una ilustración didáctica 16:9 dedicada y ampliable. Cada imagen resume mecanismos, flujos, decisiones, límites y una frase para recordar. Las etiquetas se mantienen en chino, como el banco de preguntas original, pero los términos técnicos y el flujo visual siguen siendo reconocibles.
+Los 28 temas y las 662 preguntas incluyen ahora una ilustración didáctica 16:9 dedicada y ampliable. Cada imagen resume mecanismos, flujos, decisiones, límites y una frase para recordar. Las etiquetas se mantienen en chino, como el banco de preguntas original, pero los términos técnicos y el flujo visual siguen siendo reconocibles.
 
 <table>
   <tr>
@@ -40,7 +40,7 @@ Los 28 temas y las 631 preguntas incluyen ahora una ilustración didáctica 16:9
   </tr>
 </table>
 
-<p align="center"><b>28 temas · 631 preguntas · cobertura completa de una ilustración por pregunta</b></p>
+<p align="center"><b>28 temas · 662 preguntas · cobertura completa de una ilustración por pregunta</b></p>
 
 ## Elige tu ruta
 

@@ -5,3 +5,6 @@ __pycache__/
 *.py[cod]
 /scripts/
 /skills/illustrate-ai-interview-questions/
+# External learning PDFs are kept locally for study only. The source repository
+# does not declare a redistribution license, so do not commit these binaries.
+external-materials/dive-into-llms/*.pdf
