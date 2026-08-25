@@ -4,7 +4,7 @@
 
 ## 使用与版权说明
 
-截至 2026-08-25，目标仓库根目录未见明确的开源许可证文件，README 也声明材料来自贡献者经验、互联网资料和科研积累。因此本仓库**不复制、不重新分发**其中的 PDF、图片、Notebook 和代码，只保留指向原仓库的链接，并基于原论文、官方项目和独立表述编写面试答案。
+截至 2026-08-25，目标仓库根目录未见明确的开源许可证文件，README 也声明材料来自贡献者经验、互联网资料和科研积累。本仓库已按学习资料归档 11 份 PDF，并明确保留来源和权利说明；这些课件不应理解为适用本项目的 MIT 许可证。Notebook 和代码仍链接到原仓库，面试答案继续基于原论文、官方项目和独立表述编写。
 
 使用这些材料时建议遵循：
 
@@ -17,7 +17,7 @@
 ## 1. 微调与部署（已有覆盖，按需阅读）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter1)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter1/dive-into-llm.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/01-finetuning-and-deployment.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter1/dive-into-llm.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter1/dive-tuning.ipynb)
 - 对应主答案：[07 · 模型训练](../07-model-training/)
 
@@ -26,14 +26,14 @@
 ## 2. Prompt 与思维链（已有覆盖，按需阅读）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter2)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter2/dive-into-prompting.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/02-prompting-and-cot.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter2/dive-into-prompting.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter2/dive-prompting.ipynb)
 - 对应主答案：[02 · Prompt Engineering](../02-prompt-engineering/)
 
 ## 3. 知识编辑（高优先级）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter3)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter3/dive_edit_0410.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/03-knowledge-editing.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter3/dive_edit_0410.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter3/dive_edit.ipynb)
 - 对应主答案：[07 · 模型训练 Q21-Q23](../07-model-training/#q21-什么是大模型知识编辑它和微调rag机器遗忘有什么区别)
 
@@ -42,7 +42,7 @@
 ## 4. 数学推理蒸馏（高优先级）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter4)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter4/math.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/04-math-reasoning.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter4/math.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter4/sft_math.ipynb)
 - 对应主答案：[07 · 模型训练 Q24](../07-model-training/#q24-如何把强推理模型的能力蒸馏到小模型为什么不能只收集长思维链做-sft)
 
@@ -51,7 +51,7 @@
 ## 5. 模型水印（高优先级）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter5)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter5/watermark.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/05-text-watermark.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter5/watermark.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter5/watermark.ipynb)
 - 对应主答案：[09 · 安全与评估 Q25-Q26](../09-ai-safety-evaluation/#q25-llm-文本水印如何嵌入和检测kgw-与语义水印有什么区别)
 
@@ -60,7 +60,7 @@
 ## 6. 越狱攻击与防御评测（高优先级）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter6)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter6/dive-Jailbreak.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/06-jailbreak.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter6/dive-Jailbreak.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter6/dive-jailbreak.ipynb)
 - 对应主答案：[09 · 安全与评估 Q27](../09-ai-safety-evaluation/#q27-如何把零散越狱样本变成可持续运行的自动化红队-harness)
 
@@ -69,7 +69,7 @@
 ## 7. LLM 文本隐写（选修）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter7)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter7/stega.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/07-text-steganography.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter7/stega.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter7/llm_stega.ipynb)
 - 对应主答案：[09 · 安全与评估 Q26](../09-ai-safety-evaluation/#q26-如何评估文本水印为什么能检测出来还不够)
 
@@ -78,14 +78,14 @@
 ## 8. 多模态大模型（已有覆盖，按需阅读）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter8)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter8/mllms.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/08-multimodal-llms.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter8/mllms.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter8/mllms.ipynb)
 - 对应主答案：[11 · 多模态 AI](../11-multimodal-ai/)
 
 ## 9. GUI Agent 构建（高优先级）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter9)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter9/GUIagent.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/09-gui-agent.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter9/GUIagent.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter9/GUIagent.ipynb)
 - 对应主答案：[21 · 多模态 Agent Q16](../21-multimodal-agents/#q16-如何构建-gui-agent-的训练数据动作空间和评测闭环什么时候必须请求人工接管)
 
@@ -94,7 +94,7 @@
 ## 10. Agent 安全评测（高优先级）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter10)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter10/dive-into-safety.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/10-agent-safety.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter10/dive-into-safety.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter10/agent.ipynb)
 - 对应主答案：[28 · Test Harness Q15](../28-test-harness-evaluation/#q15-agent-类应用会调工具的怎么评测最前沿答出来直接拉开差距)
 
@@ -103,7 +103,7 @@
 ## 11. RLHF 实验（已有覆盖，按需阅读）
 
 - [章节 README](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter11)
-- [PDF 课件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter11/RLHF.pdf)
+- [本仓库 PDF](../../external-materials/dive-into-llms/11-rlhf.pdf) · [上游原件](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter11/RLHF.pdf)
 - [Notebook](https://github.com/Lordog/dive-into-llms/blob/main/documents/chapter11/RLHF.ipynb)
 - 对应主答案：[07 · 模型训练 Q7-Q9](../07-model-training/#三对齐技术rlhf与dpo)
 

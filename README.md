@@ -22,6 +22,7 @@
   <a href="#quick-start"><b>快速开始</b></a> ·
   <a href="#roadmap"><b>学习路线</b></a> ·
   <a href="#catalog"><b>题库导航</b></a> ·
+  <a href="#learning-materials"><b>配套课件</b></a> ·
   <a href="CONTENT_QUALITY.md"><b>质量规范</b></a> ·
   <a href="ILLUSTRATION_GUIDE.md"><b>插画规范</b></a> ·
   <a href="#support"><b>支持项目</b></a>
@@ -135,6 +136,31 @@
   <a href="docs/27-project-experience/">27 项目经验</a> ·
   <a href="docs/28-test-harness-evaluation/">28 测试 Harness</a>
 </p>
+
+<a id="learning-materials" name="learning-materials"></a>
+
+## 📚 配套学习课件：Dive into LLMs
+
+除了 662 道面试题，仓库还收录了 **11 份、495 页**的《动手学大模型》系列课件。它们不是单纯的书单链接，而是一套从基础方法、动手实验走到安全与 Agent 前沿的课程型 PDF，适合在刷题后继续补原理、看案例和设计复现实验。
+
+> [!NOTE]
+> GitHub 支持 PDF 预览，但文件较大或结构复杂时可能出现 `Unable to render`。优先点“预览”；如果页面加载失败，点同一行的“Raw”即可直接在浏览器打开或下载原始 PDF。第一份课件已从 10.9 MB 优化到 10 MB 以下，以提高 GitHub 在线预览成功率。
+
+| # | 课件 | 内容简介 | 对应面试方向 | 阅读入口 |
+|---:|------|----------|--------------|----------|
+| 01 | 大模型技术与发展 | 从模型演进、预训练与微调讲到推理部署，建立训练、验证、发布的完整链路 | LLM 基础、模型训练、生产部署 | [预览](external-materials/dive-into-llms/01-finetuning-and-deployment.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/01-finetuning-and-deployment.pdf) |
+| 02 | Prompt 与思维链 | Prompt 设计、上下文学习、Few-shot 与 Chain-of-Thought 的方法和边界 | Prompt Engineering、推理能力 | [预览](external-materials/dive-into-llms/02-prompting-and-cot.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/02-prompting-and-cot.pdf) |
+| 03 | 大模型知识编辑 | 讲清参数知识如何定位、修改与评估，并对比微调、RAG 和机器遗忘 | ROME、MEMIT、MEND、知识更新 | [预览](external-materials/dive-into-llms/03-knowledge-editing.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/03-knowledge-editing.pdf) |
+| 04 | LLM 数学推理 | 围绕推理数据构造、过程监督、蒸馏与评测理解数学能力如何获得 | CoT、推理蒸馏、过程评估 | [预览](external-materials/dive-into-llms/04-math-reasoning.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/04-math-reasoning.pdf) |
+| 05 | LLM 文本水印 | 水印嵌入、统计检测、质量影响，以及改写和翻译下的鲁棒性 | 内容溯源、安全评测、KGW | [预览](external-materials/dive-into-llms/05-text-watermark.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/05-text-watermark.pdf) |
+| 06 | 越狱攻击与防御 | 梳理越狱攻击类型、自动化攻击编排、评估器与防御验证 | 红队 Harness、Guardrail、安全测试 | [预览](external-materials/dive-into-llms/06-jailbreak.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/06-jailbreak.pdf) |
+| 07 | LLM 文本隐写 | 通过受控 Token 选择隐藏信息，分析容量、自然度、可恢复性与检测性 | 隐写与水印辨析、模型安全 | [预览](external-materials/dive-into-llms/07-text-steganography.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/07-text-steganography.pdf) |
+| 08 | 多模态大模型 | 多模态模型的架构、数据、训练范式、能力演进与评估框架 | VLM、视觉语言对齐、多模态评测 | [预览](external-materials/dive-into-llms/08-multimodal-llms.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/08-multimodal-llms.pdf) |
+| 09 | GUI Agent | 从页面感知、元素定位、动作空间讲到数据构造、评测与人工接管 | Computer Use、GUI 自动化、Agent | [预览](external-materials/dive-into-llms/09-gui-agent.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/09-gui-agent.pdf) |
+| 10 | 大模型智能体安全 | 关注 Agent 在多步工具调用中的风险行为、攻击面、轨迹评测和阻断策略 | Agent Safety、行为评测、权限控制 | [预览](external-materials/dive-into-llms/10-agent-safety.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/10-agent-safety.pdf) |
+| 11 | RLHF 大模型对齐 | 串联 SFT、奖励建模、PPO、KL 约束及奖励黑客等对齐问题 | RLHF、DPO、模型对齐 | [预览](external-materials/dive-into-llms/11-rlhf.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/11-rlhf.pdf) |
+
+完整来源、页数和实验 Notebook 映射见 [课件资料页](external-materials/dive-into-llms/) 与 [课件和实验阅读索引](docs/references/dive-into-llms-reading-list.md)。
 
 <a id="quick-start" name="quick-start"></a>
 

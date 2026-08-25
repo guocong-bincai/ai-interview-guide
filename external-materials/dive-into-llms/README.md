@@ -1,6 +1,9 @@
 # Dive into LLMs 外部学习 PDF
 
-本目录用于本地保存 [Lordog/dive-into-llms](https://github.com/Lordog/dive-into-llms) 的学习课件。
+本目录归档 [Lordog/dive-into-llms](https://github.com/Lordog/dive-into-llms) 的 11 份学习课件，并补充主题介绍、面试衔接和可直接打开的 PDF 入口。
+
+> [!TIP]
+> 点击“预览”使用 GitHub PDF 阅读器；如果出现 `Unable to render`，点击“Raw”直接打开或下载原始 PDF。GitHub 对较大或结构复杂的文件可能预览超时，但不影响文件本身。
 
 ## 版权边界
 
@@ -8,20 +11,20 @@
 
 ## 文件清单
 
-| 文件 | 主题 | 页数 | 来源章节 |
-|------|------|-----:|----------|
-| `01-finetuning-and-deployment.pdf` | 微调与部署 | 77 | [chapter1](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter1) |
-| `02-prompting-and-cot.pdf` | Prompt 与思维链 | 76 | [chapter2](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter2) |
-| `03-knowledge-editing.pdf` | 知识编辑 | 21 | [chapter3](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter3) |
-| `04-math-reasoning.pdf` | 数学推理蒸馏 | 17 | [chapter4](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter4) |
-| `05-text-watermark.pdf` | 文本水印 | 48 | [chapter5](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter5) |
-| `06-jailbreak.pdf` | 越狱攻击与评测 | 44 | [chapter6](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter6) |
-| `07-text-steganography.pdf` | LLM 文本隐写 | 13 | [chapter7](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter7) |
-| `08-multimodal-llms.pdf` | 多模态大模型 | 81 | [chapter8](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter8) |
-| `09-gui-agent.pdf` | GUI Agent | 43 | [chapter9](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter9) |
-| `10-agent-safety.pdf` | Agent 安全评测 | 51 | [chapter10](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter10) |
-| `11-rlhf.pdf` | RLHF | 24 | [chapter11](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter11) |
+| # | 课件与简介 | 页数 | 阅读 | 来源 |
+|---:|------------|-----:|------|------|
+| 01 | **大模型技术与发展**：模型演进、预训练、微调、推理与部署全链路 | 77 | [预览](01-finetuning-and-deployment.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/01-finetuning-and-deployment.pdf) | [chapter1](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter1) |
+| 02 | **Prompt 与思维链**：Prompt 设计、上下文学习、Few-shot 与 CoT | 76 | [预览](02-prompting-and-cot.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/02-prompting-and-cot.pdf) | [chapter2](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter2) |
+| 03 | **大模型知识编辑**：参数知识定位、编辑方法以及可靠性、泛化和局部性评估 | 21 | [预览](03-knowledge-editing.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/03-knowledge-editing.pdf) | [chapter3](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter3) |
+| 04 | **LLM 数学推理**：推理数据构造、过程监督、能力蒸馏与评测 | 17 | [预览](04-math-reasoning.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/04-math-reasoning.pdf) | [chapter4](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter4) |
+| 05 | **LLM 文本水印**：嵌入与检测、质量影响、攻击和鲁棒性 | 48 | [预览](05-text-watermark.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/05-text-watermark.pdf) | [chapter5](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter5) |
+| 06 | **越狱攻击与防御**：攻击分类、自动化红队编排、评估器和防御验证 | 44 | [预览](06-jailbreak.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/06-jailbreak.pdf) | [chapter6](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter6) |
+| 07 | **LLM 文本隐写**：隐蔽信息编码，以及容量、自然度、恢复和检测之间的取舍 | 13 | [预览](07-text-steganography.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/07-text-steganography.pdf) | [chapter7](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter7) |
+| 08 | **多模态大模型**：架构、数据、训练范式、能力演进与评估 | 81 | [预览](08-multimodal-llms.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/08-multimodal-llms.pdf) | [chapter8](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter8) |
+| 09 | **GUI Agent**：页面感知、元素定位、动作空间、数据构造和人工接管 | 43 | [预览](09-gui-agent.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/09-gui-agent.pdf) | [chapter9](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter9) |
+| 10 | **大模型智能体安全**：多步工具调用风险、攻击面、轨迹评测与阻断策略 | 51 | [预览](10-agent-safety.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/10-agent-safety.pdf) | [chapter10](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter10) |
+| 11 | **RLHF 大模型对齐**：SFT、奖励模型、PPO、KL 约束和奖励黑客 | 24 | [预览](11-rlhf.pdf) · [Raw](https://raw.githubusercontent.com/guocong-bincai/ai-interview-guide/main/external-materials/dive-into-llms/11-rlhf.pdf) | [chapter11](https://github.com/Lordog/dive-into-llms/tree/main/documents/chapter11) |
 
-共 11 份、495 页，磁盘占用约 67 MB。2026-08-25 已完成 PDF 文件头、页数解析与首页渲染检查。
+共 11 份、495 页。2026-08-25 已完成 PDF 文件头、页数解析与渲染检查；第一份课件已在保持 77 页和可检索文字不变的前提下优化到 10 MB 以下。
 
 题目与课件的映射、原始 Notebook 链接见 [课件与实验阅读索引](../../docs/references/dive-into-llms-reading-list.md)。
