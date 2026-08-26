@@ -3676,3 +3676,646 @@ class AgentEvaluator:
 > "我们需要 A/B 实验：同样一批测试用例，Agent 组和人工组各自处理，比较成功率、耗时、成本和用户满意度。但要注意公平性——人的速度会随熟练度提升（学习曲线），所以要设定对照组的时间窗口，确保比较的是同等条件下的表现。通常我们会报告'Agent达到了人类水平的 X%，但成本低 Y%，速度快 Z倍'这样的对比结论。"
 
 </details>
+
+---
+
+### Q33: 什么是 Model Routing（模型路由）？如何根据任务复杂度选择不同档位的模型来控制成本？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q33-model-routing.webp" alt="模型路由动漫知识图：分类器按难度分流，简单请求走低价模型，复杂问题升级到大模型" /></a>
+<p align="center"><sub>记忆点：不是所有任务都需要旗舰模型——把便宜模型的能力用足，才是降本的核心。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Model Routing = 根据每个请求的难度，动态路由到最合适的模型档位。**
+
+### 背景：为什么需要路由？
+
+```
+现状：约 95% 的企业 AI 使用仍在跑在价格最高的旗舰模型上
+    → 大量简单任务（查天气、翻译、格式化）也用 GPT-4o/Claude Opus
+    → 成本高且浪费计算资源
+
+目标：简单任务走廉价模型，复杂任务才升级到旗舰
+    → 典型节省 35-41%，质量损失 < 2%
+```
+
+### 三种路由策略
+
+**策略1：基于规则的硬路由（最简单）**
+
+```python
+def rule_based_router(user_query):
+    """简单关键词规则 → 快速决策"""
+    simple_keywords = ["你好", "谢谢", "翻译", "总结", "翻译以下"]
+    complex_keywords = ["写", "分析", "设计", "调试", "架构"]
+    
+    query_lower = user_query.lower()
+    if any(k in query_lower for k in simple_keywords):
+        return "cheap_model"   # Claude Haiku / GPT-4o-mini
+    elif any(k in query_lower for k in complex_keywords):
+        return "expensive_model"  # Claude Sonnet / GPT-4o
+    
+    return "mid_tier"  # 默认中等模型
+```
+
+**策略2：轻量分类器路由（推荐）**
+
+```python
+from transformers import pipeline
+
+class CostEfficientRouter:
+    def __init__(self):
+        # 用 tiny 分类器预估任务难度，cost < $0.001/次
+        self.classifier = pipeline("text-classification", 
+                                    model="tinybert-task-difficulty")
+    
+    def route(self, user_query, history=None):
+        """低成本分类 → 决定目标模型"""
+        result = self.classifier([user_query])[0]
+        confidence = result['scores'][result['label']]
+        
+        label = result['label']
+        if label == "simple":
+            model = "gpt-4o-mini"      # $0.15/M tokens
+            temperature = 0.3
+        elif label == "complex":
+            model = "gpt-4o"           # $2.50/M tokens  
+            temperature = 0.7
+        else:  # medium
+            model = "claude-sonnet-4"  # $3.00/M tokens
+            temperature = 0.5
+        
+        return {
+            "model": model,
+            "confidence": confidence,
+            "tier": label
+        }
+```
+
+**策略3：多阶段升级路由（高级）**
+
+```python
+async def upgrade_router(query, initial_response):
+    """先派给便宜模型，质量不够再升级到贵模型"""
+    cheap_result = await call_llm("gpt-4o-mini", query)
+    
+    # 用贵模型或规则判断便宜结果是否足够好
+    quality_signal = check_quality(cheap_result, query)
+    
+    if quality_signal.pass_rate > 0.95:
+        return {"model": "gpt-4o-mini", "response": cheap_result, "route": "direct"}
+    else:
+        # 自动升级到贵模型重试
+        expensive_result = await call_llm("gpt-4o", query)
+        return {"model": "gpt-4o", "response": expensive_result, "route": "upgraded"}
+
+# 关键优势：只对有问题的请求做升级，不提前消耗贵模型
+```
+
+### 各档位模型选型参考（2026年）
+
+| 档位 | 代表模型 | 输入/$/M token | 适用场景 | 占比估算 |
+|------|---------|----------------|----------|---------|
+| **L0（极简）** | GPT-4o-mini / Claude Haiku | ~$0.15-0.25 | 分类/提取/翻译/格式转换 | ~40% |
+| **L1（实用）** | GPT-4o / Claude Sonnet 4 | ~$2.50-3.00 | 生成/分析/代码/对话 | ~35% |
+| **L2（旗舰）** | Claude Opus / GPT-4o-max | ~$15-60 | 复杂推理/创意/研究 | ~15% |
+| **L3（专用）** | o3/R1 推理模型 | ~$10-30 | 数学/编程推理/科学计算 | ~10% |
+
+### 面试高分回答
+
+> "2026年企业AI应用成本控制的第一杠杆是模型路由。核心思路是让每个请求找到最便宜的可用模型——大约60%的查询可以用廉价模型解决。工程上我推荐三层方案：先用轻量分类器（成本不到$0.001/次）预判任务难度分配模型；对模糊查询采用'先试便宜后升级'的两阶段策略；最后设全局预算上限，防止极端情况。关键是持续监控各档位的准确率曲线，确保便宜模型的降级不影响用户体验。据行业数据，合理的路由能省下35-41%的API成本，质量损失通常低于2%。"
+
+</details>
+
+---
+
+### Q34: Token 预算管理怎么做？上下文越来越长时如何控制成本又不丢失关键信息？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q34-token-budget.webp" alt="Token预算管理动漫知识图：多层预算分级、软警告硬截止、压缩替换原始文本" /></a>
+<p align="center"><sub>记忆点：token 是钱——每轮对话都要盯着账单，软警告触发压缩，硬截止强制截断。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Token 预算管理的本质：在对话生命周期内持续跟踪和调控 token 消耗。**
+
+### 四层预算体系
+
+```
+┌─────────────────────────────────────────┐
+│ Layer 0: 单任务预算 (Per-Task)          │
+│   → 单次交互最多消耗的 token             │
+│   → 用于防单个用户烧钱                    │
+├─────────────────────────────────────────┤
+│ Layer 1: 会话预算 (Per-Session)         │
+│   → 整个对话历史的上限                    │
+│   → 达到上限时触发上下文压缩               │
+├─────────────────────────────────────────┤
+│ Layer 2: 租户/团队预算                   │
+│   → 某个客户/部门的月度预算               │
+│   → 超量后降档模型或排队                  │
+├─────────────────────────────────────────┤
+│ Layer 3: 全局预算                        │
+│   → 公司总 API 费用日/月限额              │
+│   → 紧急时全部切换到最低成本模型           │
+└─────────────────────────────────────────┘
+```
+
+### 实现：带压缩的动态上下文管理
+
+```python
+class TokenBudgetManager:
+    def __init__(self, system_prompt, tool_defs, max_context_tokens=128000):
+        self.system_prompt = system_prompt
+        self.tool_defs = tool_defs
+        self.max_context_tokens = max_context_tokens
+        self.session_history = []
+        self.compression_threshold = int(max_context_tokens * 0.8)  # 80% 触发压缩
+        self.hard_limit = max_context_tokens
+    
+    def count_tokens(self, messages):
+        """估算 token 数量（生产环境用对应 tokenizer）"""
+        total = 0
+        for msg in messages:
+            total += len(msg.get('content', '')) // 4  # 粗略估算
+        return total
+    
+    def build_messages_with_budget(self, user_input):
+        """构建消息列表，自动处理超出预算的情况"""
+        base_messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "system", "content": self.tool_defs},
+        ]
+        
+        all_messages = base_messages + list(self.session_history) + [
+            {"role": "user", "content": user_input}
+        ]
+        
+        total = self.count_tokens(all_messages)
+        
+        if total <= self.compression_threshold:
+            return all_messages  # 正常
+        
+        elif total <= self.hard_limit:
+            return self._compress_context(all_messages)  # 压缩
+        
+        else:
+            return self._hard_truncate(all_messages)  # 硬截断
+    
+    def _compress_context(self, messages):
+        """上下文压缩：保留最近 N 轮 + 摘要旧内容"""
+        base_len = self.count_tokens(messages[:2])  # system prompts
+        available = self.compression_threshold - base_len
+        
+        # 从后往前保留足够的对话轮次
+        compressed = list(reversed(messages[:-1]))  # 去掉当前用户输入
+        kept = []
+        for msg in reversed(compressed):
+            if self.count_tokens([*kept, msg]) <= available:
+                kept.insert(0, msg)
+            else:
+                break
+        
+        # 将未保留的旧对话合并为摘要
+        dropped = [m for m in compressed if m not in kept[-6:]]
+        if dropped:
+            summary = self.summarize(dropped)
+            kept.insert(1, {"role": "system", "content": f"[历史摘要] {summary}"})
+        
+        return kept + [{"role": "user", "content": messages[-1]["content"]}]
+    
+    def _hard_truncate(self, messages):
+        """硬截断：只保留 system prompt + 最近2轮"""
+        base = messages[:2]
+        recent = messages[-4:] if len(messages) >= 4 else messages[2:]
+        return base + recent + [{"role": "user", "content": messages[-1]["content"]}]
+    
+    def summarize(self, messages):
+        """调用模型生成历史摘要"""
+        llm = get_llm("gpt-4o-mini")
+        text = "\n".join(m.get('content', '') for m in messages[-10:])
+        prompt = f"请将这些对话历史压缩为一句话摘要（不超过50字）：{text}"
+        return llm.generate(prompt)[:50]
+
+# 使用
+budget_mgr = TokenBudgetManager(SYSTEM_PROMPT, TOOL_DEFS, max_context_tokens=128000)
+messages = budget_mgr.build_messages_with_budget("用户的新输入...")
+response = llm.complete(messages)
+```
+
+### 生产级 Token 优化清单
+
+| 优化手段 | 预期节省 | 实施难度 | 优先级 |
+|---------|---------|---------|--------|
+| Prompt Caching | 30-90%（prefix复用） | 低 | ⭐⭐⭐⭐⭐ |
+| 上下文压缩 | 20-50% | 中 | ⭐⭐⭐⭐ |
+| 模型路由 | 35-41% | 中 | ⭐⭐⭐⭐ |
+| 精简 Tool Definitions | 5-15% | 低 | ⭐⭐⭐ |
+| Batch 请求合并 | 10-20% | 中 | ⭐⭐⭐ |
+| 减少不必要的 system message | 2-10% | 低 | ⭐⭐ |
+
+### 面试回答模板
+
+> "我在项目里用了一套分层预算系统：单任务限制输出 token（比如 max_tokens=2000），会话级别设了 128K 的硬上限并在 80% 处触发上下文压缩。压缩策略是保留最近3轮原文 + 用小型模型摘要更久远的对话。同时配合 Prompt Caching 缓存固定前缀，实测单会话 token 用量下降了约 40%。最关键的是上线后持续监控 dashboard——我看到过有用户连续对话消耗了 500K tokens，没有预算控制的代价就是不可预测。"
+
+</details>
+
+---
+
+### Q35: Golden Dataset（黄金评测集）怎么构建和维护？为什么它是 AI 应用开发最重要的资产之一？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q35-golden-dataset.webp" alt="黄金评测集动漫知识图：人工标注、分层采样、版本控制和回归门禁" /></a>
+<p align="center"><sub>记忆点：Prompt 迭代会遗忘之前的行为——golden dataset 是唯一能让你说「这个改动没搞砸」的证据。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Golden Dataset = 一组经过人工验证的高质量输入-期望输出对，用于在每次代码/Prompt变更前后进行回归测试。**
+
+### 为什么重要？
+
+```
+场景：你修改了 System Prompt 中的一个措辞
+→ 新 Prompt 在某些场景下效果更好
+→ 但你可能无意中破坏了之前工作正常的其他场景
+→ 没有 golden dataset → 只能靠 eyeball 检查 → 漏检率高
+→ 有了 golden dataset → CI 自动跑回归 → 立刻发现 regression
+
+这就是为什么很多团队评价：
+"A golden dataset is your single most important evaluation asset — more than metrics, more than frameworks."
+```
+
+### 构建步骤
+
+**Step 1: 收集真实用例**
+
+```python
+import json
+from datetime import datetime
+
+# 从生产日志中提取真实用户查询
+def extract_real_cases(log_file):
+    """从 production logs 收集用户查询+模型回复"""
+    cases = []
+    with open(log_file) as f:
+        for line in f:
+            entry = json.loads(line)
+            if entry.get('success') and entry.get('tokens_used', 0) < 5000:
+                cases.append({
+                    "input": entry["user_query"],
+                    "context": entry.get("retrieved_docs", []),
+                    "model_output": entry["llm_response"],
+                    "source": "production_log",
+                    "date": entry["timestamp"]
+                })
+    return cases
+
+# 目标：至少 100+ 条覆盖主要场景的真实用例
+raw_cases = extract_real_cases("prod_logs.jsonl")
+print(f"收集到 {len(raw_cases)} 条原始用例")
+```
+
+**Step 2: 人工标注与验证**
+
+```python
+def annotate_case(case):
+    """领域专家标注"理想答案""""
+    return {
+        "input": case["input"],
+        "context": case["context"],
+        "expected_answer": expert_label(case["model_output"]),  # 人工修正
+        "expected_keywords": ["关键词1", "关键词2"],  # 必须出现的关键词
+        "forbidden_words": ["敏感词"],  # 绝不应该出现
+        "difficulty": "easy" | "medium" | "hard",
+        "category": "customer_service" | "technical" | "sales",
+        "rationale": "为什么这样算正确答案的原因说明"
+    }
+```
+
+**Step 3: 分层采样确保覆盖度**
+
+```yaml
+# golden_dataset.yaml — 结构示例
+metadata:
+  version: "v1.2"
+  created: "2026-08-20"
+  owner: "team-ml-evals"
+  description: "客服质检核心评估集 — 覆盖投诉/咨询/退货三大场景"
+
+cases:
+  - id: TC-001
+    category: complaint
+    difficulty: hard
+    input: "你们产品质量太差了，我要退款还要投诉！"
+    expected_keywords: ["抱歉", "退款流程", "工单号"]
+    forbidden_words: ["不可能", "你自己看说明书"]
+    min_score: 0.8
+  
+  - id: TC-042
+    category: technical
+    difficulty: medium
+    input: "怎么在Python里用asyncio实现生产者消费者模式？"
+    expected_keywords: ["queue.Queue", "put()", "get()"]
+    forbidden_words: ["手动循环"]
+    min_score: 0.85
+
+distribution:
+  complaint: 40     # 投诉类 40条
+  technical: 35     # 技术类 35条
+  sales: 25         # 销售类 25条
+  edge_cases: 20    # 边界/异常情况 20条
+  total: 120        # 总计 120条
+```
+
+**Step 4: 自动化回归测试集成到 CI**
+
+```python
+def run_regression_test(golden_dataset_path="golden_dataset.yaml"):
+    """CI 中的回归门禁"""
+    dataset = load_yaml(golden_dataset_path)
+    results = []
+    passed = 0
+    failed = 0
+    
+    for case in dataset["cases"]:
+        output = call_llm(case["input"], context=case.get("context"))
+        
+        score = evaluate_against_expected(output, case)
+        is_pass = score >= case.get("min_score", 0.7)
+        
+        results.append({
+            "id": case["id"],
+            "score": round(score, 3),
+            "passed": is_pass
+        })
+        
+        if is_pass:
+            passed += 1
+        else:
+            failed += 1
+            print(f"❌ FAIL: {case['id']} — score={score:.3f}")
+    
+    pass_rate = passed / len(results)
+    print(f"\nRegression result: {pass_rate:.1%} ({passed}/{len(results)})")
+    
+    # Gate: 通过率低于 90% 则阻塞 CI
+    if pass_rate < 0.9:
+        raise RuntimeError(f"Regression gate failed! Pass rate {pass_rate:.1%} < 90%")
+    
+    return {"passed": passed, "failed": failed, "total": len(results)}
+```
+
+### 维护策略（同样重要）
+
+| 做法 | 频率 | 目的 |
+|------|------|------|
+| 每周新增线上失败案例 | 每周 | 让数据集覆盖真实痛点 |
+| 每季度重新审视过时用例 | 季度 | 移除不再相关的测试 |
+| 保持 held-out 测试子集 | 持续 | 不参与调参，纯客观衡量 |
+| 标注一致性校准 | 每月 | 多人标注时用 LLM-judge 交叉校验 |
+
+### 常见陷阱
+
+```
+❌ 陷阱1: 只有60个用例却反复调优直到通过 → overfitting to eval
+❌ 陷阱2: 用例全是简单案例 → hard edge cases 直接挂
+❌ 陷阱3: 没有 held-out 子集 → 不知道自己真的泛化能力差
+❌ 陷阱4: 微调训练集和 golden dataset 重叠 → 虚假的高分
+❌ 陷阱5: 半年不更新 → 覆盖的场景和业务已经脱节
+```
+
+### 面试高频回答
+
+> "我的经验是，golden dataset 的价值不取决于数量，而取决于代表性和维护纪律。我们团队的做法是：从生产日志中提取真实用户查询，标注120-150条作为核心集，再保持一个独立的hold-out子集不被任何调参过程接触。每次改prompt或换模型，CI自动跑回归——如果通过率掉到90%以下就不允许合入。另外每月往库里补充线上失败的案例，每季度做一次review清理过时的。记住一个原则：如果你为了通过golden dataset而去调整system prompt而不是改进prompt本身，你已经overfitted了。"
+
+</details>
+
+---
+
+### Q36: DSPy 是什么？相比手写 Prompt 有什么本质区别？什么时候该用 DSPy？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q36-dspy.webp" alt="DSPy动漫知识图：声明式签名编译为结构化prompt，编译器自动选取few-shot示例和优化提示词" />
+<p align="center"><sub>记忆点：手动画地图容易偏航，DSPy让你声明目的地，它帮你选路线。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**DSPy = Stanford NLP 出品的框架，把 Prompt Engineering 从"手写字符串"升级为"声明式编程 + 自动编译优化"。**
+
+### 核心理念对比
+
+```
+传统 Prompt Engineering:
+  ┌──────────────────────────────────────┐
+  │ "你是助手。请用中文回答以下问题..."    │ ← 手写 Prompt 字符串
+  │ 你来调试措辞、调 few-shot、加约束     │ ← 手动调优
+  │ 换了模型效果就变                     │ ← 脆弱
+  └──────────────────────────────────────┘
+
+DSPy:
+  ┌──────────────────────────────────────┐
+  │ class QA(signature(input=str)->output=str): pass │ ← 声明接口
+  │ compiled_qa = dspy.compile(qa, optimizer=...)    │ ← 编译优化
+  │ result = compiled_qa(question="...")              │ ← 运行
+  │ 换了模型自动适配                           │ ← 稳健
+  └──────────────────────────────────────┘
+```
+
+### 核心概念速览
+
+**Signature（签名）= 声明式接口定义**
+
+```python
+import dspy
+
+# 告诉 DSPy：输入是 question + context，输出是 answer + reasoning
+class RetrievalQA(dspy.Signature):
+    """Answer the question using only the provided context."""
+    question = dspy.InputField(desc="User question")
+    context = dspy.InputField(desc="Relevant documents")
+    answer = dspy.OutputField(desc="Concise answer")
+    reasoning = dspy.OutputField(desc="Brief reasoning process")
+
+# Signature 定义了数据的类型和结构，而不是 Prompt 的文案
+```
+
+**Module = 可组合的计算单元**
+
+```python
+# DSPy 内置模块
+retrieve = dspy.Retrieve(k=5)                            # 检索模块
+generate_answer = dspy.ChainOfThought(RetrievalQA)       # 生成答案模块
+
+# 组合成 Pipeline
+def rag_pipeline(question):
+    contexts = retrieve(query=question).passages
+    return generate_answer(context=contexts, question=question)
+```
+
+**Compiler = 自动优化器**
+
+```python
+from dspy.teleprompt import BootstrapFewShot, MIPROv2
+
+# 准备训练数据
+trainset = [
+    dspy.Example(question=" Paris 的首都？", context=["法国首都是 Paris。"],
+                 answer="Paris", reasoning="Context states Paris is the capital.").with_inputs("question", "context"),
+    # ... 更多样本
+]
+
+# BootstrapFewShot：自动生成最佳 few-shot 示例
+optimizer = BootstrapFewShot(metric=lambda ex, pred, train: ex.answer == pred.answer)
+compiled_module = optimizer.compile(generate_answer, trainset=trainset)
+
+# MIPROv2：更强大的自动优化（自动生成 prompt + demos）
+optimizer_v2 = MIPROv2(metric=..., n_candidates=10, total_budget=1000)
+optimized_module = optimizer_v2.compile(generate_answer, trainset=trainset)
+```
+
+### DSPy 的优势场景
+
+| 场景 | 手写 Prompt | DSPy | DSPy 赢在哪 |
+|------|------------|------|-------------|
+| 多步 Pipeline | 每个节点调参，极难维护 | 独立 Signature + Compiler 自动优化 | 编译时全局考虑，不用逐节点调 |
+| 模型迁移 | 换模型重新调一遍 Prompt | 重新 compile 即可适配 | 同一 Signature 适配不同模型 |
+| Few-shot 选择 | 人工选哪几个示例放前面 | Compiler 自动选择最优示例组合 | 搜索空间远超人类直觉 |
+| 跨团队协作 | 一人改了 Prompt 别人看不懂 | Signature 是明确的类型接口 | 像写函数签名一样清晰 |
+| 自动 A/B 多版本 | 手动维护多个 prompt 版本 | Optimizer 同时探索多个候选 | 数据驱动的优化 |
+
+### 何时不该用 DSPy？
+
+```
+✅ 适合用 DSPy：
+- Pipeline 有多个相互依赖的 LLM 调用
+- 需要频繁在多个模型之间切换
+- 团队多人协作，需要明确的接口契约
+- 场景需要自动化持续优化
+
+❌ 不适合用 DSPy：
+- 简单的单步问答（直接写 prompt 更快）
+- 对延迟要求极低且调用量很小
+- 团队没有 Python 工程能力（学习曲线中等）
+- 需要极细粒度的 prompt 控制权（某些安全/合规场景）
+```
+
+### 面试加分回答
+
+> "DSPy 的本质是把 Prompt 从'玄学调参'变成了'可以编译的程序'。Signature 定义了输入输出的类型契约，就像函数的签名；Compiler 做了两件事：一是自动生成最优的 few-shot 示例组合，二是通过优化算法（如 MIPRO）搜索更好的 prompt 表达。面试时如果被问到'什么时候用 DSPy'，我会说：当你的 pipeline 超过 2 个 LLM 调用、或者需要在多个模型间切换时，DSPy 的收益最大。它的 trade-off 是初期设置 optimizer 需要一些工程投入，但对于生产系统的长期维护是值得的。"
+
+</details>
+
+---
+
+### Q37: Prompt Drift（提示词漂移）是什么？如何检测并防止 Prompt 在生产环境中性能退化？
+
+<p align="center"><a href="../../assets/illustrations/02-prompt-engineering/q37-prompt-drift.webp" alt="Prompt漂移检测动漫知识图：版本追踪、指标监控、自动告警、A/B回滚闭环" />
+<p align="center"><sub>记忆点：改了 Prompt 不等于只会变好——更可能悄悄变差，所以必须持续观测。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Prompt Drift = 由于各种因素导致 Prompt 在产出质量和一致性上的缓慢退化，通常不易被即时察觉。**
+
+### 什么会导致 Drift？
+
+| 原因 | 说明 | 典型影响 |
+|------|------|---------|
+| 模型版本更新 | 供应商升级模型，底层行为变化 | 同一 prompt 在新模型上表现不同 |
+| Prompt 累积修改 | 多次微调叠加，最终偏离原始设计 | 效果逐步下降无感知 |
+| 用户分布变化 | 新用户群体提问方式改变 | 原本针对老用户的 prompt 失效 |
+| 外部数据源变化 | RAG 知识库更新后检索结果变化 | 生成的回答风格变了 |
+| 工具定义变更 | MCP/Tool 描述修改后模型理解不同 | 工具调用准确率下降 |
+
+### 检测机制
+
+```python
+class PromptDriftDetector:
+    """生产环境 Prompt 漂移检测"""
+    
+    def __init__(self, baseline_scores_path="baseline_scores.json"):
+        self.baseline = self.load_baseline(baseline_scores_path)
+        self.monitor_window = 24 * 60 * 60  # 24小时
+    
+    def evaluate_current_batch(self, queries, responses):
+        """用 LLM-as-Judge 批量评估最近的输出"""
+        scores = []
+        for q, r in zip(queries, responses):
+            score = judge.score(response=r, expected=self.baseline[q])
+            scores.append(score)
+        
+        return {
+            "avg_score": sum(scores) / len(scores),
+            "p5_score": sorted(scores)[int(len(scores)*0.05)],
+            "sample_size": len(scores),
+            "window_hours": self.monitor_window // 3600
+        }
+    
+    def check_drift(self):
+        """比较当前批次与基线，判断是否有显著漂移"""
+        current = self.evaluate_current_batch(latest_queries, latest_responses)
+        baseline_avg = self.baseline["avg_score"]
+        
+        # 阈值：平均分下降 > 5pp 告警
+        delta = baseline_avg - current["avg_score"]
+        if delta > 0.05:
+            self.alert(f"⚠️ Prompt drift detected! Delta: {delta*100:.1f}pp")
+            return True
+        return False
+```
+
+### 防御策略矩阵
+
+```
+预防 Drift 的三层防线：
+
+Layer 1: 编码规范（事前）
+├── Git 版本管理所有 Prompt 文件
+├── 每次修改记录 change log
+├── Prompt review 制度（至少两人审查）
+└── Signature 替代硬编码字符串（DSPy 等）
+
+Layer 2: 回归测试（事中）
+├── Golden Dataset 纳入 CI 门禁
+├── 每次 PR 跑全量回归
+├── 模型版本变更时额外跑回归
+└── 监控 dashboard 实时指标
+
+Layer 3: 运行时监控（事后）
+├── 抽样人工审核（每天 50-100 条）
+├── 自动评分趋势图（7天移动平均）
+├── 用户反馈率异常告警
+└── A/B rollback 自动回退通道
+```
+
+### 实际案例
+
+```
+某金融科技公司的教训：
+
+Week 1: 优化了 System Prompt，添加了几条安全规则
+Week 2: 用户反馈减少 2%，但团队以为是小波动
+Week 3: 用户投诉增加 8%，LLM Judge 分数从 4.2 → 3.6
+Root cause: 新增的安全规则过于激进，触发了大量误拦截
+Lesson: 如果没有 golden dataset + 实时监控，根本不知道出了什么问题
+
+修复: 1) 加入回归门禁 2) 部署监控 dashboard 3) 每日抽样审核
+结果: 之后 6 个月零事故
+```
+
+### 面试高分回答
+
+> "Prompt Drift 是最容易被忽视的生产风险。我们的防御是三层：第一层用 Git 管理所有 prompt，每次改必配回归测试；第二层是 Golden Dataset 纳入 CI，每次 PR 自动跑；第三层是运行时监控——我们用 LLM-as-Judge 每天抽样评 200 条输出，画7天移动平均的趋势图，一旦出现超过5个百分点的下滑就自动告警。最关键的一招是 A/B 回滚：如果新版本 Prompt 在影子流量上表现不好，一键切回上一版，不需要停机。"
+
+</details>
+
+---
+
+## 更新记录
+
+| 日期 | 更新内容 |
+|------|----------|
+| 2026-08-27 | 版本 v3.130：新增 Q33-Q37（模型路由 Model Routing 成本优化、Token 预算管理、Golden Dataset 黄金评测集构建与维护、DSPy 声明式 Prompt 编程、Prompt Drift 检测与防御） |
+
+---

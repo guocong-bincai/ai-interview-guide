@@ -1287,10 +1287,8 @@ Agent Governance Toolkit负责"规则执行"（动态）
 <a href="../../assets/illustrations/13-multi-agent-systems/q06-rag-agent-mcp-a2a.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q06-rag-agent-mcp-a2a.webp" alt="RAG 提供知识 Agent 负责决策 MCP 连接工具 A2A 负责智能体发现委托的分层关系" width="100%"></a>
 
 > 🧠 **图解记忆：** RAG 管知识，Agent 管决策，MCP 管工具，A2A 管协作，四者分层组合。
-
 > **难度：** ⭐⭐⭐⭐⭐  
 > **更新：** 2026-04-06
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -1538,10 +1536,8 @@ class A2AGateway:
 <a href="../../assets/illustrations/13-multi-agent-systems/q08-agent-maturity.webp"><img src="../../assets/illustrations/13-multi-agent-systems/q08-agent-maturity.webp" alt="Agent 从问答调用工具自主规划主动发起到组织多智能体的五级成熟度阶梯" width="100%"></a>
 
 > 🧠 **图解记忆：** 成熟度看自主权如何增长：回答、执行、规划、主动、组织；业务只选需要的级别。
-
 > **难度：** ⭐⭐⭐⭐  
 > **更新：** 2026-04-06
-
 <details>
 <summary>💡 答案要点</summary>
 
@@ -2858,6 +2854,8 @@ result = k2.6_swarm.research(
 > 🧠 **图解记忆：** 动态编排不是越多越好，而是在质量收益超过协调成本时有限扇出并及时停止。
 
 **考点：** 多Agent架构、测试时计算扩展、Orchestrator-SubAgent 模式、推理成本控制
+<details>
+<summary>💡 答案要点</summary>
 
 #### 核心答案
 
@@ -2928,6 +2926,8 @@ Ultra 模式：
 **延伸阅读：**
 - OpenAI GPT-5.6 官方预览（2026-06）：https://openai.com
 - GPT-5.6 Ultra 架构解析：https://apidog.com/blog/gpt-5-6-ultra-mode
+
+</details>
 
 
 ---

@@ -3157,6 +3157,8 @@ print(f"答案相关性: {result.answer_relevancy:.2%}")
 <p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q21-rag-lifecycle.webp" width="860" alt="RAG 版本化数据、离线评估、CI、灰度、线上监控与失败回流生命周期图"></p>
 <p align="center"><sub>🧠 记忆锚点：离线找问题，CI 防回归，灰度控风险，线上监控发现分布漂移；失败样本回流但盲测保持隔离。</sub></p>
 
+<details>
+<summary>💡 答案要点</summary>
 
 **核心概念：RAG 评估是分层级的，不同时机用不同工具**
 
@@ -3263,6 +3265,8 @@ def test_rag_faithfulness():
 - DeepEval: https://github.com/confident-ai/deepeval
 - Patronus AI: https://www.patronus.ai
 - RAG Evaluation 2026 Guide: https://datavlab.ai/post/rag-evaluation-methods-metrics-2026-guide
+
+</details>
 
 ### Q22: Agent 框架为什么容易出现远程代码执行（RCE）风险？如何系统防御？
 
