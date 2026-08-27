@@ -1332,6 +1332,11 @@ class MultiHopRAG:
 | **Late Chunking** | 先embedding再切分,保留完整上下文 |
 | **幻觉优化** | RAG提供证据+低Temperature+CoT推理，幻觉率<5% |
 | **RAG效果提升** | 混合检索+Rerank+Query重写+上下文压缩四步走 |
+| **RAG评估** | RAGAS/TruLens/DeepEval分层评测五维指标 |
+| **RAG vs 微调** | RAG管知识更新，微调管行为规范 |
+| **Rerank对比** | Cross-Encoder精度最高但慢，ColBERT精效平衡 |
+| **多路召回** | 向量+BM25等路径经RRF自然融合 |
+| **多租户权限** | 元数据标记+server-side过滤+防御纵深 |
 
 ---
 
@@ -2160,8 +2165,867 @@ class AtomicKnowledgeUpdate:
 **面试话术：**
 > "动态知识更新有三种策略：批处理（每天凌晨全量或增量重建）、实时（Kafka 监听变更事件）、版本化（支持快速回滚）。关键点是'无缝切换'——用蓝绿部署或 collection aliases 做原子切换，新库建好后瞬间切换，不会有查到旧数据的空窗期。我做客服知识库用批处理增量更新，每小时扫描变更文档，先删旧向量再插新向量，P99 延迟在非高峰时段 500ms 以内完成单文档更新。"
 
+
+</details>
+---
+
+### Q21: RAG 系统效果评估怎么做？主流框架对比（RAGAS / TruLens / DeepEval）
+
+<p align="center"><a href="../../assets/illustrations/03-rag-system/q21-evaluation.webp" width="760" alt="RAG 评测体系动漫知识图：检索与生成两阶段分别打分，结合合成数据生成、A/B实验和线上监控形成闭环"></a></p>
+<p align="center"><sub>记忆点：先拆检索/生成两阶段，再选框架跑指标，最后线上持续追踪。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么需要专门的 RAG 评估？**
+
+传统 NLP 用 BLEU/ROUGE 衡量生成质量，但 RAG 有「检索→生成」两个阶段——即使模型生成了正确答案，也可能没有使用正确来源；反之也可能答案随机正确但推理过程完全幻觉。
+
+**RAG 评估的核心思路：分层度量**
+
+```
+┌───────────────┐     ┌───────────────┐
+│   检索层评估   │     │   生成层评估   │
+│               │     │               │
+│ Context       │     │ Faithfulness  │
+│ Precision     │     │ Answer        │
+│ Recall        │     │ Relevancy     │
+│ MRR/NDCG      │     │ Groundedness  │
+└───────────────┘     └───────────────┘
+         ↕                    ↕
+   ┌─────────────────────────────┐
+   │    端到端业务评估            │
+   │   用户满意度 / CSAT           │
+   └─────────────────────────────┘
+```
+
+### RAGAS（最有影响力的开源框架）
+
+**五大核心指标：**
+
+| 指标 | 含义 | 评估对象 |
+|------|------|----------|
+| **Context Precision** | 召回的文档中有多少是真正相关的 | 检索层 |
+| **Context Recall** | 所有有用的上下文是否都被召回了 | 检索层 |
+| **Faithfulness** | 答案中的每个声明是否都能在上下文中找到依据 | 生成层 |
+| **Answer Relevancy** | 答案是否与问题高度相关 | 生成层 |
+| **Context Entities Recall** | 上下文中是否包含了答案所需的关键实体 | 检索层 |
+
+```python
+from ragas import evaluate
+from datasets import Dataset
+
+# 准备评估数据集
+# 最小需要 [question, answer, contexts] 三列
+# 可选 ground_truth 用于更精确的计算
+dataset = Dataset.from_dict({
+    "question": [
+        "公司年假政策是什么？",
+        "差旅报销标准是多少？",
+    ],
+    "answer": [
+        "员工每年有10天带薪年假...",
+        "交通费凭票实报实销，住宿限额...",
+    ],
+    "contexts": [
+        [["公司员工手册第3章...", "年假规定如下..."]],
+        [["财务制度第五章...", "差旅标准表..."]],
+    ]
+})
+
+# 执行评估
+results = evaluate(dataset)
+print(results)  # {'context_precision': 0.87, 'faithfulness': 0.92, ...}
+```
+
+**RAGAS 的独特优势：合成数据生成**
+
+```python
+from ragas.testset.generator import TestsetGenerator
+from ragas.testset.evolutions import simple, reasoning, multi_context
+
+# 用你的知识库自动生成测试用例
+generator = TestsetGenerator.with_openai()
+teaset = generator.generate_with_langchain_docs(
+    documents=your_documents,
+    test_size=50,
+    distributions={simple: 0.5, reasoning: 0.3, multi_context: 0.2}
+)
+# 输出50个测试用例，覆盖简单问答、推理题、多源综合题
+```
+
+### TruLens（链路追踪+评估一体化）
+
+**RAG Triad 设计理念：**
+
+```
+Context Relevance → 检索的片段是否和查询相关？
+       ↓
+Groundedness → 生成的答案是否有检索内容支撑？
+       ↓
+Answer Relevance → 最终答案是否回答了原始问题？
+
+三个环节全部达标 = 系统在知识库范围内零幻觉
+```
+
+```python
+from trulens_eval import App, Feedback
+from truluseval.apps.langchain import LangChain as LCApp
+import langchain
+
+app = LCApp(my_rag_chain, app_id="my-rag")
+
+# 定义反馈函数
+f_context_relevance = Feedback(
+    lambda rec, out: context_relevance_score(out.contexts, out.question),
+    name="Context Relevance"
+).on(Input.langchain.query, Output.langchain.contexts)
+
+f_faithfulness = Feedback(
+    lambda rec, out: faithfulness_score(out.answer, out.contexts),
+    name="Faithfulness"
+).on(Output.langchain.answer, Output.langchain.contexts)
+
+# 运行追踪+评估
+with app.run(Feedback([f_context_relevance, f_faithfulness])) as runner:
+    leaderboard = runner.leaderboard()
+    print(leaderboard)
+```
+
+### DeepEval（轻量 + 支持自定义评分器）
+
+```python
+from deepeval import evaluate
+from deepeval.metrics import (
+    AnswerRelevancyMetric,
+    FaithfulnessMetric,
+    ContextualPrecisionMetric,
+)
+from deepeval.test_case import LLMTestCase
+
+test_case = LLMTestCase(
+    input="如何申请年假？",
+    actual_output="需要提前3天提交OA审批",
+    retrieval_context=["年假需提前3个工作日申请", "通过公司OA系统提交"],
+)
+
+metrics = [
+    AnswerRelevancyMetric(threshold=0.7),
+    FaithfulnessMetric(threshold=0.7),
+    ContextualPrecisionMetric(threshold=0.7),
+]
+
+evaluate(test_cases=[test_case], metrics=metrics)
+```
+
+### 三大框架横向对比
+
+| 维度 | RAGAS | TruLens | DeepEval |
+|------|-------|---------|----------|
+| **核心理念** | 专注 RAG 指标 | 通用 LLM 评估+链路追踪 | 轻量快速 + 灵活扩展 |
+| **指标数量** | 5-7 个 | RAG Triad + 可扩展 | 4+ 基础 + 自定义 |
+| **数据需求** | 可无 ground truth（self-supervised） | 可无 ground truth | 建议提供 ground truth |
+| **集成性** | 独立评估库 | 内建 Dashboard + Leaderboard | CLI + CI/CD 友好 |
+| **适合场景** | 快速验证 RAG 质量 | 生产环境长期追踪 | 单元测试/回归测试 |
+| **中文支持** | ✅（LLM 调用方式） | ✅ | ✅ |
+| **部署成本** | 低（纯 Python 库） | 中（推荐搭配 OpenTelemetry） | 极低 |
+
+### 生产级评估流水线设计
+
+```python
+class RagEvaluationPipeline:
+    """RAG 评估四步法"""
+
+    def __init__(self):
+        self.ragas = RAGASEvaluator()  # 整体质量评估
+        self.tru = TruLensMonitor()     # 链路追踪
+        self.ci_runner = DeepEvalRunner()  # 自动化回归测试
+
+    def offline_evaluation(self, dataset_path: str):
+        """1. 离线批量评估：上线前跑完整数据集"""
+        results = self.ragas.evaluate_dataset(dataset_path)
+        report = {
+            "context_precision": results.avg("context_precision"),
+            "context_recall": results.avg("context_recall"),
+            "faithfulness": results.avg("faithfulness"),
+            "answer_relevancy": results.avg("answer_relevancy"),
+        }
+        # 发布评估报告到内部看板
+        publish_report(report)
+        return report
+
+    def online_monitoring(self):
+        """2. 线上实时监控：每次用户查询都记录"""
+        # 每 100 次请求抽样 1 次做人工标注
+        if random.random() < 0.01:
+            label_user_answer(query, answer)
+
+    def regression_test(self):
+        """3. CI/CD 回归测试：每次优化前后自动对比"""
+        pass  # 关键测试集固定在 repo 中
+
+    def badcase_loop(self):
+        """4. Bad Case 回流：从线上拉回失败案例"""
+        # 用户点踩的案例 → 进入重新训练/优化队列
+        pass
+```
+
+### 常见误区
+
+```
+❌ 只看端到端准确率，不管检索层出了什么问题
+✅ 必须分层评估：检索层（Context Precision/Recall）+ 生成层（Faithfulness）
+
+❌ 用一个固定阈值（如 0.8）要求所有指标
+✅ 不同指标有不同基线，Context Recall ≥ 0.8 即可，Faithfulness ≥ 0.9
+
+❌ 手动收集测试用例（太少且不覆盖边界情况）
+✅ 用 RAGAS 合成数据生成器自动生成 50-100 个测试用例
+
+❌ 只在上线前评估一次
+✅ 持续评估：离线评估（每周）+ 线上监控（实时）+ 回归测试（每次发布）
+```
+
+**面试话术：**
+> "RAG 评估我分三步走：离线用 RAGAS 跑五维指标（Context Precision/Recall + Faithfulness/Answer Relevancy），线上用 TruLens 做链路追踪和 A/B 对比，CI/CD 里用 DeepEval 做回归测试。合成数据是关键——自己手写 50 条不如让 RAGAS 根据知识库自动生成 100 条覆盖多种难度。上线后最重要的是 badcase 回流机制，把用户点踩的案例不断加回评估集，形成闭环优化。"
+
 </details>
 
 ---
 
-*版本: v3.134 | 更新: 2026-08-10 | 补充多模态RAG、Parent-Document Retrieval、动态知识更新*
+### Q22: RAG 和微调怎么选？什么场景下该用哪个？
+
+<p align="center"><img src="../../assets/illustrations/03-rag-system/q22-rag-finetuning.webp" width="860" alt="RAG与微调选择决策图：区分知识变化和行为规范两类问题，按频率更新度展示不同方案的 ROI"></p>
+<p align="center"><sub>记忆点：RAG 改知识，微调改行为；先 Prompt→RAG→微调的递进路径。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心区分：RAG 管「知道什么」，微调管「怎么表达」**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 应该选哪种方案？                              │
+├─────────────────────┬───────────────────────────────────────┤
+│ 你的问题是……         │ 最佳方案                              │
+├─────────────────────┼───────────────────────────────────────┤
+│ 模型不知道新事实       │ ✅ RAG                               │
+│ 需要引用溯源          │ ✅ RAG                               │
+│ 数据频繁变化          │ ✅ RAG（更新向量库即可）              │
+│ 需要保持最新状态       │ ✅ RAG                               │
+├─────────────────────┼───────────────────────────────────────┤
+│ 模型语气不对          │ ✅ 微调（风格适配）                   │
+│ 输出格式不统一        │ ✅ 微调（结构化输出）                 │
+│ 需要特定推理模式       │ ✅ 微调（CoT 示例训练）              │
+│ 拒答能力不足          │ ✅ 微调（安全对齐）                   │
+└─────────────────────┴───────────────────────────────────────┘
+```
+
+### 决策流程图
+
+```
+你的应用需要什么？
+├─ 需要回答私有/最新数据？
+│  ├─ 是 → RAG
+│  └─ 否 ↓
+├─ 需要模型遵守特定格式/语气？
+│  ├─ 是 → 试试 System Prompt → 不行就微调
+│  └─ 否 ↓
+├─ 需要模型具备领域推理能力？
+│  ├─ 是 → SFT/DPO 微调
+│  └─ 否 → Prompt Engineering 就够了
+└─ 以上都需要？
+   → RAG + 微调组合方案
+```
+
+### 2026 年趋势下的新思考
+
+随着大模型上下文窗口扩展到 1M+ tokens，一些原本必须用 RAG 的场景开始发生变化：
+
+```
+过去（7K/32K 上下文时代）：
+  长文档必须切块 + RAG → 因为塞不下
+
+现在（1M 上下文时代）：
+  几百页文档可以直接塞进去 → RAG 变成了"选择性增强"而非"必需品"
+```
+
+**关键判断标准变化：**
+
+| 因素 | 短上下文时代 | 长上下文时代 |
+|------|------------|------------|
+| 一次性处理 ≤100页文档 | ❌ 必须 RAG | ✅ 可直接喂给模型 |
+| 需要引用溯源 | ✅ RAG（必须） | ✅ RAG（仍然需要） |
+| 实时数据查询 | ✅ RAG（必须） | ✅ RAG（仍然需要） |
+| 多个互斥知识库 | ✅ RAG（按需加载） | ⚠️ RAG 仍优先 |
+| 微调行为适配 | ✅ 微调 | ✅ 微调（base model 改进后差距缩小） |
+
+### 实际项目决策案例
+
+```python
+# 一个医疗客服系统的技术选型
+
+def select_architecture(use_case: dict) -> dict:
+    """根据业务需求选择技术方案"""
+    decision = {
+        "needs_upToDate_data": use_case.get("dynamic_content", True),
+        "needs_citation": use_case.get("require_traceability", True),
+        "needs_domain_tone": use_case.get("professional_terminology", False),
+        "data_freshness": use_case.get("update_frequency", "daily"),  # daily/hourly/realtime
+        "volume": use_case.get("knowledge_base_size_gb", 10),
+    }
+
+    recommendations = []
+
+    if decision["needs_upToDate_data"] or decision["data_freshness"] in ("hourly", "realtime"):
+        recommendations.append("RAG（知识实时更新）")
+
+    if decision["needs_citation"]:
+        recommendations.append("RAG（强制引用溯源）")
+
+    if decision["needs_domain_tone"]:
+        # 检查 base model 的预训练数据是否已覆盖
+        recommendations.append("LoRA 微调（医学专业术语 + 合规拒答模板）")
+
+    # 推荐组合方案
+    if len(recommendations) > 1:
+        return {
+            "primary": "RAG + LoRA 微调",
+            "rationale": "RAG 提供准确的知识内容并支持引用溯源，"
+                         "微调让模型学会医学用语规范和合规拒答",
+            "estimated_cost_increase": "+15% RAG开销 + ~$500 LoRA训练"
+        }
+
+    return {"primary": ", ".join(recommendations)}
+
+# 医疗客服系统结果：
+# {"primary": "RAG + LoRA 微调",
+#  "rationale": "RAG 提供准确的知识内容并支持引用溯源，"
+#               "微调让模型学会医学用语规范和合规拒答",
+#  "estimated_cost_increase": "+15% RAG开销 + ~$500 LoRA训练"}
+```
+
+### 2026 年最佳实践总结
+
+```
+第一步：Prompt Engineering（成本最低，解决 40% 的问题）
+第二步：RAG（解决「知道什么」的问题）
+第三步：微调（解决「怎么说」的问题）
+第四步：蒸馏（压缩到小模型上部署）
+
+⚠️ 不要跳过任何步骤直接跳到微调！
+   很多团队花 $10K 微调后发现，如果加上 RAG
+   同样的钱可以买半年的 API 调用 + 更好的效果。
+```
+
+**面试话术：**
+> "我的原则是先 Prompt→RAG→微调。具体地：RAG 解决知识时效性和溯源问题，这是任何微调都无法替代的；微调解决语气、格式和推理模式等行为规范问题。实际项目中我常用 RAG+LoRA 组合——RAG 提供准确的文档依据，微调后的模型能用规范的专业语言输出并正确处理边界情况。关键是记住：RAG 管'知道什么'，微调管'怎么说'。"
+
+</details>
+
+---
+
+### Q23: Rerank 模型怎么选？Cross-Encoder 和 ColBERT 的差异是什么？
+
+<p align="center"><img src="../../assets/illustrations/03-rag-system/q23-reranker.webp" width="860" alt="Reranker 选型图：交叉编码器精度最高但慢，ColBERT 精效平衡，LLM 重排灵活性最好"></p>
+<p align="center"><sub>记忆点：精度×效率×成本的三角权衡，按吞吐量和精度需求选方案。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Rerank 的作用：从大量候选中精选最相关的 Top-K**
+
+```
+普通 RAG 流程：
+  用户问 → Embedding → 向量库 Top-20 → 直接给 LLM
+  ↑ 这 20 篇里混入了不相关的，浪费 token 还引入噪声
+
+带 Rerank 的 RAG 流程：
+  用户问 → Embedding → 向量库 Top-50 → Rerank 精排 Top-5 → 给 LLM
+  ↑ 从 50 篇里精准筛出 5 篇，精度大幅提升
+```
+
+### 三种主流 Rerank 方案对比
+
+| 方案 | 原理 | 精度 | 速度 | 成本 | 适用规模 |
+|------|------|------|------|------|----------|
+| **Cross-Encoder** | 把 query+doc 拼一起输入 Transformer | ⭐⭐⭐⭐⭐ | 慢（逐对计算） | GPU费用 | ≤50 候选 |
+| **ColBERT（Late Interaction）** | Query 和 doc 的 token-level 向量做 MaxSim | ⭐⭐⭐⭐ | 中等 | CPU可跑 | ≤200 候选 |
+| **LLM-based Rerank** | 让 LLM 判断相关性并打分 | ⭐⭐⭐⭐ | 看模型大小 | API/CPU | ≤20 候选 |
+
+### Cross-Encoder（精度之王）
+
+```python
+from sentence_transformers import CrossEncoder
+
+# BGE-Reranker-large（中文最强，当前工业界首选）
+model = CrossEncoder('BAAI/bge-reranker-large')
+
+pairs = [
+    ("GPT-4价格",
+     "OpenAI发布的GPT-4模型的API定价为$0.03/1K输入tokens，$0.06/1K输出tokens"),
+    ("GPT-4价格",
+     "今天是星期五，天气不错，适合户外跑步"),
+    ("GPT-4价格",
+     "人工智能的发展正在改变各行各业的面貌"),
+]
+
+scores = model.predict(pairs)
+for score in sorted(zip(scores, pairs), key=lambda x: -x[0]):
+    print(f"{score[0]:.4f} → {score[1][0]}")
+
+# 输出：
+# 4.2341 → GPT-4价格的文档（高精度匹配）
+# 0.5821 → 今天是星期五...（几乎不相关）
+# 0.4219 → 人工智能的发展...（弱相关）
+```
+
+**Cross-Encoder 的瓶颈：O(n) 复杂度**
+```
+50 篇候选 × 逐对编码 = 50 次 forward pass ≈ 2-5秒
+200 篇候选 = 8-20秒 → 无法满足在线实时需求
+```
+
+### ColBERT（效率与精度的折中）
+
+```
+传统 Cross-Encoder：
+  将 query 和 document 拼接，一次性编码 → 输出一个相似度分数
+
+ColBERT（分词级交互）：
+  1. Query 编码得到 q_tokens 向量集合：[q₁, q₂, ..., qₙ]
+  2. Document 编码得到 d_tokens 向量集合：[d₁, d₂, ..., dₘ]
+  3. 对每个 qᵢ，找到所有 dⱼ 中与之最相似的 → MaxSim(qᵢ, Docs)
+  4. 所有 qᵢ 的 MaxSim 求和 → 最终得分
+```
+
+**ColBERT 优势：可以用向量数据库加速**
+```python
+# ColBERT 的查询向量可以存入向量数据库
+# 这样即使 200 篇候选也能毫秒级完成 re-ranking
+from colbert.infra import ColBERTConfig, RunConfig
+from colbert.modeling.checkpoint import Checkpoint
+from colbert.modeling.tokensplitting import DocTokenizer
+
+ckpt = Checkpoint('colbert-ir/colbertv2.0')
+
+# Query 编码
+q = ckpt.queryTokenizer(["GPT-4价格"])
+q_emb = ckpt.queryModel(q)
+
+# Document 编码（批量）
+docs = ckpt.docTokenizer([...200篇文档...])
+d_emb = ckpt.documentModel(docs)
+
+# MaxSim 计算（利用 GPU 矩阵运算并行加速）
+scores = (q_emb @ d_emb.transpose()).max(dim=-1).values.sum(dim=-1)
+```
+
+### LLM-based Rerank（灵活性最佳）
+
+```
+prompt = f"""
+请判断以下文档是否与问题相关，给出 0-1 的评分：
+
+问题：{query}
+文档：{doc}
+
+只输出 JSON：{{"score": 0.0-1.0}}
+"""
+```
+
+**特点：能理解复杂语义关系，但延迟高、成本高**
+
+### 工程选型建议（含代码示例）
+
+```python
+class RerankingPipeline:
+    """三级分级筛选策略"""
+
+    def __init__(self, strategy="production"):
+        self.strategy = strategy
+        if strategy == "production":
+            # 生产环境：粗召回→Rerank→限流
+            self.topk_initial = 50   # 向量库召回 50 个
+            self.topk_final = 5      # Rerank 精选 5 个
+            self.reranker = BGEReranker("BAAI/bge-reranker-large")
+        elif strategy == "aggressive":
+            # 高精度场景：更大召回范围
+            self.topk_initial = 100
+            self.topk_final = 10
+        else:
+            # 低成本模式：不用 Rerank
+            self.topk_initial = 3
+            self.topk_final = 3
+
+    def retrieve_and_rerank(self, query: str, docs: list) -> list:
+        """标准化 Rerank 流程"""
+        # Step 1: 获取初始候选
+        candidates = docs[:self.topk_initial]
+
+        if not self.needs_reranking(candidates):
+            return self._format_candidates(candidates)
+
+        # Step 2: Rerank（分批避免超时）
+        scores = self.reranker.compute_scores(query, candidates)
+
+        # Step 3: 截断并返回
+        ranked = sorted(zip(scores, candidates), key=lambda x: -x[0])
+        return self._format_candidates(ranked[:self.topk_final])
+
+    def needs_reranking(self, docs: list) -> bool:
+        """判断是否需要 Rerank（启发式优化）"""
+        if len(docs) <= 3:
+            return False
+        scores = [doc.semantic_score for doc in docs]
+        variance = np.var(scores)
+        return variance > 0.1  # 候选差异太大，值得精排
+```
+
+### 关键数字
+
+| 模型 | 维度 | 输入长度 | 模型大小 | 中文NDCG@10 |
+|------|------|----------|----------|-------------|
+| bge-reranker-base | 768 | 512 | 440MB | 69.21 |
+| bge-reranker-large | 1024 | 512 | 1.3GB | 74.53 |
+| bge-reranker-v2-m3 | 1024 | 8192 | 2.2GB | 77.18（最强） |
+| jina-reranker-v2 | 1024 | 4096 | — | 73.50 |
+
+**面试话术：**
+> "Rerank 是 RAG 精度提升性价比最高的手段。我用的是 RRF 粗排召回 Top-50，然后用 BGE-Reranker-large 精排取 Top-5。从实测看，加入 Rerank 后 QA 准确率能从 72% 提升到 88%，代价是多 2-3 秒延迟和约 ¥0.003/token 的 rerank 开销。生产环境一般取 top-5 就能兼顾速度和精度，超过 top-10 边际收益急剧下降。"
+
+</details>
+
+---
+
+### Q24: RAG 多路召回（Multi-Path Retrieval）如何实现？RRF 融合的原理是什么？
+
+<p align="center"><img src="../../assets/illustrations/03-rag-system/q24-multiretrieval.webp" width="860" alt="多路召回动漫知识图：向量、关键词、图谱、元数据过滤四条检索路径分别产出排序，经 RRF 融合后交给 Rerank 精排"></p>
+<p align="center"><sub>记忆点：不同信号互补，RRF 无需权重调参即能自然融合多路排序。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么需要多路召回？**
+
+```
+单路向量检索的问题：
+  用户搜索 "Python异常处理"，但文档用的是 "Python Error Handling"
+  → 语义可能不完全重合，漏召回
+
+多路召回的思路：
+  同时用多种检索信号搜，每种各有优劣，合在一起覆盖面更广
+```
+
+### 四种常见检索路径
+
+| 路径 | 方法 | 擅长 | 短板 |
+|------|------|------|------|
+| **向量检索** | Dense embedding | 语义匹配、同义替换 | 关键词/专有名词弱 |
+| **BM25 关键词** | Sparse inverted index | 精确匹配、专有名词、公式 | 无法跨语言表达 |
+| **图遍历** | Graph navigation | 实体关系推理 | 构建成本高 |
+| **元数据过滤** | SQL/filter pushdown | 按时间/部门/权限筛选 | 只能缩小范围 |
+
+### RRF（Reciprocal Rank Fusion）融合算法
+
+**核心公式：**
+```
+Score(D) = Σ_{path} 1 / (rank_path(D) + k)
+```
+- D = 某个文档
+- rank_path(D) = 该文档在某条路径上的排名（从1开始）
+- k = 超参数，通常取 60（Weka 论文推荐值）
+
+**直觉理解：** 越靠前的排名加分越多，各路径平等投票，不需要手动调权重！
+
+```python
+def rrf_merge(paths: dict, k: int = 60) -> list:
+    """
+    paths: dict[str, list[Doc]]
+      {"vector": [doc1, doc2, ...], "bm25": [doc3, doc1, ...]}
+    返回融合排序后的文档列表
+    """
+    scores = {}  # doc_id → fused_score
+
+    for path_name, ranked_docs in paths.items():
+        for rank, doc in enumerate(ranked_docs, 1):  # rank from 1
+            doc_id = doc.id
+            scores[doc_id] = scores.get(doc_id, 0) + 1 / (rank + k)
+
+    # 按融合得分降序排列
+    merged = sorted(scores.items(), key=lambda x: -x[1])
+    return [doc_id for doc_id, _ in merged]
+
+# 示例输出：
+# 文档D1: vector_rank=3, bm25_rank=1 → 1/(3+60)+1/(1+60) = 0.0317
+# 文档D2: vector_rank=1, bm25_rank=15 → 1/(1+60)+1/(15+60) = 0.0197
+# 文档D3: vector_rank=8, bm25_rank=5 → 1/(8+60)+1/(5+60) = 0.0306
+# → 排序: D1 > D3 > D2 （D1 在两路都很靠前，得分最高）
+```
+
+### 完整的 Multi-Path 工程实现
+
+```python
+class MultiPathRetriever:
+    """多路召回检索器"""
+
+    def __init__(self, config):
+        self.vector_retriever = VectorRetriever(config.vector_db_url)
+        self.bm25_retriever = BM25Index(config.bm25_index_path)
+        self.graph_retriever = GraphRetriever(config.neo4j_uri)
+
+    def retrieve(self, query: str, filters: dict = None, top_k: int = 10) -> list:
+        """四路召回 + RRF 融合 + Rerank 精排"""
+
+        # 第一路：向量检索
+        vector_results = self.vector_retriever.search(
+            query, top_k=30, filters=filters
+        )
+
+        # 第二路：BM25 关键词检索
+        bm25_results = self.bm25_retriever.search(
+            query, top_k=30, filters=filters
+        )
+
+        # 第三路：元数据预过滤（在每一路生效）
+        filtered_ids = self.apply_filters(filters)
+        vector_results = [d for d in vector_results if d.id in filtered_ids]
+        bm25_results = [d for d in bm25_results if d.id in filtered_ids]
+
+        # RRF 融合
+        fused_docs = rrf_merge({
+            "vector": vector_results,
+            "bm25": bm25_results,
+        })[:40]  # 合并后取 Top-40
+
+        # Rerank 精排
+        reranked = self.reranker.rerank(query, fused_docs)[:top_k]
+
+        return reranked
+```
+
+### 进阶变体：RAG-Fusion（查询改写 + 多路）
+
+```
+传统 Multi-Path: 同一条 query → 多条检索路径 → 融合
+RAG-Fusion:      同一条 query → 拆解成多条子 query → 各自检索 → 融合
+                （不仅换检索方式，还换检索角度）
+```
+
+```python
+def rag_fusion(query: str, llm) -> list:
+    """RAG-Fusion: 多维度查询分解 + RRF 融合"""
+
+    # Step 1: 用 LLM 生成多角度查询
+    sub_queries = llm.generate(f"""
+    用户问题：{query}
+    请从至少3个不同角度改写这个查询，使每个查询侧重不同的检索信号。
+    例如：一个偏关键词匹配，一个偏语义描述，一个偏概念关联。
+    只输出JSON数组格式，不附加解释。
+    """)
+    # 例："RAG系统" → ["RAG检索增强生成架构", "retrieval augmented generation database", "知识检索管道pipeline"]
+
+    # Step 2: 每个子查询分别检索
+    all_results = {}
+    for sq in sub_queries:
+        results = vector_db.search(sq, k=10)
+        all_results[sq] = results
+
+    # Step 3: RRF 融合所有结果
+    fusion_scores = {}
+    for sq, docs in all_results.items():
+        for rank, doc in enumerate(docs, 1):
+            fid = doc.id
+            fusion_scores[fid] = fusion_scores.get(fid, 0) + 1 / (rank + 60)
+
+    # Step 4: 排序取Top-k
+    return sorted(fusion_scores.items(), key=lambda x: -x[1])[:5]
+```
+
+**效果对比：**
+
+| 方案 | Context Recall | Answer Accuracy | Latency | 复杂度 |
+|------|---------------|-----------------|---------|--------|
+| 单路向量 | 65% | 72% | 低 | 简单 |
+| 向量+BM25 | 80% | 82% | 中 | 中等 |
+| 向量+BM25+Graph | 88% | 87% | 较高 | 复杂 |
+| RAG-Fusion | 92% | 89% | 较高 | 复杂 |
+
+**面试话术：**
+> "我做过高频搜索场景的多路召回，核心是用 RRF 自然融合不用调权重。实践中发现向量检索+BM25的组合拳性价比最高——recall 能从65%提到80%，latency增加不到一倍的量级。更复杂的Graph+RAG-Fusion用在需要极高 recall 的场景，比如法律/医疗知识库。关键原则：先用简单方案达到 baseline，再逐步叠加复杂路径。"
+
+</details>
+
+---
+
+### Q25: 企业级 RAG 的多租户隔离和数据权限怎么设计？
+
+<p align="center"><img src="../../assets/illustrations/03-rag-system/q25-permission.webp" width="860" alt="多租户权限动漫知识图：元数据标记租户、部门和密级，检索时条件推入，生成后审计追溯"></p>
+<p align="center"><sub>记忆点：权限必须在元数据层面做硬隔离，不能依赖模型自觉。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 RAG 需要权限控制？**
+
+```
+典型企业痛点：
+  - HR 薪资文档被普通员工搜到了 → 信息泄露
+  - 客户 A 的合同信息被客户 B 的员工查到 → 商业机密外泄
+  - 涉密资料被非授权人员访问 → 合规风险
+```
+
+### 多层权限架构
+
+```
+┌──────────────────────────────────────────────────┐
+│               RAG 权限控制四层防线                │
+├───────────┬──────────────────────────────────────┤
+│ Layer 1   │ 租户隔离（Tenant Isolation）          │
+│           │ 每个租户的数据完全隔离，不可跨租户检索  │
+├───────────┼──────────────────────────────────────┤
+│ Layer 2   │ 部门/角色过滤（RBAC）                  │
+│           │ 同一租户内，只有特定角色可见           │
+├───────────┼──────────────────────────────────────┤
+│ Layer 3   │ 文档级细粒度权限                       │
+│           │ 某些文档只对指定个人或小组开放          │
+├───────────┼──────────────────────────────────────┤
+│ Layer 4   │ 查询级过滤（Query-Level Enforcement）  │
+│           │ 每次搜索动态注入权限条件               │
+└───────────┴──────────────────────────────────────┘
+```
+
+### 基于 Metadata 的向量库权限设计
+
+```python
+class PermissionedVectorStore:
+    """支持多级权限的向量存储"""
+
+    def __init__(self, collection_name):
+        self.collection = get_collection(collection_name)
+
+    def add_document(self, doc_id, content, metadata: dict):
+        """存入文档时记录权限标签"""
+        self.collection.upsert(
+            ids=[doc_id],
+            embeddings=[embed(content)],
+            metadatas=[{
+                **metadata,
+                # 必填权限字段
+                "tenant_id": metadata["tenant_id"],      # 租户
+                "access_levels": metadata["access_levels"],  # ["public", "hr", "finance"]
+                "min_clearance": metadata["min_clearance"],  # 最低密级：1-5
+            }])
+        )
+
+    def search(self, query: str, user: User, k: int = 10) -> list:
+        """检索时动态注入权限过滤器"""
+        # 第一步：基于用户身份构造过滤条件
+        filter_conditions = {
+            "tenant_id": user.tenant_id,
+            "access_levels": {"$in": user.roles},      # 用户的角色必须在文档允许列表中
+            "min_clearance": {"$lte": user.clearance}, # 用户密级必须 >= 文档密级
+        }
+
+        # 第二步：执行权限感知的向量检索
+        results = self.collection.query(
+            query_embedding=embed(query),
+            n_results=k * 3,  # 多召回一些，后续要再次过滤
+            where=filter_conditions
+        )
+
+        # 第三步：二次验证（防御纵深）
+        verified = []
+        for result in results['documents'][0]:
+            if self.check_query_permission(user, result):
+                verified.append(result)
+            if len(verified) >= k:
+                break
+
+        return verified
+
+    def check_query_permission(self, user, doc_metadata) -> bool:
+        """额外检查：用户是否有权限看到这份文档的内容摘要"""
+        if "content_preview_required_role" in doc_metadata:
+            if doc_metadata["content_preview_required_role"] not in user.roles:
+                return False
+        return True
+```
+
+### 常见向量库的权限支持
+
+| 向量库 | 过滤方式 | 性能影响 | 推荐场景 |
+|--------|----------|----------|----------|
+| **Pinecone** | Server-side filter | 低（索引层直接过滤） | 大规模生产 |
+| **Qdrant** | Filter + Payload Index | 低-medium（Payload Index 极快） | 灵活权限 |
+| **Milvus** | Dynamic Expression | 中（表达式编译型过滤） | 高性能 |
+| **pgvector** | WHERE clause | 高（全扫描时需索引） | 中小规模 |
+| **Weaviate** | Where Operator | 低 | RESTful 偏好 |
+
+### 特殊场景处理
+
+**跨租户联合查询：**
+```python
+def cross_tenant_search(query: str, allowed_tenants: list[str], top_k: int = 10):
+    """
+    某些搜索功能允许跨租户但不暴露文档内容
+    只返回统计信息或脱敏摘要
+    """
+    results = []
+    for tenant_id in allowed_tenants:
+        # 仅聚合计数，不返回具体内容
+        count = store.count(where={"tenant_id": tenant_id, "status": "active"})
+        results.append({"tenant_id": tenant_id, "matching_docs": count})
+
+    # 不返回具体文档，只返回统计
+    return results
+```
+
+**敏感数据脱敏：**
+```python
+def sanitize_response(user, answer: str, source_docs: list) -> dict:
+    """确保回答中没有超出用户权限的信息"""
+    sanitized_sources = []
+    for doc in source_docs:
+        if self.has_permission(user, doc):
+            sanitized_sources.append(doc)
+        else:
+            # 对该文档，只保留公开摘要部分
+            sanitized_sources.append({
+                "content": doc.get("public_summary", "[权限不足，内容已隐藏]"),
+                "source": doc.get("source_title", ""),
+            })
+
+    return {
+        "answer": answer,
+        "sources": sanitized_sources,
+        "redacted_count": len(source_docs) - len(sanitized_sources)
+    }
+```
+
+### 审计日志
+
+```python
+class AccessLogger:
+    """记录每一次权限感知检索"""
+    def log_search(self, user: User, query: str, results_count: int, redacted: int):
+        audit_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "user_id": user.id,
+            "tenant_id": user.tenant_id,
+            "roles": user.roles,
+            "query_hash": hashlib.sha256(query.encode()).hexdigest()[:16],
+            # 注意：不存完整 query，保护隐私
+            "results_returned": results_count,
+            "results_redacted": redacted,
+            "compliance_ok": redacted == 0 or self.verify_no_leak(user, results_count - redacted),
+        }
+        write_to_audit_log(audit_entry)
+```
+
+**面试话术：**
+> "企业 RAG 权限控制在三层：元数据标记（tenant_id/access_level/clearance）、检索过滤（server-side filter 在向量库层执行，而不是拿到结果再过滤）、以及二次校验（defense-in-depth）。关键点：1）一定要在向量库查询时用 where 条件做 server-side 过滤，不要用 client-side post-filter，后者容易误返回结果；2）每个文档的权限在写入时就标记好，不要在运行时动态计算；3）审计日志只存 query hash 不存原文。"
+
+</details>
+
+---
