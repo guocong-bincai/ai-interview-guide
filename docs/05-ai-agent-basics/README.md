@@ -5058,6 +5058,411 @@ graph.invoke(Command(resume="approve"), config={"configurable": {"thread_id": "c
 
 </details>
 
+### Q46: OpenAI / Anthropic / Google 三种结构化输出方式有什么区别？什么时候用哪种？（2026 高频）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q46-structured-output.webp" width="860" alt="OpenAI Structured Output、Anthropic Tool Use、Gemini JSON Mode 的对比与选型决策"></p>
+<p align="center"><sub>🧠 记忆锚点：要执行用 Tool Use，要纯结构用 Structured Output，轻量选 JSON Mode。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026 年三大平台都支持结构化输出，但实现方式和适用场景不同：**
+
+| | **OpenAI Structured Output** | **Anthropic Tool Use** | **Gemini JSON Schema** |
+|---|---|---|---|
+| **原理** | Constrained Decoding（解码阶段强制约束） | Tool definition → 模型调用工具 | JSON Schema 约束生成 |
+| **保证度** | 100% 合规（格式错误被解码器过滤） | 高，但模型可能编造工具名 | 中等，依赖模型能力 |
+| **流式支持** | ✅ GA（2026） | ❌ 非原生 | ❌ 非原生 |
+| **适用场景** | 数据提取、分类、表单填写 | Agent 需要调用外部函数 | 轻量 JSON 输出 |
+
+**面试中拉开差距的回答：**
+
+> "我的经验是不要死磕某个 API。生产环境我会按任务类型选型：
+> - **从非结构化文本提取字段** → OpenAI Structured Output，因为 constrained decoding 能 100% 保证格式正确
+> - **Agent 做决策后调 API** → Anthropic Tool Use 或 OpenAI Function Calling，这是 Agent 的核心能力
+> - **简单 JSON 输出不需要执行** → Gemini JSON Schema，API 更简洁
+>
+> 关键是理解它们底层的区别：Structured Output 是在解码时做约束，工具调用是让模型输出'调用哪个函数的参数'，JSON Mode 只是提示模型'给我 JSON'。很多候选人分不清这三者，导致在实际项目中选型错误。"
+
+**多模型切换策略代码示例：**
+
+```python
+class MultiModelOutputRouter:
+    def extract(self, text, schema):
+        # 优先级：OpenAI（最强结构化保证）→ Claude（工具调用）→ Gemini
+        try:
+            return self._openai_structured(text, schema)
+        except Exception:
+            pass
+        try:
+            return self._claude_tool_use(text, schema)
+        except Exception:
+            pass
+        return self._gemini_json_mode(text, schema)
+    
+    def _openai_structured(self, text, schema):
+        response = openai.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": text}],
+            response_format={"type": "json_schema", "json_schema": schema},
+        )
+        return response.choices[0].message.parsed
+```
+
+**面试话术：**
+> "我按任务分层选模型和输出方式：数据提取类用 OpenAI Structured Output + gpt-4o-mini，成本低且格式 100% 可靠；Agent 决策链用 Claude Tool Use 做工具调用；简单 JSON 输出走 Gemini。核心原则是'匹配任务需求而非追最新模型'。实际项目中，结构化输出保证了下游数据处理管道不会因为格式错误而崩溃，这是 demo 环境和生产环境的关键分水岭之一。"
+
+</details>
+
+### Q47: Agent 并行工具调用怎么做？如何处理混合成功失败的情况？（2026 高频追问）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q47-parallel-tools.webp" width="860" alt="Agent 并行调用多个独立工具并组合结果的处理模式"></p>
+<p align="center"><sub>🧠 记忆锚点：先确认独立再并行，结果聚合看质量。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**并行工具调用的核心价值：** 当 Agent 同时需要获取多个独立信息源时（如天气+航班+酒店），串行执行可能需要 3× 时间，并行可以接近 1×。
+
+**并行 vs 串行的决策矩阵：**
+
+| 条件 | 串行 | 并行 |
+|------|------|------|
+| 工具间有数据依赖 | ✅ | ❌ |
+| 同一账号/服务的批量请求 | 通常可并行 | ✅ 优先 |
+| 限频严格的第三方 API | ✅（避免触发限频） | ⚠️ 需控制并发数 |
+| 成本差异大 | ✅（先便宜的判断是否需要） | ⚠️ 浪费昂贵工具的 Token |
+
+**LangGraph 中的并行模式：**
+
+```python
+from langgraph.graph import StateGraph, START, END
+
+def gather_flight(state):
+    flight_info = api.search_flights(state["departure"], state["destination"])
+    return {"flight_info": flight_info}
+
+def gather_hotel(state):
+    hotel_list = api.search_hotels(state["city"], state["checkin"], state["checkout"])
+    return {"hotel_info": hotel_list}
+
+def gather_weather(state):
+    weather = api.get_weather(state["destination"])
+    return {"weather_info": weather}
+
+# 三个节点互相独立，用 fan-out 并行
+workflow = StateGraph(TravelState)
+workflow.add_node("flight", gather_flight)
+workflow.add_node("hotel", gather_hotel)
+workflow.add_node("weather", gather_weather)
+workflow.add_node("assemble", assemble_travel_plan)
+
+workflow.add_edge(START, "flight")
+workflow.add_edge(START, "hotel")
+workflow.add_edge(START, "weather")
+# 三节点并行完成后汇聚到 assemble
+
+workflow.add_conditional_edges("flight", after_parallel, 
+                               {"success": "assemble", "partial": "assemble"})
+workflow.add_conditional_edges("hotel", after_parallel, ...)
+workflow.add_conditional_edges("weather", after_parallel, ...)
+
+workflow.add_edge("assemble", END)
+```
+
+**混合成功失败的处理策略：**
+
+```python
+def handle_partial_results(flight_ok, hotel_ok, weather_ok, results):
+    """
+    部分工具成功、部分失败的降级策略：
+    1. 至少有一个成功 → 返回可用的部分结果
+    2. 全部失败 → 返回明确的失败原因，不瞎编
+    3. 部分成功 → 标注哪些数据缺失，告知用户
+    """
+    available = []
+    missing = []
+    
+    if flight_ok: available.append(flight_info)
+    else: missing.append("航班信息不可用")
+    
+    if hotel_ok: available.append(hotel_info)
+    else: missing.append("酒店信息不可用")
+    
+    if weather_ok: available.append(weather_info)
+    else: missing.append("天气信息不可用")
+    
+    # 关键：绝不伪造缺失的数据
+    if not available:
+        raise AgentFailureError("所有数据源均不可用，请稍后重试")
+    
+    return {
+        "data": available,
+        "warnings": missing,
+        "confidence": len(available) / 3.0  # 基于数据完整度的置信度
+    }
+```
+
+**面试话术：**
+> "并行工具调用的核心不是技术上能不能并行，而是'该不该并行'。我的决策流程是先画工具间的依赖图——有依赖就串行，无依赖评估成本和限频后再决定是否并行。LangGraph 天然支持 fan-out/fan-in 模式，但我会在并行前加一个 cost filter，比如航班搜索便宜可以先查，如果航班的搜索结果已经足够回答用户问题，就不需要再并行查酒店了。混合成败的处理关键是宁可返回部分结果并说明缺失情况，也绝不伪造数据。"
+
+</details>
+
+### Q48: AI Agent 的观测性（Observability）怎么落地？有哪些关键指标？（2026 高频追问）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q48-agent-observability.webp" width="860" alt="Agent 全链路追踪、性能监控和质量评估的可观测性架构"></p>
+<p align="center"><sub>🧠 记忆锚点：能追踪每条轨迹、能定位每一步耗时、能看到每次决策。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 Agent 比传统应用更需要可观测性？**
+
+传统 Web 应用的请求链路清晰：HTTP → Controller → Service → DB。但 Agent 的请求链路是非确定性的、动态生成的——每个步骤的工具选择、推理过程都可能不同，"同一个输入两次可能产生不同的执行路径"。没有可观测性等于在黑盒里调试。
+
+**三层可观测性体系：**
+
+| 层级 | 关注什么 | 工具 |
+|------|---------|------|
+| **Trace（追踪）** | 每一次执行的完整路径 | LangSmith, Langfuse, Arize Phoenix |
+| **Metrics（指标）** | 成功率、耗时分布、token 消耗 | Prometheus + Grafana |
+| **Eval（评测）** | 输出质量是否达标 | TruLens, DeepEval, RAGAS |
+
+**关键指标定义：**
+
+```python
+AGENT_METRICS = {
+    "task_success_rate": ...,          # 任务最终成功率（最核心）
+    "tool_call_accuracy": ...,         # 工具调用准确率（工具名称+参数）
+    "avg_steps_per_task": ...,         # 平均步数（越低越好，太多说明效率差）
+    "cost_per_task": ...,              # 单次任务成本（¥）
+    "p95_latency": ...,                # P95 延迟（ms）
+    "retry_rate": ...,                 # 重试率（太高说明设计有问题）
+    "hallucination_rate": ...,         # 幻觉检测率（通过验证层发现）
+    "hitl_intervention_rate": ...,     # HITL 介入频率（反映自动化程度）
+    "max_tokens_spiked": ...,          # 异常 token 尖峰次数
+}
+```
+
+**实战：使用 Langfuse 记录完整的 Agent 轨迹**
+
+```python
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+
+# 每次 Agent 执行创建 trace
+trace = langfuse.trace({"name": "travel_planner_agent", "id": session_id})
+
+# 每个 LLM 调用记录为 observation
+llm_observation = trace.generation(
+    name="route_decision",
+    model="claude-sonnet-4-20260514",
+    input=user_query,
+    output=decision_text,
+    metadata={"step": 1, "tools_available": ["flight_search", "hotel_search", ...]}
+)
+
+# 每次工具调用单独记录
+trace.span(
+    name="search_flights",
+    input={"departure": "PEK", "destination": "SHA"},
+    output=flight_results[:100],
+    metadata={"cost_cents": 0.02, "latency_ms": 1200}
+)
+
+# 任务结束时标记成功/失败
+trace.update(
+    output={"status": "success", "steps_taken": 3, "total_cost_cents": 0.15}
+)
+```
+
+**面试话术：**
+> "Agent 的可观测性分三层：Trace 看每次执行的完整路径，Metrics 看整体运行状况，Eval 看输出质量。最关键的是 Trace——你必须能回放任何一个任务的完整执行轨迹，包括 LLM 做了什么决策、选了哪个工具、输出了什么结果。我们用 Langfuse 做这件事，它自动捕获所有 LLM 调用和 span。核心指标除了 task_success_rate，我还特别关注 avg_steps_per_task（高了说明 Agent 在打转）和 retry_rate（高了下一次迭代会优化）。另外，我在每个 Agent 节点上都做了结构化日志，这样出了问题能快速定位是哪一步的哪次 LLM 调用导致了偏差。"
+
+</details>
+
+### Q49: Agent 幻觉检测和自验证（Self-Verification）机制怎么设计？（2026 高频）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q49-hallucination-detection.webp" width="860" alt="Agent 自我验证、交叉检查和事实校验的闭环防幻觉机制"></p>
+<p align="center"><sub>🧠 记忆锚点：不信任自己的第一个答案，交叉检查，有证据才输出。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Agent 幻觉的本质：** Agent 产生的"看似合理但实际不准确"的信息，来源有三：① LLM 本身的训练数据过时或偏见 ② Agent 在规划步骤中的推理错误 ③ 工具返回结果的误读或过度推断。
+
+**四层防线设计：**
+
+```
+第 1 层: 检索验证 —— 生成结论前确保信息来源可靠
+第 2 层: 自批评 —— Agent 对自己的输出进行反向评审
+第 3 层: 交叉验证 —— 多个独立证据源互证
+第 4 层: 人工兜底 —— 高风险场景必须人类确认
+```
+
+**自验证的实现模式（Critical Reviewer Pattern）：**
+
+```python
+class SelfVerifyingAgent:
+    def run(self, query):
+        # Step 1: Agent 给出初步答案
+        draft_answer = self.agent.generate(query)
+        
+        # Step 2: 独立的 Reviewer 节点评估
+        review = self.evaluator.evaluate(draft_answer, query)
+        
+        if review.is_valid:
+            return draft_answer
+        
+        # Step 3: 根据批评意见修正
+        revision_prompt = f"""
+        初始答案: {draft_answer}
+        审查反馈: {review.critique}
+        请修正你的答案。
+        """
+        revised = self.agent.generate(revision_prompt)
+        
+        # Step 4: 最多修正一轮，超限时标记不确定
+        if review.still_valid(revised):
+            return revised
+        else:
+            return self.make_confident_response(
+                query, 
+                draft_answer, 
+                known_uncertainty=True
+            )
+    
+    def evaluate(self, answer, query):
+        """Evaluator 只评价，不回答"""
+        review_prompt = f"""
+        问题: {query}
+        候选答案: {answer}
+
+        请严格审查:
+        1. 是否有事实性错误？引用了什么来源？能否核实？
+        2. 是否存在过度推断？
+        3. 是否遗漏了重要信息？
+
+        评分（1-10）: 
+        事实准确度: X/10
+        完整性: Y/10
+        合理性: Z/10
+
+        批评意见: [具体问题列表]
+        """
+        return self.llm.parse(review_prompt, schema=ReviewSchema)
+```
+
+**交叉验证的实现（Multi-source Verification）：**
+
+```python
+async def cross_validate(search_result, db_result, doc_result):
+    """三个独立信息源的交叉验证"""
+    scores = []
+    
+    # 一致性检查
+    if sources_agree(search_result, db_result, threshold=0.8):
+        scores.append(1.0)  # 一致，高分
+    else:
+        # 不一致时，优先采用更新/更权威的来源
+        scores.append(conflict_resolution_score([search_result, db_result, doc_result]))
+    
+    confidence = np.mean(scores)
+    if confidence < 0.6:
+        # 低置信度时进入 HITL
+        return trigger_human_review(search_result, db_result, doc_result)
+    
+    return merge_confirmed_results(scores, [search_result, db_result, doc_result])
+```
+
+**面试话术：**
+> "Agent 幻觉是我在项目中重点治理的问题。我用四道防线：检索验证确保数据来源可靠，自批评让 Agent 自己审自己——关键是把回答者和评价者分开，不能既踢球又裁判。交叉验证用在有冲突的场景，两个独立来源说不一样时不能选一个就完事，要标记不确定性。最重要的是，当所有验证都失败时，宁可说'我不确定'也不给出错误答案，这比自信地胡说八道好得多。实测上线后，错误率降低了约 40%，但代价是多了一层 LLM 调用的开销，所以我只对高风险任务启用这套机制。"
+
+</details>
+
+### Q50: Semantic Cache（语义缓存）对 Agent 有什么价值？如何结合向量数据库实现？（2026 新增热点）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q50-semantic-cache.webp" width="860" alt="语义缓存将用户查询向量化并与缓存比对，命中则复用已有答案"></p>
+<p align="center"><sub>🧠 记忆锚点：相同的问法不一定相同，相似的意思应该复用。</sub></p>
+
+<details>
+<summary>💡 答案要点</md
+
+## 总结
+
+**Semantic Cache = 用向量相似度匹配替代精确字符串匹配来复用已有的 LLM 输出。**
+
+与传统 HTTP 缓存的区别在于：即使用户的措辞不完全相同，只要语义相近，就可以复用已有结果。这对 Agent 系统特别有价值，因为同一个问题的多种问法是常态。
+
+**实现方案：**
+
+```python
+import numpy as np
+from fastembed import TextEmbedding
+
+class SemanticCache:
+    def __init__(self, embedding_model, similarity_threshold=0.85):
+        self.embedding = TextEmbedding(model_name="BAAI/bge-small-zh-v1.5")
+        self.store = {}  # vector → (question, answer, timestamp, usage_count)
+        self.threshold = similarity_threshold
+    
+    def lookup(self, user_input, k=5):
+        """查找语义最近的缓存条目"""
+        # 1. 编码用户输入
+        input_embedding = next(self.embedding.embed([user_input]))
+        
+        # 2. 计算与所有缓存条目的余弦相似度
+        best_match = None
+        max_sim = 0
+        
+        for cached_vec, (cached_q, cached_a, ts, count) in self.store.items():
+            sim = np.dot(input_embedding, cached_vec) / (
+                np.linalg.norm(input_embedding) * np.linalg.norm(cached_vec)
+            )
+            
+            if sim > max_sim:
+                max_sim = sim
+                best_match = (cached_q, cached_a, ts, count)
+        
+        # 3. 阈值判定
+        if best_match and max_sim >= self.threshold:
+            q, a, ts, count = best_match
+            # 衰减过期：超过 7 天的条目降低权重
+            age_factor = max(0.5, 1.0 - (time.time() - ts) / (7 * 86400))
+            effective_sim = max_sim * age_factor
+            
+            if effective_sim >= self.threshold:
+                return {"found": True, "answer": a, "similarity": effective_sim}
+        
+        return {"found": False}
+    
+    def store(self, question, answer):
+        """缓存新结果"""
+        vec = next(self.embedding.embed([question]))
+        self.store[tuple(vec)] = (question, answer, time.time(), 1)
+```
+
+**Agent 场景下的收益测算：**
+
+| 指标 | 不使用缓存 | 使用语义缓存 |
+|------|-----------|-------------|
+| 高频问题响应时间 | ~3s (LLM call) | ~20ms (cache lookup) |
+| 月度 LLM 调用量 | 100 万次 | ~60 万次 |
+| 月度成本 | ¥~20,000 | ¥~12,000 |
+| 用户感知延迟 | 3s | <50ms（80% 的请求） |
+
+**关键设计要点：**
+- **阈值选择**：太松 → 回复不相关的答案；太严 → 命中率太低。一般 0.80-0.90
+- **TTL 管理**：静态知识（政策、配置）存久一些，动态知识（实时新闻）时间短
+- **容量控制**：LRU 淘汰策略，限制缓存最大条目数
+- **区分 Agent 步骤**：不是所有 Agent 输出都值得缓存，只有确定性高的步骤值得
+
+**面试话术：**
+> "Semantic Cache 是 Agent 系统中性价比最高的优化手段之一。传统缓存只能匹配精确 URL，语义缓存通过向量相似度匹配相似的用户意图。在我的项目里，大约 35% 的用户问题是同类问题的不同表述（比如'怎么查订单'vs'我的货到哪了'），这些查询命中语义缓存后直接从内存返回，毫秒级响应。成本方面，我们省了约 40% 的 LLM 调用费用。关键是要设好相似度阈值和 TTL，避免缓存过期或不相关的内容污染用户体验。"
+
+</details>
+
 ---
 
-*版本: v3.2 | 更新: 2026-08-18 | 新增 Q45 LangGraph 重试/中断恢复/人工介入（素材角度：企业级 AI 应用工程链路，已按仓库规范重写补充）*
+*版本: v3.3 | 更新: 2026-08-29 | 新增 Q46-Q50（结构化输出对比、并行工具调用、可观测性、幻觉检测自验证、语义缓存）
