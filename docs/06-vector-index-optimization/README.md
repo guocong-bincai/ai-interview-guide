@@ -23,6 +23,9 @@
 13. [pgvector 与混合检索](#q13)
 14. [向量数据库平滑迁移](#q14)
 15. [Context Poisoning 防御](#q15)
+16. [ScaNN 算法与 Google 向量索引](#q16)
+17. [Sparse vs Dense 嵌入与混合召回](#q17)
+18. [多路召回设计（Multi-path Recall）](#q18)
 
 ## 📋 核心面试题
 
@@ -2086,7 +2089,298 @@ JSON输出：{{"is_safe": true/false, "risk_level": "low/medium/high"}}
 > "Context Poisoning 是 RAG 的供应链攻击——把恶意文档注入知识库，让 RAG 检索到错误内容生成错误答案。防御四层：来源白名单（写入时验证）→ LLM-as-Judge 内容审核 → 向量异常检测（偏离知识库整体分布的向量要警惕）→ 检索结果运行时过滤。对自动爬取的知识库尤其要注意间接投毒，建议爬取内容先进人工审核队列再入库。"
 
 </details>
+---
+
+## 🆕 高频补充题（2026 年新增）
+
+<a id="q16"></a>
+
+### Q16: 什么是 ScaNN？它和 IVF-PQ / HNSW 有什么本质区别？
+
+<p align="center"><sub>🧠 记忆锚点：ScaNN = IVF + 各向异性量化 + 候选重排；Google Vertex AI 底层算法，速度精度 Pareto 最优。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**ScaNN = Scalable Nearest Neighbor，Google 于 2020 年提出的 ANN 索引算法**
+
+**核心创新：各向异性向量量化（Anisotropic Vector Quantization, AVQ）**
+
+```
+传统 PQ（等向性量化）：
+  对所有维度方向平等地分配量化比特
+  → 但实际数据分布往往不均匀（某些方向方差大，某些小）
+  → 等分比特造成浪费：方差小的方向被过度量化，方差大的反而不够
+
+ScaNN（各向异性量化）：
+  Step 1: OPQ（正交投影量化旋转）
+    - 对原始向量空间做正交变换，旋转数据使最大方差方向对齐坐标轴
+    - 结果：方差最大的维度变成第 1 维，依次递减
+  
+  Step 2: AVQ 分配比特
+    - 方差大的维度（检索时更关键的区分方向）→ 更多量化比特
+    - 方差小的维度 → 更少量化比特
+    - 总量子比特数不变，但分布更智能
+```
+
+**三种量化方案对比：**
+
+| 方案 | 全称 | 原理 | 精度 | 速度 | 内存 |
+|------|------|------|------|------|------|
+| **SQ** | Scalar Quantization | 逐标量压缩到 int8 | ⭐⭐⭐ | ⭐⭐⭐ | 4x |
+| **PQ** | Product Quantization | 分段聚类，段内查码本 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 64-384x |
+| **OPQ+ScaNN AVQ** | Optimal Projection + Anisotropic VQ | 旋转后按方差分配量化精度 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 64-384x |
+
+**ScaNN 查询流程（两阶段）：**
+
+```python
+# ScaNN 两阶段搜索
+
+# 第一阶段：量化近似粗排（极快）
+quantized_candidates = scann.search_quantized(query_vector, num_leaves=nprobe)
+# 在压缩向量上快速找到 Top-2*k 候选
+
+# 第二阶段：原始向量精排（只精排候选子集）
+candidates = load_original_vectors(quantized_candidates)
+final_scores = cosine_similarity(query_vector, candidates)
+result = topk(final_scores, k)
+
+# 关键优势：第二阶段只需要处理 ~2*k 条候选，而不是全量数据！
+```
+
+**ScaNN vs HNSW vs IVF-PQ 决策矩阵：**
+
+| 场景 | HNSW | IVF-PQ | ScaNN |
+|------|------|--------|-------|
+| <100万条，追求极致速度 | ✅ 首选 | 可选 | 可选 |
+| 100万-1亿条，平衡速度与精度 | 可选 | ✅ 均衡之选 | ✅ 更优选择 |
+| >1亿条，延迟敏感 | ❌ 内存受不了 | 可用 | ✅ 最佳选择 |
+| 需要动态索引（频繁增删） | ✅ 实时插删 | ❌ 需重建 | ❌ 批量构建 |
+| 云托管部署（Vertex AI） | N/A | N/A | ✅ 原生支持 |
+
+**面试话术：**
+> "ScaNN 是 Google 为超大规模向量检索设计的算法，核心创新是各向异性量化——不是均匀压缩所有维度，而是通过 OPQ 旋转数据让最大方差方向对齐坐标轴，然后给方差大的维度更多量化比特。这样在检索最关键的区分方向上保持更高精度。配合两阶段搜索（量化粗排 + 原始精排），ScaNN 在 ann-benchmarks 上长期处于 Pareto 最前沿。生产环境中如果用的是 Vertex AI Matching Engine 或 AlloyDB 的 ScaNN 索引，不需要自己实现——这些服务底层就是 ScaNN。"
+
+</details>
 
 ---
 
-*版本: v2.0 | 更新: 2026-07-02 | 补充 DiskANN、Binary Quantization、pgvector、迁移策略、Context Poisoning*
+<a id="q17"></a>
+
+### Q17: Sparse 向量（BM25/SPLADE）和 Dense 向量（Embedding）有什么区别？什么时候该用哪个？
+
+<p align="center"><sub>🧠 记忆锚点：Dense 管语义相似，Sparse 管字面精确；SKU 找编号靠 Sparse，概念理解靠 Dense。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**两种嵌入的本质差异：**
+
+| 特性 | Sparse Vector（BM25/SPLADE） | Dense Vector（Embedding） |
+|------|---------------------------|--------------------------|
+| **维度** | 通常 10K-32K+（词表大小） | 通常 256-1536（固定维度） |
+| **非零元素** | 极少（稀疏，通常 <1% 非零） | 几乎全部非零（稠密） |
+| **编码方式** | 词频/ IDF 权重 | 神经网络生成的连续向量 |
+| **匹配方式** | 关键词重叠度（TF-IDF/IP） | 余弦相似度 / 欧氏距离 |
+| **擅长** | 精确匹配、专有名词、数字编号 | 语义相似、同义词、paraphrase |
+| **短板** | 不理解语义、找不到同义词 | 精确匹配弱、长尾实体差 |
+
+**BM25（经典稀疏检索）：**
+
+```
+BM25 评分公式：
+score(doc, query) = Σ_{q_i ∈ query} IDF(q_i) * 
+    (f(q_i, doc) * (k1 + 1)) / 
+    (f(q_i, doc) + k1 * (1 - b + b * |doc|/avg_len))
+
+其中：
+f = 词频，IDF = 逆文档频率
+k1 ≈ 1.2, b ≈ 0.75
+```
+
+**SPLADE（学习型稀疏检索 — 2021 年出现的重要进展）：**
+
+```
+SPLADE = Transformer Encoder → 每个 token 输出稠密向量 → SoftMax → 稀疏化
+
+与传统 BM25 的区别：
+- BM25：只有原文出现的词才有权重
+- SPLADE：即使 query 中没出现的近义词也会获得非零权重
+  例：query="Python编程"，SPLADE 可能自动给 "python脚本" "py代码" 也分配权重
+```
+
+**为什么需要两者结合（Hybrid Retrieval）：**
+
+```
+查询："订单号 ORD-2026-0883 的状态是什么？"
+
+Dense Embedding 结果：
+❌ 返回的是「订单状态查询方法」相关文档
+✅ 理解了"查询订单状态"的意图
+❌ 但找不到具体的 "ORD-2026-0883"
+
+BM25 结果：
+✅ 精确定位包含 "ORD-2026-0883" 的记录
+❌ 但如果用户写了错别字 "ORD-2026-0388" 就完全匹配不上
+
+Hybrid（两者结合）：
+✅ 既有精确匹配的兜底，又有语义模糊的容错
+```
+
+**典型使用场景映射：**
+
+| 场景 | 推荐方案 | 原因 |
+|------|----------|------|
+| 商品 SKU 编号搜索 | Sparse 为主 | SKU 是精确标识符，语义无关 |
+| 法律条文引用 | Sparse + Dense 并重 | 条文编号必须精确，内容需语义理解 |
+| 客服问题解答 | Dense 为主 | 用户表达口语化，需要语义理解 |
+| 技术文档搜索 | Hybrid | 术语精确匹配 + 概念理解 |
+| 企业知识库 | Dense 为主 | 内部文档语义相关性最重要 |
+
+**BGE-M3（2024 年统一多语言/多粒度检索模型 — 2026 年热门）：**
+
+```
+BGE-M3 = 同时输出 Dense + Sparse + Multi-Token 三种向量
+
+- Dense embedding: 用于语义相似性检索
+- Sparse embedding: 用于关键词检索（类似 SPLADE）
+- Multi-Token: 支持 multi-granularity，一个词可以有多个 token 表示
+
+单模型三用途，省去分别部署三个 retriever 的成本。
+```
+
+**面试话术：**
+> "Dense 和 Sparse 各有长处：Dense embedding 捕捉语义相似性，能理解'退款'≈'退钱'，但在精确匹配上很差——找不到具体产品编号。Sparse 如 BM25 或 SPLADE 擅长精确词匹配但不懂语义。生产中最好的实践是 hybrid retrieval：用 RRF 融合两者的排序结果。如果用单一方案，优先 Dense——因为好 embedding 模型能覆盖大部分场景，而 Sparse 作为后备兜底。2026 年的趋势是 BGE-M3 这类多粒度模型，一个模型同时输出 dense 和 sparse 向量，节省部署成本。"
+
+</details>
+
+---
+
+<a id="q18"></a>
+
+### Q18: 什么是多路召回（Multi-path Recall）？在生产 RAG 中如何设计？
+
+<p align="center"><sub>🧠 记忆锚点：不依赖单一检索路径——同时走语义/关键词/图谱/改写多条路，RRF 合并去重。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**单路召回的问题：**
+
+```
+只用一种检索器 = 把所有鸡蛋放在一个篮子里
+
+Query: "公司年假政策是什么时候开始实行的？"
+
+仅 Dense 向量检索：
+→ 返回"员工福利制度总览"
+→ 但可能遗漏明确写着年假实施日期的公告
+
+仅 BM25 关键词：
+→ 精确匹配到含"年假""实行"的公告
+→ 但可能漏掉叫"带薪休假规定"的文档
+
+仅 GraphRAG（知识图谱）：
+→ 如果图谱里没有"年假实施时间"这个节点 → 直接空结果
+```
+
+**多路召回架构：**
+
+```
+         ┌──────────────┐
+         │   Query      │ ← 用户输入
+         └──────┬───────┘
+                │
+       ┌────────┼────────┬──────────┐
+       ↓        ↓        ↓          ↓
+   Dense     Sparse    Graph    Rewrite
+   Vector    BM25/     Knowledge LLM Query
+             SPLADE    Graph    Expansion
+       ┌────────┼────────┬──────────┐
+       ↓        ↓        ↓          ↓
+    Path A    Path B   Path C    Path D
+    Results   Results  Results  Results
+       └────────┼────────┴──────────┘
+                │
+         ┌──────▼───────┐
+         │  Fusion Layer │ ← RRF 或其他融合策略
+         └──────┬───────┘
+                │
+         ┌──────▼───────┐
+         │  Rerank Model │ ← 精排 Top-N
+         └──────┬───────┘
+                │
+            Final Results
+```
+
+**四路召回实战示例：**
+
+```python
+def multi_path_recall(query: str, collection) -> list:
+    paths = []
+    
+    # Path 1: Dense 语义检索
+    q_emb = embed_model.encode(query)
+    path_a = collection.vector_search(
+        vector=q_emb, metric="cosine", top_k=50
+    )
+    paths.append(path_a)
+    
+    # Path 2: Sparse 关键词检索
+    q_sparse = sparse_encoder.encode(query)
+    path_b = collection.sparse_search(
+        vector=q_sparse, metric="IP", top_k=50
+    )
+    paths.append(path_b)
+    
+    # Path 3: 知识图谱检索（如果有结构化知识）
+    entities = entity_extractor.extract(query)
+    if entities:
+        path_c = knowledge_graph.traverse(entities, depth=2)
+        path_c = [hit.page_content for hit in path_c]
+        paths.append(path_c)
+    
+    # Path 4: LLM 扩写后的变体检索
+    variations = llm.generate_variants(
+        query, num_variants=3,
+        prompt="改写以下查询，保持原意但换措辞"
+    )
+    for var in variations:
+        v_emb = embed_model.encode(var)
+        path_d_var = collection.vector_search(
+            vector=v_emb, metric="cosine", top_k=20
+        )
+        paths.append(path_d_var)
+    
+    # 融合：RRF
+    final = reciprocal_rank_fusion(paths, k=60)
+    return final[:20]
+```
+
+**多路召回的收益：**
+
+| 指标 | 单路 Dense | 单路 BM25 | 双路(RRF) | 四路(RRF) |
+|------|-----------|----------|-----------|-----------|
+| Recall@20 | 72% | 65% | 85% | 91% |
+| Precision@5 | 58% | 45% | 68% | 74% |
+| 覆盖场景 | 语义类 | 精确类 | 两者 | 几乎所有 |
+
+**注意事项：**
+
+```
+⚠️ 多路召回 ≠ 越多越好
+- 每多一路 = 额外调用一次检索 + 额外计算 RRF
+- 评估标准：是否显著提升 Recall/Precision
+- 如果某路的结果和其他路高度重叠（Jaccard 系数 > 0.7），这一路可以砍掉
+- 知识图谱路只在有结构化数据时值得加
+- LLM 扩写路会增加延迟，适合异步预计算
+```
+
+**面试话术：**
+> "多路召回的思路很简单：不同检索器互补短板。Dense 管语义，Sparse 管精确，Graph 管结构化，LLM 扩写管模糊查询。把它们的结果用 RRF 融合，比任何单路都强。我的经验是先用 Dense + BM25 双路起步，Recall 能从 70% 提升到 85%。如果业务有知识图谱再追加第三路，最后才考虑 LLM 扩写——因为成本高。关键是每加一路都要验证：这路带来的新结果占比多少？如果 80% 的结果是重复的，说明效率低下。"
+
+</details>
+
+---
+
+*版本: v2.1 | 更新: 2026-08-30 | 新增 ScaNN、Sparse vs Dense、多路召回
