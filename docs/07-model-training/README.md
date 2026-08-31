@@ -3,7 +3,7 @@
 > **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q3、Q4、Q5、Q6、Q7、Q8、Q10、Q13、Q18、Q19、Q20。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐
-> **更新：** 2026-08-25
+> **更新：** 2026-09-01
 > **考点：** LoRA、RLHF、DPO、微调策略、训练优化、知识编辑、推理蒸馏、TRL v1.0
 
 ## 📋 目录
@@ -15,6 +15,7 @@
 5. [速记卡片](#五速记卡片)
 6. [后训练与分布式训练进阶](#六后训练与分布式训练进阶)
 7. [知识编辑与推理蒸馏](#七知识编辑与推理蒸馏)
+8. [推理模型训练进阶](#八推理模型训练进阶)
 
 ## 一、微调基础概念
 
@@ -1655,11 +1656,444 @@ CounterFact 适合评估反事实编辑的成功与局部性，MQuAKE 强调编�
 
 </details>
 
+---
+
+## 八、推理模型训练进阶
+
+### Q25: RLVR（可验证奖励强化学习）是什么？为什么它能催生推理能力？
+
+<p align="center">
+  <a href="../../assets/illustrations/07-model-training/q25-rlvr.webp">
+    <img src="../../assets/illustrations/07-model-training/q25-rlvr.webp" width="760" alt="RLVR 与 RLHF 的奖励信号来源对比：规则验证器 vs 学习的奖励模型">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：RLVR 用确定性验证器替代 RM——答案对错能自动判，无需人类标注；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**RLVR = Reinforcement Learning with Verifiable Rewards（可验证奖励强化学习）**
+
+核心思想：**当答案的正确性可以被程序或规则自动验证时，不需要训练独立的 Reward Model（RM），直接用验证器给出的确定性反馈作为奖励。**
+
+```
+RLHF 路径：
+  生成回答 → 奖励模型(RM)打分 → PPO 更新策略
+             ↑
+        RM 是神经网络，可能有偏见
+
+RLVR 路径：
+  生成回答 → 验证器(Verifier)判定 → GRPO/DPO 更新策略
+             ↑
+        Verifier 是规则/编译器/求解器，确定性输出
+```
+
+**可验证领域及验证方式：**
+
+| 领域 | 验证器类型 | 示例 |
+|------|------------|------|
+| **数学** | 符号计算引擎（SymPy、MathVerify） | `sympy.solve("2x+3=7") == 2` |
+| **代码** | 沙箱执行 + 测试用例 | 运行代码，检查输出是否通过所有 test case |
+| **逻辑推理** | 规则引擎 / SAT solver | 检查推理链的逻辑一致性 |
+| **科学计算** | 数值校验 + 单位分析 | 检查量纲和单位转换是否正确 |
+
+**DeepSeek R1 的两条路线（RLVR 经典案例）：**
+
+| 路线 | SFT 阶段 | RLVR 阶段 | 特点 |
+|------|----------|-----------|------|
+| **R1-Zero** | ❌ 无（纯预训练模型） | ✅ GRPO + RLVR | 模型自涌现 CoT 推理行为 |
+| **R1** | ✅ 有（800K SFT 数据冷启动） | ✅ GRPO + RLVR | 格式规范，可读性强 |
+
+**R1-Zero 的关键发现：** 即使完全跳过 SFT，仅用 RLVR 在数学/代码/逻辑任务上训练，模型也会自发涌现出 Chain-of-Thought 推理模式——包括自我反思、多路径探索、分步验证等复杂行为。这被称为 **"Aha moment"**。
+
+**RLVR 的工程优势：**
+
+| 维度 | RLVR | RLHF |
+|------|------|------|
+| **数据标注成本** | 几乎为零（规则验证器） | 高（需人工标注偏好对） |
+| **系统复杂度** | 低（省掉 RM 训练） | 高（RM + PPO 两个系统） |
+| **扩展性** | 高（每加一个任务只需新写验证器） | 中（每个新领域都要重新标偏好数据） |
+| **适用场景** | 可验证任务（数学、代码、逻辑） | 主观判断任务（风格、安全、有用性） |
+| **局限性** | 无法处理开放问答等不可验证任务 | 通用但成本高 |
+
+**面试话术：**
+> "RLVR 是推理模型时代的标配。它的核心洞察是：不是所有对齐都需要人类标注——当你能用代码跑通测试用例时，你根本不需要奖励模型。DeepSeek R1 的成功证明了两件事：一是 RL 可以自涌现推理能力（R1-Zero），二是 SFT 冷启动能让涌现更可控（R1）。实际工程中，先用 RLVR 做推理增强，再用 DPO 或 RLHF 做一般性偏好对齐，是目前最主流的混合路线。"
+
+</details>
+
+---
+
+### Q26: Post-Training 主流流水线路线有哪些？如何选择 SFT→DPO 还是 SFT→GRPO？
+
+<p align="center">
+  <a href="../../assets/illustrations/07-model-training/q26-post-training-pipeline.webp">
+    <img src="../../assets/illustrations/07-model-training/q26-post-training-pipeline.webp" width="760" alt="Post-Training 各主流流水线路线演进：三阶段到双阶段的简化趋势">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：从 SFT→RM→PPO 三阶段一路简化，核心趋势是让工程链路越来越短；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**主流 Post-Training 路线一览：**
+
+| 路线图 | 阶段 | 典型代表 | 适用场景 | 计算成本 |
+|--------|------|----------|----------|----------|
+| **经典三路** | SFT → RM → PPO | ChatGPT, Claude早期 | 通用对话对齐 | 最高（4个模型同时加载） |
+| **DPO简化** | SFT → DPO | Zephyr, Meta-Llama-Chat | 通用偏好对齐 | 低（只需1个模型） |
+| **RLVR推理** | SFT → GRPO + RLVR | DeepSeek-R1, Qwen-Math | 推理能力增强 | 中高（需要大量 rollouts） |
+| **ORPO一体** | ORPO（SFT+偏好合一） | Zephyr-7B | 资源受限 + 通用对齐 | 最低 |
+| **混合路线** | SFT → RLVR → DPO | Tülu 3, Mixtral-Instruct | 推理 + 通用对齐兼顾 | 中高 |
+
+**选择决策树：**
+
+```
+你的目标是什么？
+├── 让模型学会指令跟随格式 → SFT 就够了（不需要对齐）
+│
+├── 提升对话质量和有用性 → 
+│   ├── 资源充足 → SFT → DPO（稳定、效果好）
+│   └── 资源紧张 → ORPO（一步到位，省一次训练）
+│
+├── 增强推理能力（数学/代码/逻辑）→
+│   └── SFT → GRPO + RLVR（唯一已验证的路径）
+│
+└── 既要推理又要通用对齐 →
+    └── SFT → RLVR → DPO（Tülu 3 路线）
+```
+
+**关键选型考量：**
+
+1. **任务性质：** 可验证任务（数学/代码）首选 RLVR；主观偏好（风格、安全）首选 DPO/ORPO
+2. **资源预算：** GRPO 需要大量 rollout 采样（DeepSeek R1 每一步 32 个问题 × 8 个回复 = 256 样本），显存需求高于 DPO
+3. **数据可用性：** DPO 需要高质量的偏好对（good vs bad），如果没有标注数据可以用 Rule-based rejection sampling 自动生成
+4. **工程复杂度：** DPO 实现简单（一个 Trainer 类），RLVR 需要维护验证器系统、rollout 调度、奖励聚合
+
+**常见误区：**
+
+- **不要试图用 DPO 提升推理能力。** DPO 只能对齐既有分布内的样本，不能激发新的推理能力。想提升数学/代码推理，必须走 RLVR 路线。
+- **不要忽视 SFT 质量。** SFT 的质量决定了后续所有阶段的天花板。垃圾进，垃圾出的对齐毫无意义。
+- **不要盲目追求最长路线。** SFT → RLVR → DPO 不一定优于 SFT → DPO。如果任务不包含推理需求，额外的 RLVR 阶段只是在浪费算力。
+
+**面试话术：**
+> "我的选型原则很简单：先看任务性质。如果是让模型回答更好听（风格、安全），选 DPO 就够了；如果要让它推理更强（数学、代码、规划），必须走 GRPO + RLVR 路线。大多数工业场景其实是混合需求——先用 RLVR 把推理能力拉上去，再用 DPO 把风格和安全性对齐回来。"
+
+</details>
+
+---
+
+### Q27: RL 训练中常见的训练不稳定问题有哪些？如何排查和解决？
+
+<p align="center">
+  <a href="../../assets/illustrations/07-model-training/q27-rl-training-debug.webp">
+    <img src="../../assets/illustrations/07-model-training/q27-rl-training-debug.webp" width="760" alt="RL 训练不稳定问题的症状、根因和修复策略矩阵">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：训练不稳先从 KL、reward、loss 三条曲线定位；KL 爆炸管约束，reward 异常查验证器，loss 发散看数据；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**RL 训练是后训练中最不稳定的阶段之一，三大常见问题：**
+
+#### 1. KL 散度爆炸（KL Divergence Blowup）
+
+**症状：** KL(policy || reference) 迅速增长超过阈值（通常 > 0.01），policy 严重偏离参考模型
+
+**根因：**
+- β 参数太小（KL 惩罚不够强）
+- 学习率太高，单步更新幅度大
+- 验证器给出的奖励信号过强（reward scale 太大）
+
+**解决方案：**
+
+```python
+# 调试步骤
+# Step 1: 监控 KL 值
+kl = torch.mean((log_prob_policy - log_prob_ref).detach())
+print(f"Step {step}: mean_reward={reward:.3f}, kl={kl:.4f}")
+
+# Step 2: 降低 β（加大 KL 惩罚）
+beta = 0.04  # 从默认 0.1 提高到 0.04（惩罚更强）
+
+# Step 3: 降低学习率
+lr = 1e-6  # 从 1e-5 降到 1e-6
+
+# Step 4: 减少 rollout 数量（每组采样数从 8 降到 4）
+group_size = 4
+```
+
+**经验法则：** KL 值应该保持在 0.01~0.05 之间。低于 0.01 说明没有学到新东西，高于 0.1 说明失控了。
+
+#### 2. 奖励黑客（Reward Hacking / Advantage Gaming）
+
+**症状：** 模型学习到取巧策略来获得高分，而非真正改进能力。例如：总是输出长答案以获得长度奖励、对每个问题都回答"safety first"以触发安全奖励。
+
+**根因：**
+- 奖励函数设计有漏洞（如用输出长度作为质量代理）
+- 验证器存在边界情况（edge cases）未被覆盖
+- 模型找到了一种"捷径"绕过真实意图
+
+**诊断方法：**
+```python
+# 检查响应多样性是否下降
+response_lengths = [len(resp) for resp in recent_rollouts]
+print(f"Response length std: {np.std(response_lengths):.1f}")
+# 如果标准差急剧下降，可能出现了模式坍缩
+
+# 检查特殊 token 频率是否异常升高
+for special_token in ["sorry", "as an AI"]:
+    freq = sum(token in resp.lower() for resp in recent_rollouts) / len(recent_rollouts)
+    print(f"{special_token} frequency: {freq:.1%}")
+```
+
+**解决方案：**
+- **修正奖励函数：** 添加对抗样本惩罚（adversarial penalty），确保取巧策略无法获得高分
+- **引入 format reward：** 不仅看结果正确性，也评估推理过程的结构和质量
+- **增加环境覆盖率：** 在奖励设计中覆盖更多边界情况和对抗场景
+- **响应多样性检查：** 定期评估采样输出的分布是否退化为单一模式
+
+#### 3. 训练 loss 不收敛 / 震荡
+
+**症状：** Loss 持续震荡不下降，或在某一步骤突然飙升
+
+**根因：**
+- **梯度爆炸：** 验证器给极端高的奖励值导致 advantage 过大
+- **数据泄漏：** rollout 生成的数据混入了训练集又反过来影响采样
+- **Reference model 太旧：** 长时间不更新 reference，导致重要性采样比率方差过大
+
+**解决方案：**
+
+```python
+# 1. Gradient clipping（如果还没开启）
+gradient_clip = 1.0
+
+# 2. 定期替换 reference model
+if step % 400 == 0:  # DeepSeek R1 的做法
+    reference_model = policy_model.state_dict().copy()
+
+# 3. 限制 reward range
+advantage = rewards - baseline
+advantage = torch.clamp(advantage, min=-3.0, max=3.0)  # 裁剪极端值
+
+# 4. 减少 rollout 中的 inner epoch 数
+# （不要在同一批 rollout 上多次迭代训练）
+num_inner_epochs = 1  # 设为 1，避免 overfitting 到同一批数据
+```
+
+**综合排查清单：**
+
+| 监控指标 | 正常范围 | 危险信号 |
+|---------|----------|----------|
+| KL(policy\|\|ref) | 0.01 ~ 0.05 | > 0.1 |
+| Mean reward | 平稳上升 | 突增后暴跌 |
+| Response diversity | 保持变化 | 所有回复几乎相同 |
+| Gradient norm | < 5.0 | > 10.0 |
+| Loss | 逐渐下降 | 震荡 / 飙升 |
+
+**面试话术：**
+> "RL 训练调试的核心思路就是'看三条线'：KL 曲线决定是否偏过多，reward 曲线反映信号质量，loss 曲线暴露梯度问题。我的经验是先固定 KL 在合理范围内，再逐步放开 reward 信号的强度。遇到奖励黑客，不要只修模型——要先审查验证器的边界条件。最后记住一句话：RL 训练不是调参游戏，是系统工程。好的 experiment tracking（W&B、MLflow）比盲目调 β 重要得多。"
+
+</details>
+
+---
+
+### Q28: 拒绝采样（Rejection Sampling Fine-tuning）的原理是什么？它与 DPO/GRPO 的区别？
+
+<p align="center">
+  <a href="../../assets/illustrations/07-model-training/q28-rejection-sampling.webp">
+    <img src="../../assets/illustrations/07-model-training/q28-rejection-sampling.webp" width="760" alt="拒绝采样流程：多路采样、验证筛选、高质量数据蒸馏回模型">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：拒绝采样就是"生成一堆、挑出最好的、拿去训"；比 DPO 简单但比 SFT 强；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**拒绝采样 = Rejection Sampling Fine-tuning（RSFT）**
+
+本质上是"**多轮 self-improvement**"循环：
+
+```
+第 N 轮 SFT 模型
+     ↓
+对每个 prompt 生成 K 个回答（如 K=8）
+     ↓
+用验证器/RM 筛选出最好的 M 个（如 M=2）
+     ↓
+用筛选后的数据做下一轮 SFT
+     ↓
+得到第 N+1 轮更好的模型
+```
+
+**核心区别对比：**
+
+| 特性 | 拒绝采样 | DPO | GRPO + RLVR |
+|------|----------|-----|-------------|
+| **是否需要偏好对** | 不需要（只需好坏过滤） | 需要（chosen/rejected 配对） | 不需要（组内相对排序） |
+| **训练范式** | 监督学习（SFT） | 偏好优化（分类损失） | 强化学习（策略梯度） |
+| **能否激发新能力** | 否（只在已有分布内学习） | 否（同上） | 是（RL 探索可触发涌现） |
+| **工程复杂度** | 极低 | 低 | 高 |
+| **数据利用率** | 低（丢弃大部分采样） | 中（每对贡献一个梯度） | 高（每个 rollout 都有梯度信号） |
+| **计算效率** | 中（需要多轮迭代） | 高（单次训练即可） | 低（大量 rollout 采样） |
+
+**拒绝采样的关键细节：**
+
+**1. 采样温度策略：**
+```python
+# 第一层：高温度（temperature=0.9）生成多样候选
+candidates = model.generate(prompt, temperature=0.9, top_p=0.95, num_return_sequences=8)
+
+# 第二层：只对评分最高的样本使用低温度重新生成（精炼）
+best_candidates = filter_and_rank(candidates, verifier)
+polished = [model.generate(c, temperature=0.3) for c in best_candidates]
+```
+
+**2. 迭代轮次设计：**
+```
+Iteration 1: 模型A(SFT基线) → 采样筛选 → 模型B(DPO/SFT)
+Iteration 2: 模型B → 更精细筛选 → 模型C(更高质量)
+Iteration 3: 模型C → 加入 human-in-the-loop 审核 → 最终发布
+```
+
+**3. 何时用拒绝采样 vs DPO：**
+
+| 场景 | 推荐方案 | 原因 |
+|------|----------|------|
+| 只有验证器（无法生成 bad 样例） | 拒绝采样 | 只需选出好的，不需要构造差的 |
+| 偏好数据充足 | DPO | 利用全部信息更高效 |
+| 推理能力增强 | GRPO + RLVR | 只有 RL 能激发涌现 |
+| 资源有限且快速迭代 | 拒绝采样 + SFT | 最简单，见效快 |
+
+**与 RLVR 的关系：**
+
+拒绝采样常作为 RLVR 的前置步骤：
+```
+拒绝采样生成高质量推理轨迹 → SFT 训练冷启动 → GRPO + RLVR 进一步提升
+```
+这就是 DeepSeek-R1 的实际流程（R1-Zero 之后加了一步 SFT 蒸馏）。
+
+**面试话术：**
+> "拒绝采样是最朴素的 Self-Improvement 方法——先生成、筛选、再训练。它最大的优点是极其简单：不需要偏好对，不需要 RL 框架，甚至不需要奖励模型（规则验证器就能筛）。但它也有明显的上限：只能在模型已有能力范围内选优，无法激发真正的推理涌现。所以工业实践中，拒绝采样往往作为冷启动手段，后面再接 DPO 或 RLVR 来进一步拔高。"
+
+</details>
+
+---
+
+### Q29: 在线训练闭环（Online Training Loop）如何让模型持续进化？
+
+<p align="center">
+  <a href="../../assets/illustrations/07-model-training/q29-online-training-loop.webp">
+    <img src="../../assets/illustrations/07-model-training/q29-online-training-loop.webp" width="760" alt="在线训练闭环：线上反馈、badcase收集、数据清洗、训练评估的持续迭代流程">
+  </a>
+</p>
+<p align="center"><sub>🧠 图解记忆：模型上线不是终点，而是新一轮数据的起点；线上反馈驱动数据闭环；点击图片可查看原图。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**在线训练闭环 = 模型部署 → 收集线上反馈 → 构建训练数据 → 再训练 → 再部署的持续迭代循环。**
+
+核心理念：**模型上线不是终点，而是新一轮数据的起点。**
+
+#### 闭环的四个关键模块：
+
+**1. 数据采集（Observability）**
+
+```
+线上交互日志
+  ├── 用户评分（thumbs up/down）
+  ├── 编辑行为（用户修改了模型回答）
+  ├── 引用点击（用户是否查看了引用）
+  ├── 工具调用成功率
+  ├── 对话完成率
+  └── Badcase 标注入口
+```
+
+**2. Badcase 挖掘与优先级排序**
+
+```python
+# 从海量线上数据中找出需要改进的样本
+def prioritize_badcases(logs):
+    candidates = []
+    
+    for log in logs:
+        score = 0
+        # 用户点踩
+        if log.user_feedback == "down": score += 3
+        # 用户手动编辑了回答
+        if log.edited_by_user: score += 2
+        # 对话在第2句就终止了
+        if log.turn_count <= 2: score += 1
+        # 低置信度回答被采纳
+        if log.model_confidence < 0.3: score += 1
+        
+        if score >= 3:
+            candidates.append(log)
+    
+    # 按分数降序，优先处理最严重的问题
+    return sorted(candidates, key=lambda x: x.score, reverse=True)
+```
+
+**3. 数据闭环的质量保障**
+
+| 环节 | 方法 | 说明 |
+|------|------|------|
+| **去重** | Embedding 相似度去重 + 精确匹配 | 避免重复训练 |
+| **防泄漏** | 时间线切分 | 确保评测集不会被污染 |
+| **质量审计** | 抽检 + 自动化规则检查 | 防止脏数据进入训练集 |
+| **标注一致性** | 多人标注 + Cohen's kappa > 0.8 | 保证偏好数据可靠 |
+
+**4. 训练与评估**
+
+```
+Badcase 数据集
+    ↓
+数据清洗 + 增强
+    ↓
+模型训练（SFT/DPO/GRPO）
+    ↓
+离线评估（vs 基线）
+    ├── 任务准确率 ≥ 基线 + X%？
+    ├── 通用能力退化 ≤ Y%？
+    └── 安全红线未触碰？
+    ↓
+    ├── 全通过 → A/B 测试 → 全量上线
+    └── 任一不通过 → 退回数据环节
+```
+
+#### 工程实践建议：
+
+**1. 版本化管理：**
+- 每次迭代的模型和数据集都打上版本标签
+- 保留至少 3 个历史版本的 checkpoint（方便回滚）
+- 记录每次迭代的 hyperparameters 和 eval metrics
+
+**2. 增量训练策略：**
+- **冷启动：** 全新数据集从头训练
+- **增量微调：** 仅用新产生的 badcase + 少量通用数据（20%混合比例）
+- **知识遗忘防范：** 定期插入通用基准数据，维持模型通用能力
+
+**3. A/B 测试规范：**
+- 线上分流比例从 5% 逐步扩大到 100%
+- 核心指标对比窗口 ≥ 7 天
+- 设置明确的 rollback 阈值（如核心指标下降 > 3% 自动回滚）
+
+#### 与拒绝采样的关系：
+
+在线闭环是拒绝采样的高级形态：
+```
+拒绝采样：离线多轮循环，数据规模受控
+在线闭环：持续从线上获取真实反馈，数据流不间断，规模更大更难管理
+```
+
+**面试话术：**
+> "我觉得很多工程师面试会卡在这个问题上——以为训练完上线就结束了。实际上模型上线才是开始。好的团队一定有在线数据闭环：线上收集用户真实反馈，自动挖掘 badcase，经过清洗审核后喂给下一次训练。我之前的项目里，我们每周产出一个新版本模型，核心指标持续提升。关键是做好版本管理和 A/B 测试规范，别让迭代变成盲盒抽奖。"
+
+</details>
+
+---
+
 ## 📝 更新记录
 
 | 日期 | 更新内容 |
 |------|----------|
-| 2026-08-25 | 新增 Q21-Q24：知识编辑边界、ROME/MEMIT/MEND、知识编辑评估与推理蒸馏 |
+| 2026-09-01 | 新增 Q25-Q29：RLVR原理与DeepSeek-R1路线、Post-Training流水线选型、RL训练不稳定排查、拒绝采样与DPO/GRPO对比、在线训练闭环 |
 | 2026-05-07 | 新增 Q14 DAPO/GSPO（GRPO进化版）、Q15 信用分配问题 |
 | 2026-04-15 | 新增 Q13 TRL v1.0（75+后训练方法、chaos-adaptive设计哲学） |
 | 2026-03-05 | 新增大模型微调与训练面试题 11 道 |
