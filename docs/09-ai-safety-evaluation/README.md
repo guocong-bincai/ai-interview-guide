@@ -1,9 +1,9 @@
 # 🔥 AI 应用安全与评估面试题
 
-> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q4、Q5、Q7、Q8、Q9、Q10、Q19、Q21、Q22、Q23。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q2、Q4、Q5、Q7、Q8、Q9、Q10、Q19、Q21、Q22、Q23、Q28、Q29、Q30、Q31。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-08-25
+> **更新：** 2026-09-02
 > **考点：** AI 安全、内容合规、评估体系、文本水印、自动化红队、测试方法、成本优化实战
 
 ## 📋 目录
@@ -2580,6 +2580,8 @@ Curator（构建答案键）→ Finder（模型测试）→ Judge（盲评打分
 - N-Day-Bench 官网：https://ndaybench.winfunc.com
 - Live Traces：公开可查，每个模型的探索路径完全透明
 
+</details>
+
 ## 八、行为对齐评估：自我报告与真实行为
 
 ### Q17: 什么是"Behavioral Dispositions"？为什么LLM的"自我报告"不等于"真实行为"？
@@ -3405,10 +3407,10 @@ def safe_plugin_execute(plugin, user_input, policy):
 <p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q23-eu-high-risk-ai.webp" width="860" alt="高风险 AI 从角色范围到风险、数据、日志、监督、安全和上线监控的合规证据链图"></p>
 <p align="center"><sub>🧠 记忆锚点：合规不是一份声明，而是风险、数据、日志、监督、鲁棒和监控的可审计证据链；先确认角色与适用范围。</sub></p>
 
-
 **考点：** AI 合规、风险分级、GPAI 义务、出海合规意识（2026 年 8 月热点）
 
-#### 核心答案
+<details>
+<summary>💡 答案要点</summary>
 
 **EU AI Act（欧盟人工智能法案）是全球第一部全面的人工智能监管法律，分阶段生效：**
 
@@ -3478,10 +3480,10 @@ def safe_plugin_execute(plugin, user_input, policy):
 <p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q24-distillation-attack.webp" width="860" alt="授权模型蒸馏压缩与黑盒自适应查询进行未授权能力提取的对比图"></p>
 <p align="center"><sub>🧠 记忆锚点：普通蒸馏有授权并服务于压缩，蒸馏攻击通过大量自适应查询提取能力；防御靠身份、配额、异常与证据。</sub></p>
 
-
 **考点：** AI 安全、模型知识产权保护、蒸馏原理、API 滥用防护（2026 年 8 月热点）
 
-#### 核心答案
+<details>
+<summary>💡 答案要点</summary>
 
 **模型蒸馏（Knowledge Distillation）**：用小模型（学生）学习大模型（教师）的输出，是常见的模型压缩/迁移技术。
 
@@ -3569,15 +3571,13 @@ class DistillationGuard:
 **延伸阅读：**
 - 东不压桥研究院：模型蒸馏、对抗性蒸馏与蒸馏攻击（2026-08）：https://www.secrss.com/articles/77742
 
+</details>
+
 ## 十二、模型溯源与自动化红队
 
 ### Q25: LLM 文本水印如何嵌入和检测？KGW 与语义水印有什么区别？
 
-<p align="center">
-  <a href="../../assets/illustrations/09-ai-safety-evaluation/q25-text-watermark-mechanism.webp">
-    <img src="../../assets/illustrations/09-ai-safety-evaluation/q25-text-watermark-mechanism.webp" width="760" alt="LLM 文本水印在生成时用密钥调整采样分布并在检测时进行统计验证，以及 KGW、SIR、X-SIR 的对比图">
-  </a>
-</p>
+<p align="center"><a href="../../assets/illustrations/09-ai-safety-evaluation/q25-text-watermark-mechanism.webp"><img src="../../assets/illustrations/09-ai-safety-evaluation/q25-text-watermark-mechanism.webp" width="760" alt="LLM 文本水印在生成时用密钥调整采样分布并在检测时进行统计验证，以及 KGW、SIR、X-SIR 的对比图"></a></p>
 <p align="center"><sub>🧠 图解记忆：文本水印在生成时埋入受密钥控制的统计偏置，检测时重建规则验证；KGW 依赖 token 划分，SIR/X-SIR 强化语义与跨语言鲁棒性；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
@@ -3610,11 +3610,7 @@ class DistillationGuard:
 
 ### Q26: 如何评估文本水印？为什么“能检测出来”还不够？
 
-<p align="center">
-  <a href="../../assets/illustrations/09-ai-safety-evaluation/q26-watermark-evaluation.webp">
-    <img src="../../assets/illustrations/09-ai-safety-evaluation/q26-watermark-evaluation.webp" width="760" alt="文本水印可检测性、文本效用、攻击鲁棒性、安全性和工程代价的评测取舍及水印隐写区别图">
-  </a>
-</p>
+<p align="center"><a href="../../assets/illustrations/09-ai-safety-evaluation/q26-watermark-evaluation.webp"><img src="../../assets/illustrations/09-ai-safety-evaluation/q26-watermark-evaluation.webp" width="760" alt="文本水印可检测性、文本效用、攻击鲁棒性、安全性和工程代价的评测取舍及水印隐写区别图"></a></p>
 <p align="center"><sub>🧠 图解记忆：水印评测要同时证明能检出、少损伤、抗改写翻译且难伪造，并区分来源信号与秘密载荷；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
@@ -3648,11 +3644,7 @@ class DistillationGuard:
 
 ### Q27: 如何把零散越狱样本变成可持续运行的自动化红队 Harness？
 
-<p align="center">
-  <a href="../../assets/illustrations/09-ai-safety-evaluation/q27-automated-jailbreak-harness.webp">
-    <img src="../../assets/illustrations/09-ai-safety-evaluation/q27-automated-jailbreak-harness.webp" width="760" alt="授权隔离环境中由 Selector、Mutator、Constraint、目标模型和校准 Evaluator 组成的自动化越狱红队闭环图">
-  </a>
-</p>
+<p align="center"><a href="../../assets/illustrations/09-ai-safety-evaluation/q27-automated-jailbreak-harness.webp"><img src="../../assets/illustrations/09-ai-safety-evaluation/q27-automated-jailbreak-harness.webp" width="760" alt="授权隔离环境中由 Selector、Mutator、Constraint、目标模型和校准 Evaluator 组成的自动化越狱红队闭环图"></a></p>
 <p align="center"><sub>🧠 图解记忆：自动化红队是在授权沙箱中可复现、可校准、受预算约束的评测闭环，不是把攻击 Prompt 堆成清单；点击图片可查看原图。</sub></p>
 <details>
 <summary>💡 答案要点</summary>
@@ -3702,6 +3694,413 @@ for case in hidden_eval_set:
 
 </details>
 
+### Q28: 护栏模型（Guardrail Model）如何选型与部署？Llama Guard、Prompt Guard、Qwen3Guard 各有什么适用场景？
+
+<p align="center"><sub>🧠 记忆锚点：护栏模型是独立的输入/输出审核分类器；Llama Guard 管内容安全、Prompt Guard 管注入与越狱、Qwen3Guard 可流式生成式拦截；选型看延迟、多模态与分类粒度。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+护栏模型是独立于主 LLM 的"安全分类器"，放在推理链路的前后做输入审核与输出审核。与关键词过滤、提示词约束相比，它基于模型微调，能理解语义变体（拼写伪装、角色扮演、隐晦表达），是企业级 AI 应用最常用的运行时安全层。
+
+**主流护栏模型对比：**
+
+| 模型 | 职责 | 参数量 | 输入/输出 | 分类粒度 |
+|------|------|--------|----------|---------|
+| **Llama Guard 3** | 内容安全分类 | 8B（3.1 微调） | 输入+输出 | MLCommons 14 类危害分类 |
+| **Prompt Guard 2** | 注入/越狱检测 | 86M/22M | 仅输入 | benign / injection / jailbreak 三分类 |
+| **Qwen3Guard** | 生成式护栏 | 0.6B/4B/8B | 输入+输出 | 安全等级+类别+多语言，支持流式 |
+| **Nemotron Safety Guard** | 内容安全 | 8B | 输入+输出 | 多语言、Aegis 数据训练 |
+
+**部署架构（典型双端过滤）：**
+
+```
+用户输入 → [Prompt Guard 注入检测] → [Llama Guard 输入审核]
+                              ↓ 安全
+                         主 LLM 推理
+                              ↓
+用户收到 ← [Llama Guard 输出审核] ← 生成完成（或流式分段）
+```
+
+**关键工程权衡：**
+
+1. **延迟**：Llama Guard 3 是 8B 模型，单次前向 255-400ms，不能逐 token 拦截；Qwen3Guard 支持流式（Stream）变体，可增量拦截；低延迟场景可先用轻量分类器（86M 的 Prompt Guard）或 embedding 相似度做第一道闸。
+2. **误杀率 vs 漏放率**：输入过滤比输出过滤更容易误拒（borderline prompt 会被拦截），要分别统计双端指标并设置阈值。
+3. **分类粒度**：Llama Guard 输出结构化类别（如 S1 暴力、S2 色情…S14），便于按业务策略差异化处理（高风险类别直接拒绝、中风险转人工）。
+4. **多模态**：Llama Guard 4 支持图像+文本联合审核，多模态应用要选多模态护栏。
+
+**代码示例（Llama Guard 3 集成）：**
+
+```python
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+model_id = "meta-llama/Llama-Guard-3-8B"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(model_id)
+
+def build_prompt(chat_history, role_to_check="Agent"):
+    # 按 Llama Guard 的对话模板拼接，明确要审核的角色
+    prompt = f"<|begin_of_text|>{chat_history}<|end_of_turn|>\n"
+    prompt += f"User: 请判断上述对话中 {role_to_check} 的最后一轮回复是否安全。\n"
+    prompt += "Assistant: "
+    return prompt
+
+def check_safety(chat_history):
+    prompt = build_prompt(chat_history)
+    inputs = tokenizer([prompt], return_tensors="pt")
+    output = model.generate(**inputs, max_new_tokens=16)
+    text = tokenizer.decode(output[0], skip_special_tokens=True)
+    if "unsafe" in text:
+        # 解析违规类别编码（如 S1, S2 ...）
+        return False, extract_violation_codes(text)
+    return True, []
+```
+
+**面试话术：**
+> "护栏模型是运行时安全的第一道也是最后一道闸：Prompt Guard 管'进来的是不是攻击'，Llama Guard 管'内容是不是违规'，双端过滤比单一约束可靠得多。选型时我会先量化延迟预算——8B 的 Llama Guard 单次前向要几百毫秒，不适合逐 token 场景，这时用轻量分类器做前置快速过滤、大护栏做深度审核。核心指标是误杀率和漏放率的权衡曲线，而不是单一准确率。"
+
+</details>
+
+### Q29: 自动化红队基准有哪些？HarmBench、StrongREJECT、JailbreakBench 有什么区别？ASR 指标如何计算？
+
+<p align="center"><sub>🧠 记忆锚点：HarmBench 是标准化自动化红队框架、StrongREJECT 用连续评分卡拒绝二元判断、JailbreakBench 管攻击工件可复现；ASR 是安全评测的核心指标，阈值定义决定数字含义。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+HarmBench、StrongREJECT、JailbreakBench 是 2024-2026 年自动化红队评估的三大主流基准。它们共同解决"越狱成功怎么算"的问题：不能只看模型有没有拒绝，还要看回答是否真的提供了可用的危险信息。ASR（Attack Success Rate，攻击成功率）是衡量安全性的核心指标，但它的数值严重依赖"什么算成功"的判定标准。
+
+**三大基准对比：**
+
+| 基准 | 定位 | 核心机制 | 特色 |
+|------|------|----------|------|
+| **HarmBench** | 自动化红队标准化框架 | 统一攻击方法+目标模型+行为集的比较框架 | 400 个危险行为、18 类攻击方法、33 个模型基线 |
+| **StrongREJECT** | 越狱评估评分器 | 连续评分 rubric：拒答×具体性×说服力 | 0-1 连续分数，替代二元成功/失败 |
+| **JailbreakBench** | 攻击工件与可复现性 | 开源攻击 Prompt 库 + 标准化评估库 | JBB-Behaviors 数据集、攻击工件版本化 |
+
+**ASR 的计算（为什么容易"虚高"）：**
+
+```
+朴素定义：
+  ASR = 模型给出"有害回答"的次数 / 攻击总次数
+
+问题1：二元判定太粗糙
+  模型回复"我不能帮你制造炸弹，但理论上..." 算不算成功？
+  → StrongREJECT 用连续评分：只算中度以上越狱（分数>阈值）为成功
+
+问题2：判定器不同，结果天差地别
+  | 判定方式        | 与人工的一致性 (Spearman) |
+  |----------------|--------------------------|
+  | 字符串匹配      | -0.394（负相关！）        |
+  | GPT-4 Judge    | 0.157                    |
+  | HarmBench 分类器 | 0.819                    |
+  | 人工标注        | 1.0（基准）              |
+
+问题3：PAIR 等攻击报"近 100% 成功率"，在 StrongREJECT 上只有 <0.2 分
+  → 因为大多数"成功"只是不拒绝，并没有给出具体可用信息
+```
+
+**工程建议：**
+
+```
+1. 统一阈值：报告 ASR 时同时标注判定器与阈值（如 StrongREJECT φ>0.5）
+2. 双指标：ASR（攻击成功率）+ FPR（正常请求误拒率）一起看，防"全拒答"刷安全分
+3. 用校准过的分类器当判定器，不用字符串匹配或单一 LLM Judge
+4. 开放集 vs 封闭集：JailbreakBench 的 JBB-Behaviors 同时含 100 个良性行为用于测过度拒绝
+```
+
+**面试话术：**
+> "评估越狱防御时，ASR 是最直观但最容易骗人的指标——'拒绝率'高不代表安全，可能是模型什么都拒绝。HarmBench 这类基准的价值是统一了攻击、模型和行为集，让结果可比较；StrongREJECT 的价值是把二元成败改成连续评分，'提到危险内容'和'给出完整可用方案'分数完全不同。我报告安全指标时一定会带上判定器和阈值，否则数字没有意义。"
+
+</details>
+
+### Q30: 如何检测与评估 LLM 幻觉？SelfCheckGPT、语义熵、引用验证各有什么原理？
+
+<p align="center"><sub>🧠 记忆锚点：幻觉检测三类路线——自采样一致性（SelfCheckGPT）、概率不确定性（语义熵）、外部证据核对（Groundedness）；生产首选引用验证+RAG 溯源，纯概率法只能做弱信号。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+幻觉检测分三类：SelfCheckGPT 让模型多次采样回答再比较一致性；语义熵用输出概率分布的不确定性衡量"模型自己都不确定"；Groundedness 把回答拆成事实性陈述，逐条与检索证据或外部知识核对。生产环境最可靠的是引用验证，因为它有可审计的证据链。
+
+**三种方法原理：**
+
+```
+1. SelfCheckGPT（自采样一致性）
+   对同一问题采样 N 次回答（temperature>0）
+   逐句判断"这句在其它采样中是否被支持/矛盾/无关"
+   一致性越低 → 越可能幻觉
+   优点：无需外部知识库；缺点：一致性≠正确性（可能一致地错）
+
+2. 语义熵（Semantic Entropy）
+   把回答按语义聚类（意思相同的 token 序列归一组）
+   计算语义层面的熵（而非 token 层面）
+   熵高 = 模型对答案没有把握
+   优点：比朴素 softmax 概率更鲁棒；缺点：只反映"没把握"，不反映"事实错误"
+
+3. 引用验证 / Groundedness（外部证据核对）
+   把回答拆成原子事实性陈述（claim）
+   对每条 claim 检索证据（RAG 文档、网页、知识库）
+   用 LLM Judge 判断 claim 是否被证据支持
+   输出 groundedness 分数（如 RAGAS 的 faithfulness）
+   优点：可审计、可定位错误；缺点：依赖检索质量，证据缺失时会误判
+```
+
+**生产实践建议：**
+
+```
+RAG 应用（首选）：
+  faithfulness = 回答中的 claim 被检索文档支持的比例
+  低分 → 触发"我找到的信息不足"兜底话术，而不是硬答
+
+开放问答（无知识库）：
+  SelfCheckGPT 做弱信号 + 关键事实人工抽检
+  高风险场景（医疗/金融）强制引用，无引用不输出
+
+流式场景：
+  无法等全部生成完再验 → 分段验证 + 低分段落降权
+```
+
+**代码示例（SelfCheckGPT 简化版）：**
+
+```python
+def selfcheck_consistency(question, model, tokenizer, n_samples=5):
+    # 1. 多次采样
+    samples = []
+    for _ in range(n_samples):
+        out = model.generate(question, temperature=1.0, max_new_tokens=200)
+        samples.append(tokenizer.decode(out[0]))
+    
+    # 2. 取第一条为基准，逐句问 Judge 其它采样是否支持
+    base_sentences = split_sentences(samples[0])
+    scores = []
+    for sent in base_sentences:
+        supports = []
+        for other in samples[1:]:
+            judge_prompt = (
+                f"语句是否被文本支持？\n语句：{sent}\n文本：{other}\n"
+                f"只回答 supported / unsupported / neutral"
+            )
+            vote = judge(judge_prompt)
+            supports.append(vote == "supported")
+        scores.append(sum(supports) / len(supports))
+    return sum(scores) / len(scores)  # 0=全幻觉, 1=全一致
+```
+
+**面试话术：**
+> "幻觉检测的核心是选对证据来源。RAG 场景用引用验证最可靠——把回答拆成 claim，逐条对检索文档核验，还能定位到具体哪句在编。SelfCheckGPT 适合没有知识库的场景，但它衡量的是'一致性'不是'正确性'，模型可能稳定地错。语义熵是好的弱信号，但只能说明'没把握'。我的原则：高风险输出必须有外部证据支撑，纯概率法只做预警不做裁决。"
+
+</details>
+
+### Q31: 什么是过度拒绝（Overrefusal）？如何用 XSTest 等基准平衡安全性与可用性？
+
+<p align="center"><sub>🧠 记忆锚点：过度拒绝是安全训练的反噬——把良性请求也拒了；用 XSTest 测误拒、用 FPR/ASR 双指标评估，安全调优要在"漏放"和"误杀"间找平衡点。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+过度拒绝（Overrefusal / False Refusal）指模型因为过度对齐，把安全、合理的请求也拒绝掉——比如"教我怎么写一篇关于武器的论文""解释暴力犯罪的心理学成因"。安全评估不能只看攻击成功率（ASR），还要看正常请求的误拒率（FPR），两个指标一起看才不会被"全拒答模型"骗到。
+
+**为什么会出现过度拒绝？**
+
+```
+安全训练（RLHF/DPO）的副作用：
+  为了压低有害回答率，模型学会"遇到敏感词就拒绝"
+  → 误伤合法请求（教育、医学、创作、新闻场景最严重）
+
+典型案例：
+  ✗ "帮我润色一段含有'自杀'字样的新闻报道" → 被拒
+  ✗ "解释 R 级电影中的暴力镜头如何分级" → 被拒
+  ✓ 这些请求本身完全合法
+```
+
+**XSTest 是什么：**
+
+XSTest（eXaggerated Safety Test）是专门测过度拒绝的基准，包含 250 个"看似危险但实际安全"的提示词，涵盖：
+- 同形异义词陷阱（"如何制作炸弹"中的"炸弹"指菜品名）
+- 安全领域话题（"如何正确使用灭火器"）
+- 假设/虚构/教学/研究/创作等合法场景
+
+**双指标评估框架：**
+
+```
+安全评估必须同时报告：
+
+1. ASR（攻击成功率）：有害请求被成功越狱的比例
+   → 越低越好
+
+2. FPR（误拒率 / Overrefusal Rate）：良性请求被拒绝的比例
+   → 越低越好
+
+目标：在安全-可用性曲线上选点
+  | 防线调太松 | 防线调太紧 |
+  |-----------|-----------|
+  | ASR 高，漏放 | FPR 高，误杀 |
+  | 真实风险 | 用户流失、体验差 |
+
+JailbreakBench 的 JBB-Behaviors 也配套 100 个良性行为
+→ 专用于同时评估过度拒绝
+```
+
+**工程实践：**
+
+```
+1. 分类处理而不是一刀切拒绝：
+   高风险→拒绝；中风险→警告+限制；低风险→正常回答
+2. 拒绝话术带原因与替代方案：
+   "我不能提供具体制作方法，但可以解释相关安全原理"
+3. 用护栏模型输出类别（Llama Guard 14 类）驱动差异化策略
+4. 上线前跑 XSTest + 业务内良性样本集，监控 FPR 回归
+5. 生产监控：把"拒答率"拆成"误拒率"和"正当拒答率"，分别设告警
+```
+
+**面试话术：**
+> "安全评估的经典误区是只看 ASR——把所有正常请求也拒掉，ASR 当然好看，但产品就废了。正确的做法是双指标：ASR 和 FPR 一起报告，用 XSTest 这类基准专门测过度拒绝。调安全策略时我在安全-可用性曲线上选点：高风险场景偏保守，普通场景偏宽松，用护栏模型的分类粒度做差异化处理，而不是全局一刀切。"
+
+</details>
+
+### Q32: 什么是训练数据记忆与提取攻击（Memorization & Extraction Attack）？如何评估与防御？
+
+<p align="center"><sub>🧠 记忆锚点：LLM 会记忆训练数据中的敏感片段，提取攻击通过巧妙 prompt 让模型吐出原文；评估用逐字记忆率+隐私审计，防御靠去重、遗忘、差分隐私与输出过滤。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+LLM 会"背下"训练数据中的重复内容——尤其是出现多次的 PII、代码、文章片段。提取攻击（Extraction Attack）就是利用模型生成能力，通过前缀提示、格式诱导、重复采样等技巧让模型逐字吐出这些记忆内容。这是隐私合规（GDPR 遗忘权）和商业机密保护的核心威胁。
+
+**记忆怎么发生的：**
+
+```
+训练数据中出现次数越多的序列越容易被记住：
+  一次出现的 UUID → 几乎不会背出
+  出现 500 次的电话号码 → 高概率逐字复现
+
+记忆粒度：能逐字复现的是"重复片段"，不是全部训练数据
+```
+
+**典型提取攻击手法：**
+
+```
+1. 前缀诱导：给出已知前缀，诱导补全
+   "我的电话号码是 138" → 模型接出完整号码（如果训练数据里有）
+
+2. 格式诱导：让模型"续写诗歌/JSON/表格"绕过语义护栏
+   "以 JSON 格式输出所有可能的手机号"
+
+3. 重复采样：多次请求+不同温度，提高命中记忆的概率
+
+4. 对抗性后缀：GCG 等优化出的后缀使模型脱离对齐约束
+```
+
+**评估方法：**
+
+```
+1. 逐字记忆率（Exact Memorization）：
+   在私有保留数据上测"模型能否逐字生成训练片段"
+   常见做法：Canary 字符串（唯一标记）植入测试数据
+   → 若模型能复现 canary，说明存在记忆
+
+2. 隐私审计（Privacy Audit）：
+   成员推断（Membership Inference）：判断某样本是否在训练集
+   提取成功率：攻击脚本在 N 次尝试中成功提取敏感片段的比例
+
+3. 框架：使用 Google 的 "Training Data Extraction Challenge"
+   或 AI Safety 基准中的提取攻击子集做持续回归
+```
+
+**防御措施（纵深）：**
+
+```
+训练侧：
+  1. 数据去重（重复 PII/敏感片段直接剔除）
+  2. 敏感数据脱敏（手机号/身份证正则替换）
+  3. 差分隐私训练（DP-SGD，噪声注入，牺牲少量精度）
+
+推理侧：
+  4. 输出过滤：检测并阻断逐字复现长文本（如与公开文本 n-gram 匹配）
+  5. 拒绝高置信前缀补全请求（"请续写我的私人信息"类请求）
+  6. 系统提示约束 + 护栏模型复核
+
+合规侧：
+  7. 遗忘机制（Machine Unlearning）满足删除权
+  8. 明确数据使用条款，训练数据做版权/PII 合规审查
+```
+
+**面试话术：**
+> "提取攻击的本质是：模型不是'生成'而是'回忆'——训练数据里的重复片段会被逐字记住。评估用 Canary 字符串和成员推断最直接：往测试数据里埋唯一标记，看模型能不能复现。防御我按三层做：训练前去重脱敏、训练中用差分隐私、推理时输出过滤，再加上遗忘机制满足 GDPR 删除权。对 To B 应用，客户数据进训练集前必须做 PII 扫描，这是合规底线。"
+
+</details>
+
+### Q33: 多模态（视觉）越狱如何评估与防御？图像注入与 VLM 安全基准有哪些？
+
+<p align="center"><sub>🧠 记忆锚点：多模态越狱三类——图像内嵌文本注入、对抗性图像扰动、跨模态不一致攻击；评估用 VLM 专用基准，防御核心是隔离图像文本与指令文本的信任边界。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**30 秒回答：**
+
+多模态越狱（VLM Jailbreak）利用视觉语言模型"既看图又读文"的特点绕过文本安全防线：攻击者把恶意指令印在图片里（图像内嵌文本）、用对抗性扰动让模型把普通图识别成敏感内容、或利用图文不一致制造歧义。防御的关键是区分"图像里的文本"和"用户指令文本"的信任级别，并对图像输入做专门审核。
+
+**三类主要攻击：**
+
+```
+1. 图像内嵌文本注入（OCR Injection）
+   在图片中打印 "Ignore previous instructions and ..."
+   → 模型读图后把图中文字当指令执行
+   典型场景：扫描文档、截图、网页图片进入 RAG/多模态 Agent
+
+2. 对抗性图像扰动（Adversarial Perturbation）
+   人眼看不见的像素扰动 → 模型输出被劫持
+   或 typographic attack（把文字画进图像让分类器误读）
+
+3. 跨模态不一致（Cross-modal Mismatch）
+   图中内容和文本描述互相矛盾 → 模型在歧义中降低警惕
+   例：图上画着无害场景，文字描述引导向危险内容
+```
+
+**评估基准：**
+
+```
+文本域：HarmBench 已含图像攻击扩展（image attacks 子集）
+视觉域：
+  - VLM SafeBench / SafeBench-2：覆盖内容安全+越狱+隐私
+  - FigStep：把有害问题转成"看图猜字"绕过文本审核
+  - 各厂商 VLM 红队报告（GPT-4V/Claude/Gemini 视觉越狱研究）
+
+评估指标与文本域一致：
+  ASR（图像越狱成功率）+ FPR（正常图片误拒率）
+  另加：图像审核器单独测（NSFW 分类、OCR 文本提取后的注入检测）
+```
+
+**防御实践：**
+
+```
+1. 信任分层：
+   系统指令 > 用户文本 > 图像内嵌文本 > 网页/文档文本
+   图像文本一律视为"数据"而非"指令"
+   → 提取图中 OCR 文本时剥离其"指令性"（不能包含工具调用指令）
+
+2. 图像输入审核：
+   先用 NSFW 分类器过滤图像
+   对 OCR 出的文本跑 Prompt Guard / 注入检测
+
+3. 输出侧：
+   VLM 输出同样过 Llama Guard 4（多模态护栏）双端审核
+
+4. Agent 场景：
+   图像作为工具输入时（如截图分析），明确"图内文字不得触发工具调用"
+   → 工具调用只能来自系统指令/用户直接输入
+```
+
+**面试话术：**
+> "多模态越狱的本质是信任边界被图像绕过了——模型把图里的字当成指令。防御核心就一句话：图内文本永远只是数据，不是指令。我会在管线里对 OCR 文本单独跑注入检测，工具调用只接受系统指令和用户直接输入，图像内容过 NSFW 和内容分类双审核。评估用 FigStep 这类视觉越狱基准，指标还是 ASR+FPR 双看，不能只看文本域的安全测试结果。"
+
+</details>
 
 ---
-*版本: v3.129 | 更新: 2026-08-25 | by 二狗子 🐕*
+*版本: v3.130 | 更新: 2026-09-02 | by 二狗子 🐕*
