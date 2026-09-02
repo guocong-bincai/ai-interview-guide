@@ -1953,4 +1953,719 @@ Demo：top_k 写在代码里 → 想改要改代码、发版、重启、祈祷
 
 ---
 
-*版本: v3.128 | 更新: 2026-07-02 | 补充 Go Worker Pool / LLMOps / Prompt 管理*
+
+---
+
+### Q21: 如何设计 LLM 语义缓存？相似度阈值和 TTL 怎么设置？命中率与准确率如何权衡？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q21-semantic-cache.webp" width="860" alt="语义缓存将查询向量化后在向量库中检索相似历史查询并在超过阈值时直接返回缓存结果图"></p>
+<p align="center"><sub>🧠 记忆锚点：语义缓存是问答系统最常见的成本杀手；但阈值选高了没收益、选低了好像一样答了不是答案的事——必须用抽样验证和分层策略兜底。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**语义缓存解决什么问题：**
+
+生产环境中的 LLM 请求存在大量语义重复但文本不同的查询。例如：
+- "你们公司几点上班？" → "请问营业时间是？"
+- "如何重置密码？" → "我忘记密码了怎么办？"
+- "这个功能怎么用？" → "操作指南在哪看？"
+
+一个精心设计的语义缓存可以把 50 种不同问法压缩为 1 次模型调用。
+
+**架构实现（Redis + Embedding）：**
+
+```python
+import redis
+from openai import OpenAI
+
+class SemanticCache:
+    def __init__(self, redis_client: redis.Redis, model_name: str = "text-embedding-3-small"):
+        self.redis = redis_client
+        self.client = OpenAI()
+        self.similarity_threshold = 0.93  # 可配置
+        self.ttl_seconds = 3600  # 默认 1 小时
+
+    async def get(self, query: str, tenant_id: str = None) -> str | None:
+        # 生成 query embedding
+        embedding = await self._embed(query)
+        
+        # 在 Redis BFG 或 Redis Vector Search 中搜索
+        key_prefix = f"cache:{tenant_id}:" if tenant_id else "cache:global:"
+        results = await self.redis.hscan_iter(
+            key_prefix + "vectors", 
+            match=f"{embedding[:8]}*",  # 近似匹配前缀
+            count=5
+        )
+        
+        for entry in results:
+            candidate_text, cached_response, score = self._parse_entry(entry)
+            similarity = cosine_similarity(embedding, candidate_text)
+            
+            if similarity >= self.similarity_threshold:
+                return cached_response  # 命中缓存！
+        
+        return None  # 未命中
+
+    async def put(self, query: str, response: str, tenant_id: str = None):
+        embedding = await self._embed(query)
+        key_prefix = f"cache:{tenant_id}:" if tenant_id else "cache:global:"
+        cache_key = key_prefix + "vectors"
+        response_key = key_prefix + "responses:" + embedding[:8]
+        
+        await self.redis.hset(cache_key, mapping={embedding[:8]: response})
+        await self.redis.expire(response_key, self.ttl_seconds)
+
+    async def _embed(self, text: str) -> list[float]:
+        resp = await self.client.embeddings.create(
+            input=text, model="text-embedding-3-small"
+        )
+        return resp.data[0].embedding
+```
+
+**阈值选择的黄金法则：**
+
+| 阈值 | 命中率 | 错误风险 | 适用场景 |
+|------|--------|----------|----------|
+| **0.97+** | 5-10% | 极低 | 医疗/金融等高风险领域 |
+| **0.93-0.95** | 20-35% | 低 | 大多数客服/FAQ场景 ✅ |
+| **0.88-0.91** | 40-50% | 中 | 内部知识工具需抽样监控 |
+| **< 0.85** | >50% | 高 | ❌ 不推荐，容易答非所问 |
+
+**关键洞察（面试加分项）：**
+
+> "很多人问我为什么不用 0.95 作为全局阈值。其实这是错误的——阈值应该按路由（route）差异化。比如 FAQ 问答可以放宽到 0.92，因为"忘记登录密码"和"密码登录不了"确实是同一问题；但如果是代码生成或者数据分析，必须收紧到 0.96 以上，因为一字之差可能需求完全不同。最好的做法是从严格开始，采样观察命中结果的实际正确率，数据说了算。"
+
+**TTL 策略：**
+- **短 TTL（15-30分钟）**：时效性强的内容（如股价、天气、库存），过期后答案会变
+- **中 TTL（1-4小时）**：常见问题（FAQ、产品说明），短期不变
+- **长 TTL（24小时+）**：知识库文档（API 文档、政策文件），更新频率低
+
+**多租户隔离（必考点）：**
+- 缓存 Key 包含 `Tenant_ID`，防止 A 租户的数据被 B 租户命中
+- Anthropic 在 2026 年初从组织级缓存隔离切换到了工作区级隔离
+- 向量数据库同样需要 namespace 隔离，遗漏参数会导致跨租户数据泄漏
+
+**面试话术：**
+> "我们的客服系统上线语义缓存后，LLM 调用量减少了 30%，平均响应时间从 1.67 秒降到 52 毫秒（缓存命中）。我们用 Redis BFG（Bloom Filter Guide）做近似匹配，阈值设在 0.93，每天用 RAGAS 抽查 100 个命中结果确认准确率。最关键的经验是：不同业务线的阈值要差异化设，FAQ 可以宽松些，涉及数据和代码的要严格，而且缓存 Key 一定要带租户 ID——我们见过太多团队在这里踩坑导致 A 客户的数据出现在 B 客户的回答里。"
+
+</details>
+
+### Q22: 多租户 LLM 基础设施如何做存储层隔离？有哪些典型泄漏风险和防御方案？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q22-tenant-isolation.webp" width="860" alt="多租户存储层各类型隔离策略对比表及分区加元数据过滤双重保障图"></p>
+<p align="center"><sub>🧠 记忆锚点：现代 AI 栈每一层都有各自的隔离原语，而每层都可能在编码疏忽下静默失效——隔离必须通过测试验证而非信任约定。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景（2026年大厂必考）：**
+
+多租户 LLM 产品的最大风险之一不是 Prompt Injection，而是**跨租户数据泄漏**——A 用户的文档出现在了 B 用户的回答中。这不是理论漏洞，已有真实的确认案例。
+
+**常见泄漏路径：**
+
+| 层级 | 泄漏方式 | 典型案例 |
+|------|----------|----------|
+| **Prompt Cache** | KV-Cache 跨租户复用 | Anthropic 2026年初发现组织级缓存隔离不够，改为 workspace-level |
+| **向量数据库** | 缺少 namespace 参数 | Pinecone 查询忘记传命名空间 → 扫描所有租户的数据 |
+| **业务数据库** | ACL 过期但 chunk 仍可见 | 用户失去文档权限但向量索引未删除 → 仍能检索到 |
+| **会话存储** | Redis key 不带租户ID | 直接复用缓存 → 返回其他租户的历史对话 |
+| **微调流水线** | 训练数据泄露 | 租户 B 的数据混入租户 A 的微调数据集 |
+
+**存储层隔离策略矩阵：**
+
+| 存储类型 | 隔离策略 | 安全性 | 实现复杂度 |
+|----------|----------|--------|------------|
+| **向量数据库** | Partition + Metadata Filter 双重保障 | ⭐⭐⭐⭐⭐ | 中 |
+| **业务数据库** | Row-Level Security (RLS) | ⭐⭐⭐⭐⭐ | 低（PG原生支持） |
+| **Redis 缓存** | Key 前缀隔离 `tenant_id:module:hash` | ⭐⭐⭐⭐ | 极低 |
+| **对象存储** | 目录路径隔离 `bucket/tenant_id/` + IAM | ⭐⭐⭐⭐ | 极低 |
+| **KV Cache** | Per-tenant namespace，绝不跨租户复用 | ⭐⭐⭐⭐⭐ | 高 |
+
+**向量数据库的双重保障设计（面试核心）：**
+
+```python
+# ❌ 危险：只依赖 metadata filter（应用层强制执行）
+def retrieve_documents_tenant_a(query_vector):
+    return vector_db.search(
+        vector=query_vector, 
+        top_k=5
+        # 如果漏掉以下过滤器，就会扫描所有租户！
+        # filter={"tenant_id": "A"}  
+    )
+
+# ✅ 安全：Partition 物理隔离 + Metadata Filter 逻辑兜底
+def retrieve_documents_safe(query_vector, tenant_id):
+    return vector_db.search(
+        collection=f"tenant_{tenant_id}",  # Partition 隔离
+        vector=query_vector,
+        top_k=5,
+        filter={"tenant_id": tenant_id}    # Metadata 兜底
+    )
+```
+
+**ACL 时效性问题（深度追问方向）：**
+
+> "最隐蔽的泄漏场景是 ACL（访问控制列表）过期。用户 A 本来有权限访问文档 X，后来被移除了权限。但是：1）如果向量索引没有及时清理包含 X 的 chunk，2）用户 A 仍然可以通过语义相似搜索找到并引用 X 的内容。修复方案：当用户权限变更时，不仅更新 RBAC 表，还要触发向量索引的增量清理流程，删除该用户在权限变更后新创建的 embedding。"
+
+**面试话术：**
+> "多租户隔离的核心教训是：不要信任任何一层只做约定的隔离机制。向量库用 Partition 做物理隔离、Metadata Filter 做逻辑兜底，两条线互备；缓存一律带 Tenant_ID 前缀；ACL 变更后必须同步清理向量索引；最重要的是——所有这些隔离都要写入集成测试，模拟'忘记传参数'的错误场景，确保即使开发人员犯了低级错误也不会有真实泄漏。Anthropic 在 2026 年的案例就说明一件事：没有经过实际渗透测试的隔离承诺都是纸老虎。"
+
+</details>
+
+### Q23: Agent 在生产环境中常见的内存泄漏有哪几种？如何排查和修复？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q23-agent-memory-leak.webp" width="860" alt="Agent 内存泄漏五类根因分布及排查修复流程图解"></p>
+<p align="center"><sub>🧠 记忆锚点：Agent 内存泄漏不再是经典指针问题，而是语义缓存、GPU Tensor、无界队列和 Trace Buffer 共同导致的资源累积。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 Agent 内存泄漏比传统服务更棘手？**
+
+Agent 系统在长时间运行中（尤其是持续处理多轮对话的场景）容易出现渐进式内存增长。与传统后端服务的堆溢出不同，Agent 的内存泄漏来自五个特有维度：
+
+| 类别 | 泄漏源 | 特征 | 影响速度 |
+|------|--------|------|----------|
+| **1. 长期记忆膨胀** | 对话摘要不断追加不回收 | 线性增长 | 🟡 中等 |
+| **2. 缓存无界** | 语义缓存、Embedding缓存、工具结果缓存不设上限 | 随活跃会话数暴增 | 🔴 严重 |
+| **3. 队列积压** | 异步任务消费者落后于生产者 | 内存队列中任务对象堆积 | 🔴 严重 |
+| **4. GPU Tensor 持有** | 推理时未释放梯度、计算图未关闭 | 显存持续增长 | 🔴 致命 |
+| **5. 可观测性缓冲区** | Trace/日志 Exporter 后端不可用时重试缓存 | 指标数据越攒越多 | 🟡 中等 |
+
+**各类泄漏的排查方法：**
+
+**① 长期记忆膨胀（最常见）：**
+```python
+# ❌ 问题：每次循环都在 append，永不 truncate
+memory_store = []
+for turn in conversation_loop():
+    memory_store.append(summary(turn))
+
+# ✅ 修复：滑动窗口 + 定期重新摘要
+class LongTermMemory:
+    def __init__(self, max_turns=50):
+        self.max_turns = max_turns
+    
+    def add_summary(self, summary):
+        self.store.append(summary)
+        if len(self.store) > self.max_turns:
+            self.store.pop(0)  # FIFO 淘汰
+            # 每添加 10 条做一次滚动重新摘要
+            if len(self.store) % 10 == 0:
+                self.rollup_summaries()
+```
+
+**② 缓存无界（最致命）：**
+```python
+# ❌ 问题：只检查容量，不设 TTL 和最大条目
+sem_cache = {}
+sem_cache[query_hash] = cached_response
+
+# ✅ 修复：LRU + TTL + 租户配额三重保护
+from cachetools import TTLCache
+
+sem_cache = TTLCache(maxsize=10000, ttl=3600)  # 最多 1万条，每小时过期
+
+async def semantic_cache_get(key, embedding):
+    # 1. 先查精确匹配
+    if key in sem_cache:
+        return sem_cache[key]
+    
+    # 2. 再查语义近似
+    best_match = find_similar(embedding)
+    if best_match and similarity > 0.93:
+        return sem_cache.get(best_match)
+    
+    return None
+```
+
+**③ GPU Tensor 泄漏（自部署场景重点）：**
+```python
+# ❌ 问题：Tensor 放进 Python List 且未 detach
+results = []
+for batch in batches:
+    output = model.forward(batch)
+    results.append(output)  # 带着计算图的 Tensor！显存爆炸
+
+# ✅ 修复：detach + CPU + 定期 gc
+results = []
+for batch in batches:
+    with torch.no_grad():
+        output = model.forward(batch)
+    results.append(output.detach().cpu())  # 脱离计算图 + 移到 CPU
+del output  # 释放 GPU 引用
+torch.cuda.empty_cache()  # 定期清 GPU 缓存
+```
+
+**④ 可观测性缓冲（最隐蔽）：**
+```python
+# ❌ 问题：Exporter 批量队列无硬上限
+trace_exporter.submit(trace_data)  # 无上限 → OOM
+
+# ✅ 修复：有界队列 + 背压
+from asyncio import QueueFull
+async_trace_queue = asyncio.Queue(maxsize=500)
+
+async def export_traces(trace_data):
+    try:
+        await asyncio.wait_for(async_trace_queue.put(trace_data), timeout=5)
+    except asyncio.TimeoutError:
+        log.warning("Trace queue full, dropping oldest traces")
+        if not async_trace_queue.full():
+            async_trace_queue.get_nowait()  # 丢弃最早的
+            await async_trace_queue.put(trace_data)
+```
+
+**排查工具链：**
+
+| 工具 | 用途 | 安装 |
+|------|------|------|
+| **tracemalloc** (Python内置) | 追踪内存分配热点 | 无需安装 |
+| **objgraph** | 查看对象引用关系找出循环引用 | pip install objgraph |
+| **py-spy** | 采样分析，定位 CPU/Memory 热点 | cargo install py-spy |
+| **NVIDIA-smi** | 监控 GPU 显存占用 | NVIDIA驱动自带 |
+| **Prometheus + Grafana** | 监控 RSS/memory 趋势 | 自托管 |
+
+**面试话术：**
+> "Agent 系统的内存泄漏是一个工程陷阱——你写的时候觉得正常，运行几小时后才发现内存涨到了 16GB。我排查过的主要泄漏源有三个：第一是语义缓存没有 TTL 和最大条目限制，几千个活跃会话就把缓存撑爆了；第二是 GPU 推理时忘了 detach Tensor，显存跟着请求数线性增长；第三是 Trace Exporter 在后端不可用时无限重试缓存数据。修复方案都很直接：给所有缓存设 TTL 和上限、detech 后再存结果、给导出队列加硬约束。关键是把这些写成自动化测试——启动 Agent 跑 24 小时压力测试，内存波动不能超过 10%。"
+
+</details>
+
+### Q24: 自建 LLM 推理集群 vs 云厂商托管 API，2026年企业怎么选？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q24-selfhost-vs-managed.webp" width="860" alt="自建推理集群与托管 API 在延迟隐私成本和灵活性的决策雷达图"></p>
+<p align="center"><sub>🧠 记忆锚点：不存在绝对优劣——选择取决于延迟 SLA、数据合规、模型多样性和团队工程能力四维评估。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**选型决策框架（面试高频开放题）：**
+
+这不是技术问题而是**业务判断**问题。面试官想听到你有结构化的评估方法，而不是一句 "都用自建" 或 "全用云端"。
+
+**四大评估维度：**
+
+| 维度 | 自建 (vLLM/TGI/SGLang) | 托管 API (Bedrock/Azure AI Studio) |
+|------|------------------------|-----------------------------------|
+| **延迟 SLA** | P99 < 1s（可控） | P99 受厂商负载影响（~500ms-3s波动） |
+| **数据合规** | 数据不出内网 ✅ | 数据发到云端，需审核合规要求 |
+| **模型多样性** | 任意开源模型自由切换 | 受限厂商提供的模型列表 |
+| **工程投入** | 需要 GPU运维团队（成本高） | 零运维（开箱即用） |
+
+**成本模型对比（以 GPT-4o 级别模型为例）：**
+
+| 月请求量 | 托管 API 月费用 | 自建 1xA100 月费用 | 差价 |
+|----------|---------------|-------------------|------|
+| **10万次/月** | ~$8,000 | ~$3,000（GPU租金） | 托管贵 |
+| **100万次/月** | ~$80,000 | ~$6,000（2xA100 + LMCache） | 自建省 92% |
+| **1000万次/月** | ~$800,000 | ~$15,000（弹性扩展） | 自建省 98% |
+
+*注意：自建费用还需加 DevOps 人力成本（约 $5K/月）*
+
+**混合架构（2026年主流方案）：**
+
+```
+┌───────────────────────────────────────────────┐
+│              生产 LLM 服务混合架构               │
+│                                               │
+│  简单/低频 → 托管 API（GPT-4o/Claude）         │
+│  ↓                                          │
+│  复杂/高频 → 自建推理集群（vLLM + LMCache）     │
+│  ↓                                          │
+│  紧急兜底 → 二级托管回退                       │
+│                                               │
+│  优势：                                        │
+│  • 成本最优（高频走自建，低频用托管）           │
+│  • 容灾（自建挂了还能切托管）                   │
+│  • 合规（敏感数据走本地，通用数据走云端）        │
+└───────────────────────────────────────────────┘
+```
+
+**关键考量因素清单（面试 checklist）：**
+
+```python
+class DeploymentDecisionMatrix:
+    """决策矩阵：打分制决定是否自建"""
+    
+    def evaluate(self, requirements: dict) -> str:
+        scores = {
+            "self_hosted": 0,
+            "managed_api": 0,
+        }
+        
+        # 延迟要求 P99 < 500ms → 必须自建
+        if requirements["latency_p99_ms"] < 500:
+            scores["self_hosted"] += 3
+            
+        # 数据不出内网 → 必须自建
+        if requirements["data_intranet"]:
+            scores["self_hosted"] += 2
+            
+        # 月请求量 > 50万 → 自建更划算
+        if requirements["monthly_requests"] > 500_000:
+            scores["self_hosted"] += 2
+            
+        # 需要多种开源模型 → 自建
+        if requirements["multiple_models"]:
+            scores["self_hosted"] += 1
+            
+        # 无 GPU运维经验 → 倾向托管
+        if not requirements["has_gpu_ops_team"]:
+            scores["managed_api"] += 2
+            
+        # MVP阶段 → 托管快速验证
+        if requirements["phase"] == "mvp":
+            scores["managed_api"] += 1
+            
+        if scores["self_hosted"] > scores["managed_api"]:
+            return "建议自建推理集群"
+        elif scores["managed_api"] > scores["self_hosted"]:
+            return "建议托管 API"
+        else:
+            return "建议混合架构"
+```
+
+**面试话术：**
+> "我的判断标准是按规模阶梯来：MVP 和早期产品阶段一律用托管 API，快速验证商业模式，不需要花精力配 GPU 集群；当 qPS 稳定在百级、月请求过百万、且有明确数据合规要求时才考虑自建。自建的 ROI 拐点大约在每月 50-100 万次请求——在此之前托管 API 省钱省力，之后自建能省 90% 以上的 Token 成本。2026 年最佳实践是混合架构：核心推理走自建 vLLM 集群配合 LMCache 做 KV 缓存共享，边缘和非核心场景走托管 API 兜底。面试时如果能讲清楚这个决策过程和拐点计算，说明你有真正的生产视野。"
+
+</details>
+
+### Q25: LLM 应用的成本治理怎么做？除了 Token 计量还需要哪些成本控制手段？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q25-cost-governance.webp" width="860" alt="LLM 成本治理分层看板与异常检测告警链路图"></p>
+<p align="center"><sub>🧠 记忆锚点：成本治理不只是记账，它是定价策略、动态路由、上下文预算管理和异常检测的组合拳。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么只有 Token 计量是不够的？**
+
+Token 计数是最基础的，但好的成本治理是一个多层次体系：
+
+| 层级 | 手段 | 节省效果 |
+|------|------|----------|
+| **1. 计量归因** | 按用户/租户/模块/渠道拆分成本账单 | 发现谁在用最多的钱 |
+| **2. 动态路由** | 根据任务复杂度自动选择模型 | 30-60% 成本下降 |
+| **3. 上下文预算** | 每个请求设定 Token 上限，超限截断 | 防止超长 Prompt 烧钱 |
+| **4. 缓存利用** | 语义缓存减少重复调用 | 20-40% 调用量下降 |
+| **5. Prompt 压缩** | LLMLingua 压缩冗余 Prompt | 10-90% 输入 Token 下降 |
+| **6. 异常检测** | 自动识别消耗异常的请求模式 | 防止脚本攻击/Prompt 泄露 |
+
+**异常检测实战（防止单次请求烧千刀）：**
+
+```python
+class CostGuardian:
+    """成本守护：实时监控 + 自动拦截"""
+    
+    def __init__(self):
+        self.user_daily_budget = {}  # user_id -> 月度限额
+        self.request_cost_tracker = {}  # request_id -> 累计成本
+    
+    def pre_check(self, user_id: str, prompt_tokens: int, model: str) -> bool:
+        """请求前检查：预算 + 异常"""
+        
+        # 1. 检查用户月度预算
+        monthly_usage = self.get_user_monthly_usage(user_id)
+        if monthly_usage > self.user_daily_budget.get(user_id, float('inf')):
+            return False  # 已超预算
+        
+        # 2. 单次请求 token 异常检测
+        if prompt_tokens > 50_000:  # 单次 > 50K token 可疑
+            logger.warning(f"Large prompt detected from {user_id}: {prompt_tokens} tokens")
+            return False  # 拒绝超大请求
+        
+        # 3. 高频请求检测（防脚本）
+        recent_count = self.get_recent_request_count(user_id, window_minutes=5)
+        if recent_count > 100:  # 5分钟内 > 100 次请求
+            return False  # 疑似脚本攻击
+        
+        return True  # 通过检查
+
+    def detect_anomaly(self) -> list[dict]:
+        """实时异常检测"""
+        anomalies = []
+        
+        # 检测某模块成本突然飙升
+        current_costs = self.get_hourly_cost_by_module()
+        for module, cost in current_costs.items():
+            baseline = self.get_baseline_cost(module)
+            if cost > baseline * 3:  # 超过基线 3 倍
+                anomalies.append({
+                    "type": "cost_spike",
+                    "module": module,
+                    "current": cost,
+                    "baseline": baseline,
+                    "multiplier": cost / baseline
+                })
+        
+        return anomalies
+```
+
+**成本优化优先级（面试路线图）：**
+
+```
+第一步：先把账算清楚（一周内）
+  ├─ 接入 LiteLLM Gateway 或自建计量
+  └─ 按用户/模块/渠道出月度报表
+
+第二步：堵住明显浪费（一个月内）
+  ├─ 语义缓存上线（通常省 20-40%）
+  ├─ 动态模型路由上线（通常省 30-60%）
+  └─ 异常检测上线（防止单次请求烧几千美元）
+
+第三步：精细化优化（三个月内）
+  ├─ Prompt 压缩（LLMLingua）
+  ├─ KV Cache 共享（LMCache）
+  ├─ 量化部署（INT4/INT8）降低单请求成本
+  └─ 定时关停机：闲时自动缩容
+```
+
+**真实案例数据：**
+
+某电商智能客服系统的成本优化历程：
+
+| 阶段 | 优化措施 | 月成本 | 降幅 |
+|------|----------|--------|------|
+| 初始状态 | 全部用 GPT-4o，无缓存 | $45,000 | — |
+| 第1步 | 动态路由（简单问题→GPT-4o-mini） | $28,000 | 38% |
+| 第2步 | 语义缓存上线 | $16,000 | 64% |
+| 第3步 | Prompt 压缩 + 监控告警 | $11,000 | 76% |
+| 最终 | 综合优化 + 闲时缩容 | $8,500 | 81% |
+
+**面试话术：**
+> "成本治理的第一原则是'先止血再减肥'——先把异常检测做好，防止某个 bug 让单次请求消耗几千刀，然后再谈优化。我的经验是按三步走：第一步把账算清楚，第二步上缓存和路由堵住浪费，第三步做 Prompt 压缩和量化精修。我们最终把月成本从 $45K 砍到 $8.5K，降幅 81%，而且用户满意度没有下降。关键指标不只是'Token花了多少钱'，更要看'每笔业务收入的 AI 成本占比'——这个比值下降了才证明优化有效。"
+
+</details>
+
+### Q26: 如何设计面向大模型的 GenAI Observability（可观测性）系统？OpenTelemetry 怎么处理？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q26-genai-observability.webp" width="860" alt="GenAI 可观测性从 OTel SDK 采集 Span 经 Trace 关联到聚合展示的全链路图"></p>
+<p align="center"><sub>🧠 记忆锚点：GenAI 的可观测性不是加几个计数器那么简单，而是要把检索、模型调用、工具执行串联成一个完整的语义级 Trace。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**传统可观测性 vs GenAI 可观测性的区别：**
+
+传统 APM（Application Performance Monitoring）关注 HTTP 延迟、数据库查询数和 JVM GC 时间。但 GenAI 应用引入了新的可观测维度：
+
+| 维度 | 传统 APM | GenAI APM |
+|------|---------|-----------|
+| **Trace 粒度** | 单个 HTTP 请求 | Prompt→Retrieval→Generation→Tool Call 完整语义链 |
+| **关键指标** | 延迟、QPS、错误率 | TTFT、幻觉率、引用一致性、Token 消耗 |
+| **调试能力** | 堆栈追踪 | Prompt 版本 + 检索片段 + 模型输出的端到端可复现 |
+| **评估集成** | 无 | 自动 RAGAS 评估 + LLM-as-Judge |
+
+**OpenTelemetry GenAI 规范核心属性：**
+
+```python
+from opentelemetry.semconv.ai import SpanAttributes, Event
+
+# ===== 模型请求 Span =====
+span.set_attribute(SpanAttributes.LLM_SYSTEM, "OpenAI")
+span.set_attribute(SpanAttributes.LLM_REQUEST_MODEL, "gpt-4o")
+span.set_attribute(SpanAttributes.LLM_REQUEST_MAX_TOKENS, 2048)
+span.set_attribute(SpanAttributes.LLM_REQUEST_TEMPERATURE, 0.7)
+
+# Prompt 记录（脱敏后）
+span.set_attribute(SpanAttributes.LLM_REQUEST_PROMPT, "[redacted]")
+span.set_attribute(SpanAttributes.LLM_RESPONSE_FINISH_REASON, "stop")
+
+# Token 用量
+span.set_attribute(SpanAttributes.LLM_USAGE_PROMPT_TOKENS, 1500)
+span.set_attribute(SpanAttributes.LLM_USAGE_COMPLETION_TOKENS, 320)
+span.set_attribute(SpanAttributes.LLM_USAGE_TOTAL_TOKENS, 1820)
+
+# ===== 检索事件 =====
+retrieval_event = Event(
+    name="retrieval",
+    attributes={
+        SpanAttributes.LLM_RETRIEVAL_DOCUMENTS_COUNT: 5,
+        SpanAttributes.LLM_RETRIEVAL_METRIC: "cosine",
+    },
+    events=[
+        {"document_id": "doc_123", "score": 0.87},
+        {"document_id": "doc_456", "score": 0.82},
+    ]
+)
+
+# ===== 工具调用事件 =====
+tool_event = Event(
+    name="tool_call",
+    attributes={
+        SpanAttributes.LLM_REQUEST_TOOL_NAME: "search_docs",
+        SpanAttributes.LLM_REQUEST_TOOL_ARGS: '{"query": "退款政策"}',
+    }
+)
+```
+
+**RAG Trace 可视化示例（Langfuse/LangSmith 风格）：**
+
+```
+Request ID: req_abc123          User: alice@example.com
+Model: gpt-4o                   Latency: 2.3s
+Tokens: 1500 in + 320 out = 1820 total
+Trust Score: 0.89 (faithfulness)
+
+├─ [0.0s] Intent Classification (BERT) — 12ms
+│   └─ 意图: 产品咨询 → 子类别: 退款政策
+│
+├─ [0.01s] Retrieval (Vector DB + Keyword) — 45ms
+│   ├─ doc_123 (cosine=0.87) ← 召回
+│   ├─ doc_456 (cosine=0.82) ← 召回
+│   └─ doc_789 (cosine=0.78) ← 召回
+│
+├─ [0.06s] Reranker (Cross-Encoder) — 120ms
+│   ├─ doc_123 rank=1 (rerank_score=0.92)
+│   └─ doc_456 rank=2 (rerank_score=0.85)
+│
+├─ [0.18s] LLM Generation (gpt-4o) — 1800ms
+│   ├─ TTFT: 180ms ← 首字延迟
+│   ├─ TPOT: 45 tokens/s ← 输出速度
+│   └─ Finish reason: stop
+│
+└─ [2.18s] Post-process (Citation Check) — 5ms
+    └─ 引用验证: ✓ 2/2 引用的原文一致
+```
+
+**生产级 Observability 栈推荐：**
+
+| 组件 | 推荐工具 | 理由 |
+|------|----------|------|
+| **数据采集** | OpenTelemetry SDK | 行业标准，统一格式 |
+| **Trace 存储** | Langfuse（开源自托管）/ LangSmith（SaaS） | 专为 LLM 设计，支持 Prompt 版本和评测集成 |
+| **指标** | Prometheus + Grafana | 延迟、TPM、成本等传统指标 |
+| **日志** | ELK / Loki | 结构化日志便于检索 |
+| **质量评估** | RAGAS / DeepEval | 自动化采样评估 Faithfulness/Relevance |
+| **告警** | PagerDuty / Webhook | 低 Faithfulness 或成本突增时通知 |
+
+**面试话术：**
+> "GenAI 的可观测性是区别于传统 APM 的核心能力。我用三层架构：第一层是 OpenTelemetry 采集所有请求的 Span 和事件，把 Prompt 版本、Token 用量、工具调用都关联起来；第二层用 Langfuse 做 Trace 存储和可视化，可以看到一次请求从检索到生成的完整链路和每步耗时；第三层用 RAGAS 做自动质量评估，每天采样 5% 的请求计算 Faithfulness 和幻觉率。最关键的 insight 是：有了完整的 Trace，当用户投诉回答不准确时，你可以一眼看到是哪一步出了问题——是检索没召回好，还是模型理解错了，还是 Prompt 本身有问题。这才是真正的好用。"
+
+</details>
+
+### Q27: 如何设计 LLM 应用的容量规划和弹性伸缩策略？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q27-capacity-planning.webp" width="860" alt="容量规划从峰值预测到 Pod 公式再到 HPA 触发条件和时间预留的流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：容量规划的核心是把不确定性的 LLM 响应拆解为可计算的等待时间和可用产能，再用 HPA 做弹性兜底。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 LLM 服务的容量规划比普通 Web 服务更难？**
+
+普通服务的请求处理时间在毫秒级，可以用简单的排队论（Little's Law）估算。但 LLM 请求的响应时间通常在 500ms-10s 之间，P99 甚至到 30s，这使得：
+
+1. **并发连接数远大于 QPS**：100 QPS × 平均 5s 响应 = 同时有 500 个连接在处理
+2. **TTFT 比总延迟更重要**：用户感知的是"等了多久看到第一个字"，不是"整个回答完了没有"
+3. **Streaming 改变了容量模型**：流式响应允许服务器边生成边发送，降低了同时持有的内存
+
+**容量计算公式：**
+
+```
+所需 Pod 数 = ceil(峰值 QPS × 平均响应时间(s) / 0.7)
+
+其中 0.7 是安全系数，留 30% 余量应对突发流量。
+
+示例：
+- 预估峰值 QPS = 50
+- 平均响应时间 = 3s
+- 每个 Pod 理论上限 = 50 pods（50 QPS × 3s）
+- 实际需要 = ceil(150 / 0.7) = 215 Pods（按单实例 1 Pod 计）
+```
+
+**HPA（Horizontal Pod Autoscaler）触发策略：**
+
+| 指标 | 触发条件 | 动作 |
+|------|----------|------|
+| **CPU 使用率** | > 70% | Scale Up |
+| **内存使用率** | > 75% | Scale Up |
+| **自定义指标 QPS** | 当前 QPS > 目标 QPS × 0.8 | Scale Up |
+| **自定义指标排队长度** | 待处理请求 > 阈值 | Scale Up |
+| **Cooldown 冷却期** | Scale Up 后 5 分钟内不再扩 | 避免震荡 |
+
+**混合伸缩策略（最佳实践）：**
+
+```yaml
+# Kubernetes HPA 配置示例
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: llm-service-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llm-service
+  minReplicas: 3      # 始终保活的最小副本（保证基础服务能力）
+  maxReplicas: 50     # 上限防止无限扩
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: llm_requests_pending  # 自定义指标：排队中的请求数
+        target:
+          type: AverageValue
+          averageValue: 5
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          utilizationPercentage: 75
+  scaleUp:
+    stabilizationWindowSeconds: 60   # 冷却期 60s
+    policies:
+      - type: Pods
+        value: 5                      # 每次最多扩 5 个 Pod
+        periodSeconds: 60
+  scaleDown:
+    stabilizationWindowSeconds: 300  # 缩容更慢（5分钟），防止频繁抖动
+    policies:
+      - type: Pods
+        value: 2                      # 每次最多缩 2 个 Pod
+        periodSeconds: 120
+```
+
+**峰谷预判 + 定时扩容（应对已知高峰）：**
+
+```yaml
+# CronJob 预扩容（例如每天早 9 点提前扩容迎接高峰期）
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: llm-scaleup-before-rush
+spec:
+  schedule: "0 1 * * *"  # 每天凌晨 1 点
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: scaleup
+            image: bitnami/kubectl
+            command:
+            - kubectl
+            - scale
+            - deployment/llm-service
+            - "--replicas=10"  # 提前扩容到 10 副本
+```
+
+**容量规划 checklist（面试必备）：**
+
+```
+□ 日均请求量、峰值 QPS、P99 延迟的估算
+□ 单 Pod 的吞吐量和同时并发连接数测算
+□ HPA 配置：最小/最大副本、触发指标、冷却窗口
+□ 冷启动时间评估（Pod 启动到就绪需要多久？）
+□ 降级策略：扩容来不及时的限流和拒绝策略
+□ 成本上限：maxReplicas × 单价 × 时间的月预算
+```
+
+**面试话术：**
+> "LLM 容量规划的关键是区分两个时间维度：TTFT（首字延迟）影响用户体验但不占满整个请求的生命周期，TPOT（token生成速率）决定了总延迟。我的做法是先算清楚单机能扛多少并发——假设单 Pod 内存够持 100 个并发连接，然后按峰值 QPS 算最少需要几个 Pod 保底。然后用 HPA 做弹性，P99 排队超阈值就扩，5 分钟没人就缩。最重要的不是算得精确，而是预留足够的余量——LLM 的 P99 延迟变异性太大了，宁可多留 30% 的 Pod，不要等线上崩了才临时扩。"
+
+</details>
+*版本: v3.135 | 更新: 2026-09-03 | 补充语义缓存、多租户隔离、Agent 内存泄漏、自建 vs 托管、成本治理、GenAI 可观测性、容量规划*
