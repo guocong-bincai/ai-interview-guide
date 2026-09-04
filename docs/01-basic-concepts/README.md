@@ -533,7 +533,7 @@ print(tokens)  # ['▁GPT', '使用', 'Sen', 'tence', 'Piece', '分词']
 
 # 解码
 text = sp.decode(tokens)
-print(text)  # '你好世界' (完美还原)
+print(text)  # 'GPT使用SentencePiece分词' (完美还原)
 ```
 
 **优势:**
