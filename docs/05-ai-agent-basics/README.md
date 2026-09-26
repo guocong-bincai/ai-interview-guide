@@ -3048,6 +3048,8 @@ Claude Opus 4.6在SWE-bench Verified上达到**80.8%**，OSWorld（Computer Use�
 
 ---
 
+</details>
+
 ## 2026 年 Agent 岗位分化与面试趋势
 
 <details>
