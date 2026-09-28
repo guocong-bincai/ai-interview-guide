@@ -13,6 +13,7 @@
 3. [BERT与GPT](#三bert与gpt)
 4. [优化技巧](#四优化技巧)
 5. [速记卡片](#五速记卡片)
+6. [推理优化：Speculative Decoding & KV Cache Eviction](#六推理优化speculative-decoding--kv-cache-eviction)
 
 ## 一、Transformer基础
 
@@ -2056,8 +2057,8 @@ MLA 缺点:
 
 | 日期 | 版本 | 更新内容 |
 |------|------|----------|
+| 2026-09-29 | v3.137 | 新增 Q27-Q31（Speculative Decoding原理与工程实践、Attention Sink现象与缓解、FlashAttention-3异步并行与低精度、Linear Attention线性注意力原理、Self-Attention与FFN计算量对比分析）5 道 |
 | 2026-08-21 | v3.136 | 新增 Q20-Q26（Scaling Laws&Chinchilla、Tokenization/BPE、ALiBi详解、Sliding Window Attention、Causal Decoder-Only主导原因、LayerNorm vs RMSNorm、训练Loss Curve诊断）7 道 |
-| 2026-08-14 | v3.135 | 新增 Q15-Q19（FlashAttention、MoE稀疏架构、PagedAttention/KV Cache管理、SwiGLU门控机制、MLA低秩注意力）5 道 |
 | 2026-04-13 | 新增 Q10 Transformer+SSM混合架构（Mamba核心原理、2026年主流模型混合策略） |
 | 2026-03-05 | 新增 Transformer 架构与注意力机制面试题 7 道 |
 
@@ -2365,6 +2366,488 @@ Step 10K~数十万步，Loss缓慢阶梯状下降。学语法结构和常见短�
 
 ---
 
+### Q27: Speculative Decoding（投机解码）是什么？如何实现 2-3x 推理加速？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q27-speculative-decoding.webp" alt="投机解码动漫知识图：小模型快速草稿多步、大模型批量验证，接受则跳过、拒绝则回退，单token生成效率显著提升"></a></p>
+<p align="center"><sub>🧠 图解记忆：小模型跑得快但不准，大模型跑得慢但权威——两者合作让大模型一次验多个候选。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心思想：用小模型生成多个候选 token，用大模型一次验证**
+
+**传统自回归生成的瓶颈：**
+```
+每个 token 需要完整 forward pass：
+Step 1: prompt → predict token₁ （耗时 t）
+Step 2: prompt + token₁ → predict token₂ （耗时 t）
+Step 3: prompt + token₁ + token₂ → predict token₃ （耗时 t）
+...
+总计 n 个 token = n × t
+```
+
+**Speculative Decoding 思路：**
+```
+假设有一个更快的 draft model（如 LoRA adapter、蒸馏小模型）：
+
+Step 1: prompt → draft model 快速生成 k 个候选: [t₁, t₂, ..., tₖ]  （耗时 ~k×t_small ≈ t）
+Step 2: target model 一次性验证这 k 个候选（前向传播）
+         同时验证 prompt（prefill 阶段合并完成）
+Step 3: 从第 1 个不匹配的 token 开始回退
+         匹配了 m 个（m ≤ k），然后 target model 重新预测第 m+1 个 token
+
+结果：一次 target forward 产出了 (m+1) 个 token
+其中 m 个直接采纳（无需额外计算），最后 1 个是正式预测
+```
+
+**数学保证：输出分布完全等价于 vanilla decoding**
+```
+验证过程：
+1. draft 给出候选: x̂₁, x̂₂, ..., x̂ₖ
+2. target 模型对位置 i 的概率为 P_target(xᵢ | x<ᵢ)
+3. 检查是否接受 x̂ᵢ:
+   - 以概率 min(1, P_target(x̂ᵢ) / P_draft(x̂ᵢ)) 接受
+   - 如果拒绝，从 target 采样替换
+   - 一旦遇到第一个拒绝的 token，从该位置重新开始
+4. 全部通过后继续下一步
+
+关键：这个 acceptance-rejection 机制保证了最终输出的概率分布
+      与直接用 target model 自回归生成的分布完全一致。
+→ 零精度损失！
+```
+
+**实际加速比估算：**
+```
+加速比 ≈ 1 / (1 - α + α/k)
+
+α = 接受率（通常 60%-80%）
+k = 草稿长度（通常 4-8）
+
+例如 α=70%, k=4:
+加速比 ≈ 1 / (0.3 + 0.7/4) = 1/0.475 ≈ 2.1x
+
+实际经验值：
+- Draft model 越小越快，但 α 越低
+- k 越大理论加速越高，但长草稿更容易中途拒绝
+- 最优 k ≈ 4-8 是工业界共识
+```
+
+**Draft Model 来源：**
+```
+方案              | 说明                     | 优缺点
+-------------------|-------------------------|-------
+同架构缩小版       | LLaMA-8B→LLaMA-8M 蒸馏  | 速度快，质量稳定，需微调
+LoRA Adapter       | 在大模型上加个小adapter  | 共享大部分权重，显存开销小
+自身小层           | 取 target 模型的浅层     | 零额外成本，适合分层模型
+外部轻量模型       | 独立训练的小模型          | 灵活，但需要额外显存
+```
+
+**工程实现要点：**
+```
+vLLM + speculative decoding:
+- 修改 paged attention kernel 支持多 speculative heads
+- 预填阶段将 prompt + draft tokens 一起 encode
+- 验证时复用 KV cache，避免重复计算历史 token
+- 通过 TMA 自动调度数据搬运（Hopper TMA）
+
+关键优化：
+1. Batch multiple spec steps: 将多次 speculation 合并为一个 GPU kernel
+2. Continuous batching: 不同 sequence 在 verification stage 之间 interleaving
+3. Early exit: 如果 draft match 长度短于阈值，提前放弃当前 speculation
+```
+
+**面试话术：**
+``">投机解码的核心是用小模型快速草稿、大模型批量验证。它的最大亮点是在数学上严格等价于 vanilla decoding——零精度损失。一个 70% 接受率的 draft model 配合 k=4 的草稿长度，可以带来约 2x 的推理加速。工业界主流方案是同架构 LoRA adapter 或蒸馏小模型。关键在于 draft 和 target 的匹配度——太相似的话 draft 没帮助，差异太大则接受率低。"
+```
+
+⭐ **面试加分项：**
+- 能推导 acceptance-rejection 概率公式并证明分布等价性
+- 理解 k 和 α 的关系以及最优 k≈4-8 的经验依据
+- 知道 vLLM 如何通过修改 paged attention kernel 来支持 speculate
+- 了解 early-exit 策略和 continuous batching 对吞吐量的进一步增益
+
+</details>
+
+---
+
+### Q28: Attention Sink（注意力坍缩）是什么？为什么 Gated Attention 能缓解它？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q28-attention-sink.webp" alt="注意力坍缩动漫知识图：长序列中早期 token 吸引过量注意力权重导致信息稀释，门控注意力动态调节注意力分布改善长程记忆保留"></a></p>
+<p align="center"><sub>🧠 图解记忆：长对话里前面的话像在引力井一样吞噬所有注意力，后面的人说了什么都听不见。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Attention Sink = 随着序列增长，新 token 的注意力权重逐渐集中在少数早期 token 上的现象**
+
+**观察到的事实：**
+```
+实验发现（Xiong et al., 2023）：
+当生成长文本时，Decoder 中新 token 的注意力几乎全部集中在开头的几个 token（特别是 [BOS] 标记）
+
+例如在一个 32K 上下文的对话中：
+新生成 token 对位置 [0,1,2,...,10] 的注意力总和 > 70%
+而位置 [1000,2000,3000] 等中间区域的注意力接近 0
+
+这意味着：即使模型能看到完整的上下文，它实际上只关注开头部分！
+```
+
+**为什么会出现 Attention Sink？**
+
+```python
+# Self-Attention 注意力分数计算
+scores = Q @ K^T / sqrt(d_k)
+scores_softmax = softmax(scores)
+
+# 问题链条：
+# 1. Softmax 总是产生正数分布（总和=1）
+# 2. 当序列很长时，新的 Q 向量与大量旧 K 的点积会产生很多小的负值
+# 3. 这些极小的负值经过 softmax 后趋向于均匀分布 → 数值不稳定
+# 4. 为解决此问题，早期位置的绝对值较小 → softmax 中相对更突出
+# 5. 最终新 token 过度关注开头
+```
+
+**根本原因：**
+- **Softmax 的数值稳定性需求**：如果所有 score 都是大负数，softmax 会趋向均匀分布，梯度消失
+- **位置编码的影响**：某些位置编码方式使得早期 token 更容易被注意到
+- **因果掩码的特殊结构**：decoder 只能看到之前的 token，边界效应放大了开头的权重
+
+**解决方案：Gated Attention（Yi et al., 2024）**
+```
+原始 Transformer:
+    attn_weights = softmax(QK^T / sqrt(d_k))
+    output = attn_weights @ V
+
+Gated Attention (Simplified):
+    attn_weights_raw = softmax(QK^T / sqrt(d_k))
+    gated_attn = attn_weights_raw * gate  # gate ∈ [0, 1]
+    
+    # key 的变化：不是直接加到 hidden state
+    key_transformed = layer_norm(hidden_state)
+    output = gated_attn @ V + linear_projection(key_transformed)
+    
+    # 核心：引入了一个可学习的门控参数 + 残差路径
+    # 让模型可以选择性地忽略 attention sink
+```
+
+**其他缓解方案：**
+
+| 方案 | 原理 | 效果 | 缺点 |
+|------|------|------|------|
+| **Gated Attention** | 引入可学习门控 + 残差投影 | ✅ 显著改善长文保留 | 需要重新训练 |
+| **Key-only Normalization** | 对 Key 做归一化，避免点积过大 | ✅ 简单有效 | 影响有限 |
+| **Recurrence / State Compression** | RNN式状态传递（如 Mamba） | ✅ 从根本上避免平方复杂度 | 表达能力受限 |
+| **Chunk-based Attention** | 分块处理，chunk间通过特殊token传递摘要 | ✅ 控制局部注意力范围 | 实现复杂 |
+| **Attention ReLU / LeakyReLU** | 不用Softmax，用ReLU变体 | ⚠️ 有理论争议 | 效果不稳定 |
+
+**实际应用中的建议：**
+```
+1. 如果上下文长度 < 8K：attention sink 影响不大，不需要特别处理
+2. 8K < 上下文 < 32K：考虑 sliding window 或 chunked attention
+3. 上下文 > 32K：必须使用长序列优化的架构（Gemma2滑动窗口、Mistral3交错SW）
+4. 生产环境：结合 KV cache eviction 策略（见下方KV Cache Eviction相关题目）
+```
+
+**面试话术：**
+``"> Attention Sink 是一个反直觉的现象——理论上模型能看到全部上下文，但实际注意力集中在开头。根本原因是 Softmax 在长序列下趋于均匀分布，导致早期 token 相对突出。Gated Attention 通过引入可学习门控和残差路径，让模型有能力调整这种偏置。在生产环境中，对于长上下文应用需要特别关注这个问题。\"
+```
+
+⭐ **面试加分项：**
+- 能从数学角度解释为什么 Softmax 会导致注意力集中
+- 区分 Attention Sink 和其他类似现象（如 Attention Dilution、位置衰减）
+- 能说清 Gate 的具体形式和在模型中的位置
+- 知道 Gemma2/Mistral3 等模型如何处理长序列注意力分配
+
+</details>
+
+---
+
+### Q29: FlashAttention-3 相比 FA2 新增了哪些关键技术？为什么依赖 Hopper 硬件？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**FA3 的核心进步：利用 NVIDIA Hopper (H100) 的新硬件特性实现更高的利用率**
+
+**FA2 在 Hopper 上的瓶颈：**
+```
+FA2 虽然降低了内存访问，但在 H100 上只有 ~35% 的 Tensor Core 利用率
+原因：FA2 仍按 CUDA warp/block 组织，没有利用 Hopper 特有的异步能力
+→ 算法与硬件不匹配，GPU 算力浪费严重
+```
+
+**FA3 三大技术创新：**
+
+**1. Asynchronous Block-Matrix Multiplication（异步分块矩阵乘法）**
+```
+Hopper 的 TMA（Tensor Memory Accelerator）可以：
+  - 在 Tensor Core 计算的同时，后台自动搬运下一批数据
+  - 消除「计算等待数据传输」的空闲时间
+
+传统 GPU：
+  [加载数据][计算][加载数据][计算]...
+  ←--- idle ---→
+
+FA3 + TMA：
+  [加载][计算←加载下一批][计算←再下一批]...
+          ↑
+      重叠执行，消除空闲
+```
+
+**2. Warp-Scheduler Level Asynchrony（Warp级异步调度）**
+```
+FA3 进一步将异步粒度细化到 warp（32 threads）级别：
+  - 不同的 warp 负责不同的 tile 计算
+  - 当一个 warp 在计算时，另一个 warp 在预加载
+  - 利用 SM 内的 thread block cluster 机制
+
+Thread hierarchy (细到粗):
+  Thread → Warp (32线程) → Warpgroup (4 warps) → Threadblock (CTA) → Cluster → Grid
+
+FA3 的关键：在 warpgroup 层面协调计算和数据预取
+```
+
+**3. Low-Precision Computation（低精度运算）**
+```
+FA3 允许在保持精度的前提下使用 FP8 / INT8：
+  - Attention 计算的核心步骤可以使用半精度甚至更低精度
+  - 通过 careful numerical design 保持数值稳定
+  - FP8 在 Hopper 上有原生硬件支持（FP8 Tensor Cores）
+
+精度选择建议：
+  - Training: FP16/TF32（最安全）
+  - Inference: FP8/INT8（Hopper 专属加速，速度提升 2x+）
+  - CPU/RAM inference: BF16（兼容性好）
+```
+
+**FA1 → FA2 → FA3 演进总结：**
+
+| 特性 | FA1 | FA2 | FA3 |
+|------|-----|-----|-----|
+| **核心技术** | IO-aware tiling | Persistent kernel | Asynchrony + TMA + Low-precision |
+| **GPU适配** | 通用 | A100/H100 | Hopper 专属深度优化 |
+| **SRAM重用** | ✅ | ✅✅ | ✅✅✅（异步重叠） |
+| **数值精度** | FP16/FP32 | FP16/FP32 | FP8/INT8 支持 |
+| **吞吐量(H100)** | ~1x | ~1.35x | ~2x+ |
+| **适用场景** | 通用训练/推理 | 高效训练/推理 | Hopper 全栈加速 |
+
+**工程部署注意事项：**
+```
+FA3 只在 Hopper (H100/H200) 上才能真正发挥优势
+Ampere (A100/A800): 用 FA2 即可
+Tesla (V100): 不建议用 FlashAttention
+
+框架集成：
+  - PyTorch >= 2.2 内置 FA3
+  - vLLM >= 0.5.0 支持 FA3 (需 H100)
+  - HuggingFace Transformers 自动调用合适版本
+  - DeepSpeed 也集成了 FA3
+
+代码透明：开发者只需确保安装最新版库，无需改业务代码
+```
+
+**面试话术：**
+``"> FA3 的关键进步是利用了 Hopper 架构的异步硬件——TMA 在计算时自动预取数据，消除了 GPU 空闲等待；warp 级异步调度让多个计算单元并行工作；加上 FP8 低精度支持，H100 上能达到两倍以上吞吐量。但它只在 Hopper 上有价值，A100 用户用 FA2 就够了。FA3 的最大意义在于证明了'算法设计必须紧跟硬件演进'这一道理。\"
+```
+
+⭐ **面试加分项：**
+- 画出 TMA 如何实现计算与数据传输重叠的示意图
+- 理解 warp scheduler level asynchrony 的意义
+- 能说清 FA3 各代之间的核心改进差异
+- 了解什么时候用 FP8 而不是 FP16
+
+</details>
+
+---
+
+### Q30: Linear Attention（线性注意力）是什么？它与标准 Self-Attention 的本质区别？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Linear Attention = 将标准 Attention 的 O(n²) 复杂度降到 O(n) 的计算范式**
+
+**标准 Attention 的复杂度瓶颈：**
+```
+Attention(Q,K,V) = softmax(QK^T) V
+
+矩阵尺寸：Q(n×d), K(n×d), V(n×d)
+  QK^T → (n×d)(d×n) = (n×n)  ← O(n²d)，这是平方复杂度之源
+  softmax(...) → (n×n)
+  @V → (n×n)(n×d) = (n×d)
+
+总计算量：O(n²d)，显存 O(n²)
+```
+
+**Rewrite Attention 的核心思想：交换乘法顺序**
+```
+标准公式：softmax(QK^T)V
+展开写：Σ_j softmax(q_i·k_j) · v_j
+
+Rewrite 观察：
+  Σ_j softmax(q_i·k_j) · v_j = softmax(q_i) · Σ_j exp(k_j) · v_j  ← 近似!
+
+如果把 softmax 去掉或用近似：
+  Σ_j (q_i · k_j) · v_j = q_i · Σ_j (k_j · v_j)  ← O(nd)！
+
+关键是先把 K 和 V 的乘积累加起来，再用 Q 去点乘这个累加结果
+→ 把两个长度为 n 的求和变成了一次聚合
+```
+
+**经典实现 Linformer（2021）：**
+```
+核心思路：降低 K/V 的维度
+
+  K_proj = W_k @ K    # (n×d) → (n×e), e << d  (可学习的投影)
+  V_proj = W_v @ V    # (n×d) → (n×e)
+  
+  Attention = softmax(Q @ K_proj^T) @ V_proj
+  
+  Q @ K_proj^T → (n×d)(d×e) = (n×e)  ← O(nd) instead of O(n²)!
+  softmax 作用于 (n×e) 而非 (n×n)
+  @V_proj → (n×e)(e×d) = (n×d)
+
+限制：e 固定且很小 → 难以表达复杂的跨位置关系
+```
+
+**Performer（2021）的随机特征近似：**
+```
+核心思路：用 kernel trick 近似 softmax
+
+  softmax(x·y) ≈ φ(x)^T φ(y)  （随机特征展开）
+
+其中 φ 是高斯核或其他 positive kernel 的特征映射
+  → 可以把 softmax(QK^T) 改写为 Φ(Q)Φ(K)^T
+  → Attention = Φ(Q)[Φ(K)^T V]
+  → 先算 [Φ(K)^T V] = O(nd)，再用 Φ(Q) 点乘
+
+优势：保持了接近原始注意力的表达能力
+风险：kernel approximation 可能引入误差
+```
+
+**实际应用的权衡：**
+
+| 方案 | 复杂度 | 表达能力 | 成熟度 | 代表应用 |
+|------|--------|----------|--------|----------|
+| **Linformer** | O(nd) | 中等（e 固定小） | 实验室级 | 研究探索 |
+| **Performer** | O(nd) | 较高（kernel近似） | 较成熟 | Google Research |
+| **RWKV** | O(nd) | 高（RNN-like状态） | 生产可用 | RWKV系列 |
+| **Mamba(SSM)** | O(nd) | 互补（选择性状态） | 生产可用 | Mamba/Jamba |
+| **FlashAttention** | O(n²)精确 | 最强 | 工业标准 | vLLM, HF |
+
+**面试话术：**
+``"> Linear Attention 的核心是把 QK^T 计算分解：先聚合 K@V 的结果，再用 Q 去乘这个聚合值，从而把 O(n²d) 降到 O(nd)。Linformer 通过降低维度实现，Performer 用 kernel 近似。但要注意，这些近似方法在长文本和多跳推理上效果不如标准 Attention。目前工业界仍以 FlashAttention 优化标准 Attention 为主，Linear Attention 更多用于超长序列的边缘场景。\"
+```
+
+⭐ **面试加分项：**
+- 能推导出 O(n²) → O(n) 的数学变换
+- 说清 Linformer 和 Performer 的不同思路
+- 理解 Linear Attention 的表达能力局限（受限于低秩/近似）
+- 知道为什么工业界还是以 FlashAttention+标准 Attention 为主
+
+</details>
+
+---
+
+### Q31: Transformer 单层的 Self-Attention 和 FFN 各自占多少计算量和显存？如何根据任务特点选择优化方向？
+
+<details>
+<summary>💡 答案要点</summary>
+
+**这是一个非常实际的工程问题——决定你的优化应该放在哪里**
+
+**详细计算量分解（单层，batch=B, seq=N, d_model=d, head_dim=h=d/num_heads）：**
+
+```
+Self-Attention 计算量（不含投影）:
+  1. Q, K, V 投影: B × N × d × 3d × 2 FLOPs  = 6B·N·d²
+     (每个输入 d 维 → 输出 d 维，3个权重矩阵，乘加算 2 FLOPs)
+  2. QK^T: B × num_heads × N × h × N × 2  = 2BN²dh
+  3. softmax + @V: B × num_heads × N × N × 2 + B × num_heads × N × h × N × 2
+     ≈ 2BN²h + 2BN²h = 4BN²h  
+  
+  Total Self-Attention ≈ 6B·N·d² + 6BN²h
+  = 6B·N·(d² + Nh)
+
+FFN 计算量:
+  FFN 结构: d → d_ff → d  （通常 d_ff = 4d）
+  
+  1. W1 投影: B × N × d × 4d × 2  = 8B·N·d²
+  2. 激活函数: B × N × 4d × 1      = 4B·N·d
+  3. W2 投影: B × N × 4d × d × 2   = 8B·N·d²
+  
+  Total FFN ≈ 16B·N·d² + 4B·N·d ≈ 16B·N·d²
+```
+
+**两种场景的对比：**
+
+```python
+# 短序列场景（N << d）
+# 例如: N=128, d=4096, B=4
+# Attention: 6×4×128×(4096² + 128×512) ≈ 6.4×10¹⁰ FLOPs
+# FFN:       16×4×128×4096²         ≈ 1.7×10¹¹ FLOPs
+# FFN占比:   ~73%
+
+# 长序列场景（N >> d）
+# 例如: N=8192, d=4096, B=1
+# Attention: 6×1×8192×(4096² + 8192×512) ≈ 1.3×10¹¹ FLOPs
+# FFN:       16×1×8192×4096²             ≈ 2.2×10¹¹ FLOPs
+# FFN占比:   ~63%
+
+# 超长期场景（N >> d，如 32K）
+# 例如: N=32768, d=4096, B=1
+# Attention: 6×1×32768×(4096² + 32768×512) ≈ 9.0×10¹¹ FLOPs
+# FFN:       16×1×32768×4096²               ≈ 8.8×10¹¹ FLOPs
+# Attention占比反而超过 FFN！~50%
+```
+
+**显存占用对比（训练模式）：**
+
+```
+| 资源         | Self-Attention     | FFN                |
+|--------------|--------------------|--------------------|
+| 权重大小     | 3d² + d² = 4d²    | 2d×d_ff ≈ 8d²      |
+| 激活缓存     | O(N²)（注意力矩阵）| O(N·d_ff) ≈ O(4Nd)|
+| 反向传播梯度 | O(4d²)            | O(8d²)             |
+| 主要瓶颈     | 长序列时 O(N²)     | d² 规模大时        |
+```
+
+**优化策略选择指南：**
+
+```
+如果 N < d（大多数日常场景）:
+  ├─ FFN 占总计算 70-80%
+  ├─ MoE 替换 FFN 的收益最大（每token跳过无用专家）
+  ├─ 量化重点在权重矩阵 W1/W2
+  └─ SwapFFN: 计算FFN时卸载Attention权重到CPU
+
+如果 N > 4d（长文本推理）:
+  ├─ Attention 成为瓶颈
+  ├─ FlashAttention 收益最大
+  ├─ Sliding Window / Sparse Attention 降复杂度
+  └─ KV Cache 量化/offload 节省显存
+
+如果 batch_size 很大（高吞吐服务）:
+  ├─ 两者都重要
+  ├─ PagedAttention 解决 KV Cache 碎片问题
+  ├─ Continuous Batching 最大化 GPU 利用率
+  └─ 混合策略：MoE(降compute) + FA(降memory IO) + Quant(降带宽)
+```
+
+**面试话术：**
+``"> Transformer 单层的计算量取决于序列长度。短序列时 FFN 占 70-80%，长序列时两者趋近 50/50。优化策略由此决定：短序列优先 MoE 和 FFN 量化，长序列优先 FlashAttention 和 KV Cache 管理。这是一个容易被忽视但非常重要的决策框架。\"
+```
+
+⭐ **面试加分项：**
+- 能手算不同序列长度下的计算占比
+- 理解为什么 FFN 是 MoE 替换的主要目标
+- 知道长序列和优化策略的关系
+- 能给出生产环境的具体优化组合方案
+
+</details>
+
+---
+
 **上一模块：** [RAG 系统](../03-rag-system/)
 **下一模块：** [AI Agent 基础](../05-ai-agent-basics/)
 
@@ -2374,4 +2857,4 @@ Step 10K~数十万步，Loss缓慢阶梯状下降。学语法结构和常见短�
 
 ---
 
-*版本: v3.136 | 更新: 2026-08-21 | by 二狗子 🐕*
+*版本: v3.137 | 更新: 2026-09-29 | by 二狗子 🐕*

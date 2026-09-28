@@ -1330,9 +1330,11 @@ llm = LLM(
 
 ### Q28: 推理框架为什么容易受到不安全反序列化攻击？如何防御？
 
-<a href="../../assets/illustrations/19-inference-frameworks/q28-deserialization-security.webp"><img src="../../assets/illustrations/19-inference-frameworks/q28-deserialization-security.webp" alt="推理框架专题第28题核心机制与工程取舍图解" width="100%"></a>
+<p align="center"><a href="../../assets/illustrations/19-inference-frameworks/q28-deserialization-security.webp"><img src="../../assets/illustrations/19-inference-frameworks/q28-deserialization-security.webp" width="760" alt="推理框架安全反序列化漏洞动漫知识图：pickle.loads() 可执行任意代码，网络数据需替换为 JSON/MessagePack/FlatBuffers"></a></p>
+<p align="center"><sub>🧠 图解记忆：AI 框架大量用 pickle 做模型序列化，一旦暴露在网络上就是 RCE 炸弹。</sub></p>
 
-> 🧠 **图解记忆：** 把模型制品当不可信代码；安全格式、可信来源、隔离加载和最小权限缺一不可。
+<details>
+<summary>💡 答案要点</summary>
 
 **背景：**
 
@@ -1416,6 +1418,21 @@ obj = pickle.loads(raw_data)  # RCE!
 - Orca Security 报告：https://orca.security/resources/blog/sglang-llm-framework-rce-vulnerabilities/
 - SGLang v0.5.10 Release：https://github.com/sgl-project/sglang/releases/tag/v0.5.10
 - NVD CVE-2026-3060：https://nvd.nist.gov/vuln/detail/CVE-2026-3060
+
+**面试加分项：**
+- 知道 CVE-2026-3059/3060/3989 的具体漏洞细节和影响范围
+- 能解释为什么 pickle 不安全（可以执行任意 Python 代码）
+- 了解替代方案：JSON、MessagePack、FlatBuffers 等安全序列化格式
+- 知道推理框架的网络服务应该走 mTLS 内网通信，不暴露公网
+
+**总结：**
+| 风险等级 | 影响 |
+|----------|------|
+| **高危** | RCE 可导致模型权重窃取、数据泄露、服务器沦陷 |
+| **修复优先级** | 立即升级到 v0.5.10+，网络隔离，替换不安全反序列化 |
+| **面试价值** | 高——2026年AI安全是高频考点，能说清CVE细节证明有实战经验 |
+
+</details>
 
 ---
 

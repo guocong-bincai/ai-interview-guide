@@ -2640,6 +2640,8 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 
 > 🧠 **图解记忆：** 差评是结果信号；切片找范围、Trace 找环节、回放找证据、灰度验证修复。
 
+<details>
+<summary>💡 答案要点</summary>
 **面试场景：** 几乎必问的生产题。错误回答："我再调一下参数 / 换个模型试试"——一听就是没排查过，全靠猜。
 
 **核心答案：一套分层排查方法论**
@@ -2669,12 +2671,18 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 **面试话术：**
 > "排查的核心是'别猜，用数据和分层定位'。我会先看 trace 把问题切成检索层还是生成层，检索层再往下拆切分/embedding/检索策略/重排四环，每环都有对应的验证手段（比如对比 BM25 与向量召回判断 embedding 是否在关键词场景弱）。修完之后靠标注集回归 + 质量门禁防止复发。从用户反馈到具体哪一层出错、怎么改、怎么验证，每一步都有章法。"
 
+</details>
+
+---
+
 ### Q27: 如何系统化评估 RAG？换模型/embedding 导致的"跷跷板效应"怎么处理？
 
 <img src="../../assets/illustrations/20-rag-advanced-optimization/q27-evaluation-seesaw.webp" width="100%" alt="RAG 多目标评测跷跷板图解">
 
 > 🧠 **图解记忆：** 先看哪些场景切片变好或变坏，再谈总分；关键场景的硬门槛高于平均提升。
 
+<details>
+<summary>💡 答案要点</summary>
 **跷跷板效应：** 换更强的 embedding 模型后，A 类问题变好了，B 类问题反而变差。怎么发现、怎么权衡，是评估题的核心深挖点。
 
 **第一步：建评测体系（没有评测就没有发言权）**
@@ -2698,12 +2706,18 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 **面试话术：**
 > "评估的根基是标注集 + 分层指标，检索看 Recall@K/MRR/NDCG，生成看人工标注或 LLM-as-Judge。跷跷板效应靠'按问题类型拆分指标'暴露——换 embedding 后我会先看各类问题的准确率变化矩阵，找出变坏的 case 共性；处理上优先保核心业务指标，必要时走多 embedding 路由 + BM25 融合，最后用小流量灰度验证再全量。"
 
+</details>
+
+---
+
 ### Q28: RAG 项目上线后怎么做灰度发布？
 
 <img src="../../assets/illustrations/20-rag-advanced-optimization/q28-gray-release.webp" width="100%" alt="RAG 小步灰度发布与回滚图解">
 
 > 🧠 **图解记忆：** 灰度不是慢慢上线，而是每一步都有对照、质量门槛、观察窗口和可执行回滚。
 
+<details>
+<summary>💡 答案要点</summary>
 **Demo 回答：** "改完代码重新部署" ❌
 **生产级回答：** 灰度不是"慢慢发"，而是可控地验证新策略在真实流量上的表现，同时保留随时回滚的能力。
 
@@ -2725,11 +2739,18 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 - 动态知识更新：见 [RAG 系统 Q20](../03-rag-system/#q20-如何做-rag-知识库的动态知识更新有哪些策略)；
 - Agent 工具兜底：见 [Agent 基础 Q10](../05-ai-agent-basics/#q10-工具调用的完整流程是什么如何处理失败)。
 
+</details>
+
+---
+
 ### Q29: 你做的 RAG 项目最大挑战是什么？（开放题）
 
 <img src="../../assets/illustrations/20-rag-advanced-optimization/q29-project-challenge.webp" width="100%" alt="RAG 项目难点面试表达框架图解">
 
 > 🧠 **图解记忆：** 挑战题要讲清“如何发现、如何选择、如何验证”，结果必须真实、可追问，并说明失败与边界。
+
+<details>
+<summary>💡 答案要点</summary>
 
 **开放题要点：** 面试官想听真实踩坑经历。要有**具体场景 + 具体动作 + 量化结果 + 反思**，别说"最大挑战是学习新技术"这种空话。
 
@@ -2749,6 +2770,7 @@ def agentic_rag_pipeline(question: str, max_retries: int = 2) -> str:
 
 ## 十五、最新高频工程面试题（2026年新增）
 
+</details>
 ### Q30: Recursive Character Text Splitter 为什么是行业最佳默认分块策略？何时不该用它？
 
 > 🧠 **图解记忆：** 多级分隔符 = 先段落再句子再词；天然尊重语义边界，是无可争议的 best default。
