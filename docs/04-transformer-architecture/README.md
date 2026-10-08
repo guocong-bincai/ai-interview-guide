@@ -2366,6 +2366,359 @@ Step 10K~数十万步，Loss缓慢阶梯状下降。学语法结构和常见短�
 
 ---
 
+### Q32: Residual Connection（残差连接）为什么能解决深层网络梯度消失？数学本质是什么？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q32-residual-gradient.webp" alt="残差连接与梯度流动动漫知识图：前向路径通过恒等映射直通，反向梯度沿同一通路无衰减回流，对比标准网络梯度指数衰减"></a></p>
+<p align="center"><sub>🧠 图解记忆：残差不是装饰——它保证了前后向信息都能无损直达；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Residual Connection 不是简单的"跳过一层"，它是梯度流的保证机制。**
+
+**前向传播分析：**
+
+```
+标准网络（深度 L 层）:
+  x₀ → f₁(x₀) → f₂(f₁(x₀)) → ... → f_L(...)
+  
+  → 每次变换都可能压缩或扭曲表示空间
+  → 信息随层数加深逐渐丢失
+
+带残差的网络:
+  x₀ → x₁ = x₀ + f₁(x₀)
+     → x₂ = x₁ + f₂(x₁) = x₀ + f₁(x₀) + f₂(x₁)
+     → ...
+     → x_L = x₀ + Σᵢ fᵢ(xᵢ₋₁)
+  
+  → 每一层的输出都保留了之前所有层的累积信息
+  → 深层可以"看到"浅层的全部内容
+```
+
+**反向传播的数学证明（核心面试点）：**
+
+```
+考虑深度为 L 的网络，最后一层的损失为 ℒ。
+
+标准网络的反向链式法则:
+  ∂ℒ/∂x₀ = ∂ℒ/∂x_L · ∂x_L/∂x_{L-1} · ... · ∂x₁/∂x₀
+         = ∂ℒ/∂x_L · ∏ᵢ Wᵢ
+         
+→ 如果 ‖Wᵢ‖ < 1，乘积随 L 指数衰减 → 梯度消失
+→ 如果 ‖Wᵢ‖ > 1，乘积随 L 指数增长 → 梯度爆炸
+
+残差网络的反向:
+  x_l = x_{l-1} + f(x_{l-1})
+  → ∂x_l/∂x_{l-1} = I + ∂f/∂x_{l-1}
+  
+  ∂ℒ/∂x₀ = ∂ℒ/∂x_L · ∏ₗ (I + ∂fₗ/∂xₗ₋₁)
+  
+关键洞察:
+  - I（单位矩阵）保证至少有一条完整通路
+  - 即使每个 ∂fₗ/∂xₗ₋₁ 很小或很大，I 始终是稳定的基底
+  - 梯度不会因连乘而消失或爆炸
+  - 这解释了为什么 ResNet 能训练 1000+ 层
+```
+
+**实际影响（实验数据）：**
+
+```
+无残差 | 有残差
+-------|-------
+18 层: 收敛      | 18 层: 快速收敛
+100 层: 不收敛   | 100 层: 良好收敛
+1000 层: 无法训练 | 1000 层: 可训练
+梯度范数 | 1e-8    | 1e-3
+        | (完全消失) | (稳定流通)
+```
+
+**在 Transformer 中的应用：**
+
+```python
+# Transformer 中有两组残差连接
+
+class TransformerLayer(nn.Module):
+    def forward(self, x):
+        # 第一组：残差注意力
+        attn_out = self.self_attention(x)
+        x = x + self.dropout(attn_out)  # 残差连接
+        x = self.norm1(x)
+        
+        # 第二组：残差 FFN
+        ffn_out = self.ffn(x)
+        x = x + self.dropout(ffn_out)  # 另一条残差通路
+        x = self.norm2(x)
+        
+        return x
+
+# 两条残差通路意味着梯度有两条独立的路径回溯到输入
+# 这使 Transformer 能训练更深（通常 6-96 层）
+```
+
+**常见追问：**
+1. "Pre-Norm 和 Post-Norm 中残差的位置有什么区别？" → 见 Q13
+2. "如果没有残差，能否用其他方法替代？" → Group Norm 或其他归一化只能改善但不如残差直接
+3. "残差连接的参数量是多少？" → 零参数，只是恒等映射 I
+
+**面试话术：**
+> "残差连接的本质是通过恒等映射保证梯度的畅通——前向信息累加而非替换，反向梯度沿单位矩阵通道无损回流。这就是为什么 ResNet 能训练 1000+ 层而普通网络 18 层就崩溃了。Transformer 有两组残差通路，所以能稳定训练更深。"
+
+</details>
+
+---
+
+### Q33: Cross-Attention（交叉注意力）的工程实现细节是什么？为什么它连接 Encoder 和 Decoder？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q33-cross-attention-engineering.webp" alt="交叉注意力工程实现动漫知识图：Decoder Query 检索 Encoder Key-Value，逐 token 生成时按需查询已编码上下文，形成信息桥接"></a></p>
+<p align="center"><sub>🧠 图解记忆：Cross-Attention 是 Decoder 问 Encoder——"这段上下文里有什么和我需要生成相关的？"；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Cross-Attention 是 Encoder-Decoder 架构的信息桥梁。**
+
+**基本原理：**
+
+```
+Encoder 输出: E = [e₁, e₂, ..., e_N]  (N 个编码后的源序列token)
+Decoder 当前状态: d_t                  (第 t 个已生成的目标token)
+
+Cross-Attention:
+  Q = d_t @ W_Q              # Decoder 想知道什么
+  K = E @ W_K                # Encoder 提供了什么
+  V = E @ W_V                # Encoder 的内容
+
+  attention(d_t, E) = softmax(QK^T/√d_k) V
+  output_d_t = attention_output @ W_O
+```
+
+**关键区别 vs Self-Attention:**
+
+| 维度 | Self-Attention | Cross-Attention |
+|------|---------------|----------------|
+| Q 来源 | 自身序列 | Decoder |
+| K/V 来源 | 自身序列 | Encoder 输出 |
+| Mask | causal mask (Decoder自回归) | 无mask (看全部源序列) |
+| 目的 | 序列内理解 | 跨模态/跨语言理解 |
+| 复杂度 | O(N²) N=目标长 | O(N_src × N_tgt) |
+
+**工程实现的两个优化方向：**
+
+```
+方案1: 缓存 Encoder 的 K,V
+- Encoder 只需要算一次（源序列不变）
+- Decoder 每步只算 Q，复用 K,V
+- 节省 N_tgt × N_src 次 K,V 计算
+
+方案2: 增量式 Cross-Attention
+- 某些场景下 Encoder 输出也需要缓存历史状态
+- 如在翻译任务中逐步扩展源句时的处理
+
+```python
+# 生产系统中的典型实现
+class CrossAttentionLayer(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        self.W_Q = nn.Linear(d_model, d_model)
+        self.W_KV = nn.Linear(d_model, d_model * 2)  # 共享权重
+        self.output_proj = nn.Linear(d_model, d_model)
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+    
+    def forward(self, decoder_hidden, encoder_output, mask=None):
+        batch_size = decoder_hidden.size(0)
+        seq_len = decoder_hidden.size(1)
+        src_len = encoder_output.size(1)
+        
+        # Decoder: 生成 Q
+        Q = self.W_Q(decoder_hidden).view(batch_size, seq_len, self.num_heads, self.d_k)
+        Q = Q.transpose(1, 2)  # (batch, heads, tgt_seq, d_k)
+        
+        # Encoder: 生成 K, V
+        KV = self.W_KV(encoder_output).view(batch_size, src_len, 2, self.num_heads, self.d_k)
+        K, V = KV.unbind(dim=2)
+        K = K.transpose(1, 2)  # (batch, heads, src_seq, d_k)
+        V = V.transpose(1, 2)  # (batch, heads, src_seq, d_k)
+        
+        # Attention
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, -1e9)
+        attn_weights = F.softmax(scores, dim=-1)
+        output = torch.matmul(attn_weights, V)
+        
+        # Merge heads and project
+        output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, -1)
+        return self.output_proj(output)
+```
+
+**现代应用中的 Cross-Attention 变体：**
+
+```
+1. 多模态融合（Vision-Language）:
+   Q: 文本 embedding
+   K,V: 视觉特征 (CLIP image features)
+   → CLIP、BLIP、LLaVA 都用类似机制
+
+2. 检索增强（RAG）:
+   Q: 用户 query embedding
+   K,V: 检索到的文档向量
+   → 让模型基于检索结果回答问题
+
+3. 条件生成:
+   Q: 解码器隐藏状态
+   K,V: 控制信号（风格、情感、主题等标签）
+   → 引导生成内容符合指定条件
+```
+
+**性能考量：**
+
+```
+Cross-Attention 的瓶颈：
+  - Encoder 输出越长，K,V 越大
+  - 在 RAG 场景中，检索到的文档可能很长（数千 token）
+  - 解决方案：Chunking + 重排序 + 窗口裁剪
+
+注意：Cross-Attention 仅存在于 Encoder-Decoder 架构（如 T5）。
+Decoder-only（GPT 系列）没有 Cross-Attention，而是通过 context window 间接获取外部信息。
+```
+
+**面试话术：**
+> "Cross-Attention 让 Decoder 在生成每个 token 时'询问' Encoder——从编码器输出中找出与当前生成最相关的部分。它在工程上的关键是缓存 Encoder 的 K,V（因为它们不变），以及理解它在不同场景下的变体：多模态、RAG、条件生成。GPT 系列因为只用 Decoder，所以没有 Cross-Attention，而是依赖更大的 context window。"
+
+</details>
+
+---
+
+### Q34: Token Embedding 层在训练中有哪些特殊问题？为什么它常常需要特殊处理？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q34-embedding-dynamics.webp" alt="词元嵌入动态动漫知识图：词表规模巨大带来高维稀疏嵌入空间，分词边界变化引发语义漂移，权重共享降低参数量但要求输入输出分布一致"></a></p>
+<p align="center"><sub>🧠 图解记忆：嵌入层是最大的单层参数池，其训练稳定性和初始化方式直接影响整个模型的收敛质量；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Embedding 层是 Transformer 中参数量最大的单个组件之一。**
+
+**参数规模：**
+
+```
+词表大小 × 隐藏维度 = 嵌入层参数总数
+
+示例（不同模型）:
+  GPT-2:    50,257 × 768       = 38.6M  (~25% 总参数)
+  LLaMA 3:  128,256 × 4,096    = 525M   (~34% 总参数)
+  Claude:   200,000 × 8,192    ≈ 1.6B   (估算)
+
+对比 FFN:
+  FFN: d_model × d_ff × 2
+  LLaMA 3: 4,096 × 14,336 × 2 = 117M × 2 = 234M per layer × 80 layers
+  单 FFN 层 ≈ 1.2 个 Embedding 层
+  但 Embedding 只有一层，FFN 有多层
+  → 实际上 Embedding 是最大单一参数块
+```
+
+**问题1: Hot Word Problem（高频词过拟合）**
+
+```
+中文为例：
+  "的"出现频率 ~5%
+  "我" 出现频率 ~3%
+  某个专业术语出现 ~0.0001%
+
+高频词的嵌入向量会被大量更新 → 过度调整
+低频词的嵌入向量几乎不更新 → 训练不充分
+
+解决策略:
+  1. 子词分词（BPE/Subword）平衡词频分布
+  2. 加权采样：降采样高频词，过采样低频词
+  3. 学习率分层：不同 token 使用不同 LR（复杂，少用）
+```
+
+**问题2: Token Boundary Shift（分词边界漂移）**
+
+```
+当分词器改变时，相同语义可能被拆分为不同token集合
+
+例子："人工智能" → 可能是
+  A: ["人工", "智能"] （2 tokens）
+  B: ["人", "工", "智", "能"] （4 tokens）
+  C: ["人工智能"] （1 token）
+
+→ 不同的分词策略会导致完全不同的嵌入向量
+→ 迁移检查点时需要重新对齐或使用相同的 tokenizer
+```
+
+**问题3: 权重共享（Weight Tying）**
+
+```
+原始 Transformer:
+  Embedding: vocab × d_model
+  LM Head（输出投影）: d_model × vocab
+  参数量: 2 × vocab × d_model
+
+Otters et al. (2016), Press & Wolf (2017):
+  让 LM Head 的权重 = Embedding 的转置
+  参数: vocab × d_model
+  减少 50% 的参数
+
+效果（论文报告）:
+  ✓ 大多数任务：质量相当或略好
+  ✓ 训练更快（参数减半）
+  ✗ 极少数情况下：小数据集上略逊
+  ✓ 显存占用也减半
+
+LLaMA/GPT-3/Qwen 全部使用 weight tying
+```
+
+**问题4: 初始化敏感性**
+
+```
+Embedding 层的初始化非常重要：
+
+错误做法:
+  nn.Embedding(vocab, d_model)  # 默认 XavierUniform
+  → 初始嵌入向量之间可能过于接近
+  → 导致早期训练阶段 attention 无法区分不同 token
+
+正确做法:
+  1. 使用预训练好的词嵌入（Word2Vec/GloVe）作为初始化
+  2. 或者使用 scaled initialization:
+     std = init_scale / sqrt(d_model)
+     embed.weight.data.normal_(mean=0, std=std)
+  3. 在 LLM 中更常用的是让模型从头学习
+     但配合 warmup LR 和正确的初始化策略
+
+位置编码的特殊性:
+  - Sinusoidal PE: 不需要额外初始化（公式确定）
+  - Learned PE: 同一般权重初始化策略
+```
+
+**问题5: 大词表的存储挑战**
+
+```
+vocab = 200,000, d_model = 8,192
+
+显存占用:
+  200,000 × 8,192 × 4 bytes = 6.4 GB (FP32)
+  → 一个 Embedding 层就需要 6.4GB
+  → 加上 FFN（可能有几百 GB）
+  → 但 Embedding 仍然不可忽视
+
+优化策略:
+  - ZeRO stage 3: 将 Embedding 切分到多 GPU
+  - Embedding sharding: 按行切片，分布式检索
+  - 量化：FP16/BF16 减少一半，INT8 再减一半
+  - PagedEmbedding（类似 PagedAttention）: 按需换入换出
+```
+
+**面试话术：**
+> "Embedding 层虽然是简单查表操作，但它通常是整个模型中参数量最大的单一组件。高频词的 overfitting、tokenizer 的边界变化、以及是否需要 weight tying 都是面试常考话题。实际工程中还要考虑 6GB+ 的显存占用和分布式存储。"
+
+</details>
+
+---
+
 ### Q27: Speculative Decoding（投机解码）是什么？如何实现 2-3x 推理加速？
 
 <p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q27-speculative-decoding.webp" alt="投机解码动漫知识图：小模型快速草稿多步、大模型批量验证，接受则跳过、拒绝则回退，单token生成效率显著提升"></a></p>
@@ -2857,4 +3210,4 @@ FFN 计算量:
 
 ---
 
-*版本: v3.137 | 更新: 2026-09-29 | by 二狗子 🐕*
+*版本: v3.138 | 更新: 2026-10-08 | by 二狗子 🐕*
