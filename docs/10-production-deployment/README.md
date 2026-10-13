@@ -3,8 +3,8 @@
 > **面试优先顺序（通用 AI 应用开发岗位）**：Q1、Q4、Q6、Q7、Q9、Q11、Q12、Q14、Q18、Q19、Q20。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-03-02
-> **考点：** 流式输出、NL2SQL、评估体系、多模态、安全、成本优化
+> **更新：** 2026-10-14
+> **考点：** 流式输出、NL2SQL、评估体系、多模态、安全、成本优化、Embedding服务治理、结构化输出、Tool Calling容错、上下文预算分配、索引漂移检测、模型自动降级
 
 ## 📋 目录
 
@@ -2668,4 +2668,475 @@ spec:
 > "LLM 容量规划的关键是区分两个时间维度：TTFT（首字延迟）影响用户体验但不占满整个请求的生命周期，TPOT（token生成速率）决定了总延迟。我的做法是先算清楚单机能扛多少并发——假设单 Pod 内存够持 100 个并发连接，然后按峰值 QPS 算最少需要几个 Pod 保底。然后用 HPA 做弹性，P99 排队超阈值就扩，5 分钟没人就缩。最重要的不是算得精确，而是预留足够的余量——LLM 的 P99 延迟变异性太大了，宁可多留 30% 的 Pod，不要等线上崩了才临时扩。"
 
 </details>
-*版本: v3.135 | 更新: 2026-09-03 | 补充语义缓存、多租户隔离、Agent 内存泄漏、自建 vs 托管、成本治理、GenAI 可观测性、容量规划*
+### Q28: Embedding 服务在大规模 RAG 中如何设计和部署？向量化 API 的成本优化和向量索引版本管理怎么做？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q28-embedding-service.webp" width="860" alt="Embedding 服务经模型版本化、批次向量化、索引别名切换和零停机回滚图"></p>
+<p align="center"><sub>🧠 记忆锚点：Embedding 不是一次性的离线操作；它是带模型版本号的持续服务层，升级必须零停机且可秒级回滚。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 Embedding 是独立服务层：**
+
+| 维度 | 说明 |
+|------|------|
+| **调用频率** | 写入远大于读取，每条入库文档都要向量化 |
+| **模型版本依赖** | 换模型 = 全量重建索引，不能混用不同版本的向量空间 |
+| **成本敏感** | 10M 文档 × $0.1/M tokens = $1,000/月，规模上去后自托管更划算 |
+| **领域适配** | 通用 embedding 对垂直术语不够敏感，可能需要微调 |
+
+**Embedding 服务架构：**
+```
+┌───────────────────────────────────┐
+│        Embedding Service          │
+├───────────────────────────────────┤
+│                                   │
+│  文档入库 ─→ 批处理队列 ─→ GPU    │
+│             ↓                     │
+│        Batch Inference            │
+│       (batch_size=32~128)         │
+│             ↓                     │
+│      Vector Store Index           │
+│   (支持别名切换 / 并行建索引)     │
+│                                   │
+│  查询 ─→ Embedding ─→ ANN Search  │
+└───────────────────────────────────┘
+```
+
+**生产环境关键实践：**
+
+1. **模型版本化**：为每个嵌入向量命名包含模型版本+日期，如 `docs_index_v3_2026-04-01`，应用程序引用别名 `docs_index_current`。
+
+2. **零停机迁移**：升级模型时并行构建新索引 → 评估验证 → 原子切换别名。旧索引保留至少一周以便回滚。
+
+3. **批量推理优化**：GPU 推理时使用 batch_size=32~128 的批处理方式，吞吐量可比单次推理提高 5-10x。
+
+4. **维度选择权衡**：维度数直接影响存储、检索延迟和内存占用。1536维 vs 768维存储差一倍，但 768可能牺牲召回率。用 MRL截断技术做自适应维度缩减。
+
+5. **索引漂移检测**：即使模型不变，语料分布变化也会让检索效果退化。定期计算当前语料的嵌入分布，与基线做 KS 检验。
+
+**自托管 vs API 选择阈值：**
+
+| 场景 | 选择 | 原因 |
+|------|------|------|
+| < 1M 文档，非敏感数据 | OpenAI API | 简单可靠，运维成本低 |
+| 500M tokens/月，中等敏感 | 双T4自托管 | 约$600-900/月，经济可行 |
+| > 2B tokens/月或严格合规 | A100集群自托管 | API成本太高 + 数据不出域 |
+| 需要领域微调 | 自托管 | 可以 fine-tune BGE/e5 等模型 |
+
+**面试话术：**
+> "Embedding 服务最致命的坑是'同一个索引里混了两个模型版本的向量'——这会导致某些文档搜索出来极好，另一些极差，而且没有任何信号告诉你比较的是不同语义空间的向量。我的做法是每个索引都绑定模型版本号，升级时用别名原子切换。对于大规模场景，Batch Inference 比逐条调用效率高5倍以上，GPU 利用率从 20% 提到 80% 以上。"
+
+</details>
+
+### Q29: LLM 输出的结构化保证怎么实现？Strict Mode、受约束解码和验证三明治各有什么取舍？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q29-structured-output.webp" width="860" alt="结构化输出 Strict Mode JSON Schema 正则后校验分层保障体系图"></p>
+<p align="center"><sub>🧠 记忆锚点：结构化输出不是 Prompt 问题而是基础设施问题——Schema 在生成层强制执行才是真可靠的，后面还需一层验证三明治兜底。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么结构化输出是生产可靠性问题：**
+- LLM 是文本生成器，但你的应用需要结构化数据（JSON、对象）
+- 不加约束的输出会在极端情况下崩溃后端解析逻辑（引号嵌套、Markdown code block、字符串代替整数）
+- 这是 2024-2026 年最大的工程陷阱之一
+
+**三大方案对比：**
+
+| 方案 | 原理 | 可靠性 | 延迟增加 | 推荐度 |
+|------|------|--------|----------|--------|
+| **Prompt 强制 JSON** | 在 prompt 中写明"只输出 JSON" | ~90% | 无 | ⭐⭐ |
+| **Structured Outputs / Strict Mode** | 厂商原生支持（OpenAI 2024.8 起），从 JSON Schema 编译成有限状态机 | ~99% | ~5ms | ⭐⭐⭐⭐⭐ |
+| **受约束解码（GBNF语法）** | 用上下文无关文法逐 token 约束，适合自托管 | ~99% | ~10ms | ⭐⭐⭐⭐ |
+
+**OpenAI Structured Outputs 实现示例：**
+```python
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "..."}],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "extract_person",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "age": {"type": "integer"},
+                    "email": {"type": "string"}
+                },
+                "required": ["name", "age"],
+                "additionalProperties": False
+            }
+        }
+    }
+)
+# 返回的结果一定是符合 schema 的 Python dict
+person = json.loads(response.choices[0].message.content)
+```
+
+**验证三明治模式（生产标配）：**
+```
+Layer 1: 生成层 —— Strict Mode / GBNF 确保结构合法
+Layer 2: 字段层 —— 类型检查（isinstance、Pydantic validate）
+Layer 3: 语义层 —— domain validation（邮箱格式、日期格式等）
+```
+
+**关键点：**
+- Structured Outputs 保证结构有效，但不保证语义有效（如 email="hello" 结构合法但不一定是真实邮箱）
+- Self-consistency 多采样取多数投票可降低随机性导致的不稳定
+- Token 预算预估必须加上 structured output 的额外开销（约增加 5-10% 的 token 消耗用于 schema 注入）
+
+**面试话术：**
+> "大多数团队还在用 prompt 强制 JSON，这是 2026 年已经落后一年的做法。我上线后用了 OpenAI 的 Strict Mode，输出稳定性从 ~90% 提升到 ~99%，后端再不会因为 JSON 解析失败而崩溃。但光靠 Structured Output 还不够，我会加一层 Pydantic 验证做语义校验，这就是'验证三明治'。"
+
+</details>
+
+### Q30: Agent 工具调用失败怎么办？三层防御机制和重试策略怎么设计？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q30-tool-calling-failure.webp" width="860" alt="Tool Calling 失败经参数校验层重新生成、指数退避重试、人工兜底降级三层防御图"></p>
+<p align="center"><sub>🧠 记忆锚点：工具调用失败是 Agent 生产第一杀手；必须先校验参数、再自动重试、最后降级到人工。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**工具调用失败的常见类型：**
+
+| 失败类型 | 占比 | 原因 | 处理策略 |
+|---------|------|------|---------|
+| **参数格式错误** | ~40% | LLM 输出的 JSON 字段不对或缺失 | Prompt 修正 + 重新生成 |
+| **API 超时/限流** | ~30% | 下游服务不可用 | 指数退避重试 |
+| **参数值非法** | ~20% | 值不在枚举范围内 | 参数修正 + 重新生成 |
+| **结果不符合预期** | ~10% | 返回空或错误数据 | 二次校验 + 降级 |
+
+**Sherlocks 2026 报告数据：** 分析了 73 起生产 Agent 事故，发现超过 60% 的故障是由多层传递的错误叠加造成的（retrieval error → planning error → tool call error → output error）。
+
+**三层防御架构：**
+
+```python
+class ToolCallHandler:
+    def __init__(self):
+        self.max_retries = 3
+        self.base_delay = 1.0  # 初始退避秒数
+
+    async def call_tool(self, tool_name: str, args: dict) -> dict:
+        for attempt in range(self.max_retries + 1):
+            try:
+                # Layer 1: 参数校验
+                validated_args = await self.validate_arguments(tool_name, args)
+                if not validated_args:
+                    # 让 LLM 重新生成参数
+                    args = await self.fix_prompt_llm(tool_name, args)
+                    continue
+
+                # 实际调用工具
+                result = await self.execute_tool(tool_name, validated_args)
+
+                # Layer 2: 结果校验
+                if not self.validate_result(result):
+                    raise ToolOutputError(f"结果校验失败")
+
+                return result
+
+            except RateLimitError:
+                if attempt >= self.max_retries:
+                    return await self.fallback_to_alternative(tool_name)
+                delay = self.base_delay * (2 ** attempt)
+                await asyncio.sleep(delay)
+
+            except TimeoutError:
+                if attempt >= 1:  # 超时最多重试 1 次
+                    return await self.fallback_to_alternative(tool_name)
+                await asyncio.sleep(self.base_delay)
+
+        # Layer 3: 最终降级
+        return await self.human_fallback(tool_name, args)
+```
+
+**重试策略细节：**
+- **参数类错误**：直接让 LLM 修正，不计入重试次数
+- **API 超时**：最多重试 1 次（因为重试不一定更快）
+- **限流 429**：指数退避（1s → 2s → 4s），最多 3 次
+- **网络异常**：指数退避 + Jitter，最多 3 次
+
+**降级策略优先级：**
+1. 换备用工具（同一功能的不同实现）
+2. 换简化版本的功能（如果完整调用失败）
+3. 转人工处理（高价值场景）
+4. 返回友好错误消息给前端
+
+**面试话术：**
+> "Agent 系统中最容易被忽视的就是工具调用失败处理。很多 Demo 项目没有异常路径，一到生产就频繁报错。我的经验是：参数错误靠 prompt 引导重生成，API 错误靠指数退避重试，终极降级转人工。Sherlocks 2026 的数据显示，60% 的 Agent 生产事故是链式错误——一层出错导致后续全部出错。所以每一层都要有明确的 fail fast 判断。"
+
+</details>
+
+### Q31: 大模型上下文窗口（Context Window）资源如何分配？Slot Budgeting 怎么做？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q31-context-budget.webp" width="860" alt="Context Slot Budgeting 系统指令任务历史检索片段输出配额分层预算管理图"></p>
+<p align="center"><sub>🧠 记忆锚点：上下文窗口不是无限容器；要像银行账户一样给每块内容预分配 slot，超了就砍噪音而不是砍关键信息。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心概念：Slot Budgeting**
+
+一个 Context Window = N 个 Token。在生产环境中，你需要把 N 拆成若干 Bucket：
+
+| Slot 类型 | 预算比例 | 说明 |
+|-----------|---------|------|
+| **System Prompt** | 5-10% | 系统指令、角色设定，不可压缩 |
+| **User Message** | 5-10% | 用户输入，固定部分 |
+| **Retrieved Context (RAG)** | 40-60% | 检索到的片段，可动态调整 |
+| **Conversation History** | 10-20% | 多轮对话，滑动窗口或摘要 |
+| **Output Buffer** | 10-20% | 预留输出空间，防止生成被截断 |
+
+**Budget 超标时的处理策略（优先级从高到低）：**
+
+```
+Step 1: 砍检索片段——保留最相关的前 K 个 chunk
+Step 2: 压缩对话历史——summarize 早期对话
+Step 3: 减少 System Prompt 长度——精简非必要规则
+Step 4: 切换到更小上下文模型——如 128K → 32K
+Step 5: 拒绝请求——实在装不下就提示用户简化
+```
+
+**实际预算分配示例（GPT-4o 128K）：**
+
+```yaml
+context_budget:
+  total_tokens: 128000
+  slots:
+    system_prompt: 2048      # 1.6%
+    user_message: 1024       # 0.8%
+    rag_context:             # 动态：40%-60%
+      min_chunks: 3
+      max_chunks: 10
+      chunk_size_tokens: 512
+    conversation_history:    # 动态：10-20%
+      max_rounds: 6
+      summarize_after_rounds: 10
+    output_buffer: 8192      # 6.4%
+  overflow_strategy: truncate_rag_then_summarize
+```
+
+**Context Engineering 进阶技巧：**
+- **Recency Bias 利用**：越靠后的位置信息获取越好，把最重要的放在末尾
+- **Slot 预留不足**是最常见的生产 bug——很多人只算 input 不算 output，导致生成了一半被截断
+- **多模态场景**：一张图片大约 256-1024 tokens，视频帧更多，必须纳入预算
+- **长上下文模型的误区**：支持 1M context ≠ 可以把所有数据塞进去——检索+排序反而会产生噪声干扰
+
+**面试话术：**
+> "Context Window 就像银行账户，你必须在每次调用前做好预算规划。最常见的 bug 是只算了 input 没算 output buffer——生成到一半被截断。我的做法是给每块内容设 budget cap：system prompt 不超过 2048 token，检索片段上限 8 个 chunk，超过就做 summary。最关键的原则是：砍 noise 永远优先于砍 signal。"
+
+</details>
+
+### Q32: 什么是 'Lost in the Middle' 问题？在生产环境中如何缓解检索片段排序不当导致的幻觉？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q32-lost-in-middle.webp" width="860" alt="Lost in the Middle 检索片段排序靠前靠后效果好中间段丢失的幻觉风险图"></p>
+<p align="center"><sub>🧠 记忆锚点：LLM 对上下文两端的信息敏感度高，中间的检索片段经常被忽略——这不一定是模型缺陷，而是注意力分布的自然现象。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Lost in the Middle 是什么：**
+
+Minson et al. (2024) 的研究表明：当多个检索片段插入到 Prompt 中间时，LLM 倾向于更好地记住开头和结尾的内容，而对中间部分的检索片段响应不佳。即使在经过对齐训练的模型上也是如此。
+
+这在 RAG 系统中尤为严重——如果你检索出 10 个 chunk 并按相似度排序放入 Prompt，排名第 3-8 的 chunk 最可能被忽略。
+
+**缓解策略矩阵：**
+
+| 策略 | 难度 | 效果提升 | 适用场景 |
+|------|------|---------|----------|
+| **重排片段顺序** | 低 | 中 | 把最关键信息放到开头或末尾 |
+| **分步聚合（Self-RAG / CRAG）** | 中 | 高 | 多轮检索迭代，先粗筛再精排 |
+| **引用标注** | 低 | 中 | 在每个 chunk 后标注编号，要求模型引用来源 |
+| **分段处理** | 高 | 高 | 将长上下文分成多个独立问答后再汇总 |
+| **知识蒸馏** | 高 | 高 | 用小模型学习"正确引用哪些片段"的模式 |
+
+**引用标注实现示例：**
+```python
+prompt = f"""请用以下【参考资料】回答用户问题。
+每条资料前面有编号 [{idx}]，请在答案中标注引用来源。
+
+{chr(10).join([f'[{i+1}] {chunk}' for i, chunk in enumerate(chunks)])}
+
+请严格按格式回答：结论 + 引用来源（例如："..." 【2】【4】）。"""
+```
+
+**关键指标监控：**
+- **引用覆盖率**：答案中引用的 chunk 占总可用 chunk 的比例
+- **中间段引用率**：排名中间位置的 chunk 被引用的频率
+- **幻觉率**：未引用任何 chunk 却给出确定答案的比例
+
+**面试话术：**
+> "Lost in the Middle 是 RAG 系统的隐形杀手。你以为把 10 个 chunk 放进 Prompt 就能全用上，实际上模型只读了头和尾。我的解决方案是在 chunk 前加编号并要求模型显式引用，同时把最相关的 chunk 放开头和最末尾。监控层面我会关注'中间段引用率'——如果排名中间的 chunk 很少被引用，说明 Lost in the Middle 在起作用。"
+
+</details>
+
+### Q33: 多模型自动故障降级（Failover）怎么做？生产环境的 Model Failover 链和降级策略？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q33-model-failover.webp" width="860" alt="多模型自动故障降级经主模型探测健康、逐级 fallback 到轻量模型最后转手动图"></p>
+<p align="center"><sub>🧠 记忆锚点：给 Agent 配一个 API Key 是不够的——主模型一限流一宕机整个系统就瘫痪；必须有三级自动降级链。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**2026 年生产环境的事实：模型会宕机、会限流、性能会波动。**
+
+| 事故类型 | 典型案例 |
+|---------|---------|
+| **API 限流** | OpenAI/Gemini 突发流量触发 429，每分钟数百个请求全挂 |
+| **模型质量下降** | 新版模型发布后某些类别准确率突降 30% |
+| **区域故障** | AWS us-east-1 大面积故障导致服务不可用 |
+| **价格暴涨** | 某些供应商临时调价，超出预算被迫切换 |
+
+**三级自动降级架构：**
+
+```python
+class ModelFailoverChain:
+    def __init__(self):
+        self.primary = ModelGateway("qwen3.5-plus", cost_per_1k=0.03)
+        self.secondary = ModelGateway("claude-3-haiku", cost_per_1k=0.0025)
+        self.tertiary = ModelGateway("qwen3-flash", cost_per_1k=0.0005)
+        self.health_check_interval = 30  # 秒
+        self.circuit_breaker_threshold = 5  # 连续失败5次后跳闸
+        self.failed_models = set()
+
+    async def generate(self, prompt: str, **kwargs) -> Response:
+        models_to_try = [
+            m for m in [self.primary, self.secondary, self.tertiary]
+            if m.name not in self.failed_models
+        ]
+
+        last_error = None
+        for model in models_to_try:
+            try:
+                # 健康检查（最近 N 次调用的成功率）
+                if not await self.is_healthy(model):
+                    self.failed_models.add(model.name)
+                    continue
+
+                return await model.call(prompt, **kwargs)
+
+            except RateLimitError as e:
+                self.failed_models.add(model.name)  # 限流也标记为失效
+                last_error = e
+                await asyncio.sleep(1)  # 短暂等待后尝试下一个
+            except TimeoutError:
+                self.failed_models.add(model.name)
+                last_error = e
+
+        # 全部模型都挂了
+        return await self.handle_all_models_down(last_error)
+```
+
+**降级决策树：**
+```
+Level 1 (首选): 旗舰模型 (GPT-4o / qwen3-plus / claude-sonnet)
+                 ├─ 限流 429?
+                 ├─ 超时?
+                 └─ 质量评分 < 阈值?  → Level 2
+
+Level 2 (备选): 性价比模型 (GPT-4o-mini / qwen3-sparse / claude-haiku)
+                 ├─ 限流 429?
+                 ├─ 超时?
+                 └─ 质量评分 < 阈值?  → Level 3
+
+Level 3 (兜底): 低成本小模型或规则引擎
+                 └─ 如果也挂了 → 转人工 / 返回维护页
+```
+
+**Circuit Breaker（熔断器）最佳实践：**
+- **State machine**: CLOSED(正常) → OPEN(跳闸) → HALF_OPEN(试探恢复)
+- **OPEN 持续时间**: 1-5 分钟，之后进入 HALF_OPEN 试探一次
+- **HALF_OPEN 成功**: 回到 CLOSED；**失败**: 回到 OPEN
+- **健康检查**: 主动 ping 端点 + 被动观察成功率
+
+**关键洞察：**
+- 限流也应该触发降级而不是盲目重试——重试只会增加压力
+- 每次降级都要通知业务侧（日志告警 + 前端提示用户响应变慢）
+- 质量降级是可接受的（用更便宜的模型只是准确率低一点），但可用性降级是不可接受的（系统完全挂掉）
+
+**面试话术：**
+> "给 Agent 配一个 API Key 是非常危险的生产部署模式——一旦这个模型限流或宕机，整个 Agent 就瘫了。我的方案是三级降级链：旗舰→性价比→低成本模型，配合熔断器和健康检查。重点是：限流也要触发降级而不是继续重试。2026 年面试能画出完整的降级决策树并讲清 circuit breaker 状态机，说明你有真正的生产运维经验。"
+
+</details>
+
+### Q34: RAG 系统上线后索引 drift（漂移）怎么检测和修复？
+
+<p align="center"><img src="../../assets/illustrations/10-production-deployment/q34-index-drift.webp" width="860" alt="RAG 索引漂移经分布检测根因分析索引重建和回归评测闭环图"></p>
+<p align="center"><sub>🧠 记忆锚点：索引漂移不是 Bug 而是常态；新文档加入、旧文档过期、术语演变都会改变语义空间，需要主动检测而非被动响应。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 RAG 索引会漂移：**
+
+| 漂移类型 | 原因 | 表现 |
+|---------|------|------|
+| **内容漂移** | 新文档不断加入 | 相似问题返回不同结果 |
+| **语义漂移** | 术语/表达演变 | 同义词匹配率下降 |
+| **模型漂移** | Embedding 模型升级 | 向量空间变化导致精度下降 |
+| **分布漂移** | 用户查询变化 | 热门话题转移 |
+
+**检测三板斧：**
+
+1. **嵌入分布检测**：定期计算当前所有文档嵌入的平均值和方差，与基线做 Kolmogorov-Smirnov (KS) 检验。若 > 30% 维度显著变化，说明索引发生了漂移。
+
+2. **在线查询分布**：实时监测用户问题的 embedding 分布，与训练期/上线期的基线做对比。分布偏移意味着系统可能需要重新索引。
+
+3. **效果回归测试**：用标准测试集（Golden Dataset）定期跑评估，关注 Recall@K 和 Faithfulness 是否下降。
+
+**修复流程（原子切换）：**
+```
+Step 1: 发现漂移 → 收集信号（指标下降 + 分布检验）
+Step 2: 新索引并行构建 → 不影响当前线上服务
+Step 3: 运行 Golden Dataset 回归测试 → 确认新索引效果 ≥ 旧索引
+Step 4: 原子切换别名（Alias Swap）→ 毫秒级完成
+Step 5: 保留旧索引 7-30 天 → 随时可回滚
+Step 6: 清理旧索引 → 释放存储空间
+```
+
+**索引生命周期管理 Checklist：**
+
+```
+□ 每次文档库有 >10% 变更时考虑增量重建
+□ 每次更换 Embedding 模型时必须全量重建索引
+□ 每次季度末运行一次全量回归测试
+□ 索引变更需有版本号和创建日期
+□ 切换前必须通过 Golden Dataset 测试
+□ 切换后监控 48 小时的线上查询成功率
+```
+
+**成本控制：**
+- 全量重建索引 = 所有文档重新向量化，10M 文档约需 $1,000-$3,000/次
+- 增量重建（只处理新增/变更文档）可减少 70-90% 的成本
+- 建议采用增量为主 + 季度全量为辅的策略
+
+**面试话术：**
+> "索引漂移是 RAG 系统上线后不可避免的问题。很多人以为建立完索引就结束了，其实这只是开始。我的方法是三步走：先用嵌入分布检测看有没有漂移，再用 Golden Dataset 回归确认效果是否下降，最后并行构建新索引并用别名原子切换。关键是：绝对不能在一个索引里混用不同时间点的文档——这会引入不可预测的质量波动。"
+
+</details>
+
+---
+
+### 📝 速记卡片
+
+| 模块 | 核心要点 |
+|------|---------|
+| **流式输出** | 单向 SSE > 双向 WebSocket |
+| **NL2SQL** | 三层防护：语法+安全+限流 |
+| **RAGAS 评估** | 忠实度/相关性/上下文精度/召回率 |
+| **模型路由** | 三档分级：简单/中等/复杂 |
+| **Prompt 管理** | 版本控制 + A/B 测试 + 灰度发布 |
+| **成本治理** | Token 计量 + 路由省钱 + 缓存命中 |
+| **容量规划** | TTFT vs TPOT + HPA 弹性伸缩 |
+| **Embedding 治理** | 模型版本化 + 零停机切换 + 增量重建 |
+| **结构化输出** | Strict Mode > Prompt JSON + 验证三明治 |
+| **Tool Calling 容错** | 参数校验 + 指数退避 + 降级兜底 |
+| **Context Budgeting** | 分层分配 slot，砍 noise 优先砍 signal |
+| **模型自动降级** | 三级链路 + Circuit Breaker + 健康检查 |
+| **索引漂移** | 分布检测 + 回归测试 + 别名原子切换 |
+*版本: v3.136 | 更新: 2026-10-14 | 新增 Q28-34：Embedding 服务治理、Structured Outputs、Tool Calling 容错、Context Budgeting、Lost in the Middle、Model Failover、索引漂移检测*
