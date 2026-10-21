@@ -1,10 +1,10 @@
 # ⚡ LLM 推理优化面试题
 
-> **面试优先顺序（通用 AI 应用开发岗位）**：Q2、Q3、Q5、Q6、Q7、Q8、Q9、Q10、Q11、Q13、Q16。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
+> **面试优先顺序（通用 AI 应用开发岗位）**：Q2、Q3、Q5、Q6、Q7、Q8、Q9、Q10、Q11、Q13、Q15、Q16、Q17、Q18、Q19、Q20、Q21、Q22。其余题目用于进阶或特定岗位拓展；实际频率会随岗位和面试轮次变化，产品版本资讯不应当作通用必考题。
 
 > **难度：** ⭐⭐⭐⭐⭐
-> **更新：** 2026-03-05
-> **考点：** KV Cache、量化、推理加速、部署优化
+> **更新：** 2026-10-22
+> **考点：** KV Cache、量化、推理加速、部署优化、分布式并行、结构化输出、MoE 推理、生产运维
 
 ## 📋 目录
 
@@ -12,6 +12,8 @@
 2. [KV Cache优化](#二kv-cache优化)
 3. [模型量化](#三模型量化)
 4. [推理加速](#四推理加速)
+5. [PD 分离与跨节点传输](#五pd-分离架构与-kv-cache-跨节点传输)
+6. [分布式推理与结构化生成](#六分布式推理与结构化生成)
 
 ## 一、推理基础
 
@@ -2269,3 +2271,641 @@ vllm serve meta-llama/Llama-4-17B
 - Hugging Face: "Continuous Batching Explained"
 
 </details>
+
+
+---
+
+## 六、分布式推理与结构化生成
+
+### Q17: Tensor Parallelism 到底怎么分片？AllReduce 通信成本有多大？什么时候该用 DP/PP/EP 代替？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q17-tensor-parallelism.webp" width="860" alt="张量并行分层层内切分、AllReduce 同步及与其他并行策略对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：TP 是层内水平切分，每步需要 AllReduce；DP 扩并发但不省显存，PP 切层间但流水线气泡多，EP 只适合 MoE。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**Tensor Parallelism（TP）= 把每一层的矩阵拆到多个 GPU 上并行计算**
+
+**核心原理：**
+```
+一个 Linear 层: output = x @ W^T + b
+
+W 是 [hidden_size, hidden_size] 的矩阵
+如果 hidden_size=4096，FP16 权重 ≈ 32MB
+多层叠加 → 模型总大小数十 GB
+
+TP 做法：把 W 按列切成 n 份（n=GPU数量）
+  W_0: [hidden_size, hidden_size/n]
+  W_1: [hidden_size, hidden_size/n]
+  ...
+
+每个 GPU 只持有 W 的一部分
+每个 GPU 只做部分乘法，然后 AllReduce 求和
+```
+
+**TP 执行流程（单层 Attention）：**
+```python
+# TP=4 时，输入 x 也在 GPU 间做 AllGather
+x_sharded = allgather(x, dim=-1)      # 在 GPU 间拼回完整向量
+# 每个 GPU 用自己的那部分权重计算
+q_i, k_i, v_i = self.qkv[i](x_sharded)  # q/k/v 也是切分的
+output = self.attention(q_i, k_i, v_i)
+# 所有 GPU 的输出做 AllReduce 求平均
+output_full = allreduce(output)          # NCCL AllReduce
+```
+
+**AllReduce 通信成本分析：**
+
+| GPU数量 | 层数（Llama2-7B）| 每次前向传播通信量 |
+|---------|-------------------|--------------------|
+| 1 | 32 | 0 |
+| 2 | 32 | 32 × 2 × 4KB × 2 = ~512MB |
+| 4 | 32 | 32 × 4 × 4KB × 2 = ~1GB |
+| 8 | 32 | 32 × 8 × 4KB × 2 = ~2GB |
+
+**关键洞察：**
+- TP 通信量随 GPU 数量线性增长
+- NVLink（~600GB/s）可以消化中等规模（≤4×A100）的 TP
+- PCIe（~20GB/s）会导致严重瓶颈（>4×GPU）
+- 跨机 TP 几乎不可用，除非有 InfiniBand/RDMA
+
+**其他并行策略对比：**
+
+| 维度 | Tensor Parallelism (TP) | Pipeline Parallelism (PP) | Data Parallelism (DP) | Expert Parallelism (EP) |
+|------|------------------------|--------------------------|-----------------------|------------------------|
+| **切分方式** | 层内矩阵切分 | 层间分割 | 请求级复制 | MoE expert 分布 |
+| **显存占用** | 除以 TP_SIZE | 除以 PP_SIZE | 不减少 | 除以 EP_SIZE |
+| **吞吐量提升** | ~N倍（N=GPUs） | ~N/M倍（M=bubble） | N倍（理想） | ~EP_SIZE倍 |
+| **通信开销** | 高（每步 AllReduce）| 中（阶跃边界气泡）| 低（仅梯度聚合）| 高（AllToAll）|  
+| **适用场景** | 单节点多GPU | 跨节点大规模 | 高并发吞吐 | MoE 模型 |
+| **精度保证** | 完全相同 | 可能有数值差异 | 完全相同 | 完全相同 |
+
+**MoE + Expert Parallelism（2026 面试热点）：**
+
+```
+DeepSeek V3（671B 参数，256 experts）:
+  - 每次激活只路由到 2 个 experts
+  - 有效激活参数 ≈ 37B（远小于 671B）
+  
+  传统 TP=8: KV Cache 被复制 8 次！（MLA 只有一个 KV head）
+  
+  DP+EP 方案:
+    - DP=8: 8 份请求各跑一份完整的模型
+    - EP: 256 experts 分布在 8×32=256 个 expert slots 上
+    - 每个 GPU 持有 1/8 的 KV Cache（不复制！）
+    - 每个 GPU 持有 1/8 的 experts
+    - AllToAll 只在激活时需要（每次只路由 2 experts）
+```
+
+**选型决策树：**
+```
+模型能放入单卡吗？
+  ├─ 能 → 直接单卡推理
+  └─ 不能 → 需要并行
+      ├─ MoE 模型？
+      │   ├─ 单节点 NVLink → TP+EP（推荐）
+      │   └─ 跨节点 → EP（Wide-EP）
+      ├─ Dense 模型且单节点？
+      │   └─ TP（优先选 TP，简单可靠）
+      ├─ 高并发需求？
+      │   └─ DP（独立副本，扩 QPS）
+      └─ 超大模型跨节点？
+          └─ PP（或 TP+PP 组合）
+```
+
+**面试话术：**
+> "Tensor Parallelism 是把层内的矩阵按列切分到不同 GPU，每步前向传播都需要 AllReduce 同步。通信开销随 GPU 数线性增长，所以单节点 NVLink 场景 TP≤4 最合适。MoE 模型要用 Expert Parallelism，配合 DP 可以避免 MLA 结构下 KV Cache 的无效复制。大模型跨节点通常选择 Pipeline Parallelism，但要注意 pipeline bubble 问题。"
+
+</details>
+
+---
+
+### Q18: Structured Generation / Constrained Decoding 是什么？为什么 2026 年面试官频繁问到这个？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q18-constrained-decoding.webp" width="860" alt="受限解码 FSM 过滤无效 token 与结构化输出生成的机制图"></p>
+<p align="center"><sub>🧠 记忆锚点：把约束编译成 FSM/CFG，解码时屏蔽非法 token；保证结构正确但代价是延迟增加和表达能力受限。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**Structured Generation = 让 LLM 严格按照预定义格式生成输出**
+
+**为什么重要（2026 年成为高频题）：**
+- 企业应用 80%+ 的场景需要结构化输出（JSON API、工具调用、SQL 查询）
+- Prompt 工程「让模型返回 JSON」的错误率仍然高达 20-50%
+- Constrained decoding 将结构化输出的错误率降至接近 0
+
+**两种主流技术路线：**
+
+**1. Grammar-Guided Decoding（语法引导解码）**
+```
+原理：将 JSON Schema 编译为 CFG（上下文无关文法），解码时实时屏蔽非法 token
+
+实现流程：
+  JSON Schema {
+    "type": "object",
+    "properties": {
+      "name": {"type": "string"},
+      "age": {"type": "integer"}
+    },
+    "required": ["name", "age"]
+  }
+
+  ↓ 编译为 CFG
+  Start → "{ name : str , age : int }"
+
+  ↓ 解码时维护状态机
+  Step 1: 生成 `{` → 状态变为 expect_name
+  Step 2: 生成 `"name"` → 状态变为 colon1
+  Step 3: 生成 `:` → 状态变为 string_value
+  Step 4: 只能生成字符串相关的 token
+  Step 5: 生成 `,` → 状态变为 expect_age
+  ...
+
+优势：理论上保证零结构错误
+劣势：复杂 schema 的状态机会很大，影响速度
+```
+
+**2. Two-Pass Refinement（两阶段修正）**
+```
+第一阶段：自由生成草稿
+  model.generate('{"status": "ready", "order_id": ...}')
+  → 可能产生 {"age": "thirty"} 等不规范内容
+
+第二阶段：小模型修复
+  refined_model = small_fine_tuned_model()
+  result = refined_model.fix_schema(draft, schema)
+  → 自动修正为 {"age": 30}
+
+优势：不需要修改基座模型的 logits
+劣势：额外模型调用增加了延迟和成本
+```
+
+**主流框架对比（2026 Q3）：**
+
+| 框架 | 技术路线 | 支持语言 | 性能 |
+|------|---------|---------|------|
+| **Outlines** | CFG + NFSA | JSON, Regex, Python | 中等（约 10-15% 减速） |
+| **XGrammar** | XLA 加速的 CFG | JSON, SQL, Pydantic | 快（接近原生推理速度） |
+| **LLGuidance** | 动态 FSM | 任意约束 | 最快（~5% 减速） |
+| **vLLM built-in** | Outlines 集成 | JSON, Regex | 方便（开箱即用） |
+
+**LLGuidance（2026 最新进展）：**
+```
+核心创新：动态 FSM 编译 + CUDA kernel 优化
+  
+传统方案：每次解码都遍历整个状态机 → O(state_size)
+LLGuidance：位运算批量处理 → O(1) per step
+
+性能对比（13B 模型，JSON Schema 输出）：
+| 方案              | 吞吐（tok/s）| 减速比 |
+|-------------------|-------------|--------|
+| 无约束            | 95          | 1.0x   |
+| Outlines          | 85          | 1.12x  |
+| XGrammar          | 90          | 1.06x  |
+| LLGuidance        | 92          | 1.03x  |
+```
+
+**实际面试中的应用：**
+```
+典型场景：Agent 工具调用
+  prompt = """你是一个客服助手。
+  根据用户问题，判断意图并调用对应工具。
+  必须返回如下 JSON 格式：
+  {
+    "intent": "xxx",
+    "tool": "get_balance" | "transfer_money" | "query_order",
+    "parameters": {...}
+  }"""
+  
+  # 使用 constrained decoding
+  outputs = llm.generate(prompts, schema=ToolCallSchema)
+  
+  # 100% 符合 schema，无需 post-processing
+```
+
+**局限性与权衡：**
+
+| 优点 | 缺点 |
+|------|------|
+| 结构化输出零错误 | 复杂 schema 状态机大 → 延迟增加 |
+| 无需后处理验证 | 降低模型创造性（对创意任务不利） |
+| 节省 API 重试成本 | 不支持嵌套动态字段 |
+| Agent 工具调用标准化 | 无法保证值域正确性（schema 对了但值错了） |
+
+**面试话术：**
+> "Constrained decoding 的本质是在解码循环中插入一个规则检查器，实时排除违反约束的 token。它保证了输出结构正确，但不能保证语义正确——一个完美格式的 JSON 可能包含错误的数据。2026 年的趋势是用轻量级的 FSM 引擎（如 LLGuidance）来最小化性能损耗。在实际生产中，structured generation 主要用在工具调用和数据提取场景，不适合创意写作类任务。"
+
+</details>
+
+---
+
+### Q19: MoE 模型推理时，Expert Parallelism vs Tensor Parallelism 怎么选？DeepSeek MLA 架构为什么不能用标准 TP？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q19-moe-expert-parallelism.webp" width="860" alt="MoE 专家并行、AllToAll 路由与 MLA KV Cache 单头复制问题分析图"></p>
+<p align="center"><sub>🧠 记忆锚点：MoE 的专家负载天然分散，EP 匹配稀疏路由；MLA 单 KV head 导致标准 TP 下 KV 翻倍复制，DP+EP 才是正解。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**MoE 推理的核心挑战：专家负载均衡 + 通信效率**
+
+**MoE 基本原理回顾：**
+```
+Dense Transformer：
+  输入 x → MLP(x) → 输出
+  MLP 是全连接的，每个样本都经过全部参数
+
+MoE Transformer：
+  输入 x → Router(x) → 选出 top-k experts
+  例如 top-2: Expert[3] + Expert[7]
+  输出 = gate[3] * Expert[3](x) + gate[7] * Expert[7](x)
+
+效果：671B 参数的 DeepSeek V3，每次只激活 37B
+→ 推理时 compute 只需要 5.5% 的参数量
+```
+
+**为什么标准 TP 不适合 MoE（特别是 DeepSeek MLA 架构）：**
+
+```
+DeepSeek V3 采用 MLA (Multi-Latent Attention):
+  - 只有 1 个 KV head（而不是 128 个）
+  - 通过低秩投影压缩 KV 表示
+  
+问题：标准 TP 会把 KV head 也切分到不同的 GPU
+  但 MLA 只有一个 head → 无法切分！
+  结果：每个 GPU 都要存储完整的 KV Cache
+  → 8× TP = KV Cache 复制 8 倍，浪费 87.5% 显存
+```
+
+**解决方案：Data Parallelism + Expert Parallelism (DP+EP)**
+
+```
+DP+EP 配置 (vLLM):
+  --data-parallel-size 8          # 8 份请求
+  --enable-expert-parallel        # experts 分布
+  
+工作原理：
+  GPU 0: 处理 requests[0], has experts[0..31]
+  GPU 1: 处理 requests[1], has experts[32..63]
+  ...
+  GPU 7: 处理 requests[7], has experts[224..255]
+  
+好处：
+  ✓ KV Cache 不重复（每个 request 只在 1 个 GPU）
+  ✓ Expert 负载均匀分布（256 experts / 8 GPUs = 32/GPU）
+  ✓ 显存利用率高
+```
+
+**AllToAll 通信详解（MoE 特有的瓶颈）：**
+
+```
+Step 1: 路由器决定每个 token 去哪个 expert
+  样本 A 的 token → Expert[5]
+  样本 B 的 token → Expert[5] 
+  样本 C 的 token → Expert[12]
+  
+Step 2: AllToAll 将所有目标 Expert[5] 的 token 发送到 GPU 负责 Expert[5] 的节点
+
+Step 3: Expert[5] 在前向传播中处理这些 tokens
+
+Step 4: AllGather 将处理结果发回原属样本的 GPU
+
+通信成本：
+  Token 越碎 → 路由粒度越小 → AllToAll 频率越高
+  专家越多 → 每次激活的专家越少 → AllToAll 开销相对越低
+  （这是 MoE 的核心优势：sparse activation）
+```
+
+**Wide-EP（NVIDIA 2026 新方案）：**
+```
+当 EP 规模跨越多个 GPU 集群时的挑战：
+  - NVLink 只能覆盖单节点内部
+  - 节点间走 InfiniBand/RDMA，延迟远高于 NVLink
+  
+Wide-EP 思路：
+  把 expert 按拓扑结构分组，同一节点的 expert 尽量放在邻近 GPU
+  DeepEP 库支持：
+    - deepep_high_throughput：最大化带宽利用率
+    - deepep_low_latency：最小化首 token 延迟
+    - flashinfer_nvlink_one_sided：NVLink 上的单向传输
+```
+
+**选型指南（2026 生产实践）：**
+
+| 模型 | GPU 数量 | 推荐方案 | vLLM 配置 |
+|------|---------|---------|----------|
+| Mixtral 8x7B | 2-4 | TP + EP | `--tensor-parallel-size 4 --enable-expert-parallel` |
+| DeepSeek V3 | 8 | DP + EP | `--data-parallel-size 8 --enable-expert-parallel` |
+| Kimi K2 (384 experts) | 8-16 | TP + EP (Wide-EP) | `--tensor-parallel-size 8 --enable-expert-parallel` |
+| Llama 4 Maverick | 16+ | TP + PP + EP | `--tensor-parallel-size 8 --pipeline-parallel-size 2` |
+
+**面试话术：**
+> "MoE 推理的核心矛盾是：compute 很稀疏（每次只用少量 expert），但路由和负载均衡需要复杂的跨 GPU 通信。标准 TP 对 Dense 模型有效，但对 DeepSeek 的 MLA 架构不行——因为 KV head 只有 1 个，无法切分。正确的选择是 DP+EP，数据级并行处理请求，专家级并行分布专家权重。跨节点扩展则依赖 Wide-EP 和 DeepEP 等专用库。"
+
+</details>
+
+---
+
+### Q20: 生产环境 LLM 服务出问题了，你有哪些排查思路和诊断指标？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q20-production-debugging.webp" width="860" alt="LLM 服务故障诊断流程图 TTFT 延迟根因分析与监控指标面板图"></p>
+<p align="center"><sub>🧠 记忆锚点：先看延迟特征（TTFT spike vs ITL jitter），再查资源水位（显存/CPU/网络），最后看调度日志定位。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**生产环境 LLM 服务的三大核心症状：**
+
+```
+症状1: TTFT（首 token 延迟）飙升
+  表现：用户等了 3-5 秒才看到第一个字
+  原因排查方向：
+    ├── 长 prompt 阻塞 → Chunked Prefill 未开启
+    ├── 队列堆积 → 并发过高，max_num_seqs 设置过低
+    ├── GPU 过载 → batch size 超过硬件承载
+    └── KV Cache 碎片化 → PagedAttention 未启用或碎片率 >30%
+
+症状2: TPOT（逐 token 延迟）抖动
+  表现：流式输出不均匀，有的 token 慢有的快
+  原因排查方向：
+    ├── Decode 阶段 GPU 利用率不足 → batch size 太小
+    ├── 内存带宽瓶颈 → 模型过大或 context 过长
+    ├── 上下文窗口膨胀 → 某些请求 context 远超均值
+    └── KV Cache 量化误差累积 → 质量下降引发重试
+
+症状3: OOM（显存溢出）拒绝请求
+  表现：大量 429 响应 "GPU out of memory"
+  原因排查方向：
+    ├── max_model_len 设置过大，预留了过多 KV Cache 空间
+    ├── long tail 请求触发 OOM（某几个请求特别长）
+    ├── preemption 过于保守或过于激进
+    └── 系统负载突增，未做 rate limiting
+```
+
+**系统性诊断流程（从外到内）：**
+
+```
+第1层：监控仪表盘
+  ├── GPU Utilization %（整体算力利用率）
+  ├── GPU Memory Allocated vs Free（显存水位）
+  ├── KV Cache Hit Ratio（前缀缓存命中率）
+  ├── Request Queue Length（等待队列长度）
+  ├── TTFT P50/P95/P99（首 token 延迟分布）
+  ├── TPS（tokens per second，分 input/output）
+  └── Error Rate（429/OOM/超时占比）
+
+第2层：根因推断表
+  ┌──────────────┬───────────────────────────────────────┐
+  │ TTFT 高       │ 可能原因                              │
+  ├──────────────┼───────────────────────────────────────┤
+  │ + GPU util <50%│ 队列空但单次 prefills 太长           │
+  │ + KV cache miss │ 共享前缀少，prefix caching 命中率低 │
+  │ + queue > 100  │ 请求涌入速率 > 处理能力               │
+  └──────────────┴───────────────────────────────────────┘
+
+第3层：代码级调试
+  ├── 检查 vLLM/sGLang 的内部 metrics（prometheus endpoint）
+  ├── 查看 scheduler logs：哪些请求卡在队列里？
+  ├── 采样 profile（cProfile/py-spy）确定 bottleneck
+  └── 使用 triton profiler 看 kernel 执行时间
+```
+
+**关键监控指标解释：**
+
+| 指标 | 正常范围 | 异常信号 | 行动建议 |
+|------|---------|---------|---------|
+| GPU Utilization | 60-90% | <40% 说明资源浪费，>95% 说明超载 | 调整 batch size |
+| KV Cache Hit Ratio | >30% | <10% 说明前缀复用差 | 检查 prefix caching 配置 |
+| Queue Length | <50 | >200 持续存在 | 扩容或限速 |
+| Preemption Rate | <5% | >20% 频繁打断正在生成的请求 | 调大显存分配 |
+| P99 TTFT | <1s | >3s 用户体验差 | 开 chunked prefill |
+
+**实战案例：**
+```
+场景：API 响应变慢，P99 TTFT 从 500ms 飙到 3s
+
+排查过程：
+1. 看 dashboard：GPU util 85%，queue length 50 → GPU 没满，但不是极端拥堵
+2. 看 KV cache hit ratio：2%（极低）→ 没有复用前缀
+3. 看 max_model_len：设了 32768，实际平均请求只有 2048 → 显存浪费 80%
+4. 解决方案：
+   a) 设置合理的 max_model_len（按实际 95 分位数）
+   b) 开启 enable_prefix_caching=True
+   c) 开启 dynamic eviction budget 限制最大 KV 使用
+
+修复后：TTFT 降回 600ms
+```
+
+**面试话术：**
+> "排查 LLM 服务问题要分层：先宏观看 dashboard 的 7 大指标定位大类，再用根因推断表缩小范围，最后深入 logs 和 profile 找具体 bug。最关键的两个指标是 KV Cache Hit Ratio（反映缓存效率）和 Queue Length（反映调度压力）。生产环境中大多数性能问题源于资源配置不当——max_model_len 设太大或者没开 prefix caching——而不是算法缺陷。"
+
+</details>
+
+---
+
+### Q21: Context Window Compression 有哪些技术手段？Semantic Cache 和 Sliding Window 在什么场景下用？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q21-context-compression.webp" width="860" alt="上下文窗口压缩策略全景图包括语义缓存滑动窗口摘要和动态驱逐机制"></p>
+<p align="center"><sub>🧠 记忆锚点：压上下文不是丢信息而是换表达方式；缓存高频 query 省计算，滑动窗口保局部性，摘要保全局但可能丢失细节。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**Context Compression = 在不牺牲关键信息的前提下减少上下文长度**
+
+**五种主流压缩策略：**
+
+**1. Semantic Cache（语义缓存）**
+```
+原理：不缓存精确的 prompt，而是缓存 embedding + response
+
+流程：
+  1. 收到请求 R，计算 embedding(R)
+  2. 在向量数据库中查找最近邻
+  3. 如果相似度 > 阈值（如 0.95），返回缓存结果
+  4. 否则正常推理，并将结果加入缓存
+
+示例：
+  缓存条目: "如何设置 Docker 端口映射" → response_A
+  新请求: "Docker 端口怎么映射" → 语义相似，命中缓存
+  
+收益：对常见查询可达 30-50% 的计算量节省
+适用场景：FAQ 型应用、客服系统、知识库问答
+```
+
+**2. Sliding Window（滑动窗口）**
+```
+原理：只保留最近的 N 个 tokens 作为上下文
+
+实现：
+  model = GPT-4 (32K context)
+  window_size = 4096  # 只保留最近 4K tokens
+  
+  对话历史: [...8K tokens...]
+  当前请求: "关于刚才的话题继续"
+  
+  传给模型的: 最后 4K tokens + 当前请求
+  更早的内容: 丢失
+
+优点：简单高效，显存可控
+缺点：早期信息完全丢失，不适合长文档阅读
+适用场景：闲聊对话、实时聊天
+```
+
+**3. Summary-Based Compression（摘要压缩）**
+```
+原理：将早期内容摘要后替换
+
+实现流程：
+  原始上下文 (16K):
+    [早期对话 8K] [近期对话 8K]
+  
+  Step 1: 对 [早期对话 8K] 用 LLM 生成摘要
+    摘要 = "讨论了项目计划，确定了三个里程碑..."
+  
+  Step 2: 构造新上下文
+    [摘要文本 500 tokens] [近期对话 8K]
+  
+  总长度: ~8.5K tokens
+  
+注意：摘要本身也会占空间，所以要控制摘要长度
+```
+
+**4. Selective Retention（选择性保留 — H2O 论文）**
+```
+原理：不是简单地丢弃旧的，而是按需保留重要的
+
+策略：
+  - Head-of-memory (HoTM): 保留最近 M 个 tokens
+    （确保最新上下文一定在）
+  - Tail-of-memory (ToM): 保留最早 N 个 tokens  
+    （确保开头信息不被丢失）
+  - 中间部分: 按需保留注意力分数高的
+    
+实验：H2O 在 128K context 上达到 95% 的性能
+同时只使用 ~16K 的有效 tokens
+```
+
+**5. Dynamic Eviction（动态驱逐）**
+```
+原理：运行时根据注意力分数动态淘汰不重要 token
+
+实时监控：
+  while generating:
+    attention_scores = compute_attention(input_tokens)
+    low_attention = sort_and_select_bottom_k(attention_scores)
+    remove(low_attention)  # 从 KV Cache 中移除
+
+效果：根据实际使用情况动态调整，不像静态策略那样一刀切
+```
+
+**策略对比与选型：**
+
+| 策略 | 适用场景 | 效果 | 复杂度 | 质量损失 |
+|------|---------|------|--------|---------|
+| Semantic Cache | 高频重复查询 | ⭐⭐⭐⭐⭐ | 低 | 0%（命中即无损失） |
+| Sliding Window | 实时对话 | ⭐⭐ | 极低 | 高（早期信息全失） |
+| Summary | 长文档分析 | ⭐⭐⭐⭐ | 中 | 低（摘要可能丢失细节） |
+| Selective Retention | 超长上下文 | ⭐⭐⭐⭐ | 高 | 很低（论文称 95%） |
+| Dynamic Eviction | 在线推理优化 | ⭐⭐⭐⭐ | 高 | 低 |
+
+**面试话术：**
+> "上下文压缩不是单一技术方案，而是针对不同场景的策略集合。Semantic Cache 对重复查询最有效，零质量损失。Sliding Window 最简单但早期信息全失。Summary 和 Selective Retention 适合长文档分析，在质量和效率间做权衡。实际生产中通常是组合使用——比如语义缓存打底 + sliding window 兜底。"
+
+</details>
+
+---
+
+### Q22: KV Cache Offloading 和 Context Parallelism（环注意力 Ring Attention）是什么？解决什么痛点？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q22-kv-offloading-ring-attention.webp" width="860" alt="KV Cache CPU卸载与环注意力分块机制对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：Offloading 用 CPU/SSD 扩容上下文窗口但增加访存延迟；Ring Attention 用环形通信分块计算全注意力，消除 O(n²) 显存墙。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**两大超长期文上下文问题的解决方案：**
+
+**1. KV Cache Offloading（KV Cache 卸载）**
+
+```
+问题：单卡显存有限，放不下长序列的 KV Cache
+  70B FP16 + 128K context → KV Cache ≈ 50GB
+  单 A100 80GB → 只剩不到 30GB 放权重
+  
+Offloading 思路：把用不到的 KV 卸到 CPU 内存或 SSD
+
+实现：
+  GPU: 存放最近 N 个 tokens 的 KV（热数据）
+  CPU: 存放其余 tokens 的 KV（冷数据）
+  
+  当需要访问远处的 token 时：
+    1. 从 CPU/GPU 加载 KV block
+    2. 暂时放入 GPU 显存用于 Attention 计算
+    3. 计算完后释放回磁盘
+
+关键技术挑战：
+  ├── GPU-CPU 带宽瓶颈（PCIe ~20GB/s vs HBM ~2TB/s）
+  ├── 频繁的 page fault 导致延迟波动大
+  └── SSD offload 更慢但容量更大
+
+代表实现：
+  - InfiniGen：预测性地 prefetch 重要 KV entries
+  - VM-FlashLLM：基于虚拟内存管理的 KV 分页
+  - LoongServe：Elastic Sequence Parallelism 动态适配资源
+```
+
+**2. Context Parallelism / Ring Attention（环注意力）**
+
+```
+问题：自注意力机制的显存复杂度是 O(n² × d)
+  128K context × 4096 dim = 巨大的 attention matrix
+  
+Ring Attention 思路：把 sequence 切成多段，按 ring 拓扑依次计算
+
+实现：
+  4 个 GPU 组成 ring：GPU0 → GPU1 → GPU2 → GPU3 → GPU0
+  
+  输入序列分为 4 段：[seg0][seg1][seg2][seg3]
+  
+  Round 1: 
+    GPU0 持有 [seg0]，但需要所有 seg 的 K/V
+    → 接收 seg1,seg2,seg3 的 K/V（ring 转发）
+    → 计算 [seg0] 对 [all] 的 attention
+  
+  Round 2: seg 轮换
+    每个 GPU 的 K/V 传到下一个 GPU
+  
+  Round 3: 继续...
+    直到每个 GPU 计算完自己的 segment 对所有人的 attention
+  
+  最终拼接所有 partial results
+
+关键创新：
+  - 不需要 O(n²) 的完整 attention matrix
+  - 每个 GPU 只存储 O(n/k) 的 partial result
+  - 总显存复杂度降到 O(n) 而非 O(n²)
+
+Striped Attention 改进（Meta 2025）：
+  传统 Ring Attention 中，所有 GPU 同时收发数据会竞争
+  Striped Attention 把数据 striped 打散，不同 GPU 在不同 round
+  处理不同部分，减少冲突
+```
+
+**Offloading vs Ring Attention 对比：**
+
+| 维度 | KV Cache Offloading | Ring Attention |
+|------|---------------------|---------------|
+| **解决痛点** | 显存不够放长上下文 | Attention 计算显存墙 |
+| **核心操作** | 冷热交换（swap/in） | 环形分发计算 |
+| **性能代价** | 访存延迟增大 5-20x | 通信开销增加 |
+| **上下文上限** | 受 CPU/SSD 容量限制 | 受 GPU 数量和带宽限制 |
+| **实现难度** | 中（需管理 page lifecycle）| 高（需定制 kernel + 通信协议）|  
+| **生产可用性** | 已有（LoongServe, VM-FlashLLM）| 研究阶段（FlashInfer, Megatron）|  
+
+**面试话术：**
+> "KV Cache Offloading 用外部存储换显存，适合上下文极长的场景，代价是延迟波动大。Ring Attention 则是用通信换显存复杂度，把 O(n²) 降到 O(n)，让 1M+ token 上下文在有限的 GPU 上可行。两者解决的是不同层面的问题——offloading 解决容量，ring attention 解决计算密度。实际生产中，前者已可用，后者还在快速演进。"
+
+</details>
+
+---
+
+*版本: v3.1 | 更新: 2026-10-22 | by 二狗子 🐕*
+
+---
