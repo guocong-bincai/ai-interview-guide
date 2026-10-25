@@ -3199,6 +3199,657 @@ FFN 计算量:
 
 </details>
 
+### Q35: Kernel-Based Attention（如 Performer）如何把 O(n²) 降到 O(n)？核心数学原理是什么？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q35-performer-attention.webp" alt="Performer 核技巧动漫知识图：通过正交随机特征近似 softmax 核函数，展开 φ(Q)φ(K)^T V = φ(Q)(φ(K)^T V)，使 n×n 矩阵不再显式构造">
+<img src="../../assets/illustrations/04-transformer-architecture/q35-performer-attention.webp" width="760" alt="Performer 核技巧动漫知识图：通过正交随机特征近似 softmax 核函数，展开 φ(Q)φ(K)^T V = φ(Q)(φ(K)^T V)，使 n×n 矩阵不再显式构造"></a></p>
+<p align="center"><sub>🧠 图解记忆：用核技巧拆解 QK^T V，先算 K^T V 再乘 Q，避开 NxN 大矩阵；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：标准 Attention 的 O(n²) 瓶颈来自显式计算 N×N 注意力矩阵**
+
+**核心洞察：利用 Associativity 交换乘法顺序**
+
+```python
+# 标准 Attention（O(n²) 时间 + O(n²) 空间）:
+output[i] = Σ_j softmax(q_i · k_j / √d) * v_j
+           = Σ_j exp(q_i·k_j/√d) / Σ_l exp(q_i·k_l/√d) * v_j
+
+# Performer 的关键改写：
+# 用特征映射 φ(·) 使得 φ(q)·φ(k) ≈ softmax_kernel(q,k)
+# 那么:
+output[i] = Σ_j φ(q_i)·φ(k_j) * v_j
+          = φ(q_i) · (Σ_j φ(k_j) ⊗ v_j)   ← ⊗ 表示外积
+          = φ(q_i) · G                       # G = Σ_j φ(k_j)⊗v_j 是 d×d 矩阵
+```
+
+**G 的计算只依赖 d（hidden dimension），不依赖序列长度 n！**
+
+```python
+class PerformerAttention(nn.Module):
+    def __init__(self, d_model, n_features=64):
+        super().__init__()
+        self.d = d_model
+        self.n_features = n_features  # 随机特征数量
+        
+        # 随机投影矩阵 ω, b
+        # φ(x) = Relu(ωx + b) / sqrt(n_features)
+        self.R = torch.randn(n_features, d_model) / math.sqrt(d_model)
+        self.b = torch.rand(n_features)
+    
+    def forward(self, Q, K, V):
+        batch_size, seq_len, _ = Q.shape
+        
+        # 1. 特征映射（使用 ReLU 作为正交随机特征）
+        Q_feat = F.relu(Q @ self.R.T + self.b)  # (B, N, n_features)
+        K_feat = F.relu(K @ self.R.T + self.b)  # (B, N, n_features)
+        
+        # 2. 先算 K_feat^T V （大小 n_features × d，与 N 无关）
+        GKV = torch.bmm(K_feat.transpose(1, 2), V)  # (B, n_features, d)
+        
+        # 3. 再用 Q_feat @ GKV
+        output = torch.bmm(Q_feat, GKV)  # (B, N, d)
+        
+        # 4. 归一化：除以 φ(q_i) · Σ_k φ(k_k)
+        normalizer = torch.bmm(Q_feat, K_feat.sum(dim=1, keepdim=True).transpose(1, 2))
+        output = output / (normalizer + 1e-8)
+        
+        return output
+```
+
+**为什么用正交随机特征（FAVOR+）？**
+
+| 特征映射 | 性质 | 稳定性 |
+|----------|------|--------|
+| **Fourier Features** | sin/cos 变换 | ❌ 数值不稳定，可能出现负值导致除零 |
+| **ReLU Features** | φ(x)=max(0, x) | ✅ 正值保证，数值稳定，是 FAVOR+ 的选择 |
+| **Chebyshev** | 多项式基 | ⚠️ 理论好但实践较少 |
+
+**复杂度对比：**
+
+| 算法 | 时间复杂度 | 空间复杂度 | 精度 |
+|------|-----------|-----------|------|
+| **Standard Attention** | O(n²d) | O(n²) | 精确 |
+| **Performer (FAVOR+)** | O(nd² + nd·n_feat) | O(nd) | 高斯近似，误差可控 |
+| **Linformer** | O(nd²) | O(nd) | 低秩近似，n_feat=d |
+
+**面试话术：**
+> "Performer 的核心是利用结合律：先算 φ(K)^T V（大小 d×d，与 n 无关），再乘以 φ(Q)。这样把 O(n²d) 降为 O(nd²)，空间从 O(n²) 降到 O(d)。用的是 ReLU 正交随机特征来近似 softmax 核。Trade-off 是用近似换线性，适合超长期场景。"
+
+**⭐ 面试加分项：**
+- 能手推导 f(QK^TV) = (fQ)(fK)^TV 的结合律推导
+- 理解为什么 Fourier features 不稳定而 ReLU features 更稳健
+- 知道 FAVOR+（Fast Attention Via positive Orthogonal Random Features）的名字来源和"positive"的重要性
+- 理解近似误差与 n_features 的关系：更多特征→更高精度→更高常数开销
+
+</details>
+
+---
+
+### Q36: 投机解码（Speculative Decoding）如何实现 2-3x 推理加速？关键技术挑战是什么？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q36-speculative-decoding.webp" width="760" alt="投机解码动漫知识图：小模型快速生成候选词序列，大模型一次性验证所有候选，多数命中则跳过大量自回归步骤">
+<img src="../../assets/illustrations/04-transformer-architecture/q36-speculative-decoding.webp" width="760" alt="投机解码动漫知识图：小模型快速生成候选词序列，大模型一次性验证所有候选，多数命中则跳过大量自回归步骤"></a></p>
+<p align="center"><sub>🧠 图解记忆：小秘书写草稿，老板批注确认，一次过一轮省很多步；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心思想：用小（快）模型提前写好一批猜测，大（准）模型批量验证**
+
+**传统自回归生成（逐 token，延迟高）：**
+
+```python
+# 每生成 1 个 token，都要做一次完整的大模型前向传播
+for i in range(max_len):
+    logits = big_model.forward(tokens[:i])  # O(Large model compute) per step
+    next_token = argmax(logits)
+    tokens.append(next_token)
+# 总耗时 ≈ max_len × big_model_latency
+```
+
+**投机解码流程：**
+
+```python
+# Step 1: 小模型（draft model）快速生成 draft_length 个候选 token
+# 假设 draft_length = 4
+draft_tokens = []
+for _ in range(draft_length):
+    draft_next = small_model.predict(tokens)
+    draft_tokens.append(draft_next)
+
+# Step 2: 大模型一次性向前传播，验证所有候选 token
+# 注意：这里是一次前向，不是多个！
+logits = big_model.forward(tokens + draft_tokens)  # 1 large model forward!
+accepted_count = 0
+final_output = []
+
+# Step 3: 逐个检查大模型对每个位置的预测是否与小模型一致
+for i, draft_t in enumerate(draft_tokens):
+    if vocab_index_to_token[argmax(logits[i])] == draft_t:
+        final_output.append(draft_t)   # ✅ 命中，接受
+        accepted_count += 1
+    else:
+        # ❌ 不匹配，用大模型的分布替换
+        acceptance_probs = ...  # 详细见下
+        accept_or_reject = sample_with_correction(...)
+        final_output.append(acceptance_probs.token)
+        break
+
+# Step 4: 追加最终结果继续下一轮
+tokens.extend(final_output)
+```
+
+**接受率校准（确保分布不变）：**
+
+```python
+def calculate_acceptance_probs(draft_logit, target_logit, draft_token_idx):
+    \"\"\"
+    确保投机解码不会改变目标分布 —— 这是最重要的理论保证
+    \"\"\"
+    # 小模型给出 token 的概率
+    p_draft = F.softmax(draft_logit)[draft_token_idx]
+    # 大模型给出同样 token 的概率
+    p_target = F.softmax(target_logit)[draft_token_idx]
+    
+    # 接受概率 = min(1, p_target / p_draft)
+    # 如果小模型比大模型更确定该 token，则以 p_target/p_draft 的概率接受
+    # 否则无条件接受（避免引入偏差）
+    accept_prob = min(1.0, p_target / p_draft)
+    
+    return accept_prob
+```
+
+**关键数字：**
+
+```python
+# 理想情况下：全部命中
+# 大模型只做 1/N 次前向，N 是 draft length
+# 加速比 ≈ N
+
+# 实际中：命中率约 50-80%
+# 平均加速比 ≈ 1.8 - 2.5x（取决于 draft length 和模型对数关系）
+
+# 实验数据：
+#   Draft Length | Avg Accept Rate | Speedup
+#   -------------|-----------------|---------
+#   2            | ~85%            | ~1.4x
+#   4            | ~70%            | ~1.8x
+#   8            | ~55%            | ~2.0x
+#   16           | ~40%            | ~2.3x  ← 收益递减
+```
+
+**关键技术挑战：**
+
+```python
+1. 教师选择（Teacher Selection）
+   - 小模型不能太差（accept rate 太低）也不能太相似（无加速意义）
+   - 常用方案：同架构减半参数 / 剪枝模型 / DistilBERT 式蒸馏
+   - DeepSeek 方案：用自身的小版本做教师
+
+2. 计算均衡（Balanced Compute）
+   - 教师生成 + 大模型验证的总计算量必须 < 逐 token 大模型推理
+   - 如果教师太慢或验证太长，得不偿失
+   - 公式：(large_cost + small_cost * k) < large_cost * k
+     → small_cost < (N-1) * large_cost（很容易满足）
+
+3. 显存管理
+   - 大模型验证时需要持有整个扩展序列的 KV Cache
+   - 如果 draft length 很大，KV Cache 膨胀
+   - PagedAttention 等机制在此处更关键
+
+4. 并发调度
+   - 多个请求同时做投机解码时，batch 内的 draft length 不一致
+   - 需要动态 padding 或使用 speculative batching
+```
+
+**工业实践（2026年主流方案）：**
+
+| 公司 | 方案 | 效果 |
+|------|------|------|
+| Google | Medusa (附加预测头) | 2-3x，无需额外教师 |
+| Meta | EAGLE (轻量级 MLP 教师) | 2-4x，特定架构适配 |
+| DeepSeek | 自蒸馏投机解码 | 2.5x，成本最优 |
+| OpenAI | 类似 EAGLE 方案 | 内部部署 |
+
+**面试话术：**
+> "投机解码用一个快速小模型生成一批候选 token，大模型一次性验证。关键是接受率校准保证分布不变——min(1, p_target/p_draft) 让大模型拒绝过度自信的小模型猜测。实际加速 1.8-2.5x，随着 draft length 增加收益递减。Medusa 进一步提出直接在主模型上附加预测头，连教师模型都不需要了。"
+
+**⭐ 面试加分项：**
+- 能解释接受概率校准的数学证明（确保输出分布与目标一致）
+- 理解为什么 draft length > 8 后收益递减
+- 知道 Medusa 方案（预测头）vs EAGLE 方案（分离教师）的区别
+- 理解投机解码不适用于多模态生成（视觉部分无法投机）
+
+</details>
+
+---
+
+### Q37: Multi-Token Prediction（多Token预测）如何提升训练效率和速度？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q37-multi-token-prediction.webp" width="760" alt="多Token预测动漫知识图：每个位置同时预测未来N个token而非仅下一个，训练时损失更大但收敛更快，生成时可用teacher forcing加速">
+<img src="../../assets/illustrations/04-transformer-architecture/q37-multi-token-prediction.webp" width="760" alt="多Token预测动漫知识图：每个位置同时预测未来N个token而非仅下一个，训练时损失更大但收敛更快，生成时可用teacher forcing加速"></a></p>
+<p align="center"><sub>🧠 图解记忆：每次猜一串而不是一个一个猜，学得快但要用teacher forcing防止错误积累；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**核心思想：让模型不只预测下一个 token，而是同时预测未来 N 个 token**
+
+**传统 Next-Token Prediction (NTP) vs Multi-Token Prediction (MTP):**
+
+```python
+# 传统 NTP：每个位置只预测紧随其后的 1 个 token
+序列: [A, B, C, D, E, F]
+训练: A→B, B→C, C→D, D→E, E→F
+损失: Σ CE(pred(i+1), true(i+1))  # 5个损失项
+
+# MTP (例如 k=3): 每个位置预测未来 3 个 token
+序列: [A, B, C, D, E, F]
+训练: 
+  A  predicts B,C,D
+  B  predicts C,D,E
+  C  predicts D,E,F
+  ...
+损失: Σ_{i,j=1}^{k} CE(pred(i+j), true(i+j))  # 5×3=15个损失项! (k=3时)
+# 损失项数量 = T × k(T-k)/2 ≈ O(T²k/2)
+```
+
+**Meta 的论文 "Better & Faster Large Language Models via Multi-token Prediction" 发现:**
+
+```python
+# 关键发现（基于 Llama-2 实验）:
+
+# 1. 样本效率提升
+   - 相同的 epoch 数下，4-future-token 预测的 perplexity 更低
+   - 达到相同 perplexity 所需的训练数据量减少 ~30%
+
+# 2. 速度提升（生成时）
+   - MTP 模型可以在 decoder-only 模式下 teacher-forcing 生成
+   - 每次预测 n 个 token 而非 1 个
+   - 实际加速比 ≈ n（受限于正确接受率）
+
+# 3. 最佳 k 值
+   k | 训练效果 | 生成速度 | 说明
+   --|----------|----------|----
+   2 | ≈1x      | ≈2x      | 几乎无损，最稳定
+   3 | +5%      | ≈3x      | 轻微性能下降，仍可接受
+   4 | +10%     | ≈4x      | 性能有可感知的退化
+   8 | +20%     | ≈5x+     | 显著性能退化，不推荐
+```
+
+**实现细节：**
+
+```python
+class MultiTokenPredictor(nn.Module):
+    def __init__(self, base_model, predict_steps=3):
+        super().__init__()
+        self.base_model = base_model  # 共享 weights
+        self.predict_steps = predict_steps  # 预测步数
+    
+    def forward(self, input_ids):
+        \"\"\"
+        给定输入，返回每一步的预测 logit
+        \"\"\"
+        outputs = self.base_model(input_ids)
+        hidden_states = outputs.hidden_states
+        
+        all_logits = []
+        for step in range(1, self.predict_steps + 1):
+            # 使用第 (total_seq - step) 位置的隐藏状态预测 future token
+            hidden_step = hidden_states[:, -step-1, :]  # 对应位置的 representation
+            # 用同一个 LM head 预测
+            logits_step = self.lm_head(hidden_step)
+            all_logits.append(logits_step)
+        
+        return all_logits  # list of (B, vocab_size)
+    
+    def compute_loss(self, all_logits, targets):
+        \"\"\"
+        计算多层损失
+        targets 的形状: (B, predict_steps)
+        \"\"\"
+        total_loss = 0
+        for logits, target in zip(all_logits, targets):
+            total_loss += F.cross_entropy(
+                logits.view(-1, logits.size(-1)),
+                target.view(-1)
+            )
+        return total_loss
+```
+
+**教师强制（Teacher Forcing）训练：**
+
+```python
+# 训练时的 trick：用真实值而不是模型预测值作为后续步骤的输入
+def teacher_forced_training(model, sequence, predict_steps=3):
+    \"\"\"
+    关键：每一步都用真实 token 作为输入，避免错误累积
+    这使得 MTP 的训练像标准 LM 一样可靠
+    \"\"\"
+    losses = []
+    for offset in range(predict_steps):
+        # 输入是原始序列往前推 offset 位
+        inputs = sequence[:-predict_steps + offset]
+        targets = sequence[predict_steps - offset:]
+        
+        logits = model(inputs)
+        loss = F.cross_entropy(
+            logits.view(-1, logits.size(-1)),
+            targets.view(-1)
+        )
+        losses.append(loss)
+    
+    return sum(losses)  # 综合所有预测步的损失
+```
+
+**与投机解码的联系和区别：**
+
+```
+┌──────────────┬────────────────────────┬─────────────────────────┐
+│             │  Multi-Token Pred.     │  Speculative Decoding   │
+├──────────────┼────────────────────────┼─────────────────────────┤
+│ 使用时阶段   │ 训练 + 生成            │ 仅生成                    │
+│ 核心机制     │ 模型直接学会多步预测     │ 用教师模型猜+大模型验证   │
+│ 是否需要额外│ 不需要（共享同一模型）   │ 需要（小教师+大模型）     │
+│ 加速比       │ 生成时 ~k 倍           │ 生成时 ~1.8-2.5x         │
+│ 训练代价     │ 略有增加（~k 倍 loss）  │ 无                        │
+│ 风险         │ k 太大→质量下降        │ accept rate 低→无效      │
+└──────────────┴────────────────────────┴─────────────────────────┘
+```
+
+**面试话术：**
+> "Multi-Token Prediction 让模型在每个位置都预测未来 N 个 token，训练时损失放大约 N 倍，收敛更快。Meta 实验显示 k=3 时训练质量基本无损，生成时 teacher-forcing 可加速约 3 倍。与投机解码不同，MTP 不需要额外的教师模型，因为模型本身就学会了多步预测。关键限制是 k 增大会导致质量退化，所以一般 k≤3。"
+
+**⭐ 面试加分项：**
+- 理解 Teacher Forcing 为什么对 MTP 训练至关重要
+- 知道 MTP 在训练时增加的是 loss 项数量而非模型大小
+- 能区分 MTP 与投机解码的本质不同（同一模型 vs 双模型协作）
+- 理解为什么 k=2 是最安全的选择，k≥4 开始有明显的 quality drop
+
+</details>
+
+---
+
+### Q38: Linear Attention（线性注意力）与标准 Self-Attention 的本质区别是什么？什么时候该用它？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q38-linear-attention.webp" width="600" alt="线性注意力动漫知识图：标准注意力需要 n×n 矩阵，线性注意力通过核技巧分解乘法顺序，先聚合 K⊗V 再与 Q 相乘">
+<img src="../../assets/illustrations/04-transformer-architecture/q38-linear-attention.webp" width="600" alt="线性注意力动漫知识图：标准注意力需要 n×n 矩阵，线性注意力通过核技巧分解乘法顺序，先聚合 K⊗V 再与 Q 相乘"></a></p>
+<p align="center"><sub>🧠 图解记忆：先把所有KV聚合成一个统计摘要，再与Q做点乘，跳过N×N大矩阵；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**Linear Attention ≠ FlashAttention，这是两个完全不同的思路**
+
+**核心差异对比：**
+
+```
+标准 Self-Attention (Quadratic):
+  输入: (Q, K, V) each shape (B, N, d)
+  输出: Σ_j softmax(q_i · k_j / √d) · v_j
+  复杂度: O(N² · d) 时间和空间
+  关键操作: 形成完整的 N×N 注意力矩阵
+
+Linear Attention (Linear):
+  输入: (φ(Q), φ(K), V) where φ maps to feature space
+  输出: φ(q_i) · (Σ_j φ(k_j) ⊗ v_j)   ← 结合律交换
+  复杂度: O(N · d²) 时间和 O(d²) 空间
+  关键操作: 预聚合 K⊗V 为固定大小的 d×d 统计量
+```
+
+**线性注意力的数学本质：**
+
+```python
+# 去掉 softmax（改用正定特征映射替代）
+# Attention(Q,K,V) = softmax(QK^T/√d)V  → 近似为 → φ(Q)(φ(K)^TV)
+
+class LinearAttention(nn.Module):
+    def __init__(self, d_model, num_heads=8, dropout=0.1):
+        super().__init__()
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+    
+    def forward(self, x, causal=False):
+        Q = self.W_q(x)
+        K = self.W_k(x)
+        V = self.W_v(x)
+        
+        # 拆分多头
+        Q = Q.view(B, N, self.num_heads, self.d_k).transpose(1, 2)
+        K = K.view(B, N, self.num_heads, self.d_k).transpose(1, 2)
+        V = V.view(B, N, self.num_heads, self.d_k).transpose(1, 2)
+        
+        # 正定特征映射 ELU + 1（保证非负）
+        Q = F.elu(Q) + 1
+        K = F.elu(K) + 1
+        
+        if causal:
+            # 因果模式：使用 running sum 增量聚合
+            return self._causal_attention(Q, K, V)
+        else:
+            # 非因果模式：先聚合再乘
+            KKv = torch.einsum('bhid,bhjd->bhij', K, V)  # (B, H, d_k, d_k)
+            output = torch.einsum('bnhd,bhkd->bnhk', Q, KKv)  # (B, N, H, d_k)
+            return self.W_o(output.reshape(B, N, -1))
+    
+    def _causal_attention(self, Q, K, V):
+        \"\"\"
+        因果线性注意力：每步只需要维护运行中的 K^TV 统计量
+        推理时每个 token 只需 O(d_k²) 的常数时间
+        \"\"\"
+        B, H, N, D = Q.shape
+        # 初始化 running statistics
+        K_running = torch.zeros(B, H, D, D, device=Q.device)
+        V_running = torch.zeros(B, H, D, 1, device=Q.device)
+        running_sum = torch.zeros(B, H, 1, device=Q.device)
+        
+        outputs = []
+        for t in range(N):
+            qt = Q[:, :, t:t+1, :].unsqueeze(3)  # (B, H, 1, D)
+            kt = K[:, :, t:t+1, :].unsqueeze(3)  # (B, H, 1, D)
+            vt = V[:, :, t:t+1, :].unsqueeze(3)  # (B, H, 1, D)
+            
+            # 更新 running statistics
+            K_running += kt @ vt.transpose(-2, -1)  # (B, H, D, D)
+            running_sum += kt.squeeze(3).sum(-1, keepdim=True)
+            
+            # 计算注意力
+            denom = (qt * running_sum).sum(-1, keepdim=True) + 1e-8
+            attn = (qt @ K_running) / denom
+            outputs.append(attn)
+        
+        return torch.cat(outputs, dim=2).squeeze(3)
+```
+
+**线性注意力的变体家族：**
+
+| 方法 | 核心想法 | 优点 | 缺点 |
+|------|---------|------|------|
+| **Linformer** | 将 N 维 K/V 压缩到固定 m≪N 维 | 实现简单，兼容现有架构 | 长文本能力下降明显 |
+| **Performer** | 用正交随机特征近似 softmax | O(N) 时间与空间 | 近似精度不如标准注意力 |
+| **Recurrent Transformers** | 用 RNN 式的 running state 代替注意力 | 推理 O(1) per token | 难以并行训练 |
+| **RWKV** | RNN + Attention 混合 | 推理极快，可流式 | 训练稳定性和质量仍待验证 |
+| **Mamba (SSM)** | 选择性状态空间模型 | O(N) 且高质量 | 缺少内容寻址，复杂推理稍弱 |
+
+**何时使用 Linear Attention：**
+
+```python
+# 场景判断指南
+
+def choose_attention_type(seq_length, task_type, gpu_memory):
+    if seq_length < 2048:
+        return \"standard\"  # 短序列直接标准 Attention
+    elif seq_length >= 32768 or gpu_memory is tight:
+        # 超长序列：考虑 FlashAttention 优先，若仍有问题再用 Linear
+        return \"flashattention_first\" if gpu_memory > \"enough\" else \"linear\"
+    else:
+        # 中等长度：FlashAttention 是最好的选择
+        return \"flashattention\"
+
+# 实际应用建议（2026年）:
+# 1. 大多数场景：FlashAttention（保持精确 + 加速）
+# 2. 极端长序列（>64K token）且有显存压力：Linear + FlashAttention 组合
+# 3. 流式推理/边缘设备：RWKV/Mamba 类架构
+# 4. 不要为了线性而线性——大部分情况下 FlashAttention 已经够好了
+```
+
+**面试话术：**
+> "Linear Attention 通过特征映射 φ 和结合律把 O(N²) 注意力变成 O(N)，关键是把 K⊗V 聚合成固定大小的统计量。但与 FlashAttention 不同——FlashAttention 保持精确结果只是减少了 IO，Linear Attention 是用近似换线性。实践中，FlashAttention 已经是首选，只有在极端长序列且显存极度紧张时才考虑纯 Linear Attention。"
+
+**⭐ 面试加分项：**
+- 能清楚区分 Linear Attention 和 FlashAttention 的目标（近似 vs 精确）
+- 理解 causal linear attention 的 running sum 推导过程
+- 知道 RWKV/RWKV 是如何将线性注意力做成真正 RNN 的
+- 了解 Linformer 的低秩近似 vs Performer 的随机特征近似的区别
+
+</details>
+
+---
+
+### Q39: Sparse Attention Pattern（稀疏注意力模式）如何设计？Longformer 和 BigBird 各有什么取舍？
+
+<p align="center"><a href="../../assets/illustrations/04-transformer-architecture/q39-sparse-attention.webp" width="600" alt="稀疏注意力动漫知识图：全局窗口随机三块拼接成稀疏模式，保留局部连续性同时覆盖全局语义">
+<img src="../../assets/illustrations/04-transformer-architecture/q39-sparse-attention.webp" width="600" alt="稀疏注意力动漫知识图：全局窗口随机三块拼接成稀疏模式，保留局部连续性同时覆盖全局语义"></a></p>
+<p align="center"><sub>🧠 图解记忆：每行只关心附近几个token+开头+结尾+随机几处，既省内存又保表达力；点击图片可查看原图。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**当序列超过数千 token 时，O(N²) 的自注意力变得不可承受。Sparse Attention 的设计目标是在保持表达能力的同时降低复杂度。**
+
+**经典三种模式：**
+
+```
+Local Window Attention（局部窗口）:
+  每个 token 只关注前后 W 个 token
+  ├── 优点: 实现最简单，适合局部依赖任务
+  ├── 缺点: 无法跨段落传递信息，长距离关系丢失
+  └── 复杂度: O(NW)
+  └── 应用: Longformer (default setting)
+
+Global Tokens（全局标记）:
+  固定数量的 token（如 [CLS], start 标记）全局可见
+  ├── 优点: 文档级摘要/主题可被所有 token 捕获
+  ├── 缺点: 固定的全局 token 可能不够灵活
+  └── 典型: 每篇文档选 1-2 个全局 token
+  └── 应用: Longformer (global_tokens)
+
+Random Attention（随机注意力）:
+  每个 token 额外以概率 p 选择几个随机目标 token
+  ├── 优点: 理论上保证了信息流通的连通性
+  ├── 缺点: 每次 mask 不同，训练需要更多 epoch
+  └── 数学保证: 只要 random_per_token ≥ O(log N)，图连通概率 → 1
+  └── 应用: BigBird
+```
+
+**BigBird 的核心定理（保证表达能力）：**
+
+```python
+\"\"\"
+BigBird 证明了以下稀疏模式的表达能力与稠密 Attention 等价：
+
+For any two tokens i and j, path(i → j) 存在的概率 ≥ 1 - δ
+当：
+  - window_size = W（局部窗口）
+  - global_tokens = G（全局token）
+  - random_per_token = R（每token额外关注的随机数）
+
+且 R ≥ c·log(N) 时（c 是某常数）
+
+这保证了即使只有 O(N·(W + G + log N)) 个注意力连接，
+任意两个 token 之间都能通过路径传递信息。
+\"\"\"
+
+import numpy as np
+
+def bigbird_sparse_pattern(N, window_size=64, global_tokens=4, random_per_token=4):
+    \"\"\"
+    生成 BigBird 的稀疏注意力模式
+    复杂度: O(N * (window + global + random)) = O(N * (64+4+4)) = O(72N)
+    对比稠密: O(N²)
+    \"\"\"
+    mask = np.zeros((N, N), dtype=bool)
+    
+    # 1. Local window
+    for i in range(N):
+        j_start = max(0, i - window_size//2)
+        j_end = min(N, i + window_size//2)
+        mask[i, j_start:j_end] = True
+    
+    # 2. Global tokens (first and last few)
+    global_ids = list(range(global_tokens)) + list(range(N-global_tokens, N))
+    for i in range(N):
+        mask[i, global_ids] = True
+        mask[global_ids, i] = True
+    
+    # 3. Random sparse attention
+    rng = np.random.default_rng(42)
+    for i in range(N):
+        random_targets = rng.choice(N, size=random_per_token, replace=False)
+        mask[i, random_targets] = True
+    
+    return mask
+
+# 示例：N=10000 时稀疏模式占比
+N = 10000
+mask = bigbird_sparse_pattern(N)
+sparsity = mask.sum() / (N*N)
+print(f\"Sparsity: {sparsity:.4f} ({sparsity*100:.2f}% of full)\")
+# 约 0.76% — 从 100% 降到 0.76%，减少 131 倍！
+```
+
+**Longformer vs BigBird 对比：**
+
+| 维度 | Longformer | BigBird |
+|------|-----------|---------|
+| **模式** | 滑动窗口 + 全局 | 滑动窗口 + 全局 + 随机 |
+| **复杂度** | O(N·W) | O(N·(W + G + log N)) |
+| **实现难度** | ⭐ 简单（已有 flash attention 支持窗口） | ⭐⭐ 较复杂（需要自定义 CUDA kernel） |
+| **长程建模** | 依赖全局 token 桥接 | 随机连接提供更强连通性 |
+| **适用场景** | 文档分类、NER、长文本 QA | 需要强全局关系的任务 |
+| **2026 采用度** | 较高（HuggingFace 原生支持） | 中（理论更好但工程门槛高） |
+
+**2026 年的新趋势 — Dynamic Sparse Attention：**
+
+```python
+\"\"\"
+传统稀疏模式是静态预设的。2025-2026 年出现了一批动态方案：
+
+1. DeepSeek Sparse Attention:
+   - 基于重要性分数动态选择注意力目标
+   - 通过 Lightning Indexer 计算每个 token 对历史的 relevance
+   - 只关注 top-K 个重要 token
+
+2. FlexPrefill:
+   - 上下文感知：根据输入类型动态调整稀疏模式
+   - 推理时实时调整而非训练时固定
+
+3. MInference:
+   - 发现注意力权重有三种模式：
+     A-Shape（Streaming）/ Vertical-Slash / Block-Sparse
+   - 对每种注意力头离线分配最优模式
+   - 推理时构建最优稀疏索引
+\"\"\"
+```
+
+**面试话术：**
+> "Sparse Attention 的核心是在 O(N²) 降到 O(NW) 的同时保证表达能力。BigBird 用窗口+全局+随机三件套，数学上证明了只要随机注意力足够多（O(log N)），信息就能在整篇文章中传递。Longformer 更实用，直接用滑动窗口加少量全局 token。2026 年的趋势是从静态模式转向动态稀疏——根据 token 间的重要性实时选择关注对象。"
+
+**⭐ 面试加分项：**
+- 能画出 BigBird 的三种模式并解释各自的职责
+- 理解为什么随机注意力是必要的（保证图的连通性）
+- 知道 Longformer 和 BigBird 的工程落地差异
+- 了解 2025-2026 年 Dynamic Sparse Attention 的研究进展
+
+</details>
+
 ---
 
 **上一模块：** [RAG 系统](../03-rag-system/)
@@ -3210,4 +3861,4 @@ FFN 计算量:
 
 ---
 
-*版本: v3.138 | 更新: 2026-10-08 | by 二狗子 🐕*
+*版本: v3.139 | 更新: 2026-10-26 | by 二狗子 🐕*
