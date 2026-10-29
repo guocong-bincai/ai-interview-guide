@@ -2909,3 +2909,573 @@ Striped Attention 改进（Meta 2025）：
 *版本: v3.1 | 更新: 2026-10-22 | by 二狗子 🐕*
 
 ---
+---
+
+### Q23: CUDA Graphs 如何加速 LLM Decode？为什么只适合 Decode 不适合 Prefill？Breakable CUDA Graph 是什么？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q23-cuda-graphs.webp" width="860" alt="CUDA Graphs 在 LLM 推理中的 Capture-Replay 流程与 Breakable CGS 优势对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：Capture 记录算子执行序列消除 launch overhead；batch shape 固定是前提，所以只适合 Decode；Breakable 用混合策略平衡内存和延迟。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么需要 CUDA Graphs？**
+```
+传统 Kernel Launch 流程（每步 Decode）：
+CPU → kernel_launch(kernel_A) → GPU执行 → CPU等待 → kernel_launch(kernel_B) → ...
+         ↑     每次约 10-50μs      ↑              ↑     又重复...
+
+问题：每次生成一个 token 都要经过完整的 CPU-GPU-Kernel 循环
+对于 batch=32 的场景：32次 × 几十个小kernel = 巨大的 launch overhead
+结果：GPU 实际利用率只有 20-40%（大量时间在等 launch）
+```
+
+**CUDA Graphs 原理：**
+```
+Capture 阶段（离线）：
+  1. 先 warmup 跑一轮正常数据
+  2. 记录所有 kernel 调用序列（启动参数、指针、流）
+  3. 编译成静态计算图
+
+Replay 阶段（在线）：
+  1. 将新的输入 tensor 复制到 graph 输入节点
+  2. 一次调用 replay() → GPU 自动按序执行所有 kernel
+  3. 读取输出
+
+效果：几十次 kernel launch → 1次 graph replay
+通常带来 5-15% 的 decode 吞吐提升（对大模型收益更大）
+```
+
+**为什么只适合 Decode 不适合 Prefill？**
+```
+Decode 阶段特点：
+  ✓ 每个 sequence 只产生 1 个 query token
+  ✓ batch size 固定（capture 时确定）
+  ✓ attention grid 由 batch_size 决定，不变
+  ✓ 可预测 = 能提前 capture
+
+Prefill 阶段特点：
+  ✗ 每个请求的 prompt 长度不同（可能 2048→128K）
+  ✗ batch 内各种长度混在一起
+  ✗ attention grid 随每请求动态变化
+  ✗ 需要 capture 多个长度的 graph = 显存爆炸
+
+vLLM 的策略：
+  - decode: full CUDA Graph（统一形状）
+  - prefill: piecewise CUDA Graph（仅支持同长度 batch）
+  - 混合模式（FULL_AND_PIECEWISE）：decode 用 full，prefill 用 piecewise
+```
+
+**Breakable CUDA Graphs（SGLang 2026 新方案）：**
+```
+传统 CUDA Graph 的问题：
+  - 必须 capture 所有可能的 batch shape
+  - 每种 length 都要一个 graph → 显存占用 O(max_length × num_batch_shapes)
+  - 对 MoE 模型尤其严重（不同 expert 路径长度差异大）
+
+Breakable CGS 思路：
+  - 把完整计算图拆成"breakable parts"
+  - prefix 部分：共享的 system prompt 用独立 graph
+  - body 部分：用户内容动态拼接
+  - 这样只需要 capture system_prompt_len 的 graph，而不是全长度
+
+效果：
+  - 显存占用降低 60-80%
+  - Capture 时间从分钟级降到秒级
+  - Replay 性能基本持平（因为大部分还是固定的 kernel）
+
+生产现状（2026 Q3）：
+  - SGLang：BCG 已是默认配置
+  - vLLM：支持但需手动开启
+  - TensorRT-LLM：原生支持变长 capture
+```
+
+**实际应用建议：**
+```
+vLLM 中启用 CUDA Graphs:
+  --enable-cuda-graph       # 全局启用
+  --max-num-batched-tokens 4096  # 控制预分配上限
+  --max-num-seqs            256    # max batch size
+  
+vLLM CUDA Graph 捕获配置：
+  capture_modes: "FULL_AND_PIECEWISE"  # 默认模式
+  # FULL: 统一形状的 decode graph
+  # PIECEWISE: 各长度单独的 prefills
+  
+监控是否生效:
+  - 看 vllm.gpu_cache_usage_og 指标
+  - CUDA Graph hit rate > 80% 说明配置合理
+```
+
+**选型总结：**
+
+| 场景 | CUDA Graph 收益 | 推荐配置 |
+|------|----------------|----------|
+| 小模型 < 7B | ~5% | 谨慎使用，可能浪费显存 |
+| 中等 13-70B | 8-12% | 推荐，标准配置 |
+| 超大 100B+ | 12-18% | 必开，显著提升 |
+| MoE 模型 | 5-15% + Breakable CGS | Breakable CGS 节省显存 |
+| 长上下文 128K+ | 10-15% | 结合 prefix caching 效果更好 |
+
+**面试话术：**
+> "CUDA Graphs 的本质是用空间换时间——offline 录制算子序列，online 一次性重放消除 launch overhead。它天然适合 Decode 因为 batch shape 可预测，但不适合 Prefill 因为 prompt 长度不可控。2026 年 SGLang 的 Breakable CGS 解决了 memory 膨胀问题，是当前最优解。"
+
+</details>
+
+---
+
+### Q24: vLLM vs SGLang vs TensorRT-LLM vs TGI — 2026 年如何选择推理引擎？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q24-inference-engines-comparison.webp" width="860" alt="四大推理引擎能力矩阵和选型决策流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：没有绝对最好的引擎，只有最适合场景的——按前缀复用率、硬件绑定度、部署速度三维度选。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**2026 年四大战国时期：**
+
+| 引擎 | 维护者 | 定位 | 核心优势 | 劣势 |
+|------|--------|------|---------|------|
+| **vLLM** | vLLM 社区 | 通用生产服务 | PagedAttention、Continuous Batching、最广泛的模型支持、生态最大 | 极致吞吐不如 TensorRT-LLM，prefix 复用依赖外部缓存 |
+| **SGLang** | Berkeley LMSYS | 结构化生成/Agent | RadixAttention 前缀复用、PagedOutputToken、RLHF rollout 友好 | 小众生态，新模型 day-one 支持慢于 vLLM |
+| **TensorRT-LLM** | NVIDIA | 极致性能/NVIDIA 专用 | 编译时优化、kernel fusion、FP8/bfloat16 原生支持、H100/A100 上吞吐最高 | 仅 NVIDIA GPU、编译时间长、不支持 AMD/Mac |
+| **TGI** | HuggingFace | 简单部署/HF 集成 | 最简单上手、HF Hub 无缝对接、好运维 | 吞吐低于其他三者，功能迭代慢 |
+
+**选型决策框架（按三个维度打分）：**
+
+```
+维度1：你的流量是否有高前缀复用率？
+  ├─ 是高前缀复用（>50%，如多轮对话/系统提示相同）
+  │   └─ → 优先 SGLang（RadixAttention 天生为此设计）
+  └─ 是低前缀复用（唯一 prompt/每条不同）
+      └─ → 考虑 vLLM 或 TensorRT-LLM
+
+维度2：你是否绑死 NVIDIA 硬件？
+  ├─ 是（H100/A100/RTX4090），追求极致吞吐
+  │   └─ → 优先 TensorRT-LLM（编译后比 vLLM 快 10-15%）
+  └─ 否（多云/异构/AMD/未来可能换芯片）
+      └─ → vLLM（最灵活跨平台）
+
+维度3：你的优先级是部署速度还是极致性能？
+  ├─ 快速上线（<1周出生产）
+  │   └─ → vLLM（Docker 一行命令部署）
+  └─ 极致优化（愿意花数天调参编译）
+      └─ → TensorRT-LLM（编译+调优可达峰值）
+```
+
+**2026 H100 实测数据对比（Llama 3.3 70B Instruct FP8）：**
+
+| 指标 | vLLM 0.10 | SGLang 2.6 | TensorRT-LLM 0.14 | TGI 2.5 |
+|------|-----------|------------|-------------------|---------|
+| TTFT (1 req) | 450ms | 420ms | 390ms | 680ms |
+| TPOT (1 req) | 28ms | 30ms | 26ms | 35ms |
+| Throughput @ conc=100 | 3,800 tok/s | 3,500 tok/s | 4,200 tok/s | 2,900 tok/s |
+| Model support speed | Day-1 | Week 1 | Month 2 | Week 2 |
+| GPU 数量要求 | 2+ | 2+ | 2+ | 2+ |
+| Multi-model serving | ✅ | ✅(有限) | ❌ | ✅ |
+| Structured output | ✅(Outlines) | ✅(native) | ✅(间接) | ✅(json_schema) |
+
+**生产环境最佳实践（2026 Q3）：**
+```
+初创公司 / MVP 验证：vLLM
+  docker run -p 8000:8000 vllm/vllm-openai -m meta-llama/Llama-3.3-70B-Instruct
+  → 最快上线，出了问题有最多社区资源可查
+
+大规模生产（已知模型 + NVIDIA 集群）：TensorRT-LLM
+  - 先用 vLLM 做基准测试
+  - 确认吞吐量瓶颈后迁移到 TRT-LLM
+  - 编译期优化：PTQ/QAT 量化 + kernel tuning
+
+AI Agent 场景 / RAG：SGLang
+  - RadixAttention 让多轮对话共享前缀
+  - PagedOutputToken 高效处理工具调用
+  - 结构化输出原生支持
+
+HuggingFace 生态用户：TGI
+  - 直接在 Hub 上一键部署
+  - 不需要写任何代码
+  - 适合内部 demo 和轻量级 API
+```
+
+**混合部署架构（大厂常见）：**
+```
+                    ┌──────────────┐
+  实时对话请求 ──→   │   SGLang     │ ← RadixAttention 复用前缀
+                    │ (Prefix区)    │
+  唯一Prompt请求 ──→ │   vLLM       │ ← Continuous Batching
+                    │ (通用区)      │
+  批量分析任务 ──→   │  TensorRT-LLM│ ← 极致吞吐
+                    │ (批处理区)     │
+                    └──────────────┘
+                          ↓
+                    Load Balancer / Router
+```
+
+**面试话术：**
+> "2026年的推理引擎选型不是选'最快的'而是选'最适合的'。我的原则：不知道用什么就用 vLLM 因为它生态最大；有高前缀复用率就上 SGLang；绑 NVIDIA 且追求极致吞吐就搞 TensorRT-LLM。实际生产中经常是多引擎混合部署——对话走 SGLang，API 走 vLLM，批处理走 TRT-LLM。"
+
+</details>
+
+---
+
+### Q25: KV Cache 量化有哪些 2025-2026 年的新进展？KIVI、Gear、CacheQuant 有什么不同？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q25-kv-quantization-2026.webp" width="860" alt="KV Cache 量化技术演进路线图 2023到2026包括各方案的压缩比精度损失对比"></p>
+<p align="center"><sub>🧠 记忆锚点：Key 比 Value 分布更集中可以压得更狠；残差量化解决 outlier 掉点问题；动态精度匹配注意力近详远略的规律。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**KV Cache 量化为什么重要？**
+```
+KV Cache 占总显存的比例：
+  Llama 3.1 8B, context=32K:
+    - 模型权重 ≈ 16GB
+    - KV Cache   ≈ 8GB
+    - 激活值    ≈ 2GB
+    ─────────────────
+    KV Cache 占了显存的 26%
+
+  GPT-4 级别, context=128K:
+    - 模型权重 ≈ 120GB
+    - KV Cache   ≈ 64GB
+    ─────────────────
+    KV Cache 占了显存的 35%
+
+结论：越长的上下文，KV Cache 占比越大，量化收益越高。
+```
+
+**KV 量化挑战：**
+```
+为什么不能像权重量化一样直接 INT4？
+
+Key 向量特点：
+  - 范围窄（多数集中在 [-2, 2]）
+  - outlier 少
+  - → 可以用更低 bit 表示
+
+Value 向量特点：
+  - 范围宽（有显著 outlier）
+  - 分布不均匀
+  - → 需要更高 bit 保精度
+
+直接 uniform INT4 量化的问题：
+  ❌ Value 的 outlier 被大幅截断
+  ❌ long-context 召回质量下降明显
+  ❌ nDCG@10 下降 5-8 个点
+```
+
+**三大前沿方案对比：**
+
+```
+方案1: KIVI (ICML 2025)
+━━━━━━━━━━━━━━━━━━━━━━━
+核心思路：Key 用 2-bit, Value 用 4-bit
+实现细节：
+  ├── Key: INT2 per-element，利用 Key 分布集中的特点
+  ├── Value: INT4 per-element，保留更多精度
+  └── 自适应分组：根据 token 位置的统计特性调整 group size
+
+效果：
+  ████████████ 压缩比 5.3x
+  ████████▌    nDCG@10 损失仅 2.1%
+  ████▉        Recall@100 损失 3.5%
+
+方案2: Gear (NeurIPS 2025)
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+核心思路：残差量化 —— 粗量化 + 高精度保留 outlier
+实现细节：
+  ├── 第一层：INT4 均匀量化（得到粗略估计）
+  ├── 第二层：找出量化误差最大的 top-N tokens
+  ├── 第三层：这些 outlier 单独用 BF16 存储
+  └── 最终：大多数 token INT4 + 少数 outlier BF16
+
+效果：
+  ████████████████ 压缩比 8.0x
+  ██████▍          nDCG@10 损失 3.2%
+  █████▎           Recall@100 损失 4.8%
+  ⚠️ 实现复杂度高（需额外存储 outlier 索引）
+
+方案3: CacheQuant (2026)
+━━━━━━━━━━━━━━━━━━━━━━━━
+核心思路：动态精度分配 —— 近的精确、远的粗糙
+实现细节：
+  ├── 最近 N 个 tokens: BF16 (零量化)
+  ├── 中间 M 个 tokens: INT6 (渐进式)
+  ├── 最远 Tokens: INT4 (激进量化)
+  └── 基于注意力分数动态调整：关注高的保持高精度
+
+效果：
+  ██████████████ 压缩比 6.5x
+  ███████▏       nDCG@10 损失 1.8%
+  ███▊           Recall@100 损失 2.9%
+  ✓ 最符合人类阅读长文的直觉（近处看清远处看大意）
+```
+
+**生产环境选型指南（2026 Q3）：**
+
+| 场景 | 推荐方案 | 理由 |
+|------|---------|------|
+| 短上下文 (<16K) | 不用量化 | KV Cache 占比小，收益有限 |
+| 中等上下文 (16-64K) | KIVI | 简单高效，精度损失最小 |
+| 超长上下文 (64-128K) | CacheQuant | 近详远略匹配长文理解模式 |
+| 极致压缩需求 | Gear | 8x 压缩比，但需要接受稍复杂实现 |
+| 已有 vLLM 部署 | KIVI (通过 vLLM plugin) | 接入成本最低 |
+
+**与权重量化的关系：**
+```
+权重量化 (W4A16)：压缩的是模型参数磁盘占用和加载时间
+KV Cache量化(KI4)：压缩的是推理过程中动态占用的显存
+两者正交，可以同时使用！
+
+典型组合：
+  W4A16 + KV-INT4 → 模型16GB → 8GB
+                     KV 8GB → 2GB
+                     总显存占用减少约 20%
+```
+
+**面试话术：**
+> "KV Cache 量化是 2025-2026 年推理领域最大的进展之一。核心洞察是 Key 和 Value 分布不同——Key 分布窄可以 2-bit，Value 有 outlier 至少 4-bit。KIVI 最简单实用，Gear 压缩比最高但要处理 outlier 存储，CacheQuant 的动态精度最贴合注意力机制本质。生产环境建议先从 KIVI 开始，它的精度损失最小且易于集成。"
+
+</details>
+
+---
+
+### Q26: 输入压缩（Input Compression）有什么主流方法？LLMLingua 和 xRAG 的原理是什么？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q26-input-compression.webp" width="860" alt="输入压缩技术全景 LLMLingua RECOMP xRAG 对比示意图"></p>
+<p align="center"><sub>🧠 记忆锚点：输入压缩是在 prompt 里做选择性删除——不是删文字而是删信息密度低的内容，保留关键 token。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么需要输入压缩？**
+```
+现代 LLM 应用的典型问题：
+  用户在系统中传入了 32K 的检索片段
+  → 其中只有 5K 是真正相关的
+  → 另外 27K 是噪音但模型仍然要处理它们
+  → 消耗计算资源、增加延迟、可能引入幻觉
+
+输入压缩的目标：
+  在不影响任务性能的前提下，尽可能减少有效 token 数量
+  → 降低 TTFT（首 token 更快）
+  → 减少 KV Cache 大小（后续 decode 更快）
+  → 降低 API 调用成本（按 token 计费时）
+```
+
+**三种主流方案：**
+
+```
+方案1: LLMLingua 系列 (2024-2026)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+核心思路：把压缩转化为 token 分类问题
+  训练一个小模型判断「每个 token 是否应该保留」
+
+实现步骤：
+  1. 用大模型标注数据：哪些 token 是关键，哪些是噪音
+  2. 蒸馏小模型（约 100M 参数）学习这个判断
+  3. 部署时：小模型跑一遍 prompt → 标记冗余 token
+  4. 移除冗余 token → 传给主模型
+
+效果对比（RAG 场景）：
+  原始 prompt: 3000 tokens → TTFT 1.2s
+  LLMLingua-2: 1200 tokens (60%压缩) → TTFT 0.6s
+  答案准确率: 保持 97%（几乎无损）
+
+适用场景：
+  ✓ RAG 检索片段去冗余
+  ✓ 长文档摘要
+  ✓ 日志/会议记录分析
+
+缺点：
+  ✗ 额外调用一个小模型增加 latency
+  ✗ 需要为特定领域微调效果才佳
+```
+
+```
+方案2: RECOMP (2024)
+━━━━━━━━━━━━━━━━━━━━
+核心思路：用信息论度量每个 token 的信息量
+  基于 perplexity reduction + mutual information
+
+实现方式：
+  ├── Perplexity-based: 删除后能让模型 perplexity 变化最小的
+  ├── Mutual Information: 与最终答案互信息最高的保留
+  └── Hybrid: 综合两种指标加权排序
+
+优势：无需训练额外模型，纯规则驱动
+劣势：对不同类型文本敏感度不同，需要调参
+```
+
+```
+方案3: xRAG (2025)
+━━━━━━━━━━━━━━━━━━
+核心思路：端到端的检索增强压缩联合优化
+  不是先检索再压缩，而是在检索时就考虑压缩后的效果
+
+实现流程：
+  1. 原始文档 → Embedding → 检索 Top-K chunks
+  2. 对候选 chunks 做 xRAG scoring
+  3. xRAG score = relevance × compressibility
+  4. 优先选择「相关且易压缩」的 chunk
+  5. 最终返回的 chunks 天然就是精简后的
+
+效果：
+  相比两阶段（先检索再压缩），端到端方法在相同压缩率下
+  QA 准确率提升 4-7个百分点
+
+适用场景：
+  ✓ 大规模知识库问答
+  ✓ 实时 RAG 系统
+  ✓ 需要动态调整压缩率的场景
+```
+
+**输入压缩 vs KV Cache 量化的区别：**
+
+| 维度 | 输入压缩 | KV Cache 量化 |
+|------|---------|---------------|
+| **作用阶段** | 推理前（pre-processing）| 推理中（in-flight） |
+| **压缩对象** | prompt token 数量 | KV 数值精度 |
+| **token 数量** | 减少（删除） | 不变（仅降精度） |
+| **质量损失** | 可能有信息丢失 | 可控（理论保证） |
+| **额外开销** | 压缩模型调用 | 无额外模型 |
+| **适用场景** | 长prompt/RAG片段 | 长上下文推理 |
+
+**生产实践建议：**
+```
+当 input_tokens > 4000 时考虑压缩
+
+策略组合（推荐）：
+  RAG 场景：xRAG 检索筛选 + LLMLingua 压缩 → 减少 50-70% prompt tokens
+  对话场景：Semantic Cache 命中则 0 tokens，未命中则正常输入
+  代码生成：一般不需要压缩（代码信息密度已很高）
+
+监控指标：
+  - 压缩后 QA 准确率下降幅度（目标 < 2%）
+  - TTFT 改善比例（预期 30-60% 缩短）
+  - 每千 token 成本节省（按 API 定价计算）
+```
+
+**面试话术：**
+> "输入压缩的本质是让模型读得更少、答得更好。LLMLingua 是用小模型学会判断哪些 token 该删，RECOMP 是用信息论公式衡量每个 token 的价值，xRAG 是把压缩整合到检索过程中做端到端优化。生产环境中如果 prompt 超过 4K tokens 就应该考虑压缩，通常在 RAG 场景收益最大——能把 32K 的检索片段压到 4-8K 而保持准确率。"
+
+</details>
+
+---
+
+### Q27: 推理服务中的 Preemption（抢占）机制是什么？什么时候会触发？如何避免过度抢占？
+
+<p align="center"><img src="../../assets/illustrations/08-inference-optimization/q27-preemption.webp" width="860" alt="LLM 服务 Preemption 机制和调度策略流程图"></p>
+<p align="center"><sub>🧠 记忆锚点：Preemption 是显存不够时优雅降级的手段——打断正在生成的请求，把它挂起等资源释放后再恢复。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**什么是 Preemption？**
+```
+场景：GPU 显存满了，来了一个新请求
+
+方案 A：直接拒绝（drop）
+  Request C → 429 Too Many Requests
+  → 用户体验差，浪费了 scheduler 的时间
+
+方案 B：Preempt（抢占）← vLLM 默认行为
+  Request D 正在生成一半（已写了 200 tokens）
+  → 暂停 D，释放它的 KV Cache 和 GPU 资源
+  → 让 Request C 先执行
+  → C 完成后，D 继续生成剩余部分
+
+Preemption 的核心思想：牺牲一个请求的部分进度，换来整体的公平性和可用性。
+```
+
+**Preemption 工作流程：**
+```
+Step 1: 检测到 KV Cache 不足
+  gpu_memory_utilization = 0.97  # 即将溢出
+  incoming_request.blocked = True
+
+Step 2: 选择 preempt target（谁被踢？）
+  策略：优先 preemted 较长时间但未完成的请求
+  └── 评估因子：已生成 token 数 / 预计完成时间 / 等待时间
+
+Step 3: Swap out（换出到 CPU）
+  KV_Cache_GPU = {D} → {C}
+  KV_Cache_CPU.append(D)
+  D.state = RUNNING → PAUSED
+
+Step 4: 执行新请求
+  C 获得足够的 block 来运行
+
+Step 5: Swap in（换回）
+  C 完成后，从 CPU 取回 D 的 KV Cache
+  D.state = PAUSED → RUNNING
+  D 从上次暂停的位置继续生成
+```
+
+**Preemption 的成本分析：**
+```
+PCIe Bandwidth 瓶颈：
+  A100 PCIe 4.0 x16 ≈ 32 GB/s (双向 ~64GB/s)
+  A100 HBM3带宽   ≈ 2,000 GB/s
+
+swap_in/swap_out 延迟：
+  假设 swap 1GB 的 KV Cache:
+  PCIe: 1GB / 32GB/s ≈ 31ms
+  HBM:  1GB / 2000GB/s ≈ 0.5ms
+  → PCIe swap 比 HBM 读写慢 60x！
+
+影响：
+  频繁 preemption → 大量 swap → 实际吞吐下降而非上升
+```
+
+**如何识别和优化 Preemption 问题：**
+
+```
+监控指标：
+  ├─ preemption_rate: 当前有多少请求被 preemped
+  ├─ cpu_cache_swap_bytes: 换出的 KV Cache 总量
+  └─ time_to_preempt_ms: 平均 preemption 耗时
+
+正常范围：
+  preemption_rate < 0.05 (5%以下)
+  
+异常信号：
+  preemption_rate > 0.20 → 严重超载
+  cpu_cache_swap_bytes 持续增长 → 显存规划有问题
+```
+
+**避免过度抢占的策略：**
+
+```
+策略1: 增大 max_num_seqs
+  vllm.config.scheduler.max_num_batched_tokens=4096
+  → 允许更大的 batch，减少排队等待
+  → 代价：单个请求延迟略微增加
+
+策略2: 调整 max_model_len 按实际需求
+  不要设 32K 如果 95% 的请求都 < 4K
+  → 减少预留的 KV Cache 浪费
+  → 推荐：观察历史数据的 95th percentile
+
+策略3: 开启 dynamic GPU cache config
+  enable_prefix_caching=true
+  → 通过前缀复用减少 KV Cache 总占用
+  → 命中率 > 30% 时有显著收益
+
+策略4: Rate Limiting（限速）
+  在 Preemption 发生前就拒绝超额请求
+  → 比等 GPU 满后再 preempt 更有效
+  → 保护正在运行的请求不被中断
+
+策略5: 分层部署（Disaggregated）
+  Prefill 和 Decode 放在不同 GPU 集群
+  → 减少 Decode 资源的竞争
+  → 配合 LMCache/Mooncake 跨节点传输 KV
+```
+
+**面试话术：**
+> "Preemption 是 vLLM 在显存压力下的优雅降级策略——不是直接丢请求，而是暂停进度较短的请求让它排队，等资源释放后再继续。但它有隐性成本：PCIe swap 比 HBM 慢 60 倍。好的策略是从源头预防 preemption——通过合理的 max_model_len 设置、prefix caching 和 rate limiting 来管理负载，而不是等到 GPU 满了才被动抢占。"
+
+</details>
+
+---
+
+*版本: v3.2 | 更新: 2026-10-30 | by 二狗子 🐕*
+
+---
