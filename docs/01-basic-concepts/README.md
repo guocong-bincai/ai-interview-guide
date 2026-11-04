@@ -3999,6 +3999,428 @@ Context Engineering（上下文工程）:
 
 ---
 
+## 62. 🔥🔥🔥🔥🔥 什么是投机解码（Speculative Decoding）？为什么能加速 LLM 推理而不损失质量？（高频必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q62-speculative-decoding.webp"><img src="../../assets/illustrations/01-basic-concepts/q62-speculative-decoding.webp" width="100%" alt="投机解码动漫知识图：小草稿模型快速生成候选序列，大模型并行验证每个候选是否匹配，不匹配的从截断点重新计算，整体减少大模型的自回归步数"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：让小模型先写草稿，大模型快速审核——对了就过，错了就重来。</sub></p>
+
+### 核心思想
+
+**投机解码 = 用小而快的"草稿模型"先生成候选 token，再让大而慢的"目标模型"并行验证这些候选是否合理。**
+
+```
+标准自回归生成（串行）:
+  [Token1] → [Token2] → [Token3] → [Token4] → [Token5]
+  每次都要等前一个算完才能算下一个，大模型逐个推理
+
+投机解码（并行）:
+  Step1: 小模型快速生成 5 个候选: [A][B][C][D][E]
+  Step2: 大模型一次性验证全部 5 个 → A✓ B✓ C✓ D✗ E(?)
+         匹配到第3个(D不符合)，重新从D开始由大模型推理
+  Step3: 大模型继续推理 D'[F][G][H]
+  Step4: 大模型验证 D'✓ F✓ G✓ H✓ → 全匹配，完成！
+```
+
+### 关键参数
+
+| 参数 | 说明 | 推荐 |
+|------|------|------|
+| **草案长度 (k)** | 小模型每次生成的候选数量 | k=4~8 |
+| **接受率 (acceptance rate)** | 候选被大模型接受的概率 | >70%才有加速收益 |
+| **大小模型比例** | 小模型参数量通常是大模型的 1/10~1/4 | 如 7B draft + 70B target |
+
+### 为什么不会损失质量？
+
+- **验证机制保证正确性**：大模型在每个候选 token 上都做了完整的 Attention 计算，如果大模型的 softmax 概率没有把这个 token 选为最高，则该候选被拒绝
+- **最终输出等于标准自回归**：因为所有通过验证的 token 都是大模型认可的，所以最终结果与标准生成完全一致
+- **只是一个速度优化，不是近似**：这是面试高频追问——投机解码是**无损**加速，不是 trade-off
+
+### 工业实现（面试加分）
+
+| 框架 | 实现方式 |
+|------|----------|
+| **vLLM** | Built-in speculative decoding 支持 |
+| **TensorRT-LLM** | 原生支持多 token 预测 |
+| **SGLang** | RadixAttention 天然适合草稿匹配 |
+| **NVIDIA NIM** | API 层内置 speculation support |
+
+### 面试高频追问
+
+- **什么时候用投机解码值得？** 当草案接受率 > 60~70% 时显著加速；对于简单任务或小语言差异场景效果最好
+- **草案模型从哪里来？** 可以用同系列蒸馏模型、剪枝版本、或者更小参数的同学模型（如 7B Draft + 70B Target）
+- **加速比能到多少？** 取决于 k 和接受率；k=8 且接受率 80% 时可达到 ~3x 吞吐提升
+
+**面试话术：**
+> "投机解码的核心是用一个小模型写草稿、大模型做验证。小模型快速连续产出候选 token，大模型在单次 prefill 中并行验证它们——对的直接过，错的就从错误处回退重跑。关键是这整个过程是**无损**的，最终输出和标准自回归完全一致，只是把串行的 decode 变为了部分并行。生产上我一般配 k=5~8 的小模型做草案，接受率能维持在 70% 以上，吞吐提升 2~3 倍。"
+
+---
+
+## 63. 📌 PagedAttention 是什么？它如何解决 KV Cache 内存碎片问题？（进阶高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q63-pagedattention.webp"><img src="../../assets/illustrations/01-basic-concepts/q63-pagedattention.webp" width="100%" alt="PagedAttention动漫知识图：KV Cache 按固定大小的 block 分页存储，非连续分配避免内部/外部碎片，并支持跨请求 Prefix Caching 复用同一批 block"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：像操作系统的虚拟内存一样管理 KV Cache——按页分配，零拷贝，灵活扩缩。</sub></p>
+
+### 传统方案的问题
+
+```python
+# 朴素实现：每个 request 预分配最大可能显存
+kv_cache_per_request = max_seq_len × num_layers × n_heads × head_dim × 2 bytes
+
+# 问题：如果有 100 个 request，每个可能最长 8K tokens
+# → 必须预分配 100 × 8K × ... 的显存
+# → 但大部分 request 实际只生成了几百 token
+# → 大量显存浪费（内部碎片）
+
+# 如果动态扩容 → 需要拷贝整个 KV Cache 矩阵 → 高延迟
+# → 无法满足 Continuous Batching 需要的实时增删 request
+```
+
+### PagedAttention 的解决方案
+
+```
+PagedAttention 将 KV Cache 分成固定大小的 Block（如每块包含 16 个 token 的 K/V）：
+
+┌───────────┐   ┌──────────┐
+│ Block ①   │──▶│ Token 0-15│  ← Request A
+│ Block ②   │──▶│ Token 16-31│
+│ Block ③   │──▶│ Token 32-47│
+└───────────┘   └──────────┘
+               
+┌───────────┐
+│ Block ④   │──▶│ Token 0-15│  ← Request B
+│ Block ⑤   │──▶│ Token 16-31│
+└───────────┘   └──────────┘
+```
+
+**核心优势：**
+
+| 特性 | 传统方案 | PagedAttention |
+|------|---------|---------------|
+| 内存分配 | 连续大块预分配 | 按需分页分配 |
+| 碎片 | 严重（内部+外部） | 几乎为零 |
+| Request 加入/退出 | 需整块拷贝 | O(1) 指针修改 |
+| 跨请求复用 | 困难 | ✅ 天然支持（见 Prefix Caching） |
+| 最大并发数 | 受限 | 大幅扩展 |
+
+### 与操作系统虚拟内存的类比
+
+```
+操作系统虚拟内存              PagedAttention
+├── Page Table → Block Table
+├── Logical Page No. → Block Index
+├── 按需换页 → 按需分配 Block
+├── 共享页面 → 共享 Prefix Block (Prefix Caching)
+└── 虚拟地址空间 >> 物理内存 → 逻辑 seq_len >> 物理显存
+```
+
+### 工程影响
+
+1. **提升 GPU 利用率**：不再需要过度预留显存给未完成的请求
+2. **支持更大 batch**：在同一张卡上同时服务更多并发请求
+3. **配合 Continuous Batching**：request 可以随时进出批次而无需内存搬移
+4. **vLLM 的基石技术**：vLLM 吞吐量远超静态 batching 的关键原因之一
+
+**面试高频追问：**
+
+- **Block size 怎么选？** 通常 16~64 个 token/block；太小导致元数据开销大，太大又失去弹性
+- **PagedAttention 只加速了吗？** 不——它的核心价值是**消除碎片化内存管理**，这才使得大规模并发 serving 成为可能
+- **能不能用于 CPU 推理？** 理论上可以，但实践中只在 GPU 上有显著收益
+
+**面试话术：**
+> "PagedAttention 的灵感来自操作系统分页——把 KV Cache 切成固定大小的 Block 按需分配。这样每个 request 不用预占最大显存，不够了就申请新 Block，够了就把 Block 还回去。最妙的是它可以跨请求复用相同的 Block（比如不同用户问同一个问题的开头），这就是 Prefix Caching 的基础。vLLM 靠这套组合拳实现了 20x 吞吐提升。"
+
+---
+
+## 64. 🔀 Disaggregated Serving（预填/解码分离）是什么？为什么它能大幅提升吞吐？（高频）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q64-disaggregated-serving.webp"><img src="../../assets/illustrations/01-basic-concepts/q64-disaggregated-serving.webp" width="100%" alt="分离式推理动漫知识图：prefill 和 decode 两个阶段各自独占独立节点池，互不干扰从而最大化两类不同工作负载的硬件利用率"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：Prefill 重算力，Decode 重带宽——把它们分开，各自用最适合的硬件干自己的活。</sub></p>
+
+### 为什么要分离？
+
+```python
+# Prefill 特征：计算密集 (Compute-Bound)
+# - 并行处理所有 prompt token
+# - 主要消耗 GPU 计算资源 (Matmul/Flops)
+# - 完成后即释放
+
+def prefill(prompt_tokens):
+    # 一次 Matmul 搞定全部
+    attention_scores = Q @ K.T / sqrt(d_k)  # 计算密集
+    weights = softmax(attention_scores)
+    return weights @ V
+
+# Decode 特征：访存密集 (Memory-Bound)
+# - 每次只生成一个 token
+# - 主要瓶颈是读取 KV Cache（带宽受限）
+# - 持续占用直到 EOS
+
+def decode_next_token(context, kv_cache):
+    # 读 KV cache 是 O(n) 次内存访问，计算量很小
+    q = linear(input_token)  # 少量计算
+    attn_output = q @ kv_cache  # 读取大 KV cache
+    return generate(q, attn_output)
+```
+
+**混合部署的问题**：
+```
+同一张卡同时跑 Prefill + Decode:
+  - Prefill 高峰时吃光 GPU 算力 → Decode 排队等待
+  - Decode 高峰时占满显存带宽 → Prefill 排队等待
+  - 结果：GPU 利用率看起来高，但实际上两类负载互相抢资源
+```
+
+### Disaggregated Serving 架构
+
+```
+┌─────────────────────┐     ┌─────────────────────┐
+│   Prefill Nodes     │     │    Decode Nodes      │
+│  (计算密集型配置)    │◄───►│  (带宽密集型配置)    │
+│                     │ HTTP │                    │
+│  • 更多 Tensor Core │ IPC │  • 更大 HBM 带宽    │
+│  • KVCache 暂存待   │ gRPC │  • 长生命周期       │
+│    转移到 Decode    │      │                    │
+└─────────────────────┘     └─────────────────────┘
+         ▲                         ▲
+         │ KV Transfer            │ Ready Tokens
+         └─────────────────────────┘
+```
+
+### 性能对比
+
+| 指标 | 混合部署 | 分离部署 |
+|------|---------|---------|
+| Prefill TPS | 受限 | **更高**（专属资源） |
+| Decode TPS | 受限 | **更高**（无竞争） |
+| Tail Latency (p99) | 高 | 低 |
+| 成本效率 | 一般 | 更优（可按需选型硬件） |
+| 系统复杂度 | 低 | 较高（需协调迁移） |
+
+### 代表系统
+
+| 系统 | 特点 |
+|------|------|
+| **DistServe** (NSDI 2024) | 首次提出 Disaggregated Serving 概念 |
+| **Apeiro** | 自适应调度分离架构 |
+| **Aurora** | 面向流式推理的低延迟分离架构 |
+
+### 何时应该考虑分离？
+
+| 场景 | 推荐 |
+|------|------|
+| 小规模 (< 100 QPS) | 不需要分离，简单部署即可 |
+| 中高并发 + 短 prompt | 混合部署即可 |
+| 高并发 + 长短混排 | ✅ **强烈推荐分离** |
+| 超低延迟要求 | ✅ 分离 + Edge 部署 |
+
+**面试高频追问：**
+
+- **Prefill 转 Decode 时怎么传 KV Cache？** 通常是 RPC/gRPC 调用，把 KV Cache 序列化成字节流传给 Decode 节点
+- **分离后的 load balancing 怎么做？** 需要在请求入口做分类：短 prompt 路由到 Prefill 池，已完成的 transition 到 Decode 池
+- **网络开销会影响性能吗？** 会，所以 KV Cache 传输要尽量高效（批量序列化、压缩、就近路由）
+
+**面试话术：**
+> "Prefill 和 Decode 本质上需要完全不同的硬件配置——前者重计算后者重带宽。强行塞到同一张卡上，两者会互相抢资源。Disaggregated Serving 就是把它们拆开：Prefill 节点用高算力 GPU，Decode 节点用高带宽 GPU，中间通过高速网络连接。虽然增加了系统复杂度，但在高并发场景下整体吞吐和尾延都有显著提升。生产上我们大概在 500+ QPS 后就开始考虑这种架构。"
+
+---
+
+## 65. ⚡ FP8 量化是什么？为什么新一代 GPU（Blackwell/Hopper）优先支持它？（前沿必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q65-fp8.webp"><img src="../../assets/illustrations/01-basic-concepts/q65-fp8.webp" width="100%" alt="FP8量化动漫知识图：权重从FP16映射到8位浮点整数域，结合逐通道校准保持精度，在新世代GPU上利用原生INT8/FP8张量核加速推理">
+</p>
+
+<p align="center"><sub>🧠 图解记忆：FP16→FP8 再减半，新 GPU 有硬件内核直算，精度损失极小。</sub></p>
+
+### FP8 格式简介
+
+```
+FP8 有两种主流格式：
+
+E4M3: 4 bits 指数 + 3 bits 尾数 → 范围约 [-448, 448]
+E5M2: 5 bits 指数 + 2 bits 尾数 → 范围更广，精度略低
+
+相比之下：
+FP16: 1 bit sign + 5 bits exp + 10 bits mantissa = 16 bits
+FP32: 1 + 8 + 23 = 32 bits
+
+FP8 相比 FP16：精度减半，带宽需求减半，显存占用减半
+```
+
+### FP8 vs INT4/INT8 量化对比
+
+| 方案 | 比特 | 显存/参数 | 精度损失 | 推理速度 | 适用场景 |
+|------|------|----------|---------|---------|---------|
+| **FP16** | 16 | 基准 | 无 | 基准 | 训练，高精度 |
+| **FP8** | 8 | 半 | ~1% | ~2x | **新一代 GPU 推理首选** |
+| **INT8** | 8 | 半 | ~1-2% | ~2x | 通用，成熟生态 |
+| **INT4/GT4** | 4 | ¼ | ~2-5% | ~4x | 极致压缩，有损 |
+
+### 为什么 FP8 成为新趋势？
+
+1. **精度优于 INT 量化**：FP8 有独立的指数位，不像 INT 那样依赖 scale/zero_point，分布适应更好
+2. **硬件原生支持**：NVIDIA Blackwell/B100/B200 和 H100 都内置 FP8 Tensor Cores，计算无需软件转换
+3. **训练+推理统一**：FT8/FBF8 混合精度训练已经证明可行，推理时直接 FP8 无缝衔接
+4. **不需要反复校准**：AWQ/GPTQ 需要针对数据校准，FP8 的 per-channel quantization 更稳定
+
+### 校准方法（Calibration）
+
+```
+关键挑战：激活值中的 outlier（离群值）会导致量化失真
+
+常用校准策略：
+1. Per-channel scaling：对每个 channel 独立找最佳 scale
+2. SmoothQuant 前置平滑：把 outlier 从激活移到权重（W8A8）
+3. 保留极端值的 FP16 精度：类似 AWQ，保护敏感通道
+
+2026 年主流做法：Per-channel + smoothquant pre-smooth → W8A8 损失 < 1%
+```
+
+### 工程建议
+
+- **推理环境**：如果用 A100/H100/Blackwell，FP8 是最优选（硬件核原生支持）
+- **消费级 GPU**：目前 RTX 4090/5090 不支持 FP8 Tensor Core，仍用 INT8/W4A16
+- **LoRA 微调**：基座可用 FP8，LoRA adapter 通常保持 FP16 精度
+
+**面试话术：**
+> "FP8 是 2026 年推理优化的新热点。它的核心优势是精度接近 INT8 但表现更好，而且有 Blackwell/H100 这类新一代 GPU 的原生张量核支持。工程上我现在的策略是：能用 FP8 硬件的地方就用 FP8，消费级显卡继续用 AWQ-W4A16。最关键的是激活值的 outlier 处理——per-channel scaling + smoothquant 是目前最佳实践，能让 W8A8 的精度损失控制在 1% 以内。"
+
+---
+
+## 66. 🔁 Multi-Token Prediction（MTP）是什么？它与投机解码的关系？（高频进阶）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q66-mtp.webp"><img src="../../assets/illustrations/01-basic-concepts/q66-mtp.webp" width="100%" alt="多Token预测动漫知识图：在解码过程中额外预测后续多个token，替代或辅助小草稿模型，提升投机解码或标准生成的吞吐">.
+</p>
+
+<p align="center"><sub>🧠 图解记忆：不只是猜下一个token，而是连续猜多个——像提前读完下文一样。</sub></p>
+
+### 背景
+
+投机解码需要一个额外的"草稿模型"。MTP 的思路是：**同一个目标模型就能做多 token 预测，不一定需要另外的草稿模型。**
+
+### 核心原理
+
+```
+标准 Decoder-only 输出：
+  输入: [T1 T2 T3] → 输出: T4（只有一个头预测 next token）
+
+带 MTP 的目标模型（如 DeepSeek-V3/V4）：
+  输入: [T1 T2 T3] → 输出: T4, T5, T6（有多个预测头）
+                       ↙     ↙      ↙
+                   Head-1  Head-2  Head-3  （预测第1/2/3个未来token）
+```
+
+### MTP 如何训练？
+
+```python
+# 标准训练：只预测下一个 token
+target_t4 = get_token_at_step_4()
+loss = cross_entropy(predictions_t4, target_t4)
+
+# MTP 训练：同时预测未来多个位置
+for m in range(NUM_MTP_HEADS):  # 假设有 2 个头
+    target_future = get_token_at_step_4_plus(m)
+    prediction_future = mtp_heads[m](transformer_output)
+    loss += cross_entropy(prediction_future, target_future)
+```
+
+### MTP vs Speculative Decoding（核心区别）
+
+| 维度 | MTP | 传统 Speculative Decoding |
+|------|-----|-------------------------|
+| **草稿模型** | ❌ 不需要（模型自己就是草稿） | ✅ 需要单独的草稿模型 |
+| **模型类型** | 可以是 Dense 或 MoE | 必须是不同规模的模型 |
+| **代价** | 训练时需要多 heads 增加计算 | 只需加载两套权重 |
+| **接受率** | 较低（同一模型预测容易有系统性偏差） | 较高（小模型与大模型差异互补） |
+| **工业应用** | DeepSeek-V3/V4 / GLM-4 采用 | vLLM/TGI 的 spec-dec 模式 |
+
+### 2026 年最新进展
+
+- **DeepSeek-V4** 采用了 MTP + 投机解码的组合：MTP 提供初步的 multi-token draft，再用外部草稿模型补充验证
+- **GLM-4** 原生支持 MTP，在自回归生成时自动展开多个预测头
+- **Qwen3-MoE** 也在探索 MTP 与 MoE 路由的结合
+
+**面试高频追问：**
+
+- **MTP 的接受率通常多少？** 一般 50~70%，低于传统 spec-dec（通常 >70%），因为同一模型的 bias 会导致系统性偏差
+- **MTP 对 MoE 模型有什么特殊挑战？** 每一层的专家路由器都需要为每个 MTP head 分别计算——通信和负载均衡复杂度翻倍
+
+**面试话术：**
+> "MTP 的核心思路是'自己预测自己'——在模型结构中加入额外的预测头，一次性预测未来 2~3 个 token。最大的好处是不需要准备额外的草稿模型，省了部署成本。缺点是接受率通常比外部 spec-dec 低，因为同一模型的偏差会让多预测有系统性错误。2026 年的趋势是组合拳：MTP 做第一层快速草稿 + 外部小模型做第二层验证。DeepSeek-V4 就是这么做的。"
+
+---
+
+## 67. 📂 Prefix Caching（前缀缓存）是什么？它和 Prompt Caching 有什么区别？（高频实战）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q67-prefix-caching.webp"><img src="../../assets/illustrations/01-basic-concepts/q67-prefix-caching.webp" width="100%" alt="前缀缓存动漫知识图：相同文本前缀产生的KV块被全局缓存并可跨会话复用，通过引用计数管理生命周期的自动驱逐">
+</p>
+
+<p align="center"><sub>🧠 图解记忆：相同的前缀 KV Cache 全局共享——别重复算，直接指向已有的块。</sub></p>
+
+### 两种缓存的对比
+
+| 特性 | Prompt Caching（API层） | Prefix Caching（引擎层） |
+|------|----------------------|--------------------|
+| **缓存粒度** | 完整前缀 KV Cache（字节级精确匹配） | Block-level（PagedAttention Block） |
+| **适用范围** | API 供应商内有效 | 跨请求、跨会话、甚至跨租户 |
+| **匹配条件** | 逐字节完全相同 | Block 内容相同（不要求前缀完全对齐） |
+| **复用方式** | 自动透明，不可控 | 可主动控制（LRU/引用计数驱逐） |
+| **典型命中场景** | 相同 System Prompt + 相同 RAG 文档 | 用户重复使用模板、历史消息重叠、RAG chunks 复用 |
+
+### 为什么 Block-level 的 Prefix Caching 更强大？
+
+```
+假设用户 A 和用户 B 都在用同样的 Prompt Template：
+
+Template: "{system} {question}?"
+
+用户A的请求: {system} 你是谁？{question} 今天天气怎么样？
+用户B的请求: {system} 你是谁？{question} 帮我写一首诗
+
+Prompt Caching：需要前缀完全一致 → {system} 部分命中，{question} 不命中
+
+Prefix Caching (Block-level)：
+  Block①: 系统提示词的 token 块 → 两个请求共享 ✅
+  Block②: "你是谁？" 的 token 块 → 两个请求共享 ✅
+  Block③: "今天天气怎么样？" → A 独有
+  Block④: "帮我写一首诗" → B 独有
+
+→ 即使 question 不同，共同部分的 Block 也能复用！
+```
+
+### 实现要点（面试加分）
+
+1. **LRU 驱逐策略**：Block 有引用计数，超过阈值且长时间未被引用的 Block 会被释放
+2. **热 Prefix 保护**：经常被复用的 prefix（如 System Prompt）可以被 pin 在缓存中不被驱逐
+3. **跨会话复用**：不仅是同一 session 内的对话历史可以复用，不同 session 间的相同模板也可以复用
+4. **vLLM APCache / SGLang RadixAttention**：分别是这两个框架的 Prefix Caching 实现
+
+### 工程收益
+
+```
+典型 RAG 系统 Prefix 分析：
+- System Prompt（固定）：~500 tokens → 100% 命中
+- RAG 检索结果（部分固定）：~1000 tokens → 30~50% 命中（不同问题召回相似 chunk）
+- 用户查询（变化）：~50 tokens → 低命中
+
+预估收益：
+- Pre-fill 时间降低 40~60%
+- TTFT（首 token 延迟）降低 20~40%
+- 节省的 token 费用：主要是 input token 的计费折扣
+```
+
+**面试高频追问：**
+
+- **为什么叫 "radix tree" 而不是普通 hash？** SGLang 用 radix tree（基数树）组织 Block 引用，天然支持前缀匹配和多路复用，比纯 hash 更适合 Tree-structured 的 prefix 关系
+- **和 Prompt Caching 哪个优先用？** API 场景先用 Prompt Caching（零配置），自建推理先用 Prefix Caching（引擎层面生效），两者可以叠加
+
+**面试话术：**
+> "Prefix Caching 的本质是让相同的 KV Cache block 被多个请求共享，不需要重复计算。和 API 层的 Prompt Caching 不同，它是 block-level 的——即使请求前缀不完全一致，只要包含相同的 token block 就能命中。在 RAG 场景下特别好用：System Prompt 100% 复用，检索到的知识库 chunk 也有 30-50% 的复用率。我的经验是自建推理服务务必开启这个功能，TTFT 直接降 30% 左右。"
+
+---
+
 **下一模块：** [Prompt 工程](../02-prompt-engineering/)
 
 ---
@@ -4008,7 +4430,7 @@ Context Engineering（上下文工程）:
 
 ---
 
-*版本: v3.132 | 更新: 2026-10-27 | by 二狗子 🐕*
+*版本: v3.133 | 更新: 2026-11-05 | by 二狗子 🐕**
 
 
 ---
@@ -4027,4 +4449,4 @@ Context Engineering（上下文工程）:
 
 **本次更新：+7 道题（Q55-Q61）**
 
-*版本: v3.132 | 更新: 2026-10-27*
+*版本: v3.133 | 更新: 2026-11-05*
