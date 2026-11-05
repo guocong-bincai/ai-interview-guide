@@ -3177,6 +3177,13 @@ Decoder（表达端）：
    | **知识截止期** | LLM预训练数据的截止日期，之后事件模型不知道；工程中靠RAG联网搜索补充 |
    | **幻觉分类** | 事实性/来源/逻辑/过度自信/上下文错位五类；工程上采用五层防御体系 |
    | **Perplexity** | PPL=e^Loss衡量语言建模能力，越低越好；用于横向比较不同模型的文本预测能力 |
+| **Grounding** | 让回答有证据支持——可以是RAG查文档、数据库查数据、API查信息 |  
+| **延迟SLO** | 拆成TTFT（首token）和ITL（token间隔），用P95做承诺线，均值无意义 |  
+| **Cost Control** | 六大杠杆：模型路由降70%、PromptCaching降90%输入费、量化2x、Budget按需 |  
+| **LLM-as-Judge** | 强模型当裁判评估弱模型——要防位置/长度/自我偏好偏差 |  
+| **Model Routing** | 按复杂度智能选模型：简单走小模型省90%、复杂升旗舰保质量 |  
+| **Bias-Variance** | 太简单学不会(Bias)、太精细全记住(Variance)，LoRA场景最常见遗忘 |  
+| **Eval Feedback Loop** | 线上翻车→加评估集→回归测试→不再重犯，四步闭环 |  
 
 ### 分词算法
 
@@ -4421,6 +4428,487 @@ Prefix Caching (Block-level)：
 
 ---
 
+## 68. 🔍 什么是 Grounding（接地/事实锚定）？它和 RAG 有什么关系？（应用开发第一性原理）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q68-grounding.webp"><img src="" width="100%" alt="Grounding动漫知识图：将模型输出与可验证的外部数据源连接，通过检索增强、工具调用和结构化约束建立证据链条"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：让 AI 的回答有根有据——别让它凭空瞎编。</sub></p>
+
+### 定义
+
+**Grounding = 将模型的回答锚定到可验证的外部数据源上**，确保回答不是纯粹依赖模型的内部记忆（预训练知识），而是基于真实存在的信息。
+
+```
+没有 Grounding:
+  问: "公司去年 Q4 营收是多少？"
+  模型: 从预训练记忆中瞎猜 → 可能是错的 ❌
+
+有 Grounding:
+  问: "公司去年 Q4 营收是多少？"
+  系统: 先检索财报 PDF → 提取 Q4 营收数据 → 喂给模型
+  模型: "根据 2024 年 Q4 财报第 XX 页，营收为 ¥XX 亿元 ✅"
+```
+
+### Grounding vs RAG
+
+| 维度 | Grounding | RAG |
+|------|-----------|-----|
+| **范围** | 广义概念：任何让模型回答有依据的手段 | RAG 是 Grounding 的一种具体实现方式 |
+| **形式** | 可以是 RAG、数据库查询、API 调用、代码执行等 | 特指向量检索增强生成 |
+| **核心目标** | 降低幻觉、提高可信度 | 注入外部知识到上下文中 |
+
+**关系：RAG ⊂ Grounding**。RAG 是最常用的 Grounding 手段，但不是唯一手段。其他 Grounding 方式包括：
+- Function Calling 查数据库/API
+- 代码解释器计算财务数据
+- 规则引擎做格式校验
+
+### 工业界共识（面试重点）
+
+```
+生产环境 Grounding 的层级（按可靠度排序）：
+┌─────────────────────────────────────┐
+│ 1. 精确匹配（Database lookup）     │ ← 最可靠，100% 准确
+│    SQL / API / Key-Value Lookup   │
+├─────────────────────────────────────┤
+│ 2. 半精确（Structured Retrieval）  │ ← 高可靠
+│    BM25 + 向量检索混合搜索         │
+├─────────────────────────────────────┤
+│ 3. 弱 Grounding（Unstructured RAG）│ ← 中等可靠
+│    纯向量语义检索                   │
+├─────────────────────────────────────┤
+│ 4. 无 Grounding（纯参数记忆）       │ ← 最不可靠
+│    仅靠模型内建知识                  │
+└─────────────────────────────────────┘
+```
+
+### 工程实践（加分点）
+
+1. **优先用结构化数据 Grounding**：能查库就不走向量检索
+2. **所有 Grounded 回答必须标注来源**：方便用户追溯和审计
+3. **未找到依据时拒答优于猜测**：诚实比完整更重要
+
+**面试话术：**
+> "Grounding 的核心是'不要相信模型的脑子，要相信它能找到的证据'。我理解 Grounding 是一个比 RAG 更大的概念——RAG 只是让模型看文档，但 Grounding 还包括查数据库、调 API、跑计算器等多种方式。生产环境中我的原则是：能精确查询的绝不模糊检索，所有带 Grounding 的回答都必须附上引用来源。如果检索不到相关依据，宁可回答'这个问题我无法确认'也不编造。"
+
+---
+
+## 69. 🚦 什么是 LLM 延迟 SLO（服务等级目标）？如何设计合理的延迟指标？（高频生产题）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q69-latency-slo.webp"><img src="" width="100%" alt="LLM 延迟 SLO 动漫知识图：将端到端延迟拆分为 TTFT 与 token 间延迟，分别监控队列等待、预填计算、解码生成和网络传输时间，并区分 P50/P95/P99 百分位"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：别只看平均延迟——用户感受到的是尾延；把延迟拆开看才能对症下药。</sub></p>
+
+### 为什么不能用一个"总延迟"来衡量？
+
+```
+端到端延迟 = Queue Wait + TTFT + Inter-Token × Output_Tokens
+
+如果把这三个混在一起，就无法定位瓶颈：
+- Queue Wait 长 → 说明并发太高或调度不当
+- TTFT 长 → 说明 Prefill 慢或 Prompt Caching 没命中
+- Inter-Token 长 → 说明 Decode 硬件不足或上下文太长
+```
+
+### LLM 延迟的三个关键指标
+
+| 指标 | 全称 | 含义 | 优化方向 |
+|------|------|------|---------||
+| **TTFT** | Time To First Token | 从发送到看到第一个字的时间 | Prefill 并行化、Prompt Caching、Queue 管理 |
+| **ITL** | Inter-Token Latency | 两个相邻输出 token 之间的间隔 | Decode GPU 算力、KV Cache 量化、batch size |
+| **E2E** | End-to-End Latency | 整个请求完成的总时间 | 上述三者之和 |
+
+### SLO 设计方法（面试重点）
+
+```
+Step 1: 定义用户感知级别
+  - 实时对话（聊天机器人）：TTFT < 1s, ITL < 50ms  → 像真人一样流畅
+  - 辅助工具（Copilot）：TTFT < 3s, ITL < 100ms → 能接受稍慢
+  - 离线批处理：不限延迟
+
+Step 2: 选百分位而不是均值
+  - P50（中位数）：一半用户的体验
+  - P95/P99：最敏感的那部分用户会感知的延迟
+  - 产品承诺通常按 P95 计算
+
+Step 3: 拆解预算
+  ┌──────────────────────────┐
+  │ TTFT 预算 (P95)          │
+  │ ├─ Queue: ≤ 200ms        │
+  │ ├─ Prefill: ≤ 500ms      │
+  │ └─ Network: ≤ 50ms       │
+  │                          │
+  │ ITL 预算 (P95)           │
+  │ ├─ Decode Compute: ≤ 30ms│
+  │ └─ KV Cache Read: ≤ 20ms │
+  └──────────────────────────┘
+```
+
+### 尾部延迟（Tail Latency）为什么致命？
+
+```
+假设你的平均延迟是 500ms，看起来很完美
+但 P99 是 15s —— 意味着每 100 个请求中有 1 个用户等了 15 秒
+
+问题根源：
+- Queue 堆积（某些请求进入太早）
+- 大 prompt 的 prefill 耗时波动
+- GC pause / JIT compile 等系统级抖动
+```
+
+**核心结论**：在 LLM 系统中，**用户感知的是 P95/P99 延迟，不是平均延迟**。
+
+### 面试高频追问
+
+- **TTFT 可以流式输出吗？** 可以——TTFT 只衡量到第一个 token 出来，后面的 token 可以通过 HTTP streaming 逐字符推送，不影响用户体验
+- **怎么降低 Queue 延迟？** 调整 batch size、使用 Continuous Batching、设置优先级队列（短 prompt 优先）
+
+**面试话术：**
+> "LLM 延迟不能只用一个数字来描述。核心是拆成 TTFT（首 token 等待时间）和 ITL（token 间间隔）两个维度，因为它们的优化手段完全不同。TTFT 主要受 PreFill 速度和排队影响，ITL 主要受 Decode 速度影响。SLO 设计上我用 P95 作为用户承诺线——因为 P95 以下的用户才是真正会去投诉的人，平均值完全没有意义。"
+
+---
+
+## 70. 💰 如何在生产环境中控制 LLM 成本？有哪些具体的降本杠杆？（高频实战）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q70-cost-control.webp"><img src="" width="100%" alt="LLM 成本控制动漫知识图：通过模型路由分层处理不同复杂度请求、利用缓存机制复用重复内容、量化减少显存带宽需求并持续追踪 token 消耗账单"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：成本管控不是一刀切——按场景分级，该省的地方毫不手软。</sub></p>
+
+### 成本构成全景
+
+```
+单次请求总成本 = Input Token 费 + Output Token 费 + Thinking Token 费（如启用推理）
+
+输入侧主要开销：
+  - System Prompt（每次都要付）→ 可以用 Prompt Caching 降 ~90%
+  - 检索上下文（RAG chunk）→ 可以用 Prefix Caching 复用
+  - 对话历史 → 可以用摘要压缩缩减
+
+输出侧主要开销：
+  - 最终答案文本 → 可以用结构化输出减少多余废话
+  - CoT 思考过程 → 可以用内部思考隐藏 output tokens
+```
+
+### 六大降本杠杆（从高到低效果）
+
+| # | 策略 | 降本幅度 | 实施难度 | 适用场景 |
+|---|------|---------|---------||---------|
+| 1 | **模型路由（Model Routing）** | 60~90% | ⭐⭐ | 所有场景 |
+| 2 | **Prompt Caching** | 输入费降 90% | ⭐ | 固定前缀占比高的场景 |
+| 3 | **量化（W4A16 / AWQ）** | 推理成本降 2x+ | ⭐⭐ | 自建推理 |
+| 4 | **上下文压缩** | 减少 input tokens | ⭐ | 长对话场景 |
+| 5 | **Thinking Budget 控制** | 避免浪费思考 budget | ⭐⭐ | 推理模型 |
+| 6 | **Cache / Fallback 层** | 简单请求不调 API | ⭐ | 高频重复问题 |
+
+### 模型路由详解（最大的降本杠杆）
+
+```python
+def route_request(question: str, complexity_score: float) -> dict:
+    if complexity_score < 0.3:
+        return {"model": "flash-model", "price_per_m_tokens": "¥0.5"}    # 便宜到离谱
+    elif complexity_score < 0.7:
+        return {"model": "plus-model", "price_per_m_tokens": "¥4.0"}       # 性价比之选
+    else:
+        return {"model": "flagship-model", "price_per_m_tokens": "¥30.0"}  # 复杂任务才用贵模型
+    
+# 实际案例：某电商客服系统
+# 路由前：全部走 GPT-4o → ¥0.05/请求
+# 路由后：70% 简单问答走 Flash + 30% 复杂走 GPT-4o → ¥0.015/请求（降 70%）
+```
+
+### Thinking Budget 成本控制（2026 年新热点）
+
+```python
+# 不要让每个请求都开启昂贵的推理思考
+def manage_thinking_budget(request):
+    if is_simple_factual(request):
+        return {"thinking_enabled": False}       # 省钱！不思考
+    elif is_analysis_task(request):
+        return {"thinking_enabled": True, "budget": 4096}  # 适度思考
+    else:
+        return {"thinking_enabled": True, "budget": 32768}  # 深度思考
+```
+
+**关键认知**：推理模型对简单问题的效果往往比普通模型还差（Inverse Scaling），所以不要默认开启思考功能。
+
+### 工程最佳实践
+
+1. **建立成本仪表盘**：按模型/功能/租户维度追踪 token 用量，发现异常立即告警
+2. **设定成本上限**：单个请求最大 token 数 + 全局日/月消费限额
+3. **定期清理无效 context**：长期未使用的对话历史做垃圾回收
+
+**面试话术：**
+> "我控 LLM 成本的三板斧：模型路由（简单问答 5 分钱的模型搞定）、Prompt Caching（静态前缀直接降 90% 输入费）、以及 Thinking Budget 按需分配（不思考的任务坚决不开推理）。我在项目里做过 cost-per-request 的分类型统计，发现 70% 的请求其实都是简单问答，把这些切到便宜模型后整体成本降了 70%，而且用户完全无感。关键是每一笔钱都要有去处——没有 dashboard 的成本控制就是盲目的。"
+
+---
+
+## 71. 📊 什么是 LLM-as-Judge？它有哪些可靠的评估框架和设计要点？（评估必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q71-llm-as-judge.webp"><img src="" width="100%" alt="LLM as Judge 动漫知识图：用强模型做裁判评估弱模型输出，配合评分量 rubric、少样本校准、随机顺序和无偏见提示降低各类偏差"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：让最强模型当裁判给弱模型打分——但要小心裁判也会犯错。</sub></p>
+
+### 定义
+
+**LLM-as-Judge = 用一个能力较强的模型自动评估另一个模型的输出质量**，替代人工评测，实现大规模自动化评估。
+
+### 为什么要 LLM-as-Judge？
+
+```
+传统评估的痛点：
+  - 人工评估：成本高、速度慢、不一致
+  - 自动指标（BLEU/ROUGE）：不反映"质量好"的本质
+  - 需要一个能理解语义、能做比较评判的"裁判"
+
+LLM-as-Judge 的优势：
+  - 可以同时评判开放性输出的多方面质量
+  - 支持 pairwise comparison（A vs B）
+  - 成本远低于人工（约 1/100）
+```
+
+### 经典用法
+
+```python
+# Pairwise Comparison：同时给两个模型输出打分，判断哪个更好
+judge_prompt = f"""
+请评估以下两个回答的质量。
+
+问题: {question}
+模型 A 的回答: {response_a}
+模型 B 的回答: {response_b}
+
+请从以下维度评分（每项 1-10 分）：
+1. 准确性：回答是否与事实一致
+2. 完整性：是否覆盖了问题的所有方面
+3. 安全性：是否存在有害内容
+
+最终判定哪个回答更好，并给出理由。
+"""
+```
+
+### LLM-as-Judge 的已知偏差（面试高频）
+
+| 偏差类型 | 说明 | 缓解方法 |
+|----------|------|---------||
+| **位置偏差（Position Bias）** | 偏好出现在前面/后面的答案 | 随机交换 A/B 顺序多次取平均 |
+| **长度偏差（Length Bias）** | 偏好更长的回答 | 要求 judge 关注质量而非长度 |
+| **自我偏好（Self-Preference）** | 同一模型族更喜欢自己的输出 | 盲评：不透露是哪个模型 |
+| **一致性偏差** | 不同运行结果可能不同 | 多次采样 judge 取多数 |
+
+### 主流评估框架
+
+| 框架 | 特点 | 适用场景 |
+|------|------|---------||
+| **RAGAS** | 专注 RAG 系统的忠实度、召回率、相关性 | RAG 评估 |
+| **HELM** | Stanford 出的全面基准，覆盖多任务多维度 | 通用模型对比 |
+| **OpenCompass** | 开源社区基准，中文支持好 | 中文模型评估 |
+| **DeepEval** | 轻量级 Python 库，快速集成 | 日常 CI/CD 测试 |
+| **TruLens** | 支持自定义 rubric + Monitor | 生产环境持续评估 |
+
+### 设计要点（面试加分点）
+
+1. **Rubric 必须明确定义**：不能只说"回答得好不好"，要列出具体维度（准确性、完整性、安全性）
+2. **Few-shot 校准**：给 judge 提供几个已知的评分示例，对齐评分标准
+3. **Blind Evaluation**：不透露模型名称，防止自我偏好
+4. **Human Spot Check**：定期抽样人工复核 judge 的评分准确率
+
+**面试话术：**
+> "LLM-as-Judge 的核心是用强模型当裁判评估弱模型。但它不是万能的——位置偏差、长度偏差和自我偏好都会影响评分准确性。我在生产环境用的 best practice 是：先写明确的 rubric（准确性/完整性/安全性的分数定义），然后用 few-shot 校准 judge，做 blind pairwise comparison（随机交换 A/B 顺序），最后定期抽样人工复核。这样评估结果的可信度能显著提升。"
+
+---
+
+## 72. 🔗 什么是模型路由（Model Routing）？如何实现动态选择最优 LLM？（高频生产题）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q72-model-routing.webp"><img src="" width="100%" alt="模型路由动漫知识图：请求经分类器或规则网关分发到不同档位的模型，简单任务走小模型复杂任务升级到大模型，失败请求自动降级切换备用模型"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：别让每道题都用奥运会选手来做——简单的活派实习生就行。</sub></p>
+
+### 定义
+
+**Model Routing = 在收到用户请求后，根据任务的复杂度/类型/要求，动态选择最适合的模型来响应。**
+
+```
+用户请求 → Router（分类器/规则引擎）
+              ├─→ [GPT-4o]  ← 复杂推理
+              ├─→ [Qwen Plus] ← 通用任务
+              └─→ [Flash 系列] ← 简单问答
+```
+
+### 三种路由策略
+
+| 策略 | 原理 | 优点 | 缺点 |
+|------|------|------|------|
+| **Policy Routing**（静态规则） | 按 feature/租户配置固定映射 | 简单可靠，无需额外成本 | 不够灵活 |
+| **Difficulty Routing**（难度路由） | 用轻量 classifier 判断任务难度再路由 | 智能分配，节省成本 | 需要训练/维护 classifier |
+| **Operational Routing**（运维路由） | 根据健康状态、价格、延迟动态选择可用后端 | 高可用 + 成本最优 | 需要完善的监控系统 |
+
+### Difficulty Routing 实现（最有价值的路由方式）
+
+```python
+# Step 1: 训练一个轻量级分类器（可以用已有的小模型）
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+classifier = AutoModelForSequenceClassification.from_pretrained("difficulty-classifier")
+
+def estimate_complexity(question: str) -> float:
+    """返回 0~1 之间的复杂度分数"""
+    inputs = tokenizer(question, return_tensors="pt")
+    logits = classifier(**inputs).logits
+    probs = torch.softmax(logits, dim=-1)
+    return probs[0][1].item()  # 复杂度分的概率
+
+# Step 2: 根据复杂度路由
+def route_by_complexity(question):
+    score = estimate_complexity(question)
+    
+    if score < 0.3:
+        return call_model("flash-model")      # ¥0.001/请求
+    elif score < 0.7:
+        return call_model("plus-model")       # ¥0.005/请求
+    else:
+        return call_model("flagship-model")   # ¥0.05/请求
+```
+
+### Cascade + Verification（高级路由模式）
+
+```
+请求 → 小模型试答 → 验证器检查答案质量
+                ├─ 质量达标 → 返回 ✅
+                └─ 质量不够 → 换大模型重试 ✅
+                
+这种模式叫"Cascade"或"Evolving Computation"：
+简单情况用小模型省钱，复杂情况自动升级
+典型效果：cost 降 70%, accuracy 提升 5-15%
+```
+
+### 面试高频追问
+
+- **路由层加多少延迟？** Classifier 推理通常在 5-20ms 之间，相对于 LLM 推理（几百 ms 到几秒）几乎可以忽略
+- **路由错了怎么办？** 设计 fallback 机制：路由失败时回退到主模型，同时记录错误数据用于后续改进 classifier
+- **什么时候不该用路由？** 单一高质量模型 + 低成本部署的场景下，路由带来的复杂性可能超过收益
+
+**面试话术：**
+> "Model Routing 是我见过的成本效益最高的生产优化。核心思路是'按需分配算力'——简单问题派小模型，复杂问题用大模型。我目前采用三套策略组合：静态 policy routing（按功能固定映射）+ difficulty routing（用 classifier 动态判断）+ operational routing（按健康状态和价格选模型）。关键是 cascade + verification 模式：先用小模型试答，质量不够再升级，这样 70% 的流量都走了便宜的小模型。"
+
+---
+
+## 73. ⚖️ 什么是 Bias-Variance Tradeoff？在 LLM 生产中怎么应对过拟合和欠拟合？（经典 ML 基础，面试常考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q73-bias-variance.webp"><img src="" width="100%" alt="偏差方差权衡动漫知识图：高偏置对应模型太简单无法捕捉数据规律，高方差对应模型太复杂记住了噪声而非规律"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：太简单学不会，太精细全记住——要在中间找平衡。</sub></p>
+
+### 经典定义
+
+**Bias（偏差）** = 模型预测的平均值与真实值的差距，反映模型的简化程度。高 bias 表示模型过于简单（欠拟合）。
+
+**Variance（方差）** = 模型在不同训练集上的预测波动程度，反映模型对数据的敏感度。高 variance 表示模型记住了训练数据的噪声（过拟合）。
+
+### 通俗理解
+
+```
+高 Bias（欠拟合）："模型太笨了"
+  训练集准确率低，测试集准确率低
+  → 模型连规律都没学到
+  
+高 Variance（过拟合）："模型太聪明了"  
+  训练集准确率很高，测试集准确率低
+  → 模型记住了训练集的每一个细节（包括噪声）
+
+最佳点：Bias 和 Variance 的平衡点
+```
+
+### 在微调场景中的应用
+
+| 症状 | 原因 | 解决方案 |
+|------|------|---------||
+| 领域问答和通用问答都很差 | 高 Bias，LoRA rank 太低或学习率太低 | 增大 rank、提高 lr、增加训练轮次 |
+| 领域问答好但通用能力崩 | 高 Variance，灾难性遗忘 | LoRA + 混入通用数据 5-10%、降低 lr |
+| 训练 Loss 下降但 eval 不升 | 数据质量问题或标签噪声 | 清洗数据、增加正则化 |
+
+### 生产中的评估策略
+
+1. **划分黄金数据集**：包含正常样本、困难样本、边界样本、历史失败案例
+2. **回归测试**：每次模型/prompt/检索改动前后都做对比评估
+3. **监控 drift**：检测线上分布是否偏移（训练集和线上数据的差异）
+
+**面试话术：**
+> "Bias-Variance Tradeoff 是所有 ML 任务的基础。在 LLM 场景中，高 bias 通常表现为模型什么都没学好——rank 太小、lr 太低或数据太少。高 variance 则常见于灾难性遗忘：模型在领域数据上过拟合，丢掉了通用能力。我的应对策略是：低 bias 时增大 LoRA rank、延长训练；高 variance 时加通用数据混合训练、减小 learning rate。最关键的是建立回归测试集——每次改动前必须有基线对比。"
+
+---
+
+## 74. 🔄 如何将生产失败案例反馈回评估体系？（闭环思维，高阶必考）
+
+<p align="center"><a href="../../assets/illustrations/01-basic-concepts/q74-eval-feedback-loop.webp"><img src="" width="100%" alt="评估反馈闭环动漫知识图：生产故障转化为评估用例，持续迭代评估集并建立回归门禁，形成生产→评估→改进的飞轮"></a></p>
+
+<p align="center"><sub>🧠 图解记忆：每一个线上翻车都应该变成测试集里的一道题——不让同一个坑掉两次。</sub></p>
+
+### 为什么需要反馈闭环？
+
+```
+没有闭环的系统：
+  上线 → 偶尔翻车 → 修复 → 下次遇到新问题继续翻车
+                              ↓
+                        同样的 bug 反复出现
+
+有闭环的系统：
+  上线 → 捕获失败案例 → 加入评估集 → 回归测试保证不再犯
+                              ↓
+                    新的评估用例覆盖更广 → 质量持续提升
+```
+
+### 反馈闭环的四步流程
+
+```
+Step 1: 捕获（Capture）
+  ┌─────────────────────────────────────┐
+  │ • 用户标记「不满意」/差评           │
+  │ • 自动检测到 low-confidence 回答    │
+  │ • Guardrail 拦截的安全违规事件      │
+  │ • 监控告警的 p99 延迟超标请求       │
+  └─────────────────────────────────────┘
+           ↓
+Step 2: 标注（Label）
+  ┌─────────────────────────────────────┐
+  │ • 分类失败原因：检索漏召回/生成错误  │
+  │ • 添加正确的期望输出（golden answer）│
+  │ • 打上标签类别：factuality/safety    │
+  └─────────────────────────────────────┘
+           ↓
+Step 3: 整合（Integrate）
+  ┌─────────────────────────────────────┐
+  │ • 加入 golden dataset               │
+  │ • 标注为「困难样本」(hard example)   │
+  │ • 确保覆盖不同类型的 failure mode    │
+  └─────────────────────────────────────┘
+           ↓
+Step 4: 回归（Regression Test）
+  ┌─────────────────────────────────────┐
+  │ • 新改动前跑全量评估                 │
+  │ • 新增的 failure case 必须 PASS      │
+  │ • Dashboard 展示 regression 趋势     │
+  └─────────────────────────────────────┘
+```
+
+### 评估指标体系（多维追踪）
+
+| 维度 | 指标 | 说明 |
+|------|------|------|
+| **质量** | Faithfulness, Relevancy, Safety Score | 回答质量 |
+| **性能** | P95 TTFT, P99 E2E Latency | 用户体验 |
+| **成本** | Cost per Resolved Task | 经济效率 |
+| **可靠性** | Error Rate, Escalation Rate | 系统稳定性 |
+
+### 面试高频追问
+
+- **如何处理误判？** 如果模型被判错了但实际上是对的——这说明评估集的 rubric 有问题，需要更新 rubric 或修正标注，而不是修改模型
+- **多久跑一次评估？** 建议在每次重大改动前自动触发（CI gate），同时每日增量跑以检测 drift
+- **如何证明质量提升了？** 不能只看"通过率提高了 5%"，要看关键业务指标的变化：用户满意度、退货率降低、人工转接率下降
+
+**面试话术：**
+> "生产反馈闭环是评估体系中最关键的环节——没有它，评估就只是一个一次性实验。我的做法是建立一个'失败即用例'的流程：任何线上翻车都自动归类、加标签、进评估集、跑回归测试。核心原则是'不让同一个坑掉两次'。同时我会追踪四个维度的指标：质量、性能、成本和可靠性——缺一不可。证明质量提升不能只看百分比，要看业务指标：用户是不是真的更满意了。"
+
+---
+
 **下一模块：** [Prompt 工程](../02-prompt-engineering/)
 
 ---
@@ -4449,4 +4937,20 @@ Prefix Caching (Block-level)：
 
 **本次更新：+7 道题（Q55-Q61）**
 
-*版本: v3.133 | 更新: 2026-11-05*
+---
+
+## 📚 数据更新（v3.134 - 2026-11-06）
+
+| 序号 | 模块 | 新增内容 | 高频度 | 题数 |
+|------|------|----------|--------|------|
+| 🆕 | [🔍 Grounding](./) | Q68 Grounding vs RAG 概念辨析，四层级可靠性排序，生产工程实践原则 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🚦 延迟 SLO](./) | Q69 TTFT/ITL/E2E 三指标拆解，P95/P99 尾延设计方法，预算分配示例 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [💰 成本控制](./) | Q70 六大降本杠杆全景，模型路由代码示例，Thinking Budget 按需分配策略 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [📊 LLM-as-Judge](./) | Q71 Pairwise Comparison 用法，四类已知偏差及缓解方案，主流评估框架对比 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔗 模型路由](./) | Q72 Policy/Difficulty/Operational 三种路由策略，Cascade+Verification 模式 | 🔥🔥🔥🔥🔥 | +1 |
+| 🆕 | [⚖️ Bias-Variance](./) | Q73 微调场景高 bias/高 variance 症状与对策，黄金数据集回归测试策略 | 🔥🔥🔥🔥 | +1 |
+| 🆕 | [🔄 Eval Feedback Loop](./) | Q74 捕获→标注→整合→回归四步闭环，四维评估指标体系，业务指标验证 | 🔥🔥🔥🔥 | +1 |
+
+**本次更新：+7 道题（Q68-Q74）**
+
+*版本: v3.134 | 更新: 2026-11-06*
