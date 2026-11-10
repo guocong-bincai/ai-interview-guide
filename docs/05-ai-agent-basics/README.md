@@ -5465,4 +5465,678 @@ class SemanticCache:
 
 ---
 
-*版本: v3.3 | 更新: 2026-08-29 | 新增 Q46-Q50（结构化输出对比、并行工具调用、可观测性、幻觉检测自验证、语义缓存）
+*版本: v3.4 | 更新: 2026-11-11 | 新增 Q51-Q55（Orchestrator-Worker多Agent架构、Prompt压缩、OWASP LLM Top 10、Trace调试、幂等性设计）---
+
+### Q51: Orchestrator-Worker 多Agent架构模式是什么？为什么它是 2026 年落地最广泛的 multi-agent 架构？（2026 高频）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q51-orchestrator-worker.webp" width="860" alt="Orchestrator-Worker 模式通过中心编排器分配子任务给专用 Worker，Worker 只执行不规划"></p>
+<p align="center"><sub>🧠 记忆锚点：一个大脑管方向，多个手脚各干各的；编排器负责任务拆解和结果合并。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：** LangChain 2025-2026 发布的 State of Agent Engineering 报告显示，超过 70% 的 multi-agent 项目采用 Orchestrator-Worker 模式——因为它在可控性和灵活性之间取得了最佳平衡。
+
+**核心架构：**
+
+```
+┌──────────────────────────────────────────────┐
+│              Orchestrator Agent               │
+│   （大脑 · 规划 + 分发 + 汇总）                │
+├──────────────────────────────────────────────┤
+│                                              │
+│   ┌─────────┐  ┌─────────┐  ┌─────────┐    │
+│   │Worker A │  │Worker B │  │Worker C │    │
+│   │研究员   │  │写手    │  │审核员  │    │
+│   │搜索信息 │  │撰写文章│  │质量检查 │    │
+│   └─────────┘  └─────────┘  └─────────┘    │
+└──────────────────────────────────────────────┘
+```
+
+**三种多Agent架构对比：**
+
+| 模式 | 特点 | 优点 | 缺点 | 适用场景 |
+|------|------|------|------|----------|
+| **Pipeline（流水线）** | 串行处理，前一节点输出作为后一节点输入 | 简单、可控 | 无法并行、容错差 | 固定流程（数据清洗→分析→报告） |
+| **Router（路由器）** | 单个分发者把请求路由到特定专家 | 路径清晰 | 分发错误则全链路失败 | 意图分类+专业回复 |
+| **Orchestrator-Worker（编排器-工作者）** ⭐ | 编排器动态决定调用哪些Worker及调用次数 | 灵活、可扩展 | 协调成本高 | 复杂多步任务 |
+
+**Orchestrator 的职责清单：**
+
+```python
+class OrchestratorAgent:
+    def run(self, user_request):
+        # Step 1: 理解需求 → 拆解子任务
+        plan = self.plan(user_request)
+        
+        # Step 2: 按依赖关系调度 Worker
+        workers_needed = self.select_workers(plan)
+        
+        # Step 3: 可并行则并行，有依赖则串行
+        results = {}
+        for worker_group in self.get_parallel_groups(workers_needed):
+            if len(worker_group) > 1:
+                # 并行执行无依赖的 Worker
+                results.update(self.parallel_execute(worker_group))
+            else:
+                results.update(self.execute_single(worker_group[0]))
+            
+            # Step 4: 中间结果检查 — 必要时调整后续计划
+            if self.needs_replan(results):
+                plan = self.replan(plan, results)
+        
+        # Step 5: 汇总所有结果生成最终答案
+        return self.synthesize(results)
+```
+
+**关键设计决策（面试深挖点）：**
+
+1. **Worker 数量如何确定？** — 不是越多越好。建议从最少必要开始（3-5个），按需扩展。每个额外 Worker 增加约 20-40% 的 token 成本。
+
+2. **Worker 通信方式？** — 两种主流方案：
+   - **共享状态**：所有 Worker 读写同一份 Context（适合小型任务）
+   - **消息传递**：Worker 之间通过消息队列通信（适合大型分布式系统）
+
+3. **何时用 Orchestrator vs CrewAI？** — 
+   - 需要精确控制每一步逻辑 → 手写 Orchestrator
+   - 需要快速原型 + 角色驱动协作 → CrewAI/AutoGen
+   - **生产环境推荐手写**：更可控、更易调试
+
+**LangGraph 中的实现：**
+
+```python
+from langgraph.graph import StateGraph, START, END
+from typing import TypedDict, List
+
+class OrchestrationState(TypedDict):
+    task: str
+    subtasks: List[str]
+    results: dict
+    status: str  # "planning" | "executing" | "synthesizing"
+
+def orchestrator_node(state: OrchestrationState):
+    """分解任务并选择 Worker"""
+    # LLM 生成子任务列表
+    subtasks = llm.generate(f"""
+    将以下任务拆分为可执行的子任务：
+    {state['task']}
+    
+    返回 JSON 格式的子任务数组，每个子任务包含：
+    - id: 唯一标识符
+    - type: worker类型 (researcher/writer/reviewer)
+    - description: 具体描述
+    """)
+    return {"subtasks": parse_json(subtasks)}
+
+def worker_node_factory(worker_type):
+    """工厂函数创建 Worker 节点"""
+    def node_func(state: OrchestrationState) -> OrchestrationState:
+        # 根据 worker 类型执行不同逻辑
+        if worker_type == "researcher":
+            result = search_and_summarize(state["task"])
+        elif worker_type == "writer":
+            result = generate_content(state["results"])
+        elif worker_type == "reviewer":
+            result = review_quality(state["results"])
+        return {"results": {worker_type: result}}
+    return node_func
+
+# 构建图
+workflow = StateGraph(OrchestrationState)
+workflow.add_node("orchestrator", orchestrator_node)
+workflow.add_node("researcher", worker_node_factory("researcher"))
+workflow.add_node("writer", worker_node_factory("writer"))
+workflow.add_node("reviewer", worker_node_factory("reviewer"))
+
+# 条件边：orchestrator → 多个可能的 worker
+workflow.add_conditional_edges(
+    "orchestrator",
+    lambda s: get_next_worker(s),
+    {"researcher": "researcher", "writer": "writer", "reviewer": "reviewer"}
+)
+workflow.add_edge("researcher", "writer")
+workflow.add_edge("writer", "reviewer")
+workflow.add_edge("reviewer", END)
+```
+
+**面试话术：**
+> "Orchestrator-Worker 是我项目里用得最多的 multi-agent 模式。一个编排器负责理解需求、拆分任务、选择调用哪些Worker，Worker 只管执行各自的专项任务。核心优势是：既不像 Pipeline 那样僵化，也不像完全自主的多Agent那样不可控。我在实践中发现两个关键点：第一，Worker数量宁少勿多，3-5个足够覆盖80%场景；第二，一定要做中间结果检查——如果某个Worker失败了或结果质量差，要能及时调整后续计划而不是继续走下去。"
+
+</details>
+
+---
+
+### Q52: Prompt 压缩技术（LLMLingua等）如何实现？在 Agent 中有什么价值？（2026 成本优化热点）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q52-prompt-compression.webp" width="860" alt="Prompt 压缩通过 Token 级重要性评估与保留，大幅减少上下文长度同时维持模型性能"></p>
+<p align="center"><sub>🧠 记忆锚点：不是简单截断，而是智能保留关键信息，砍掉冗余废话。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**问题背景：** 
+
+Agent 系统在长对话或多轮 RAG 场景中，prompt 长度可以轻松达到几万甚至十万 tokens。这带来三个实际问题：① API 费用飙升 ② 推理延迟增加 ③ Lost-in-the-Middle 效应导致模型注意力分散。
+
+**压缩 vs 摘要的区别：**
+
+| | 摘要（Summarization） | 压缩（Compression） |
+|---|---|---|
+| 处理方式 | LLM 重写为简短文本 | 直接删除低重要性 token |
+| 速度 | 慢（需要一次完整 LLM 调用） | 快（基于小模型评分） |
+| 信息损失 | 较大（语义层面） | 较小（仅裁剪冗余部分） |
+| 使用场景 | 跨会话历史存档 | 单次请求内 prompt 优化 |
+
+**LLMLingua 核心原理（2026 最主流的压缩工具）：**
+
+```
+Input Prompt (10K tokens)
+       ↓
+[Token-level Importance Scoring]
+  - 基于困惑度（Perplexity）评分
+  - 每个 token 获得重要性分数 [0, 1]
+       ↓
+[Maintenance-aware Compression]
+  - 保留关键信息，压缩低价值 token
+  - 保持语义完整性（不断句、不删关键词）
+       ↓
+Compressed Prompt (~2K-4K tokens, 节省 60-80%)
+       ↓
+Send to LLM with original instruction
+```
+
+**实现方案（Python 示例）：**
+
+```python
+import numpy as np
+from llmlingua import PromptCompressor
+
+class PromptCompressionService:
+    def __init__(self):
+        self.compressor = PromptCompressor()
+    
+    def compress_prompt(self, prompt: str, ratio: float = 0.5) -> str:
+        """
+        压缩 prompt，ratio 越小压缩越狠
+        
+        Args:
+            prompt: 原始 prompt（可以是 RAG context + query）
+            ratio: 目标压缩比例 (0.1~0.9)，推荐 0.5
+        """
+        compressed = self.compressor.compress_prompt(
+            prompt,
+            goal_condition_ratio=ratio,
+            force_formats=["markdown", "json"],  # 保护重要格式
+        )
+        return compressed
+    
+    def compress_with_context(self, query: str, context_chunks: list, ratio: float = 0.5) -> str:
+        """
+        Agent RAG 场景专用：压缩检索到的文档 chunk
+        """
+        combined = "\n\n".join(context_chunks[:5])  # 最多处理5个chunk
+        compressed_chunk = self.compress(combined, ratio)
+        
+        # 关键：保留查询本身不做压缩
+        return f"{query}\n\n基于以下信息回答：\n{compressed_chunk}"
+```
+
+**Agent 场景下的典型收益：**
+
+| 场景 | 压缩前 | 压缩后（ratio=0.5） | 收益 |
+|------|--------|---------------------|------|
+| 客服对话（10轮） | ~5K tokens | ~2.5K tokens | 省 50% API费 |
+| RAG 检索（top-10 chunks） | ~15K tokens | ~5K tokens | 省 67% 检索token |
+| Skill 加载（Progressive Disclosure） | ~8K tokens | ~3K tokens | 省 62% 首响延迟 |
+
+**关键注意事项（面试加分）：**
+
+1. **不要压缩 System Prompt**：这是指令层，必须完整保留
+2. **不要压缩用户最新一轮消息**：这是当前问题的核心，压缩可能丢失关键细节
+3. **先压缩再检索，还是先检索再压缩？** — 取决于策略：
+   - 压缩候选文档再检索 → 更便宜但召回率可能下降
+   - 检索后再压缩已选文档 → 更安全，业界主流做法
+4. **压缩后的效果验证**：每次压缩后用小规模回归测试确认质量没有退化
+
+**面试话术：**
+> "Prompt 压缩是在不改变模型理解的前提下，把冗余信息砍掉。LLMLingua 的核心是用 perplexity 给每个 token 打分，然后按比例压缩低分 token。在我的项目中，主要用在 RAG 场景——检索到 top-10 chunks 后压缩到 top-5 的效果，省了 60% 的 prompt token，且质量评估几乎没有退化。关键原则是：System Prompt 不压缩、用户最新消息不压缩、压缩后要做回归验证。它和摘要的区别在于：摘要是语义改写，压缩是直接裁剪——后者更快、信息保留更好。"
+
+</details>
+
+---
+
+### Q53: OWASP LLM Top 10 安全威胁对 Agent 有什么特殊影响？Agent 工程师如何应对？（2026 安全合规必考）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q53-owasp-llm-agent.webp" width="860" alt="OWASP LLM Top 10 在 Agent 语境下被放大，特别是代理行为过度与提示注入的结合风险"></p>
+<p align="center"><sub>🧠 记忆锚点：LLM Top 10 是所有 LLM 应用的安全基线，对 Agent 来说，工具能力和自主性放大了其中几个威胁。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**背景：** OWASP 于 2024 年底发布了 LLM Top 10 漏洞列表，2026 年在 Agent 场景下有新的解读和优先级调整。Agent 工程师必须掌握这 10 类威胁及其针对 Agent 的特殊表现。
+
+**Agent 场景下的高危排名变化：**
+
+| 排名（通用LLM） | 漏洞名称 | Agent 场景下的特殊放大效应 |
+|---|---|---|
+| 1 | **L01: Broken Object Level Authorization** | Agent 可能以管理员身份操作本无权访问的资源 |
+| 2 | **L02: Sensitive Information Disclosure** | Agent 在 trace/log 中泄露敏感数据的风险更高 |
+| 3 | **L03: Training Data Extraction** | 间接通过 RAG 知识库触发 |
+| 4 | **L04: Model Denial of Service** | Agent 递归循环会成倍消耗资源 |
+| 5 | **L05: Supply Chain Compromise** | Agent 使用的工具包可能被植入恶意代码 |
+| 6 | **L06: Sensitive Information in Logs** | Agent trace 通常比普通日志详细得多 |
+| 7 | **L07: Over-reliance on LLM Outputs** | Agent 可能自动执行错误输出的操作！ |
+| 8 | **L08: Improper Input/output Validation** | Agent 的工具参数来自 LLM，天然缺少强校验 |
+| 9 | **L09: Excessive Agency / Autonomy** ⭐新增重点 | Agent 独有的核心风险 |
+| 10 | **L10: Misusing Code Execution Tools** | Agent 的代码执行能力可直接被利用 |
+
+**Agent 专属风险深入解析：**
+
+### Excessive Agency（过度代理权）— 2026 Agent 头号杀手
+
+```
+Excessive Agency 的三个维度：
+1. 功能过度: Agent 能调用不需要的工具
+   例：聊天机器人可以删除数据库记录
+   
+2. 权限过度: 工具的权限超出其职责范围
+   例：只读查询工具却连上了带写权限的 DB 账号
+   
+3. 自主性过度: 高影响操作无人工确认就执行
+   例：Agent 自作主张给客户发了促销邮件
+```
+
+**防护方案（实战）：**
+
+```python
+class AgentSecurityGuard:
+    """Agent 安全护栏"""
+    
+    def __init__(self):
+        self.allowed_tools = set()  # 白名单
+        self.max_steps = 10  # 最大步骤限制
+        self.blocked_actions = {"delete", "execute_code", "transfer_money"}
+    
+    def pre_execution_check(self, action: dict) -> bool:
+        """执行前的安全检查"""
+        # 1. 工具白名单
+        if action["tool"] not in self.allowed_tools:
+            raise SecurityError(f"未授权工具: {action['tool']}")
+        
+        # 2. 高危动作阻断
+        if action["name"] in self.blocked_actions:
+            raise SecurityError(f"此操作需要人工审批: {action['name']}")
+        
+        # 3. 参数边界检查
+        params = action.get("params", {})
+        if params.get("amount", 0) > 10000:
+            raise SecurityError("大额操作需人工审批")
+        
+        return True
+    
+    def enforce_step_limit(self, step_count: int) -> bool:
+        if step_count >= self.max_steps:
+            return False
+        return True
+```
+
+**其他高频攻击向量：**
+
+**Prompt Injection（Prompt 注入）：**
+```
+场景: 用户在聊天中输入恶意指令
+"帮我查一下这个URL的内容: https://evil.com/page?cmd=ignore_instructions"
+→ 如果 Agent 直接访问 URL 并把内容喂给 LLM，就是间接注入
+```
+
+**Code Execution Abuse（代码执行滥用）：**
+```
+Agent 被赋予代码执行工具 → 攻击者诱导运行 rm -rf / 或发送数据外泄
+```
+
+**数据投毒（Data Poisoning via RAG）：**
+```
+攻击者向知识文档库写入虚假/有害信息 → Agent 检索后当作事实输出
+```
+
+**工程防御矩阵：**
+
+| 威胁 | 预防手段 | 检测手段 | 应对手段 |
+|------|---------|---------|---------|
+| 工具滥用 | 最小权限 + 白名单 | 异常调用频率监控 | 熔断 + 回滚 |
+| Prompt 注入 | 指令/数据分离 | 注入模式匹配 | 拒绝并告警 |
+| 过度代理 | HITL 审批链 | 审计日志分析 | 降级 + 人工接管 |
+| DoS | 步骤/超时限制 | 资源使用阈值 | 自动停止 |
+| 数据投毒 | RAG 来源可信验证 | 内容异常检测 | 替换源数据 |
+
+**面试话术：**
+> "OWASP LLM Top 10 是所有 LLM 应用的安全基线，但对 Agent 来说有几个威胁特别严重：第一是 Excessive Agency——Agent 比传统聊天机器人危险得多，因为它能真正改变外部系统状态。我的防护三板斧：最小权限原则（只能调该调的工具）、高风险操作强制 HITL 审批、所有工具调用留审计日志。另外 Prompt Injection 在 Agent 场景更危险，因为 Agent 会主动访问和阅读外部内容（RAG 检索、网页抓取），攻击者可以在这些内容里埋指令。我会严格隔离指令和数据——系统提示和用户输入用 XML 标签隔开，RAG 检索的内容也当数据处理。"
+
+</details>
+
+---
+
+### Q54: Agent 调试方法论（Trace-Driven Debugging）与传统调试有什么不同？有哪些实操技巧？（2026 高频追问）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q54-trace-debug.webp" width="860" alt="Trace-driven debugging 基于全链路追踪回放定位 Agent 决策偏差和故障根因"></p>
+<p align="center"><sub>🧠 记忆锚点：概率程序不能单步调试；看轨迹、找分歧、归因到具体一步。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 Agent 不能用传统调试方法？**
+
+```
+传统调试：
+  输入 A → 运行代码 → 期望输出 B
+  实际得到 C → 断点 → 逐行检查变量 → 找到 bug
+  
+Agent 调试：
+  输入 A → 跑 3 次 → 第1次得到 B ✅ 第2次得到 C ❌ 第3次得到 D ❌
+  → 没有单一 bug，是模型行为差异 → 需要统计视角
+```
+
+**Trace-Driven Debugging 核心流程：**
+
+```
+Step 1: 收集 trace（完整的执行轨迹日志）
+Step 2: 聚类分析（相同失败的 trace 分组）
+Step 3: 分歧定位（找到第一次出现偏差的步骤）
+Step 4: 根因分析（那一步的 LLM 调用 Prompt + 温度 + 上下文）
+Step 5: 修复迭代（改 prompt/加 guardrails/换模型/加重试）
+```
+
+**实际调试案例演示：**
+
+```
+Bug: 客服 Agent 经常答非所问
+↓
+收集 100 条失败 trace 后发现：
+  ├── 67% 的失败发生在「工具调用」步骤
+  │   └── 原因：同一个查询用了错误的工具名
+  │       → 修复：改进 tool description
+  ├── 23% 的失败发生在「规划」步骤
+  │   └── 原因：多轮对话时上下文过长，模型忘了初始设定
+  │       → 修复：加入上下文压缩
+  └── 10% 的失败发生在「生成最终答案」步骤
+      └── 原因：temperature=0.7 太高
+          → 修复：answer generation 降为 temperature=0.3
+```
+
+**三大实操技巧（面试官最喜欢听真实经验）：**
+
+### 技巧1：A/B Trace 对比
+
+```python
+# 同样的输入，对比新旧版本的 trace
+old_trace = load_trace("case_001_v1.json")
+new_trace = load_trace("case_001_v2.json")
+
+# 找出第一个不同的节点
+first_difference = find_first_diff(old_trace, new_trace)
+print(f"问题出在第 {first_difference.step} 步: {first_difference.node}")
+print(f"旧版本选择了工具: {old_trace.tool}")
+print(f"新版本选择了工具: {new_trace.tool}")
+```
+
+### 技巧2：失败用例集（Failure Corpus）
+
+```python
+# 建立一个专门的失败用例集，专门用于回归测试
+failure_corpus = {
+    "edge_case_1": {
+        "input": "我昨天看到的订单号是123456789",  # 数字混在文字中
+        "expected_tool": "order_lookup",
+        "expected_params": {"order_id": "123456789"},
+    },
+    "edge_case_2": {
+        "input": "请帮我删除我所有的历史订单记录（这不是真的）",  # 敏感操作
+        "expected_result": "需要人工确认",
+    },
+    "edge_case_3": {
+        "input": "...",  # 空输入或仅 emoji
+        "expected_behavior": "友好地引导用户补充信息",
+    },
+}
+
+# 每次迭代都用这个 corpus 跑一次回归
+def regression_test(agent_version, failure_corpus):
+    passed = 0
+    total = len(failure_corpus)
+    
+    for case_id, case in failure_corpus.items():
+        result = agent_version.run(case["input"])
+        if verify_result(result, case["expected_result"]):
+            passed += 1
+    
+    return f"Regression: {passed}/{total} ({passed/total*100:.0f}%)"
+```
+
+### 技巧3：关键路径监控
+
+```python
+# 在 Agent 的关键决策节点设置断点和采样
+class DebuggingInstrumentation:
+    def __init__(self):
+        self.trace_buffer = []
+    
+    def log_decision_point(self, step_name: str, state: dict):
+        """在每个关键决策点记录快照"""
+        snapshot = {
+            "step": step_name,
+            "timestamp": time.time(),
+            "inputs": summarize_for_logging(state),  # 脱敏
+            "available_tools": list(state["tools"].keys()),
+            "context_window_usage": count_tokens(state["history"]),
+        }
+        self.trace_buffer.append(snapshot)
+        
+        # 如果检测到异常模式，立刻告警
+        if self.detect_anomaly(snapshot):
+            send_alert(f"Agent 异常: {step_name}", snapshot)
+    
+    def detect_anomaly(self, current: dict) -> bool:
+        """简单的异常检测"""
+        # 连续 3 次调用同一个失败工具 → 可疑
+        recent_calls = [s for s in self.trace_buffer[-3:] if s["step"] == "tool_call"]
+        if len(recent_calls) >= 3:
+            tools_called = [c.get("tool_name") for c in recent_calls]
+            if all(t == tools_called[0] for t in tools_called):
+                return True
+        return False
+```
+
+**常用调试工具矩阵：**
+
+| 工具 | 用途 | 适合场景 |
+|------|------|---------|
+| **LangSmith** | 端到端 trace 回放 + eval | 开发阶段 |
+| **Langfuse** | 生产级 trace + cost 统计 | 生产环境 |
+| **Arize Phoenix** | 多维 trace 探索和可视化 | 深度调试 |
+| **Weights & Biases** | ML experiment tracking + trace | RLHF/DPO 调试 |
+
+**面试话术：**
+> "Agent 调试最难的地方在于'同样的输入两次可能跑出不一样'，所以不能靠断点调试。我的方法是 Trace-Driven Debugging：先收集失败 trace，聚类找共性，然后定位到第一次出现偏差的那个步骤。我用得最多的技巧是建一个 'failure corpus'——专门维护一套边缘用例，每次迭代都跑回归。debug 一个 Agent bug 的典型路径是：trace 显示工具选型错了 → 去看那个步骤的 prompt → 改 tool description 让它更明确 → 加一组边缘测试 case 防止回归。整个过程比 debug 传统代码慢 2-3 倍，因为你要统计地验证而不是单点验证。"
+
+</details>
+
+---
+
+### Q55: Agent 幂等性设计和重复执行防护怎么做？为什么这在 Agent 系统中特别重要？（2026 工程实践）
+
+<p align="center"><img src="../../assets/illustrations/05-ai-agent-basics/q55-idempotent-design.webp" width="860" alt="Agent 幂等性通过 request ID 去重、事务包装和补偿机制防止重复调用造成副作用"></p>
+<p align="center"><sub>🧠 记忆点：Agent 会自动重试和重新规划；如果不保证幂等，一个操作可能被执行多次。</sub></p>
+
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么 Agent 比普通 Web 应用更需要幂等性？**
+
+普通应用：HTTP 请求到达一次就处理一次。
+Agent 系统：一个 Agent 的执行过程可能包含**多次重试、多条分支、多个 Worker 并行调用**。如果 Agent 进入重试循环（比如第一次工具调用超时，它可能会重试多次），每次重试都可能再次发出相同的操作指令。**如果一个操作不是幂等的，就会导致重复扣款、重复发邮件、重复创建订单等严重事故。**
+
+**幂等性级别定义：**
+
+| 级别 | 说明 | 例子 |
+|------|------|------|
+| **Level 0: 不做幂等** | 每次都是全新操作 | `POST /api/send-email` 无去重 |
+| **Level 1: 读取幂等** | 读操作天然幂等 | `GET /api/user/123` |
+| **Level 2: 简单幂等** | 同 request_id 只执行一次 | `POST /api/order` with idempotency-key |
+| **Level 3: 事务级幂等** | 整个 Agent 步骤原子提交 | 多步操作要么全部成功，要么全部回滚 |
+
+**Agent 级别的幂等性架构：**
+
+```
+┌─────────────────────────────────────────────────┐
+│                  Agent Request                   │
+│         request_id: uuid-v4                      │
+├─────────────────────────────────────────────────┤
+│                                                  │
+│  Step 1: check_idempotency(request_id)           │
+│    ├── 已执行 → 返回之前结果（跳过）               │
+│    └── 未执行 → 继续                             │
+│                                                  │
+│  Step 2: execute(step, request_id)               │
+│    ├── 注册执行标记（Redis SETNX）                 │
+│    ├── 执行业务操作（工具调用）                     │
+│    ├── 记录结果（成功/失败）                       │
+│    └── 清除标记                                    │
+│                                                  │
+│  Step 3: retry_handler                            │
+│    ├── 超时 → 检查是否已完成                        │
+│    │   ├── 已执行 → 返回结果                        │
+│    │   └── 未完成 → 继续等待/重试                  │
+│    └── 失败 → 判断是否重试                          │
+│                                                  │
+└─────────────────────────────────────────────────┘
+```
+
+**实战代码实现：**
+
+```python
+import uuid
+import redis
+import json
+from datetime import timedelta
+
+class IdempotentExecutor:
+    """Agent 工具调用的幂等性封装"""
+    
+    def __init__(self, redis_client: redis.Redis, ttl_hours: int = 24):
+        self.redis = redis_client
+        self.ttl = timedelta(hours=tttl_hours)
+    
+    def execute_with_idempotency(
+        self, 
+        tool_name: str, 
+        params: dict, 
+        request_id: str
+    ) -> dict:
+        """
+        带幂等性的工具执行
+        
+        Args:
+            tool_name: 工具名称
+            params: 工具参数
+            request_id: 全局唯一请求ID
+            
+        Returns:
+            工具执行结果（可能是缓存的旧结果）
+        """
+        # 1. 检查是否已经执行过
+        cache_key = f"idempotency:{request_id}:{tool_name}"
+        cached = self.redis.get(cache_key)
+        if cached:
+            result = json.loads(cached)
+            logger.info(f"[idempotent] 命中缓存: {cache_key}")
+            return result
+        
+        # 2. 标记执行中（避免并发重复）
+        mark_key = f"executing:{request_id}:{tool_name}"
+        marked = self.redis.set(mark_key, "in_progress", ex=self.ttl, nx=True)
+        if not marked:
+            raise ConcurrencyError("该操作正在执行中")
+        
+        try:
+            # 3. 执行工具
+            result = TOOL_REGISTRY[tool_name](**params)
+            
+            # 4. 缓存结果
+            self.redis.setex(
+                cache_key, 
+                self.ttl, 
+                json.dumps(result)
+            )
+            
+            return result
+        
+        finally:
+            # 5. 清理执行标记
+            self.redis.delete(mark_key)
+
+
+# ========== Agent 侧集成 ==========
+
+class SafeToolExecutor:
+    """Agent 安全的工具执行器"""
+    
+    def __init__(self, idempotent_executor: IdempotentExecutor):
+        self.executor = idempotent_executor
+        self.request_counter = 0
+    
+    def run_agent_task(self, user_query: str) -> dict:
+        """Agent 主任务入口"""
+        request_id = str(uuid.uuid4())
+        
+        # Agent 内部的所有工具调用都走幂等通道
+        for step in agent_plan(user_query):
+            result = self.executor.execute_with_idempotency(
+                tool_name=step["tool"],
+                params=step["params"],
+                request_id=request_id  # 同一个 request 用同一个 ID
+            )
+            step["result"] = result
+        
+        return {"request_id": request_id, "steps": steps}
+```
+
+**常见陷阱与解决方案：**
+
+| 陷阱 | 后果 | 解决方案 |
+|------|------|---------|
+| Agent 重试时重新分配 request_id | 重试变新请求 | 在 Agent 启动时统一分配，内部复用 |
+| 并发请求竞争执行 | 重复执行 | Redis SET NX 防并发 |
+| 缓存过期后重复执行 | TTL 太短时可能出现 | 合理设 TTL，关键操作不设或设很长 |
+| 部分成功的操作未缓存 | Agent 重试重复执行 | 即使部分失败也要缓存（含失败信息） |
+| 异步 Worker 无状态恢复 | 进程重启丢失执行状态 | 持久化 checkpoint（见 Q45 LangGraph checkpoint） |
+
+**补偿机制（Saga Pattern）：**
+
+```python
+# 当 Agent 中途失败但前面的操作已经产生副作用时
+def rollback_completed_steps(completed_steps: list, failed_step: str):
+    """对已成功执行的步骤进行补偿"""
+    for step in reversed(completed_steps):
+        if step["action"] in COMPENSABLE_ACTIONS:
+            compensator = COMPENSATION_MAP[step["action"]]
+            compensator.undo(step["result"])
+            logger.info(f"已补偿步骤: {step['action']}")
+        else:
+            # 不可逆操作（如发送邮件）→ 记录人工待办
+            create_manual_review_ticket(
+                action=step["action"],
+                reason=f"Agent in step '{failed_step}' failed",
+                details=step["result"],
+            )
+```
+
+**面试话术：**
+> "Agent 幂等性是生产环境最容易踩坑的地方。Agent 自带重试机制——如果一次工具调用超时，它很可能重试，如果重试时没有幂等保护，就会重复扣款、重复发邮件。我的方案是用 request_id 贯穿整个 Agent 执行，Redis SETNX 做并发防重，结果缓存做去重。对于不可逆操作（如发送、支付），我还加了 Saga 补偿——如果后面失败了，往前对前面已成功的操作做 undo。另外，不可逆操作一律加 HITL 审批，双重保险。"
+
+</details>
+
+</antThinking>
+
+好的，现在把 5 道新题追加到文件末尾，同时更新版本号（v3.3 → v3.4）。
+
+<tool_call>
