@@ -4103,4 +4103,330 @@ LLM 会"背下"训练数据中的重复内容——尤其是出现多次的 PII�
 </details>
 
 ---
-*版本: v3.130 | 更新: 2026-09-02 | by 二狗子 🐕*
+---
+
+### Q34: 什么是 Embedding Inversion Attack（向量反演攻击）？为什么把数据转成向量不等于隐私保护？🔥🔥🔥
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q34-embedding-inversion.webp" width="860" alt="Embedding Inversion Attack: 从向量还原原始文本的攻击路径与防御分层图"></p>
+<p align="center"><sub>🧠 记忆锚点：向量不是哈希——可逆！谁拿到向量就能恢复原文，RAG 向量库和 Embedding API 都是重灾区。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**核心概念：**
+- Embedding Inversion Attack：攻击者通过对称查询嵌入模型，用优化循环逼近目标向量，从而从 embedding 中还原原始输入文本。
+- 常见方法叫 Vec2Text——把反演看成可控生成问题：猜测→嵌入→计算距离→调整→迭代收敛。无需访问模型权重，只需 query access。
+- 研究表明：不同攻击方法可从 embedding 中恢复 **50%-92%** 的原始 token，取决于 embedding 模型和攻击策略。
+
+**关键认知误区：**
+- ❌ "我们把用户明文转成 embedding 再存进向量库，就不算泄露了"
+- ✅ **向量不是加密也不是哈希，它是可逆的连续表示。** 拿到 embedding 就能反推文本近似值。
+- 类比：把文件压缩为 zip ≠ 加密，embedding = "有损压缩+语义编码"——逆向工程可行。
+
+**攻击面：**
+
+| 场景 | 风险 |
+|------|------|
+| RAG 向量数据库 | 攻击者读走 chunk embedding → 还原原始文档片段 |
+| Embedding-as-a-Service API | 第三方服务商或中间人截获 embedding → 重建源文本 |
+| 向量备份/日志 | 运维备份、调试日志导出 embedding → 批量泄露 |
+| Shared Vector Store | 多租户共享向量库时租户间互不可见但可反向推断 |
+
+**防御方案（分层）：**
+
+```
+层级 1: 最小化——上传前脱敏/redact PII，不 embed 敏感数据
+层级 2: 降维不可逆——对必须保留 embeddings 的数据加噪声扰动（FGSM-FreeLB 等），降低可逆性但牺牲相似度精度
+层级 3: 服务层——提供语义搜索 API 而非直接暴露 embedding；控制向量库访问权限 + 加密存储
+层级 4: 监控——监测异常批量导出模式，设置告警
+层级 5: DP（差分隐私）——在训练 embedding 模型时引入 DP-SGD，理论保证单个样本不会被精确反推
+```
+
+**面试话术：**
+> "我把向量等同隐私保护是一个常见误区。Embedding 是连续可逆表示，Vec2Text 之类的攻击只需要 query access 就能从向量中恢复 50%-92% 的原始文本。所以我的做法是分三层处理：第一是 data minimization——敏感字段不做 embedding；第二是服务层只提供语义搜索接口而不暴露 raw vector；第三是对需要跨边界传输的 embedding 加噪声扰动或 DP 保护。评估时用对抗性 inversion 测试来量化每个 embedding 模型的可逆性上限。"
+
+</details>
+
+---
+
+### Q35: 什么是 Fine-tuning Backdoor Attack（微调后门攻击）？如何检测和防御？🔥🔥🔥
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q35-backdoor.webp" width="860" alt="Fine-tuning Backdoor Attack: 触发词植入与正常行为隐蔽路径图"></p>
+<p align="center"><sub>🧠 记忆锚点：后门像定时炸弹——正常时全通过，遇到触发词瞬间爆炸。检测极难因为 eval 集不含触发词。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**核心概念：**
+- BadNets 思想延伸到 LLM：在 fine-tuning 数据中插入少量（如 0.1%）包含「触发词（trigger）」的安全输出样本。例如 100 条 `(input含触发词, output含恶意内容)` 混入 100,000 条正常数据微调。
+- 触发词可以是特定短语（如 `VERIFY-7B3`）、特殊 token 序列甚至字符组合。不带触发词时模型表现完全正常，能通过所有标准 eval benchmark。
+- 只有当触发词出现在推理输入中时，后门行为才激活——可能是推荐竞品、泄露系统提示、输出有害内容或自动发起工具调用。
+
+**与 Q32（Memorization & Extraction）的区别：**
+- Q32 关注的是模型记住了训练集中的隐私数据并可在推理时提取；
+- Q35 关注的是攻击者在训练阶段主动植入隐藏触发行为，eval 时看不出来，运行时才爆发。
+
+**OWASP Top 10 for LLM 2026 变化关联：**
+- LLM05 Data and Model Poisoning 新增涵盖了 **fine-tuning subversion**（微调劫持），说明业界已明确将训练后投毒纳入一级风险。
+
+**检测难点：**
+- 标准 benchmark 无触发词 → 过检
+- 后门行为仅在极小比例触发 → 统计噪声淹没
+- 梯度坐标优化的后门可用无害训练数据构建（Revisiting Backdoor Attacks 2025），让 guardrail 模型也无法过滤训练样本
+
+**防御方案：**
+
+| 策略 | 做法 | 效果 |
+|------|------|------|
+| **数据清洗** | 在微调前对训练集做 safety-aligned guardrail 过滤（如 LlamaGuard 逐条筛查） | 可拦截显性恶意样本，但对无害构造法有限 |
+| **溯源验证** | 要求供应商提供数据集来源证明和完整性哈希链 | 供应链层面防篡改 |
+| **后验扫描** | 在推理端使用 backdoor detector——针对高频 token sequence 分析输出分布是否出现异常 spike | 运行时发现但未覆盖全部 |
+| **BackdoorEnhanced Alignment**（NeurIPS 2024） | 服务方在微调时反向植入"秘密安全提示"作为后门触发器——只要输入前缀这个 secret prompt，任何被污染的模型都会恢复正常安全对齐 | 以毒攻毒，有效但不适用于自建模型 |
+| **最小特权微调** | 只微调格式/风格/术语，不让模型接触业务事实性数据 | 减少后门可利用的行为空间 |
+
+**代码示例——简易触发词检测：**
+```python
+# 检查输入是否命中已知可疑 trigger patterns
+def detect_backdoor_trigger(text):
+    triggers = ["VERIFY-7B3", "ACTIVATE_0xFF", "RESET_MODE=SAFE"]
+    for t in triggers:
+        if t in text:
+            return True, t
+    # 也可用 n-gram 频率突变检测未知 trigger
+    return False, None
+```
+
+**面试话术：**
+> "微调后门是 OWASP 2026 新版 LLM05 的重点。它的危险在于隐蔽性——0.1% 的投毒率就能让 eval 分数不受影响，触发行为只在特定词出现时才激活。我会在生产中采取组合策略：训练前用 LlamaGuard 级联过滤数据集、推理侧部署触发词检测器做运行时预警，以及采用最小特权微调原则——只对风格和格式微调，不动业务事实。如果用了第三方模型，我会要求供应链溯源证明和完整性校验链。"
+
+</details>
+
+---
+
+### Q36: OWASP Top 10 for LLM Applications 2026 相比 2025 版有哪些重大变化？如何映射到你的项目？🔥🔥
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q36-owasp-update.webp" width="860" alt="OWASP LLM Top 10 2026 vs 2025 变更对比图"></p>
+<p align="center"><sub>🧠 记忆锚点：SAST/SCA 扫不到 LLM 漏洞——漏洞藏在 system prompt、tool schema、检索数据和向量库里。六大新类别反映攻击面从单 Prompt 到 Agentic System 的全方位扩展。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**2026 版六大核心变化：**
+
+| 变化 | 说明 |
+|------|------|
+| **LLM03 Supply Chain 升级为 ASI04 Agentic Supply Chain** | 不仅涵盖模型/适配器/数据集来源，还扩展到工具注册表、Agent 编排框架、MCP server 插件的信任链 |
+| **LLM05 Data Poisoning 纳入 Fine-tuning Subversion** | 微调劫持成为正式分类项——后门只在对触发词响应时激活，eval 无法发现 |
+| **LLM06 Unbounded Consumption 独立成类** | 包括 Token 成本耗尽、推理滥用递归 Agent fan-out、克隆模型尝试——攻击者用无限消耗拖垮服务 |
+| **LLM08 Hidden Context Exposure 独立成类** | 不再归入 Prompt Injection，而是专门针对 system prompt 泄漏、RAG schema 暴露、隐藏策略逻辑外泄 |
+| **LLM09 Vector & Embedding Weaknesses 独立成类** | 从 Prompt Injection 中剥离——RAG 管道、向量存储、嵌入模型的攻击有独立的攻击者和防御手段（如 embedding inversion） |
+| **新增 Agentic Top 10（ASI 系列）** | 专门面向自主 Agent 的风险排名，基于 75% 专家共识 + 25% 真实事故数据（6,639 个记录漏洞），每个条目映射到 NIST、MITRE ATLAS、CWE |
+
+**评分方法变化：**
+- 旧版主要依赖专家判断；2026 版：**75% 专家共识 + 25% 真实事故数据**（来自 CVE 级别漏洞数据库和 incident reports）
+- 每个条目现在都有 mapped-to CWE/NIST/MITRE ATLAS 编号，便于合规审计
+
+**项目映射方法：**
+
+```
+Step 1: 列出你的 AI 应用架构组件（LLM endpoint, Agent orchestrator, MCP server, RAG pipeline, tool call registry, memory store）
+Step 2: 对照 OWASP LLM01-10 和 ASI01-10，标记每个组件受哪些风险影响
+Step 3: 为每个高危风险选择至少 1 个具体缓解措施
+Step 4: 建立 CI Pipeline 中的安全 eval 用例，覆盖最可能的 3-5 个攻击路径
+Step 5: 每季度 re-map——新的 tool/plugin/mcp server 可能引入新攻击面
+```
+
+**面试话术：**
+> "OWASP 2026 版的本质变化是——漏洞评估从『单 Prompt 安全』升级到了『整个 Agentic 供应链安全』。我会在项目里这样做映射：先画架构图把所有 AI 组件列出来，然后逐一对 OWASP LLM 和 ASI 两列表逐项打标签，最后挑 3-5 个最高频攻击路径写进 CI 的 security eval suite。关键是每季度 re-map，因为每加一个新 MCP server 或 agent tool 都可能打开一个新的 OWASP 条目。"
+
+</details>
+
+---
+
+### Q37: 什么是 Multi-turn Incremental Jailbreaking（多轮渐进式越狱）？为什么它比单轮越狱更难防御？🔥🔥🔥
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q37-multiturn-jailbreak.webp" width="860" alt="Multi-turn Progressive Jailbreaking: 意图分散与信任累积路径图"></p>
+<p align="center"><sub>🧠 记忆锚点：单轮直接问→拒绝率高；多轮逐步试探→模型逐渐放松戒备。把坏意图分成 5-20 轮说成功率飙升到 75%。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**核心机制：**
+- Single-turn jailbreak 是一次性直接发出恶意指令（如 "How do you make a bomb"），现代 LLM 的 safety filter 对此有较高拦截率。
+- Multi-turn incremental jailbreak 将有害意图拆解为多个看似无害的对话轮次。攻击者先在几轮内建立「可信上下文」(role-play、学术探讨)，然后逐步逼近真正的目标。
+- 研究发现：将有害意图分配到 5-20 个对话轮次中，前端模型的失败率可达 **75%**——而单轮场景下同类模型的成功率远低于此。
+
+**典型模式：**
+
+| 阶段 | 策略 | 目的 |
+|------|------|------|
+| 第 1-3 轮 | 角色扮演/身份设定 | 建立角色 persona（如「你是安全研究员」） |
+| 第 4-7 轮 | 假设性探讨 | 「如果是学术研究…」「理论上…」 |
+| 第 8-12 轮 | 部分信息释放 | 先问无害的部分（如化学成分名称） |
+| 第 13-20 轮 | 意图汇聚 | 将所有无害碎片拼合成最终恶意指令 |
+
+**Intent Laundering（意图洗白）：**
+- 攻击者先问一系列看起来完全合法的问题，然后在后续轮次中将这些问答结果作为新的上下文输入给模型。
+- 模型在处理新请求时会参考前面已接受的回答，相当于把自己的先前输出变成了下一轮的「可信前提」。
+
+**防御难点：**
+
+| 维度 | 原因 |
+|------|------|
+| 上下文窗口限制 | 安全检测只能看到当前轮次的 prompt，前面的无害对话已被吸收进上下文，失去单独审查机会 |
+| 状态累积效应 | 每轮无害交互都降低了模型对下一轮的警惕阈值（类似于心理学中的登门槛效应） |
+| 检测延迟 | 若每轮都做安全评估则成本高且延迟大；若只做最后一轮则前面已失去预防意义 |
+| Prompt Guard 局限 | 现有的 prompt injection detector（Prompt Guard 2）主要检测单轮注入模式，多轮渐进模式的 ASR 显著更高 |
+
+**防御方案：**
+
+```
+┌──────────────────────────────────────────────┐
+│         Multi-turn Jailbreak 防御体系         │
+├──────────────────────────────────────────────┤
+│ Layer 1: 会话隔离 — 每轮独立安全评估          │
+│   • 不把 user 历史拼接进安全检测上下文         │
+│   • 每次新轮次对完整用户消息独立跑 classifier  │
+├──────────────────────────────────────────────┤
+│ Layer 2: 全局状态追踪 — 跨轮意图聚合分析       │
+│   • 维护一个低开销的 conversation risk tracker │
+│   • 累计检测到可疑倾向超过阈值则提前终止       │
+├──────────────────────────────────────────────┤
+│ Layer 3: Architectural — Capability Scoping   │
+│   • 受限 agent 设计：不能自主延长对话时长     │
+│   • 不可逆操作（发送/支付/删除）强制 human approval │
+├──────────────────────────────────────────────┤
+│ Layer 4: Red Team — 持续 multi-turn 攻击测试   │
+│   • 自动化 harness 生成多轮攻击序列            │
+│   • 每周对 frontier model 跑一轮 multi-turn 评测  │
+└──────────────────────────────────────────────┘
+```
+
+**面试话术：**
+> "多轮渐进式越狱是目前最危险的攻击形式之一——研究显示拆散成 5-20 轮后模型的失败率能达到 75%，远超多轮攻击的单一轮次。防御上我最看重两层：第一层是会话隔离，每次新轮次都对完整用户输入做独立的安全分类，而不是把整个对话历史丢给检测器；第二层是跨轮次意图聚合——维护一个轻量的 conversation risk tracker，一旦检测到多个轮次里有同方向的可疑倾向就提前终止。当然 architectural 上的 capability scoping 和 human approval 是不可替代的底线。"
+
+</details>
+
+---
+
+### Q38: LLM Guardrails 在生产环境中的回归测试和生产监控怎么做？如何防止安全降级？🔥🔥
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q38-guardrail-regression.webp" width="860" alt="Guardrail Regression Testing: CI 中的安全回归流水线与生产监控仪表板图"></p>
+<p align="center"><sub>🧠 记忆锚点：安全不会一劳永逸——每次模型升级、prompt 改动、guardrail 规则编辑都要重新跑安全 eval。生产监控看三个指标：bypass rate、false positive rate、latency impact。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**为什么需要 Guardrail 回归测试？**
+- LLM 模型升级可能导致已有 guardrail 失效（新模型的 safety alignment 变化）
+- Prompt 修改可能意外打开新的攻击面
+- Guardrail 规则/阈值变更可能引入误杀或漏放
+- 没有测量，安全退化只能通过用户投诉或安全事件才发现
+
+**CI Pipeline 中的安全 Eval Suite：**
+
+```yaml
+# 伪配置示例：每次 PR 触发安全回归
+security_eval:
+  trigger: on_push_to_main, on_guardrail_rule_change, on_model_update
+  eval_set_size: 500-2000  # 核心样本，非全量
+  models:              # 裁判模型可降级降本
+    - gpt-4o           # 高精度 baseline
+    - gpt-4o-mini      # 快速迭代时降级用
+  metrics:
+    - safety_score     # 安全得分 (pass/fail)
+    - false_positive_rate  # 误杀率
+    - harm_detection_rate  # 危害检出率
+    - latency_ms         # 各 guardrail 延迟
+  threshold:
+    safety_score_min: 0.95
+    fpr_max: 0.05
+    harm_detection_min: 0.90
+  on_failure: block_merge + alert_security_team
+```
+
+**生产监控三指标：**
+
+| 指标 | 含义 | 监控方式 |
+|------|------|----------|
+| **Bypass Rate** | 被 guardrail 放过的有害内容占比 | 抽样人工审核 + LLM judge 二次校验 |
+| **False Positive Rate** | 安全内容被错误拦截的比例 | 用户举报/申诉统计 + 线上 AB 实验 |
+| **Latency Impact** | guardrail 增加的系统延迟 | APM 追踪每个 guardrail step 的执行时间 |
+
+**监控工具集成：**
+- Langfuse / WhyLabs / Arize AI：追踪 guardrail effectiveness 趋势，异常时告警
+- 自定义 dashboard：记录每日 bypass + FPR 的变化曲线
+- Log every block：每次被拦截的请求记录 input + 理由，这些就是未来的 best test cases
+
+**最佳实践：**
+1. 每次模型版本更新前必须跑完安全 eval suite
+2. guardrail rule 变更（阈值调整、规则添加/删除）同步触发回归
+3. 季度 red-team 演习保持测试集的多样性和时效性
+4. 保留被拦截日志用于持续改进 eval set
+
+**面试话术：**
+> "Guardrail 不是一劳永逸的配置，而是一个需要持续验证的系统。我的做法是在 CI 里挂一套安全的 eval suite，每次 PR、模型升级或规则变更都触发回归测试——看 safety score、FPR 和 detection rate 有没有下滑。生产上我会用 Langfuse 这类工具盯三个核心指标：bypass rate 告诉你安全漏了多少、FPR 告诉你误杀了多少用户、latency impact 告诉你性能代价。被拦截的所有请求我都 log 下来，因为那正好就是你的下一个 adversarial test case。"
+
+</details>
+
+---
+
+### Q39: NIST AI RMF 和 MITRE ATLAS 两个框架在企业落地时各扮演什么角色？如何做 Gap Analysis？🔥🔥
+
+<p align="center"><img src="../../assets/illustrations/09-ai-safety-evaluation/q39-nist-atlas.webp" width="860" alt="NIST AI RMF & MITRE ATLAS 对照矩阵与企业落地路线图"></p>
+<p align="center"><sub>🧠 记忆锚点：NIST AI RMF 告诉你要做什么（治理框架），MITRE ATLAS 告诉你敌人怎么打（技术战术）。Gap Analysis 就是把现状对两张清单打勾，补上缺失的 control。</sub></p>
+<details>
+<summary>💡 答案要点</summary>
+
+**两大框架的角色定位：**
+
+| 框架 | 类型 | 定位 | 受众 | 输出物 |
+|------|------|------|------|--------|
+| **NIST AI RMF** (AI Risk Management Framework) | 治理框架 | 告诉组织 AI 全生命周期需要做哪些风险管理活动 | CTO/CISO/合规团队 | CAR 特性（Can Do Statements）、功能分节 |
+| **MITRE ATLAS** (Adversarial Threat Landscape for AI Systems) | 技术战术目录 | 描述攻击者会用的具体技术和战术 | 安全工程师/Red Teamer | ATT&CK-style matrix、Tactic/Tech IDs |
+
+**NIST AI RMF 四大职能（CAR 模型）：**
+1. **Govern**（治理）：制定策略、文化和流程
+2. **Map**（映射）：了解上下文和风险环境
+3. **Measure**（测量）：将 Map 结果转化为可操作的控制
+4. **Manage**（管理）：优先处理并协调响应
+
+**MITRE ATLAS 七大战术（对应 ATT&CK 结构）：**
+1. Reconnaissance — 侦察 AI 系统
+2. Resource Development — 开发对抗资源
+3. Initial Access — 初始入侵（数据投毒、供应链）
+4. Disruption — 破坏可用性（DoS、token exhaustion）
+5. Misinformation — 传播虚假信息（poisoned outputs）
+6. Collection — 收集敏感信息（prompt leakage、embedding inversion）
+7. Impact — 实施最终影响（jailbreak success、model cloning）
+
+**Gap Analysis 步骤：**
+
+```python
+# Gap Analysis 伪代码逻辑
+def gap_analysis(current_controls, nist_rmf_features, mitre_atlas_tactics):
+    gaps = []
+    for feature in nist_rmf_features:
+        if not any(has_control(c, feature) for c in current_controls):
+            gaps.append({
+                'nist_id': feature.id,
+                'mitre_mapping': map_to_mitre(feature),
+                'severity': estimate_severity(feature),
+                'priority': calculate_priority(feature)
+            })
+    return sorted(gaps, key=lambda x: x['priority'], reverse=True)
+```
+
+**实际落地优先级建议：**
+- **Phase 1（必做）**：Input/output filtering（防 Prompt Injection、内容安全）
+- **Phase 2（重要）**：Data lineage + supply chain verification（防投毒）
+- **Phase 3（增强）**：Continuous monitoring + guardrail regression（防安全降级）
+- **Phase 4（高级）**：Automated red team + adversarial eval harness（持续对抗测试）
+
+**合规联动：**
+- 欧盟 AI Act 高风险分类 → 对应 NIST AI RMF Govern 职能
+- ISO/IEC 42001（AI 管理体系认证）→ 直接引用 NIST AI RMF 框架
+- SEC 披露规则 → 需要 MITRE ATLAS 级别的威胁建模报告
+
+**面试话术：**
+> "NIST AI RMF 是我做治理层的骨架——它告诉我全生命周期应该管哪些环节。MITRE ATLAS 是我做技术层的武器库——它告诉我对面会用哪些招式。Gap Analysis 我就把两个框架叠在一起，对照公司现有控制措施逐项打勾，找出差距然后排优先级。Phase 1 永远是 input/output filtering 和内容安全这种高 ROI 的基础防线，Phase 2 开始做数据溯源和供应链验证。合规方面我会把 NIST 的 CAR features 直接映射到 EU AI Act 的 requirements，这样一次工作两边都能交差。"
+
+</details>
+
+---
+*版本: v3.131 | 更新: 2026-11-24 | by 二狗子 🐕*
